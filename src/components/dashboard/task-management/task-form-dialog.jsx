@@ -25,60 +25,78 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { CalendarIcon, XCircle, Paperclip } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
+import { CalendarIcon, PlusCircle, Save, X } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
+import { TaskSubtasks } from "./task-subtasks"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Define form schema with Zod
 const taskFormSchema = z.object({
-  name: z.string().min(3, {
-    message: "Task name must be at least 3 characters.",
+  title: z.string().min(3, {
+    message: "Title must be at least 3 characters.",
   }),
-  experimentName: z.string({
-    required_error: "Please select an experiment.",
-  }),
-  assignedTo: z.string({
-    required_error: "Please assign this task to someone.",
-  }),
-  priority: z.string({
-    required_error: "Please select a priority level.",
+  description: z.string().min(3, {
+    message: "Description must be at least 3 characters.",
   }),
   status: z.string({
     required_error: "Please select a status.",
   }),
-  dueDate: z.date({
-    required_error: "Please select a due date.",
+  priority: z.string({
+    required_error: "Please select a priority level.",
   }),
-  description: z.string().optional(),
-  dependencies: z.array(z.string()).optional(),
+  dueDate: z.date().optional(),
+  assigneeId: z.string().optional(),
+  experimentId: z.string().optional(),
+  parentTaskId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 });
 
-export const TaskFormDialog = ({ open, onOpenChange, task, mode, onSubmit, users, experiments, tasks }) => {
+export const TaskFormDialog = ({ 
+  open, 
+  onOpenChange, 
+  task, 
+  mode, 
+  onSubmit, 
+  users = [], 
+  experiments = [], 
+  tasks = [], 
+  templates = [] 
+}) => {
+  const [tags, setTags] = useState([]);
+  const [currentTag, setCurrentTag] = useState("");
+  const [subtasks, setSubtasks] = useState([]);
+  const [activeTab, setActiveTab] = useState("details");
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  
+  // Ensure we have arrays to work with
+  const userArray = Array.isArray(users) ? users : [];
+  const experimentsArray = Array.isArray(experiments) ? experiments : [];
+  const tasksArray = Array.isArray(tasks) ? tasks : [];
+  const templatesArray = Array.isArray(templates) ? templates : [];
+  
   // Initialize form with React Hook Form and Zod validation
   const form = useForm({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
-      name: "",
-      experimentName: "",
-      assignedTo: "",
-      priority: "medium",
-      status: "pending",
-      dueDate: new Date(),
+      title: "",
       description: "",
-      dependencies: [],
+      status: "pending",
+      priority: "medium",
+      dueDate: undefined,
+      assigneeId: "unassigned",
+      experimentId: "none_experiment",
+      parentTaskId: "none_task",
+      tags: [],
     },
   });
   
@@ -87,61 +105,93 @@ export const TaskFormDialog = ({ open, onOpenChange, task, mode, onSubmit, users
     if (open) {
       if (mode === "edit" && task) {
         form.reset({
-          name: task.name,
-          experimentName: task.experimentName,
-          assignedTo: task.assignedTo.id,
-          priority: task.priority,
+          title: task.title,
+          description: task.description,
           status: task.status,
-          dueDate: new Date(task.dueDate),
-          description: task.description || "",
-          dependencies: task.dependencies || [],
+          priority: task.priority || "medium",
+          dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+          assigneeId: task.assigneeId || "unassigned",
+          experimentId: task.experimentId || "none_experiment",
+          parentTaskId: task.parentTaskId || "none_task",
+          tags: task.tags || [],
         });
+        setTags(task.tags || []);
+        setSubtasks(task.subtasks || []);
       } else {
         form.reset({
-          name: "",
-          experimentName: "",
-          assignedTo: "",
-          priority: "medium",
-          status: "pending",
-          dueDate: new Date(),
+          title: "",
           description: "",
-          dependencies: [],
+          status: "pending",
+          priority: "medium",
+          dueDate: undefined,
+          assigneeId: "unassigned",
+          experimentId: "none_experiment",
+          parentTaskId: "none_task",
+          tags: [],
         });
+        setTags([]);
+        setSubtasks([]);
+        setSelectedTemplate(null);
       }
     }
   }, [open, mode, task, form]);
+  
+  // Handle applying a template
+  const handleApplyTemplate = (template) => {
+    if (!template) return;
+    
+    form.setValue("title", template.name);
+    form.setValue("description", template.description);
+    form.setValue("status", template.defaultStatus);
+    form.setValue("priority", template.defaultPriority);
+    
+    if (template.categoryTags && template.categoryTags.length > 0) {
+      setTags(template.categoryTags);
+      form.setValue("tags", template.categoryTags);
+    }
+    
+    setSelectedTemplate(template);
+  };
   
   // Handle form submission
   const handleSubmit = (data) => {
     // Format the task data
     const formattedTask = {
       ...data,
-      assignedTo: {
-        id: data.assignedTo,
-        name: users[data.assignedTo]?.name || "Unknown User",
-        avatar: users[data.assignedTo]?.avatar || "??",
-      },
+      tags,
+      subtasks,
     };
     
     // If editing, add the id
     if (mode === "edit" && task) {
       formattedTask.id = task.id;
-      // Preserve existing data that isn't part of the form
-      formattedTask.createdAt = task.createdAt;
-      formattedTask.attachments = task.attachments || [];
-      // We don't overwrite activityLog here as it's handled in the parent component
     }
     
     // Submit the task
     onSubmit(formattedTask);
   };
   
-  // Get available tasks for dependencies
-  const availableTasks = tasks?.filter(t => {
-    if (mode === "create") return true;
-    if (mode === "edit" && task) return t.id !== task.id;
-    return true;
-  }) || [];
+  // Handle adding a new tag
+  const handleAddTag = () => {
+    if (currentTag.trim() !== "" && !tags.includes(currentTag.trim())) {
+      const newTags = [...tags, currentTag.trim()];
+      setTags(newTags);
+      form.setValue("tags", newTags);
+      setCurrentTag("");
+    }
+  };
+  
+  // Handle removing a tag
+  const handleRemoveTag = (tagToRemove) => {
+    const newTags = tags.filter(tag => tag !== tagToRemove);
+    setTags(newTags);
+    form.setValue("tags", newTags);
+  };
+  
+  // Handle subtasks changes
+  const handleSubtasksChange = (updatedSubtasks) => {
+    setSubtasks(updatedSubtasks);
+  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,318 +200,401 @@ export const TaskFormDialog = ({ open, onOpenChange, task, mode, onSubmit, users
           <DialogTitle>{mode === "create" ? "Create New Task" : "Edit Task"}</DialogTitle>
           <DialogDescription>
             {mode === "create" 
-              ? "Add a new task for your laboratory experiment."
+              ? "Add a new task to your project."
               : "Update the details of this task."}
           </DialogDescription>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Task Name*</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter task name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="experimentName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Experiment*</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
+        {mode === "create" && templatesArray.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2">Start from a template</h4>
+            <Select onValueChange={(value) => {
+              const template = templatesArray.find(t => t.id === value);
+              handleApplyTemplate(template);
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a template" />
+              </SelectTrigger>
+              <SelectContent>
+                {templatesArray.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedTemplate && (
+              <div className="flex items-center mt-2">
+                <Badge variant="outline" className="mr-2">
+                  Using template: {selectedTemplate.name}
+                </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6" 
+                  onClick={() => {
+                    form.reset();
+                    setTags([]);
+                    setSubtasks([]);
+                    setSelectedTemplate(null);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Task Details</TabsTrigger>
+            <TabsTrigger value="subtasks">Subtasks ({subtasks.length})</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="details" className="pt-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title*</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select experiment" />
-                        </SelectTrigger>
+                        <Input placeholder="Enter task title" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {experiments?.map(exp => (
-                          <SelectItem key={exp.id} value={exp.name}>
-                            {exp.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="assignedTo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assigned To*</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select assignee" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(users)?.map(user => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name} ({user.role})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority*</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select priority" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status*</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Due Date*</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Enter task description" 
-                      className="min-h-[100px]" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Provide additional details about this task.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="dependencies"
-              render={() => (
-                <FormItem>
-                  <div className="mb-4">
-                    <FormLabel className="text-base">Dependencies</FormLabel>
-                    <FormDescription>
-                      Select tasks that must be completed before this task can start.
-                    </FormDescription>
-                  </div>
-                  {availableTasks.length > 0 ? (
-                    <div className="space-y-2">
-                      {availableTasks.map((task) => (
-                        <FormField
-                          key={task.id}
-                          control={form.control}
-                          name="dependencies"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={task.id}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(task.id)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, task.id])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== task.id
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal cursor-pointer">
-                                  {task.name}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground text-sm">
-                      No other tasks available to select as dependencies.
-                    </div>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </FormItem>
-              )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description*</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter task description" 
+                          className="min-h-[100px]" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status*</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="in-progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Priority*</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select priority" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                                Low
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="medium">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                                Medium
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="high">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 rounded-full bg-orange-500 mr-2"></div>
+                                High
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="critical">
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                                Critical
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Due Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                            />
+                            {field.value && (
+                              <div className="p-2 border-t border-border">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full text-xs"
+                                  onClick={() => field.onChange(undefined)}
+                                >
+                                  <X className="h-3 w-3 mr-2" />
+                                  Clear date
+                                </Button>
+                              </div>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="assigneeId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Assignee</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Assign to..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            {userArray.map((user) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="experimentId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Related Experiment</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select experiment" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none_experiment">None</SelectItem>
+                            {experimentsArray.map((experiment) => (
+                              <SelectItem key={experiment.id} value={experiment.id}>
+                                {experiment.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="parentTaskId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Parent Task</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select parent task" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none_task">None</SelectItem>
+                            {tasksArray
+                              .filter(t => mode === "create" || (mode === "edit" && t.id !== task?.id))
+                              .map((t) => (
+                                <SelectItem key={t.id} value={t.id}>
+                                  {t.title}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <FormLabel>Tags</FormLabel>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {tags.map((tag, index) => (
+                      <div 
+                        key={index}
+                        className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1"
+                      >
+                        <span>{tag}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => handleRemoveTag(tag)}
+                          className="text-secondary-foreground/70 hover:text-secondary-foreground"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Add a tag" 
+                      value={currentTag} 
+                      onChange={(e) => setCurrentTag(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddTag();
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="icon"
+                      onClick={handleAddTag}
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <FormDescription>
+                    Add tags to organize tasks
+                  </FormDescription>
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    <Save className="h-4 w-4 mr-2" />
+                    {mode === "create" ? "Create Task" : "Save Changes"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </TabsContent>
+          
+          <TabsContent value="subtasks" className="pt-4">
+            <TaskSubtasks 
+              subtasks={subtasks} 
+              onSubtasksChange={handleSubtasksChange} 
             />
             
-            {/* Attachments section - in a real app this would allow file uploads */}
-            <div className="border rounded-md p-4">
-              <h3 className="font-medium mb-2 flex items-center gap-1">
-                <Paperclip className="h-4 w-4" />
-                Attachments
-              </h3>
-              <div className="text-sm text-muted-foreground mb-3">
-                Attach relevant lab reports, images, or documents to this task.
-              </div>
-              
-              {mode === "edit" && task?.attachments?.length > 0 ? (
-                <div className="space-y-2 mb-3">
-                  {task.attachments.map((attachment) => (
-                    <div key={attachment.id} className="flex items-center justify-between border rounded-md p-2">
-                      <div className="flex items-center gap-2">
-                        <Paperclip className="h-4 w-4 text-muted-foreground" />
-                        <span>{attachment.name}</span>
-                      </div>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-700">
-                        <XCircle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Paperclip className="w-8 h-8 mb-2 text-muted-foreground" />
-                    <p className="mb-1 text-sm text-muted-foreground">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PDF, DOCX, XLSX, JPG, PNG (MAX. 10MB)
-                    </p>
-                  </div>
-                  <input id="dropzone-file" type="file" className="hidden" disabled />
-                </label>
-              </div>
-              <div className="text-xs text-muted-foreground mt-2">
-                Note: File upload functionality is not implemented in this demo.
-              </div>
-            </div>
-            
-            <DialogFooter>
+            <DialogFooter className="mt-6">
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => onOpenChange(false)}
+                onClick={() => setActiveTab("details")}
               >
-                Cancel
+                Back to Details
               </Button>
-              <Button type="submit">
+              <Button onClick={form.handleSubmit(handleSubmit)}>
+                <Save className="h-4 w-4 mr-2" />
                 {mode === "create" ? "Create Task" : "Save Changes"}
               </Button>
             </DialogFooter>
-          </form>
-        </Form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

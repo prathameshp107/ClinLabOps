@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Menu, X, LayoutDashboard, ClipboardList, Users, FlaskConical,
   Settings, Shield, FolderKanban, BellRing, Sun, Moon, LogOut,
-  ChevronRight, BarChart2, BookOpen, Home, Package, Search
+  ChevronRight, BarChart2, BookOpen, Home, Package, Search, MessageSquare
 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "../ui/button"
@@ -78,6 +78,7 @@ export function DashboardLayout({ children }) {
         { name: "Users", path: "/user-management", icon: <Users className="h-5 w-5" /> },
         { name: "Projects", path: "/projects", icon: <FolderKanban className="h-5 w-5" /> },
         { name: "Tasks", path: "/tasks", icon: <ClipboardList className="h-5 w-5" />, badge: "New" },
+        { name: "Enquiries", path: "/enquiries", icon: <MessageSquare className="h-5 w-5" /> },
       ],
     },
     {

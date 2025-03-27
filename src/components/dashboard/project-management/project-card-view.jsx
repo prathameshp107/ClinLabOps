@@ -24,8 +24,11 @@ import {
 } from "@/components/ui/tooltip"
 import { motion } from "framer-motion"
 import { format, differenceInDays } from "date-fns"
+import { useRouter } from "next/navigation"
 
 export function ProjectCardView({ projects, onAction }) {
+  const router = useRouter();
+  
   const getStatusIcon = (status) => {
     switch (status) {
       case "Pending":
@@ -104,7 +107,7 @@ export function ProjectCardView({ projects, onAction }) {
           whileHover={{ y: -5, transition: { duration: 0.2 } }}
           className="h-full"
         >
-          <Card className="h-full flex flex-col shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group" onClick={() => onAction("view", project)}>
+          <Card className="h-full flex flex-col shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group" onClick={() => router.push(`/projects/${project.id}`)}>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div className="space-y-1.5">
@@ -147,14 +150,14 @@ export function ProjectCardView({ projects, onAction }) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={(e) => {
                       e.stopPropagation();
-                      onAction("view", project);
+                      router.push(`/projects/${project.id}`);
                     }}>
                       <Eye className="h-4 w-4 mr-2" />
                       View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => {
                       e.stopPropagation();
-                      onAction("edit", project);
+                      router.push(`/projects/${project.id}/edit`);
                     }}>
                       <ClipboardEdit className="h-4 w-4 mr-2" />
                       Edit Project

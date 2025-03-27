@@ -1,29 +1,30 @@
 "use client"
 
-import { useState } from "react"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { 
-  MoreHorizontal, 
-  ArrowUp, 
-  ArrowDown, 
+import {
+  MoreHorizontal,
+  ArrowUp,
+  ArrowDown,
   CalendarClock,
   ClipboardEdit,
   Eye,
@@ -31,14 +32,15 @@ import {
   AlertTriangle
 } from "lucide-react"
 import { motion } from "framer-motion"
+import { Checkbox } from "@/components/ui/checkbox"
 
 // Helper function to format date
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
   }).format(date);
 };
 
@@ -49,7 +51,18 @@ const isPastDue = (dateString) => {
   return dueDate < now;
 };
 
-export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) => {
+export const TaskTable = ({
+  tasks = [],
+  onTaskClick,
+  onSelectionChange = () => { },
+  selectedTasks = []
+}) => {
+  const router = useRouter();
+  const [sortConfig, setSortConfig] = useState({
+    key: "dueDate",
+    direction: "asc"
+  });
+
   // Function to get the status badge
   const getStatusBadge = (status) => {
     switch (status) {
@@ -63,7 +76,7 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
         return <Badge variant="outline">{status}</Badge>;
     }
   };
-  
+
   // Function to get priority badge
   const getPriorityBadge = (priority) => {
     switch (priority) {
@@ -77,7 +90,7 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
         return <Badge variant="outline">{priority}</Badge>;
     }
   };
-  
+
   // Function to get sort direction icon
   const getSortDirectionIcon = (name) => {
     if (sortConfig.key === name) {
@@ -89,7 +102,7 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
     }
     return null;
   };
-  
+
   // Column headers
   const columns = [
     { name: "name", label: "Task Name" },
@@ -100,7 +113,7 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
     { name: "dueDate", label: "Due Date" },
     { name: "actions", label: "Actions" }
   ];
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -111,13 +124,32 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[30px]">
+              <Checkbox
+                checked={selectedTasks.length > 0 && selectedTasks.length === tasks.length}
+                onCheckedChange={(checked) => {
+                  if (typeof onSelectionChange === 'function') {
+                    if (checked) {
+                      // Select all tasks
+                      onSelectionChange(tasks.map(task => task.id));
+                    } else {
+                      // Deselect all tasks
+                      onSelectionChange([]);
+                    }
+                  }
+                }}
+              />
+            </TableHead>
             {columns.map((column) => (
               <TableHead key={column.name} className={column.name === "actions" ? "w-[80px]" : ""}>
                 {column.name !== "actions" ? (
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="p-0 font-medium flex items-center"
-                    onClick={() => requestSort(column.name)}
+                    onClick={() => setSortConfig({
+                      key: column.name,
+                      direction: sortConfig.direction === "asc" ? "desc" : "asc"
+                    })}
                   >
                     {column.label}
                     {getSortDirectionIcon(column.name)}
@@ -132,20 +164,43 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
         <TableBody>
           {tasks.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
                 No tasks found.
               </TableCell>
             </TableRow>
           ) : (
             tasks.map((task) => (
               <TableRow 
-                key={task.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => onAction("view", task)}
+                key={task.id} 
+                className="cursor-pointer hover:bg-accent/30"
               >
-                <TableCell className="font-medium">
+                <TableCell 
+                  className="w-[30px]" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                >
+                  <div>
+                    <Checkbox
+                      checked={selectedTasks.includes(task.id)}
+                      onCheckedChange={(checked) => {
+                        if (typeof onSelectionChange === 'function') {
+                          const newSelectedTasks = checked
+                            ? [...selectedTasks, task.id]
+                            : selectedTasks.filter(id => id !== task.id);
+                          onSelectionChange(newSelectedTasks);
+                        }
+                      }}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell 
+                  className="font-medium"
+                  onClick={() => router.push(`/tasks/${task.id}`)}
+                >
                   <div className="max-w-md truncate">
-                    {task.name}
+                    {task.title || task.name}
                     {task.dependencies?.length > 0 && (
                       <span className="ml-2 inline-flex items-center">
                         <AlertTriangle className="h-3 w-3 text-amber-500" />
@@ -153,8 +208,12 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
                     )}
                   </div>
                 </TableCell>
-                <TableCell>{task.experimentName}</TableCell>
-                <TableCell>
+                <TableCell 
+                  onClick={() => router.push(`/tasks/${task.id}`)}
+                >{task.experimentName}</TableCell>
+                <TableCell
+                  onClick={() => router.push(`/tasks/${task.id}`)}
+                >
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback>{task.assignedTo.avatar}</AvatarFallback>
@@ -162,9 +221,15 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
                     <span>{task.assignedTo.name}</span>
                   </div>
                 </TableCell>
-                <TableCell>{getPriorityBadge(task.priority)}</TableCell>
-                <TableCell>{getStatusBadge(task.status)}</TableCell>
-                <TableCell>
+                <TableCell
+                  onClick={() => router.push(`/tasks/${task.id}`)}
+                >{getPriorityBadge(task.priority)}</TableCell>
+                <TableCell
+                  onClick={() => router.push(`/tasks/${task.id}`)}
+                >{getStatusBadge(task.status)}</TableCell>
+                <TableCell
+                  onClick={() => router.push(`/tasks/${task.id}`)}
+                >
                   <div className="flex items-center">
                     <CalendarClock className="mr-1 h-4 w-4 text-muted-foreground" />
                     <span className={isPastDue(task.dueDate) && task.status !== "completed" ? "text-red-500 font-medium" : ""}>
@@ -185,14 +250,14 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={(e) => {
                         e.stopPropagation();
-                        onAction("view", task);
+                        router.push(`/tasks/${task.id}`);
                       }}>
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={(e) => {
                         e.stopPropagation();
-                        onAction("edit", task);
+                        onTaskClick("edit", task);
                       }}>
                         <ClipboardEdit className="mr-2 h-4 w-4" />
                         Edit
@@ -203,18 +268,18 @@ export const TaskTable = ({ tasks, onAction, sortConfig, requestSort, users }) =
                           <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
                             const newStatus = task.status === "pending" ? "in-progress" : "completed";
-                            onAction("statusChange", {...task, status: newStatus});
+                            onTaskClick("statusChange", { ...task, status: newStatus });
                           }}>
                             {task.status === "pending" ? "Mark as In Progress" : "Mark as Completed"}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                         </>
                       )}
-                      <DropdownMenuItem 
-                        className="text-red-600" 
+                      <DropdownMenuItem
+                        className="text-red-600"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onAction("delete", task);
+                          onTaskClick("delete", task);
                         }}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />

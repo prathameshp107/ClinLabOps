@@ -35,6 +35,9 @@ import { DeleteProjectDialog } from "./project-management/delete-project-dialog"
 import { ProjectDetailsDialog } from "./project-management/project-details-dialog"
 import { ProjectShareDialog } from "./project-management/project-share-dialog"
 import { ActivityLogDialog } from "./project-management/activity-log-dialog"
+import { ProjectDependencies } from "./project-management/project-dependencies"
+import { ProjectStatusTracking } from "./project-management/project-status-tracking"
+import { ProjectGanttChart } from "./project-management/project-gantt-chart"
 
 // Mock user data for activity logs
 const mockUsers = {
@@ -64,6 +67,9 @@ export const mockProjects = [
       { id: "u4", name: "James Rodriguez", role: "Lab Technician", email: "j.rodriguez@example.com" }
     ],
     tags: ["Oncology", "Proteomics", "Clinical"],
+    dependencies: [
+      { id: "dep1", sourceId: "p1", sourceName: "Cancer Biomarker Discovery", targetId: "p3", targetName: "Neuroimaging Data Analysis", type: "finish-to-start", created: "2025-01-20T14:15:00Z" }
+    ],
     activityLog: [
       { id: "a1", userId: "u1", action: "created", timestamp: "2025-01-14T09:30:00Z", details: "Project created" },
       { id: "a2", userId: "u1", action: "updated", timestamp: "2025-01-20T14:15:00Z", details: "Updated project description" },
@@ -86,6 +92,9 @@ export const mockProjects = [
       { id: "u5", name: "Olivia Taylor", role: "Microbiologist", email: "o.taylor@example.com" }
     ],
     tags: ["Microbiology", "Drug Development"],
+    dependencies: [
+      { id: "dep2", sourceId: "p2", sourceName: "Antibiotic Resistance Testing", targetId: "p6", targetName: "Lab Equipment Validation", type: "start-to-start", created: "2025-02-15T10:30:00Z" }
+    ],
     activityLog: []
   },
   {
@@ -176,6 +185,7 @@ export function ProjectManagement() {
   const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [activeTab, setActiveTab] = useState("all"); // "all" or "favorites"
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+  const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
   
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
@@ -265,7 +275,8 @@ export function ProjectManagement() {
     
     switch (action) {
       case "view":
-        setShowProjectDetailsDialog(true);
+        // Navigate to the project details page instead of opening a modal
+        window.location.href = `/projects/${project.id}`;
         break;
       case "edit":
         // Redirect to the dedicated edit page
@@ -391,60 +402,104 @@ export function ProjectManagement() {
     setProjects(updatedProjects);
   }
 
+  // Update project dependencies
+  const handleUpdateProjectDependencies = (dependencies) => {
+    // In a real app, you would update this via an API
+    // For now, we'll just update the local state
+    console.log("Updated dependencies:", dependencies);
+    
+    // For demo purposes, we'll update the first project
+    const updatedProjects = projects.map(p => {
+      if (p.id === "p1") {
+        return { ...p, dependencies };
+      }
+      return p;
+    });
+    
+    setProjects(updatedProjects);
+  };
+
+  // Update project status
+  const handleUpdateProjectStatus = (projectId, newStatus) => {
+    const updatedProjects = projects.map(p => {
+      if (p.id === projectId) {
+        // Add a new activity log entry for status change
+        const newActivityLog = [
+          ...(p.activityLog || []),
+          {
+            id: `a${Date.now()}`,
+            userId: currentUser.id,
+            action: "updated_status",
+            timestamp: new Date().toISOString(),
+            details: `Updated status from ${p.status} to ${newStatus}`
+          }
+        ];
+        
+        return { 
+          ...p, 
+          status: newStatus,
+          // If completed, set progress to 100%
+          progress: newStatus === "Completed" ? 100 : p.progress,
+          activityLog: newActivityLog
+        };
+      }
+      return p;
+    });
+    
+    setProjects(updatedProjects);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Projects</h2>
-          <p className="text-muted-foreground">
-            Manage your research and laboratory projects
-          </p>
-        </div>
-        <Button onClick={() => setShowAddProjectDialog(true)} className="gap-2">
+    <div className="space-y-8 pb-10">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
+        <Button onClick={() => setShowAddProjectDialog(true)} className="gap-1">
           <PlusCircle className="h-4 w-4" />
           Add Project
         </Button>
       </div>
-      
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="all" className="gap-2">
-              All Projects
-              <Badge variant="secondary" className="ml-1">
-                {projects.length}
-              </Badge>
+
+      {/* View Selector Tabs */}
+      <div className="border-b">
+        <Tabs 
+          value={activeView} 
+          onValueChange={setActiveView} 
+          className="w-full"
+        >
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0">
+            <TabsTrigger 
+              value="projects" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            >
+              Projects
             </TabsTrigger>
-            <TabsTrigger value="favorites" className="gap-2">
-              Favorites
-              <Badge variant="secondary" className="ml-1">
-                {projects.filter(p => p.isFavorite).length}
-              </Badge>
+            <TabsTrigger 
+              value="status" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            >
+              Status Tracking
+            </TabsTrigger>
+            <TabsTrigger 
+              value="gantt" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            >
+              Gantt Chart
+            </TabsTrigger>
+            <TabsTrigger 
+              value="dependencies" 
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            >
+              Dependencies
             </TabsTrigger>
           </TabsList>
-          
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === "grid" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("grid")}
-              aria-label="Grid view"
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="icon"
-              onClick={() => setViewMode("list")}
-              aria-label="List view"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      
-        <TabsContent value="all" className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
+        </Tabs>
+      </div>
+
+      {/* Main Content Area */}
+      {activeView === "projects" && (
+        <>
+          {/* Search & Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -494,47 +549,51 @@ export function ProjectManagement() {
               </Select>
             </div>
           </div>
-
-          <ProjectDisplay 
-            projects={filteredProjects}
-            viewMode={viewMode}
-            handleProjectAction={handleProjectAction}
-            sortConfig={sortConfig}
-            requestSort={requestSort}
-          />
-        </TabsContent>
-        
-        <TabsContent value="favorites" className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search favorites..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
           
-          <ProjectDisplay 
+          {/* Projects Display */}
+          <ProjectDisplay
             projects={filteredProjects}
             viewMode={viewMode}
             handleProjectAction={handleProjectAction}
             sortConfig={sortConfig}
             requestSort={requestSort}
           />
-        </TabsContent>
-      </Tabs>
-      
-      {/* Add Project Dialog */}
+        </>
+      )}
+
+      {activeView === "status" && (
+        <ProjectStatusTracking 
+          projects={projects}
+          onUpdateProjectStatus={handleUpdateProjectStatus}
+        />
+      )}
+
+      {activeView === "gantt" && (
+        <ProjectGanttChart 
+          projects={projects}
+          dependencies={projects.reduce((acc, project) => {
+            if (project.dependencies) {
+              return [...acc, ...project.dependencies];
+            }
+            return acc;
+          }, [])}
+        />
+      )}
+
+      {activeView === "dependencies" && (
+        <ProjectDependencies 
+          projects={projects}
+          onUpdateProjectDependencies={handleUpdateProjectDependencies}
+        />
+      )}
+
+      {/* Dialogs */}
       <AddProjectDialog 
         open={showAddProjectDialog} 
         onOpenChange={setShowAddProjectDialog}
         onSubmit={handleAddProject}
       />
       
-      {/* Delete Project Dialog */}
       <DeleteProjectDialog 
         open={showDeleteProjectDialog} 
         onOpenChange={setShowDeleteProjectDialog}
@@ -542,7 +601,6 @@ export function ProjectManagement() {
         onDelete={handleDeleteProject}
       />
       
-      {/* Project Details Dialog */}
       <ProjectDetailsDialog 
         open={showProjectDetailsDialog} 
         onOpenChange={setShowProjectDetailsDialog}
@@ -550,7 +608,6 @@ export function ProjectManagement() {
         onAction={handleProjectAction}
       />
       
-      {/* Project Share Dialog */}
       <ProjectShareDialog
         open={showShareProjectDialog}
         onOpenChange={setShowShareProjectDialog}
@@ -558,7 +615,6 @@ export function ProjectManagement() {
         onShare={handleShareProject}
       />
       
-      {/* Project Activity Log Dialog */}
       <ActivityLogDialog
         open={showActivityLogDialog}
         onOpenChange={setShowActivityLogDialog}
