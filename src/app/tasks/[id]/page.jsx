@@ -1,5 +1,7 @@
 "use client"
 
+// The existing code looks good, but we need to ensure dates are properly formatted for the TaskDetails component
+
 import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
@@ -204,11 +206,20 @@ export default function TaskDetailsPage() {
   useEffect(() => {
     // In a real app, you would fetch the task data from an API
     const mockTaskData = generateMockTasks();
-    setAllTasks(mockTaskData);
+    
+    // Convert date objects to ISO strings for proper handling in components
+    const formattedTasks = mockTaskData.map(task => ({
+      ...task,
+      createdAt: task.createdAt.toISOString(),
+      updatedAt: task.updatedAt.toISOString(),
+      dueDate: task.dueDate.toISOString()
+    }));
+    
+    setAllTasks(formattedTasks);
 
     const taskId = params.id;
-    // Modified comparison to ensure proper task finding
-    const foundTask = mockTaskData.find(t => String(t.id) === String(taskId));
+    // Find the task with matching ID
+    const foundTask = formattedTasks.find(t => String(t.id) === String(taskId));
 
     if (foundTask) {
       setTask(foundTask);

@@ -52,11 +52,13 @@ import {
     MessageSquare,
     AlertCircle,
     Clock,
-    Star
+    Star,
+    ToggleRight,
+    ToggleLeft
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-export function ModernSidebar({ className }) {
+export function ModernSidebar({ className, onToggle }) {
     const pathname = usePathname();
     const [expandedSections, setExpandedSections] = useState(['main', 'lab', 'team', 'insights', 'system']);
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -69,6 +71,16 @@ export function ModernSidebar({ className }) {
                 ? prev.filter(s => s !== section)
                 : [...prev, section]
         );
+    };
+
+    // Handle sidebar collapse toggle
+    const handleToggle = () => {
+        const newCollapsedState = !isCollapsed;
+        setIsCollapsed(newCollapsedState);
+        // Notify parent component about the state change
+        if (onToggle) {
+            onToggle(newCollapsedState);
+        }
     };
 
     // Check if a route is active
@@ -88,6 +100,13 @@ export function ModernSidebar({ className }) {
                     icon: <Home className="h-5 w-5" />,
                     path: '/',
                     badge: null
+                },
+                {
+                    name: 'projects',
+                    label: 'Projects',
+                    icon: <ClipboardList className="h-5 w-5" />,
+                    path: '/projects',
+                    badge: { count: 12, variant: 'default' }
                 },
                 {
                     name: 'tasks',
@@ -151,17 +170,17 @@ export function ModernSidebar({ className }) {
             label: 'Team',
             items: [
                 {
+                    name: 'user-management',
+                    label: 'User Management',
+                    icon: <Briefcase className="h-5 w-5" />,
+                    path: '/user-management',
+                    badge: null
+                },
+                {
                     name: 'members',
                     label: 'Members',
                     icon: <Users className="h-5 w-5" />,
                     path: '/members',
-                    badge: null
-                },
-                {
-                    name: 'projects',
-                    label: 'Projects',
-                    icon: <Briefcase className="h-5 w-5" />,
-                    path: '/projects',
                     badge: null
                 },
                 {
@@ -292,17 +311,21 @@ export function ModernSidebar({ className }) {
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors shadow-sm"
+                    onClick={handleToggle}
+                    className="h-14 w-14 rounded-full hover:bg-primary/20 hover:text-primary transition-colors shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-1"
+                    aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    <ChevronRight className={cn(
-                        "h-4 w-4 transition-transform duration-300",
-                        isCollapsed ? "rotate-0" : "rotate-180"
-                    )} />
+                    <div className="flex items-center justify-center w-full h-full">
+                        {isCollapsed ? (
+                            <ToggleLeft className="h-8 w-8 text-primary" />
+                        ) : (
+                            <ToggleRight className="h-8 w-8 text-primary" />
+                        )}
+                    </div>
                 </Button>
             </div>
 
-            {/* Navigation Menu */}
+            { }
             <ScrollArea className="flex-1 px-3">
                 <div className="py-4 space-y-6">
                     {navigationItems.map((section) => (
@@ -550,5 +573,5 @@ export function ModernSidebar({ className }) {
                 </div>
             )}
         </div>
-    );
-}
+    )
+};
