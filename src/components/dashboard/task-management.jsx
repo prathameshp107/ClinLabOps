@@ -239,7 +239,13 @@ const mockExperiments = [
   { id: 'e4', name: 'Biomarker Analysis Project' },
 ];
 
+// Add this import at the top with other imports
+import { useRouter } from "next/navigation"
+
 export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
+  // Add router
+  const router = useRouter();
+  
   // State for tasks
   const [tasks, setTasks] = useState(mockTasks);
   const [filteredTasks, setFilteredTasks] = useState(mockTasks);
@@ -413,7 +419,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
 
     switch (action) {
       case "view":
-        setShowTaskDetailsDialog(true);
+        // Navigate to the task detail page instead of showing dialog
+        router.push(`/tasks/${task.id}`);
         break;
       case "edit":
         setFormMode("edit");
@@ -836,7 +843,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleTaskAction("view", task)}>
+                                    <DropdownMenuItem onClick={() => router.push(`/tasks/${task.id}`)}>
                                       <Search className="h-4 w-4 mr-2" />
                                       View Details
                                     </DropdownMenuItem>
