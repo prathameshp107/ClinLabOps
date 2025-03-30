@@ -54,7 +54,12 @@ import {
     Clock,
     Star,
     ToggleRight,
-    ToggleLeft
+    ToggleLeft,
+    LayoutDashboard,  // Added this import
+    BarChart3,        // Added this import
+    CheckSquare,      // Added this import
+    FolderKanban,     // Added this import
+    Package          // Added this import
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -88,7 +93,7 @@ export function ModernSidebar({ className, onToggle }) {
         return pathname === path;
     };
 
-    // Navigation items with grouping
+    // Update the navigationItems array to include Experiments
     const navigationItems = [
         {
             section: 'main',
@@ -326,7 +331,7 @@ export function ModernSidebar({ className, onToggle }) {
             </div>
 
             { }
-            <ScrollArea className="flex-1 px-3">
+            <ScrollArea className="flex-1 px-3 overflow-y-auto">
                 <div className="py-4 space-y-6">
                     {navigationItems.map((section) => (
                         <div key={section.section} className="space-y-1">
@@ -460,7 +465,7 @@ export function ModernSidebar({ className, onToggle }) {
             </ScrollArea>
 
             {/* Quick Stats */}
-            {!isCollapsed && (
+            {/* {!isCollapsed && (
                 <div className="border-t border-border/40 p-4 bg-muted/30 backdrop-blur-sm">
                     <div>
                         <h4 className="text-xs font-semibold text-muted-foreground mb-3 px-1 uppercase tracking-wider">Quick Stats</h4>
@@ -486,7 +491,7 @@ export function ModernSidebar({ className, onToggle }) {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* User Profile Section */}
             {!isCollapsed ? (
