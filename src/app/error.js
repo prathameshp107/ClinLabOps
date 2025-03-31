@@ -41,7 +41,7 @@ export default function Error({ error, reset }) {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            We've encountered an error processing your request. 
+            Weve encountered an error processing your request. 
             Please try again or return to the home page.
           </p>
         </motion.div>

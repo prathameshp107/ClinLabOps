@@ -1,4 +1,9 @@
-// ... existing code ...
+"use client";
+
+// Add these imports at the top of your file
+import { motion } from "framer-motion";
+import { FlaskConical, Users } from "lucide-react";
+import { BackgroundBeams } from "@/components/ui/aceternity/background-beams";
 
 export default function RegisterPage() {
   return (
