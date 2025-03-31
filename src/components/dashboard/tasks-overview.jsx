@@ -7,12 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 
-// Mock data for tasks
-const taskData = [
-  { name: 'Pending', value: 12, color: '#f87171' }, // Red
-  { name: 'In Progress', value: 18, color: '#facc15' }, // Yellow
-  { name: 'Completed', value: 24, color: '#4ade80' }, // Green
-]
 
 const RADIAN = Math.PI / 180
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -27,9 +21,10 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   )
 }
 
-export const TasksOverview = () => {
-  const totalTasks = taskData.reduce((sum, task) => sum + task.value, 0)
-  
+export const TasksOverview = (tasksOverviewData) => {
+  const tasksOverviewsData = tasksOverviewData?.data;
+  const totalTasks = tasksOverviewsData.reduce((sum, task) => sum + task.value, 0)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -55,17 +50,17 @@ export const TasksOverview = () => {
               </div>
             </div>
             <div className="flex space-x-2">
-              <Badge variant="outline" className="bg-red-100 hover:bg-red-200 border-red-200 text-red-700">Pending: {taskData[0].value}</Badge>
-              <Badge variant="outline" className="bg-yellow-100 hover:bg-yellow-200 border-yellow-200 text-yellow-700">In Progress: {taskData[1].value}</Badge>
-              <Badge variant="outline" className="bg-green-100 hover:bg-green-200 border-green-200 text-green-700">Completed: {taskData[2].value}</Badge>
+              <Badge variant="outline" className="bg-red-100 hover:bg-red-200 border-red-200 text-red-700">Pending: {tasksOverviewsData[0].value}</Badge>
+              <Badge variant="outline" className="bg-yellow-100 hover:bg-yellow-200 border-yellow-200 text-yellow-700">In Progress: {tasksOverviewsData[1].value}</Badge>
+              <Badge variant="outline" className="bg-green-100 hover:bg-green-200 border-green-200 text-green-700">Completed: {tasksOverviewsData[2].value}</Badge>
             </div>
           </div>
-          
+
           <div className="h-[180px] mt-6">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={taskData}
+                  data={tasksOverviewsData}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -74,7 +69,7 @@ export const TasksOverview = () => {
                   fill="#8884d8"
                   dataKey="value"
                 >
-                  {taskData.map((entry, index) => (
+                  {tasksOverviewsData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -83,7 +78,7 @@ export const TasksOverview = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          
+
           <div className="flex items-center justify-between mt-4">
             <div className="flex items-center text-sm text-muted-foreground">
               <Clock className="h-4 w-4 mr-1" />

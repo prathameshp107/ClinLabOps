@@ -15,17 +15,17 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { NotificationCenter } from "@/components/dashboard/notification-center";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { 
-  LayoutGrid, 
-  LayoutList, 
-  Sparkles, 
-  Bell, 
-  Settings, 
-  RefreshCw 
+import {
+  LayoutGrid,
+  LayoutList,
+  Sparkles,
+  Bell,
+  Settings,
+  RefreshCw
 } from "lucide-react";
-import { 
-  HoverGlowCard, 
-  GlowingStarsBackgroundCard 
+import {
+  HoverGlowCard,
+  GlowingStarsBackgroundCard
 } from "@/components/ui/aceternity/cards";
 import { BackgroundBeams } from "@/components/ui/aceternity/background-beams";
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
@@ -33,10 +33,29 @@ import { cn } from "@/lib/utils";
 import { TasksDashboard } from "@/components/dashboard/tasks-dashboard";
 import { ExperimentsDashboard } from "@/components/dashboard/experiments-dashboard";
 
+// Import all dashboard data
+import {
+  notificationCenterData,
+  quickActionsData,
+  taskOverviewData,
+  pendingApprovalsData,
+  userActivityData,
+  experimentProgressData,
+  complianceAlertsData,
+  systemLogsData,
+  smartInsightsData,
+  taskHeatmapData,
+  tasksDashboardData,
+  experimentsDashboardData
+} from "@/data/dashboard-data";
+
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState("grid");
-  const [notificationCount, setNotificationCount] = useState(3);
+  // Use the imported data for initial state
+  const [notificationCount, setNotificationCount] = useState(
+    notificationCenterData.filter(notification => !notification.read).length
+  );
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
 
   // Simulate loading state
@@ -82,9 +101,9 @@ export default function Home() {
     <DashboardLayout>
       <div className="relative min-h-screen w-full overflow-hidden">
         <BackgroundBeams className="opacity-20" />
-        
+
         <div className="p-6 w-full relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -98,7 +117,7 @@ export default function Home() {
                 Welcome back! Here's what's happening in your lab today.
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <div className="bg-background/70 backdrop-blur-sm rounded-md border border-border/50 p-1 flex items-center shadow-[0_2px_10px_rgb(0,0,0,0.03)]">
                 <Button
@@ -120,7 +139,7 @@ export default function Home() {
                   List
                 </Button>
               </div>
-              
+
               <Button
                 variant="outline"
                 size="icon"
@@ -134,7 +153,7 @@ export default function Home() {
                   </span>
                 )}
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="icon"
@@ -143,29 +162,29 @@ export default function Home() {
               >
                 <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
               </Button>
-              
-              <Button 
-                variant="outline" 
-                size="icon" 
+
+              <Button
+                variant="outline"
+                size="icon"
                 className="h-9 w-9 shadow-md hover:shadow-lg transition-shadow bg-background/70 backdrop-blur-sm border-border/50"
               >
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
           </motion.div>
-          
+
           <div className="mb-8">
-            <QuickActions />
+            <QuickActions actions={quickActionsData} />
           </div>
-          
+
           <Tabs defaultValue="overview" className="mb-8">
             <TabsList className="mb-6 p-1 bg-background/70 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/40 rounded-lg">
               <TabsTrigger value="overview" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Overview</TabsTrigger>
               <TabsTrigger value="tasks" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Tasks</TabsTrigger>
               <TabsTrigger value="experiments" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Experiments</TabsTrigger>
-              <TabsTrigger value="analytics" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Analytics</TabsTrigger>
+              {/* <TabsTrigger value="analytics" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Analytics</TabsTrigger> */}
             </TabsList>
-            
+
             <TabsContent value="overview">
               <motion.div
                 variants={containerVariants}
@@ -188,88 +207,88 @@ export default function Home() {
                         />
                       </div>
                       <div className="relative z-10">
-                        <SmartInsights />
+                        <SmartInsights data={smartInsightsData} />
                       </div>
                     </div>
                   </GlowingStarsBackgroundCard>
                 </motion.div>
-                
+
                 <motion.div variants={itemVariants}>
                   <div className={`grid ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"} gap-6 mb-8`}>
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <TasksOverview />
+                        <TasksOverview data={taskOverviewData} />
                       </div>
                     </HoverGlowCard>
-                    
+
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <PendingApprovals />
+                        <PendingApprovals data={pendingApprovalsData} />
                       </div>
                     </HoverGlowCard>
-                    
+
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <UserActivity />
+                        <UserActivity data={userActivityData} />
                       </div>
                     </HoverGlowCard>
                   </div>
                 </motion.div>
-                
+
                 <motion.div variants={itemVariants}>
                   <div className={`grid ${viewMode === "grid" ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"} gap-6 mb-8`}>
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <ExperimentProgress />
+                        <ExperimentProgress data={experimentProgressData} />
                       </div>
                     </HoverGlowCard>
-                    
+
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <TaskHeatmap />
+                        <TaskHeatmap data={taskHeatmapData} />
                       </div>
                     </HoverGlowCard>
                   </div>
                 </motion.div>
-                
+
                 <motion.div variants={itemVariants}>
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <ComplianceAlerts />
+                        <ComplianceAlerts data={complianceAlertsData} />
                       </div>
                     </HoverGlowCard>
-                    
+
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <NotificationCenter />
+                        <NotificationCenter data={notificationCenterData} />
                       </div>
                     </HoverGlowCard>
                   </div>
                 </motion.div>
-                
+
                 <motion.div variants={itemVariants}>
                   <HoverGlowCard className="w-full bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                     <div className="p-1">
-                      <SystemLogs />
+                      <SystemLogs data={systemLogsData} />
                     </div>
                   </HoverGlowCard>
                 </motion.div>
               </motion.div>
             </TabsContent>
-            
+
             <TabsContent value="tasks">
               <div className="bg-background/40 backdrop-blur-md rounded-xl p-4 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <TasksDashboard />
+                <TasksDashboard data={tasksDashboardData} />
               </div>
             </TabsContent>
-            
+
             <TabsContent value="experiments">
               <div className="bg-background/40 backdrop-blur-md rounded-xl p-4 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <ExperimentsDashboard />
+                <ExperimentsDashboard data={experimentsDashboardData} />
               </div>
             </TabsContent>
-            
+
             <TabsContent value="analytics">
               <div className="p-12 text-center bg-background/40 backdrop-blur-md rounded-xl border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                 <div className="relative w-20 h-20 mx-auto mb-6">
@@ -286,7 +305,7 @@ export default function Home() {
               </div>
             </TabsContent>
           </Tabs>
-          
+
           <div className="text-xs text-muted-foreground text-center mt-8 p-2 bg-background/30 backdrop-blur-sm rounded-md border border-border/20 shadow-sm max-w-xs mx-auto">
             Last updated: {lastRefreshed.toLocaleTimeString()}
           </div>
