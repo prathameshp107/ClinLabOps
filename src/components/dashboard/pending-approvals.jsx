@@ -279,11 +279,18 @@ export function PendingApprovals(pendingApprovalsData) {
                 </motion.div>
               ))
             ) : (
-              <div className="p-8 text-center">
-                <div className="text-muted-foreground mb-2">No approvals match your current filters</div>
+              <div className="p-8 text-center flex flex-col items-center">
+                <div className="text-4xl mb-4">🔍</div>
+                <div className="text-muted-foreground mb-3 text-sm font-medium">
+                  No pending approvals found matching your filters 🤔
+                </div>
+                <div className="text-xs text-muted-foreground/80 mb-4">
+                  Try adjusting your search criteria or filters to find what you're looking for ✨
+                </div>
                 <Button
-                  variant="link"
-                  className="mt-2"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 hover:bg-secondary/80 transition-colors"
                   onClick={() => {
                     setSearchQuery("");
                     setActiveFilters({
@@ -298,7 +305,8 @@ export function PendingApprovals(pendingApprovalsData) {
                     });
                   }}
                 >
-                  Clear all filters
+                  <Filter className="h-4 w-4" />
+                  Reset all filters 🔄
                 </Button>
               </div>
             )}

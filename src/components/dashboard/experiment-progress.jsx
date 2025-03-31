@@ -16,66 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// Mock data for experiments
-const experimentsData = [
-  {
-    id: "exp-001",
-    name: "Enzyme Stability Analysis",
-    status: "in-progress",
-    progress: 68,
-    startDate: "2025-03-15T08:30:00",
-    endDate: "2025-03-29T17:00:00",
-    department: "Biochemistry",
-    priority: "high",
-    owner: "Dr. Sarah Miller"
-  },
-  {
-    id: "exp-002",
-    name: "Substrate Specificity Assay",
-    status: "in-progress",
-    progress: 45,
-    startDate: "2025-03-18T09:15:00",
-    endDate: "2025-04-01T16:30:00",
-    department: "Molecular Biology",
-    priority: "medium",
-    owner: "Dr. Alex Johnson"
-  },
-  {
-    id: "exp-003",
-    name: "Protein Folding Kinetics",
-    status: "delayed",
-    progress: 32,
-    startDate: "2025-03-12T10:00:00",
-    endDate: "2025-03-26T17:00:00",
-    department: "Biochemistry",
-    priority: "high",
-    owner: "Dr. Emily Wong"
-  },
-  {
-    id: "exp-004",
-    name: "Gene Expression Analysis",
-    status: "completed",
-    progress: 100,
-    startDate: "2025-03-10T08:00:00",
-    endDate: "2025-03-20T15:45:00",
-    department: "Genetics",
-    priority: "medium",
-    owner: "Dr. James Rivera"
-  },
-  {
-    id: "exp-005",
-    name: "Cell Culture Optimization",
-    status: "scheduled",
-    progress: 0,
-    startDate: "2025-03-25T09:00:00",
-    endDate: "2025-04-08T16:00:00",
-    department: "Cell Biology",
-    priority: "low",
-    owner: "Dr. David Chen"
-  }
-]
 
-export function ExperimentProgress() {
+export function ExperimentProgress(experimentData) {
+  const experimentsData = experimentData?.data;
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState({
     status: {
@@ -96,7 +39,7 @@ export function ExperimentProgress() {
       'low': true
     }
   })
-  
+
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -106,82 +49,82 @@ export function ExperimentProgress() {
       year: 'numeric'
     });
   }
-  
+
   // Get status color and icon
   const getStatusInfo = (status) => {
     switch (status) {
       case 'in-progress':
-        return { 
-          color: 'text-blue-500', 
-          bgColor: 'bg-blue-50 dark:bg-blue-950/50', 
+        return {
+          color: 'text-blue-500',
+          bgColor: 'bg-blue-50 dark:bg-blue-950/50',
           borderColor: 'border-blue-200 dark:border-blue-800',
           icon: <Clock className="h-3.5 w-3.5 mr-1" />
         };
       case 'delayed':
-        return { 
-          color: 'text-amber-500', 
-          bgColor: 'bg-amber-50 dark:bg-amber-950/50', 
+        return {
+          color: 'text-amber-500',
+          bgColor: 'bg-amber-50 dark:bg-amber-950/50',
           borderColor: 'border-amber-200 dark:border-amber-800',
           icon: <AlertTriangle className="h-3.5 w-3.5 mr-1" />
         };
       case 'completed':
-        return { 
-          color: 'text-green-500', 
-          bgColor: 'bg-green-50 dark:bg-green-950/50', 
+        return {
+          color: 'text-green-500',
+          bgColor: 'bg-green-50 dark:bg-green-950/50',
           borderColor: 'border-green-200 dark:border-green-800',
           icon: <Check className="h-3.5 w-3.5 mr-1" />
         };
       case 'scheduled':
-        return { 
-          color: 'text-purple-500', 
-          bgColor: 'bg-purple-50 dark:bg-purple-950/50', 
+        return {
+          color: 'text-purple-500',
+          bgColor: 'bg-purple-50 dark:bg-purple-950/50',
           borderColor: 'border-purple-200 dark:border-purple-800',
           icon: <Clock className="h-3.5 w-3.5 mr-1" />
         };
       default:
-        return { 
-          color: 'text-gray-500', 
-          bgColor: 'bg-gray-50 dark:bg-gray-900', 
+        return {
+          color: 'text-gray-500',
+          bgColor: 'bg-gray-50 dark:bg-gray-900',
           borderColor: 'border-gray-200 dark:border-gray-700',
           icon: <Clock className="h-3.5 w-3.5 mr-1" />
         };
     }
   }
-  
+
   // Filter experiments based on search query and active filters
   const filteredExperiments = experimentsData.filter(experiment => {
     // Check status filter
     if (!activeFilters.status[experiment.status]) {
       return false;
     }
-    
+
     // Check department filter
     if (!activeFilters.department[experiment.department]) {
       return false;
     }
-    
+
     // Check priority filter
     if (!activeFilters.priority[experiment.priority]) {
       return false;
     }
-    
+
     // Check search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return experiment.name.toLowerCase().includes(query) ||
-             experiment.owner.toLowerCase().includes(query) ||
-             experiment.department.toLowerCase().includes(query) ||
-             experiment.id.toLowerCase().includes(query);
+        experiment.owner.toLowerCase().includes(query) ||
+        experiment.department.toLowerCase().includes(query) ||
+        experiment.id.toLowerCase().includes(query);
     }
-    
+
     return true;
   });
-  
+
   // Get active filter counts
   const statusFilterCount = Object.values(activeFilters.status).filter(Boolean).length;
   const departmentFilterCount = Object.values(activeFilters.department).filter(Boolean).length;
   const priorityFilterCount = Object.values(activeFilters.priority).filter(Boolean).length;
-  
+
   // Reset all filters
   const resetAllFilters = () => {
     setActiveFilters({
@@ -205,7 +148,7 @@ export function ExperimentProgress() {
     });
     setSearchQuery("");
   };
-  
+
   // Get priority badge
   const getPriorityBadge = (priority) => {
     switch (priority) {
@@ -247,9 +190,9 @@ export function ExperimentProgress() {
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={activeFilters.status['in-progress']}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     status: {
                       ...prev.status,
                       'in-progress': checked
@@ -261,9 +204,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.status.delayed}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     status: {
                       ...prev.status,
                       'delayed': checked
@@ -275,9 +218,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.status.completed}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     status: {
                       ...prev.status,
                       'completed': checked
@@ -289,9 +232,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.status.scheduled}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     status: {
                       ...prev.status,
                       'scheduled': checked
@@ -303,7 +246,7 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Department filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -323,9 +266,9 @@ export function ExperimentProgress() {
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={activeFilters.department['Biochemistry']}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     department: {
                       ...prev.department,
                       'Biochemistry': checked
@@ -337,9 +280,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.department['Molecular Biology']}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     department: {
                       ...prev.department,
                       'Molecular Biology': checked
@@ -351,9 +294,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.department['Genetics']}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     department: {
                       ...prev.department,
                       'Genetics': checked
@@ -365,9 +308,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.department['Cell Biology']}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     department: {
                       ...prev.department,
                       'Cell Biology': checked
@@ -379,7 +322,7 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           {/* Priority filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -399,9 +342,9 @@ export function ExperimentProgress() {
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
                 checked={activeFilters.priority.high}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     priority: {
                       ...prev.priority,
                       'high': checked
@@ -413,9 +356,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.priority.medium}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     priority: {
                       ...prev.priority,
                       'medium': checked
@@ -427,9 +370,9 @@ export function ExperimentProgress() {
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={activeFilters.priority.low}
-                onCheckedChange={(checked) => 
+                onCheckedChange={(checked) =>
                   setActiveFilters(prev => ({
-                    ...prev, 
+                    ...prev,
                     priority: {
                       ...prev.priority,
                       'low': checked
@@ -447,9 +390,9 @@ export function ExperimentProgress() {
         <div className="relative">
           <div className="flex items-center border rounded-md mb-4">
             <Search className="h-4 w-4 text-muted-foreground ml-3" />
-            <input 
-              type="text" 
-              placeholder="Search experiments..." 
+            <input
+              type="text"
+              placeholder="Search experiments..."
               className="flex-1 py-2 px-3 bg-transparent focus:outline-none text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -466,14 +409,14 @@ export function ExperimentProgress() {
               </Button>
             )}
           </div>
-          
+
           <div className="space-y-4">
             {filteredExperiments.length > 0 ? (
               filteredExperiments.map((experiment, index) => {
                 const { color, bgColor, borderColor, icon } = getStatusInfo(experiment.status);
-                
+
                 return (
-                  <motion.div 
+                  <motion.div
                     key={experiment.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -495,7 +438,7 @@ export function ExperimentProgress() {
                         <ArrowUpRight className="h-4 w-4" />
                       </Button>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-muted-foreground">{experiment.department}</span>
@@ -503,12 +446,12 @@ export function ExperimentProgress() {
                       </div>
                       <Progress value={experiment.progress} className="h-2" />
                     </div>
-                    
+
                     <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                       <div>Start: {formatDate(experiment.startDate)}</div>
                       <div>End: {formatDate(experiment.endDate)}</div>
                     </div>
-                    
+
                     <div className="mt-2 text-xs text-muted-foreground">
                       Owner: {experiment.owner}
                     </div>
@@ -516,13 +459,21 @@ export function ExperimentProgress() {
                 );
               })
             ) : (
-              <div className="p-8 text-center">
-                <div className="text-muted-foreground mb-2">No experiments match your current filters</div>
-                <Button 
-                  variant="link" 
-                  className="mt-2" 
+              <div className="p-8 text-center flex flex-col items-center">
+                <div className="mb-4">
+                  <Search className="h-12 w-12 text-muted-foreground/50" />
+                </div>
+                <div className="text-lg font-medium mb-1">No Results Found</div>
+                <div className="text-muted-foreground mb-4">
+                  No experiments match your current filters
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
                   onClick={resetAllFilters}
                 >
+                  <Filter className="h-4 w-4" />
                   Clear all filters
                 </Button>
               </div>

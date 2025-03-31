@@ -140,82 +140,137 @@ export const pendingApprovalsData = [
 ]
 
 // User Activity data
-export const userActivityData = [
-    {
-        id: 1,
-        user: {
-            name: "Alex Johnson",
-            avatar: "/avatars/alex.jpg"
+export const userActivityData =
+    [
+        {
+            id: "act-1",
+            user: {
+                name: "Alex Johnson",
+                email: "alex.johnson@labtasker.com",
+                avatar: "/avatars/alex.png"
+            },
+            action: "Started experiment",
+            actionDetail: "Enzyme Stability Analysis (EXP-1023)",
+            timestamp: "2025-03-22T16:20:45",
+            type: "experiment"
         },
-        action: "completed",
-        item: "Sample preparation",
-        timestamp: "2023-03-28T14:30:00Z"
-    },
-    {
-        id: 2,
-        user: {
-            name: "Maria Garcia",
-            avatar: "/avatars/maria.jpg"
+        {
+            id: "act-2",
+            user: {
+                name: "Sarah Miller",
+                email: "sarah.miller@labtasker.com",
+                avatar: "/avatars/sarah.png"
+            },
+            action: "Updated protocol",
+            actionDetail: "PCR Amplification Protocol v2.3",
+            timestamp: "2025-03-22T15:45:22",
+            type: "protocol"
         },
-        action: "started",
-        item: "Calibration procedure",
-        timestamp: "2023-03-28T13:15:00Z"
-    },
-    {
-        id: 3,
-        user: {
-            name: "David Kim",
-            avatar: "/avatars/david.jpg"
+        {
+            id: "act-3",
+            user: {
+                name: "David Chen",
+                email: "david.chen@labtasker.com",
+                avatar: "/avatars/david.png"
+            },
+            action: "Uploaded results",
+            actionDetail: "Substrate Specificity Results (EXP-1025)",
+            timestamp: "2025-03-22T15:10:33",
+            type: "data"
         },
-        action: "updated",
-        item: "Quality control report",
-        timestamp: "2023-03-28T11:45:00Z"
-    },
-    {
-        id: 4,
-        user: {
-            name: "Sarah Chen",
-            avatar: "/avatars/sarah.jpg"
+        {
+            id: "act-4",
+            user: {
+                name: "Emily Wong",
+                email: "emily.wong@labtasker.com",
+                avatar: "/avatars/emily.png"
+            },
+            action: "Created task",
+            actionDetail: "Prepare samples for next week's run",
+            timestamp: "2025-03-22T14:30:15",
+            type: "task"
         },
-        action: "requested",
-        item: "Experiment approval",
-        timestamp: "2023-03-28T10:20:00Z"
-    }
-];
+        {
+            id: "act-5",
+            user: {
+                name: "James Rivera",
+                email: "james.rivera@labtasker.com",
+                avatar: "/avatars/james.png"
+            },
+            action: "Generated report",
+            actionDetail: "Monthly Equipment Usage Summary",
+            timestamp: "2025-03-22T13:55:40",
+            type: "report"
+        }
+    ];
+
+export const dailyActiveUsersData =
+    [
+        { name: "Mar 16", users: 24 },
+        { name: "Mar 17", users: 28 },
+        { name: "Mar 18", users: 26 },
+        { name: "Mar 19", users: 32 },
+        { name: "Mar 20", users: 29 },
+        { name: "Mar 21", users: 25 },
+        { name: "Mar 22", users: 31 }
+    ];
 
 // Experiment Progress data
 export const experimentProgressData = [
     {
-        id: 1,
-        title: "Protein Expression Analysis",
-        startDate: "2023-03-20",
-        endDate: "2023-04-10",
-        progress: 65,
-        status: "in-progress",
-        lead: "Maria Garcia",
-        phases: [
-            { name: "Sample Prep", status: "completed", progress: 100 },
-            { name: "Initial Analysis", status: "completed", progress: 100 },
-            { name: "Data Collection", status: "in-progress", progress: 60 },
-            { name: "Verification", status: "not-started", progress: 0 },
-            { name: "Reporting", status: "not-started", progress: 0 }
-        ]
+      id: "exp-001",
+      name: "Enzyme Stability Analysis",
+      status: "in-progress",
+      progress: 68,
+      startDate: "2025-03-15T08:30:00",
+      endDate: "2025-03-29T17:00:00",
+      department: "Biochemistry",
+      priority: "high",
+      owner: "Dr. Sarah Miller"
     },
     {
-        id: 2,
-        title: "Enzyme Kinetics Study",
-        startDate: "2023-03-15",
-        endDate: "2023-04-05",
-        progress: 40,
-        status: "in-progress",
-        lead: "Sarah Chen",
-        phases: [
-            { name: "Protocol Setup", status: "completed", progress: 100 },
-            { name: "Initial Runs", status: "completed", progress: 100 },
-            { name: "Data Collection", status: "in-progress", progress: 30 },
-            { name: "Analysis", status: "not-started", progress: 0 },
-            { name: "Reporting", status: "not-started", progress: 0 }
-        ]
+      id: "exp-002",
+      name: "Substrate Specificity Assay",
+      status: "in-progress",
+      progress: 45,
+      startDate: "2025-03-18T09:15:00",
+      endDate: "2025-04-01T16:30:00",
+      department: "Molecular Biology",
+      priority: "medium",
+      owner: "Dr. Alex Johnson"
+    },
+    {
+      id: "exp-003",
+      name: "Protein Folding Kinetics",
+      status: "delayed",
+      progress: 32,
+      startDate: "2025-03-12T10:00:00",
+      endDate: "2025-03-26T17:00:00",
+      department: "Biochemistry",
+      priority: "high",
+      owner: "Dr. Emily Wong"
+    },
+    {
+      id: "exp-004",
+      name: "Gene Expression Analysis",
+      status: "completed",
+      progress: 100,
+      startDate: "2025-03-10T08:00:00",
+      endDate: "2025-03-20T15:45:00",
+      department: "Genetics",
+      priority: "medium",
+      owner: "Dr. James Rivera"
+    },
+    {
+      id: "exp-005",
+      name: "Cell Culture Optimization",
+      status: "scheduled",
+      progress: 0,
+      startDate: "2025-03-25T09:00:00",
+      endDate: "2025-04-08T16:00:00",
+      department: "Cell Biology",
+      priority: "low",
+      owner: "Dr. David Chen"
     }
 ];
 

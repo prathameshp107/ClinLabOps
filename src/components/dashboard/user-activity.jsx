@@ -17,82 +17,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// Mock data for user activities
-const activityData = [
-  {
-    id: "act-1",
-    user: {
-      name: "Alex Johnson",
-      email: "alex.johnson@labtasker.com",
-      avatar: "/avatars/alex.png"
-    },
-    action: "Started experiment",
-    actionDetail: "Enzyme Stability Analysis (EXP-1023)",
-    timestamp: "2025-03-22T16:20:45",
-    type: "experiment"
-  },
-  {
-    id: "act-2",
-    user: {
-      name: "Sarah Miller",
-      email: "sarah.miller@labtasker.com",
-      avatar: "/avatars/sarah.png"
-    },
-    action: "Updated protocol",
-    actionDetail: "PCR Amplification Protocol v2.3",
-    timestamp: "2025-03-22T15:45:22",
-    type: "protocol"
-  },
-  {
-    id: "act-3",
-    user: {
-      name: "David Chen",
-      email: "david.chen@labtasker.com",
-      avatar: "/avatars/david.png"
-    },
-    action: "Uploaded results",
-    actionDetail: "Substrate Specificity Results (EXP-1025)",
-    timestamp: "2025-03-22T15:10:33",
-    type: "data"
-  },
-  {
-    id: "act-4",
-    user: {
-      name: "Emily Wong",
-      email: "emily.wong@labtasker.com",
-      avatar: "/avatars/emily.png"
-    },
-    action: "Created task",
-    actionDetail: "Prepare samples for next week's run",
-    timestamp: "2025-03-22T14:30:15",
-    type: "task"
-  },
-  {
-    id: "act-5",
-    user: {
-      name: "James Rivera",
-      email: "james.rivera@labtasker.com",
-      avatar: "/avatars/james.png"
-    },
-    action: "Generated report",
-    actionDetail: "Monthly Equipment Usage Summary",
-    timestamp: "2025-03-22T13:55:40",
-    type: "report"
-  }
-]
 
-// Mock data for daily active users chart
-const dailyActiveUsersData = [
-  { name: "Mar 16", users: 24 },
-  { name: "Mar 17", users: 28 },
-  { name: "Mar 18", users: 26 },
-  { name: "Mar 19", users: 32 },
-  { name: "Mar 20", users: 29 },
-  { name: "Mar 21", users: 25 },
-  { name: "Mar 22", users: 31 }
-]
 
-export function UserActivity() {
+export function UserActivity(activitesData) {
+  const activityData = activitesData?.activityData;
+  const activeUsersData = activitesData?.activeUsersData;
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState({
     experiment: true,
@@ -101,7 +30,7 @@ export function UserActivity() {
     task: true,
     report: true
   })
-  
+
   // Format timestamp to readable time
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
@@ -110,33 +39,33 @@ export function UserActivity() {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const formattedHours = hours % 12 || 12;
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    
+
     return `${formattedHours}:${formattedMinutes} ${ampm}`;
   }
-  
+
   // Filter activities based on search query and active filters
   const filteredActivities = activityData.filter(activity => {
     // Check if activity type is included in active filters
     if (!activeFilters[activity.type]) {
       return false;
     }
-    
+
     // Check if search query matches any field
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return activity.user.name.toLowerCase().includes(query) ||
-             activity.user.email.toLowerCase().includes(query) ||
-             activity.action.toLowerCase().includes(query) ||
-             activity.actionDetail.toLowerCase().includes(query) ||
-             activity.type.toLowerCase().includes(query);
+        activity.user.email.toLowerCase().includes(query) ||
+        activity.action.toLowerCase().includes(query) ||
+        activity.actionDetail.toLowerCase().includes(query) ||
+        activity.type.toLowerCase().includes(query);
     }
-    
+
     return true;
   });
-  
+
   // Get active filter count
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
-  
+
   // Toggle all filters
   const toggleAllFilters = (value) => {
     setActiveFilters({
@@ -180,7 +109,7 @@ export function UserActivity() {
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
               checked={activeFilters.experiment}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setActiveFilters(prev => ({ ...prev, experiment: checked }))
               }
             >
@@ -188,7 +117,7 @@ export function UserActivity() {
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={activeFilters.protocol}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setActiveFilters(prev => ({ ...prev, protocol: checked }))
               }
             >
@@ -196,7 +125,7 @@ export function UserActivity() {
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={activeFilters.data}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setActiveFilters(prev => ({ ...prev, data: checked }))
               }
             >
@@ -204,7 +133,7 @@ export function UserActivity() {
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={activeFilters.task}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setActiveFilters(prev => ({ ...prev, task: checked }))
               }
             >
@@ -212,7 +141,7 @@ export function UserActivity() {
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={activeFilters.report}
-              onCheckedChange={(checked) => 
+              onCheckedChange={(checked) =>
                 setActiveFilters(prev => ({ ...prev, report: checked }))
               }
             >
@@ -234,43 +163,57 @@ export function UserActivity() {
             </Badge>
           </div>
           <div className="h-[200px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyActiveUsersData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
-                <XAxis 
-                  dataKey="name" 
-                  className="text-xs fill-muted-foreground" 
-                  tick={{ fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={{ stroke: '#ddd' }}
-                />
-                <YAxis 
-                  className="text-xs fill-muted-foreground" 
-                  tick={{ fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={{ stroke: '#ddd' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--background)', 
-                    border: '1px solid var(--border)',
-                    borderRadius: '6px',
-                    fontSize: '12px'
-                  }}
-                  itemStyle={{ color: 'var(--foreground)' }}
-                  formatter={(value) => [`${value} users`, 'Active Users']}
-                  labelStyle={{ color: 'var(--muted-foreground)' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="users" 
-                  stroke="var(--primary)" 
-                  strokeWidth={2}
-                  dot={{ r: 4, fill: 'var(--primary)', strokeWidth: 0 }}
-                  activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--background)', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {activeUsersData && activeUsersData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={activeUsersData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/30" />
+                  <XAxis
+                    dataKey="name"
+                    className="text-xs fill-muted-foreground"
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: '#ddd' }}
+                  />
+                  <YAxis
+                    className="text-xs fill-muted-foreground"
+                    tick={{ fontSize: 12 }}
+                    tickLine={false}
+                    axisLine={{ stroke: '#ddd' }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--background)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '6px',
+                      fontSize: '12px'
+                    }}
+                    itemStyle={{ color: 'var(--foreground)' }}
+                    formatter={(value) => [`${value} users`, 'Active Users']}
+                    labelStyle={{ color: 'var(--muted-foreground)' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="users"
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: 'var(--primary)', strokeWidth: 0 }}
+                    activeDot={{ r: 6, fill: 'var(--primary)', stroke: 'var(--background)', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center gap-3 p-6">
+                <div className="rounded-full bg-muted/30 p-3">
+                  <Activity className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="text-center">
+                  <p className="text-muted-foreground font-medium mb-1">No Activity Data Available</p>
+                  <p className="text-sm text-muted-foreground/60">
+                    User activity data will appear here once available
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -278,13 +221,13 @@ export function UserActivity() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium">Recent Activity</h3>
           </div>
-          
+
           <div className="relative">
             <div className="flex items-center border rounded-md mb-4">
               <Search className="h-4 w-4 text-muted-foreground ml-3" />
-              <input 
-                type="text" 
-                placeholder="Search activities..." 
+              <input
+                type="text"
+                placeholder="Search activities..."
                 className="flex-1 py-2 px-3 bg-transparent focus:outline-none text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -301,11 +244,11 @@ export function UserActivity() {
                 </Button>
               )}
             </div>
-            
+
             <div className="overflow-y-auto max-h-[300px] space-y-3">
               {filteredActivities.length > 0 ? (
                 filteredActivities.map((activity, index) => (
-                  <motion.div 
+                  <motion.div
                     key={activity.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -328,8 +271,8 @@ export function UserActivity() {
                         <span className="font-medium">{activity.action}</span>
                         <span className="text-muted-foreground"> • {activity.actionDetail}</span>
                       </p>
-                      <Badge 
-                        variant="outline" 
+                      <Badge
+                        variant="outline"
                         className="mt-1 px-1.5 h-5 text-xs capitalize"
                       >
                         {activity.type}
@@ -341,18 +284,25 @@ export function UserActivity() {
                   </motion.div>
                 ))
               ) : (
-                <div className="p-6 text-center">
-                  <div className="text-muted-foreground mb-2">No activities match your current filters</div>
-                  <Button 
-                    variant="link" 
-                    className="mt-2" 
-                    onClick={() => {
-                      setSearchQuery("");
-                      toggleAllFilters(true);
-                    }}
-                  >
-                    Clear all filters
-                  </Button>
+                <div className="p-8 text-center bg-muted/10 rounded-lg border border-dashed">
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-4xl">🔍</span>
+                    <div className="text-muted-foreground">
+                      <p className="font-medium mb-1">No matching activities found</p>
+                      <p className="text-sm">Try adjusting your filters or search terms</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="mt-2 gap-2"
+                      onClick={() => {
+                        setSearchQuery("");
+                        toggleAllFilters(true);
+                      }}
+                    >
+                      <span>🔄</span>
+                      Reset all filters
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

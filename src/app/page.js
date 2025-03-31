@@ -40,6 +40,7 @@ import {
   taskOverviewData,
   pendingApprovalsData,
   userActivityData,
+  dailyActiveUsersData,
   experimentProgressData,
   complianceAlertsData,
   systemLogsData,
@@ -229,7 +230,7 @@ export default function Home() {
 
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
                       <div className="p-1">
-                        <UserActivity data={userActivityData} />
+                        <UserActivity activityData={userActivityData} activeUsersData={dailyActiveUsersData} />
                       </div>
                     </HoverGlowCard>
                   </div>

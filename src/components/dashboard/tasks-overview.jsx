@@ -23,6 +23,38 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
 
 export const TasksOverview = (tasksOverviewData) => {
   const tasksOverviewsData = tasksOverviewData?.data;
+  
+  // Check if data is available
+  if (!tasksOverviewsData || !Array.isArray(tasksOverviewsData) || tasksOverviewsData.length === 0) {
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="bg-primary/5 pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold">Total Active Tasks</CardTitle>
+            <ClipboardList className="h-5 w-5 text-primary" />
+          </div>
+          <CardDescription>Overview of all task statuses</CardDescription>
+        </CardHeader>
+        <CardContent className="p-6 flex justify-center items-center h-[250px] flex-col">
+          <div className="flex flex-col items-center justify-center text-muted-foreground text-center space-y-4">
+            <div className="rounded-full bg-primary/5 p-6">
+              <ClipboardList className="h-12 w-12 text-primary/60" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">No Tasks Available</h3>
+              <p className="text-sm text-muted-foreground max-w-[250px]">
+                Start by adding some tasks to visualize your progress and track your work.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" className="mt-2">
+              Create New Task
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   const totalTasks = tasksOverviewsData.reduce((sum, task) => sum + task.value, 0)
 
   return (
