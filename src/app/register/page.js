@@ -1,9 +1,14 @@
 "use client";
 
-// Add these imports at the top of your file
 import { motion } from "framer-motion";
 import { FlaskConical, Users } from "lucide-react";
-import { BackgroundBeams } from "@/components/ui/aceternity/background-beams";
+import dynamic from "next/dynamic";
+
+// Dynamically import the BackgroundBeams component with SSR disabled
+const BackgroundBeams = dynamic(
+  () => import("@/components/ui/aceternity/background-beams").then(mod => mod.BackgroundBeams),
+  { ssr: false }
+);
 
 export default function RegisterPage() {
   return (
