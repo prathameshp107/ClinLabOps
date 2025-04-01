@@ -35,7 +35,7 @@ export default function NotFound() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Page not found. The requested resource couldn't be located.
+            Page not found. The requested resource couldnt be located.
           </p>
         </motion.div>
         

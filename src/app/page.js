@@ -115,7 +115,7 @@ export default function Home() {
                 Dashboard Overview
               </h1>
               <p className="text-muted-foreground mt-1">
-                Welcome back! Here's what's happening in your lab today.
+                Welcome back! Heres whats happening in your lab today.
               </p>
             </div>
 
