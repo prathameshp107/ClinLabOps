@@ -133,6 +133,17 @@ const mockEnquiry = {
   progress: 65
 };
 
+// Add this function to generate static params for the dynamic route
+export async function generateStaticParams() {
+  // In a real app, you would fetch all possible IDs from your data source
+  // For now, we'll just return the mock data ID
+  return [
+    { id: "e1" },
+    { id: "e2" },
+    { id: "e3" }
+  ];
+}
+
 // Function to get file icon based on type
 const getFileIcon = (fileType) => {
   switch (fileType) {
