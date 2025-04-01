@@ -2,13 +2,7 @@
 
 import { motion } from "framer-motion";
 import { FlaskConical, Users } from "lucide-react";
-import dynamic from "next/dynamic";
-
-// Dynamically import the BackgroundBeams component with SSR disabled
-const BackgroundBeams = dynamic(
-  () => import("@/components/ui/aceternity/background-beams").then(mod => mod.BackgroundBeams),
-  { ssr: false }
-);
+import { BackgroundBeamsClient } from "@/components/ui/background-beams-client";
 
 export default function RegisterPage() {
   return (
@@ -69,7 +63,7 @@ export default function RegisterPage() {
         </motion.div>
         
         <div className="absolute inset-0 z-0">
-          <BackgroundBeams className="z-0" />
+          <BackgroundBeamsClient className="z-0" />
         </div>
       </div>
       
