@@ -88,7 +88,7 @@ const formSchema = z.object({
 });
 
 // Create a separate CSS file for these styles
-// Create a new file at e:\Project\labtasker\src\app\register\register.css
+// Let's create a new file at e:\Project\labtasker\src\app\register\register.css
 // And import it here
 import './register.css';
 
@@ -154,32 +154,33 @@ export default function RegisterPage() {
     setPasswordStrength(strength)
   }, [watchPassword])
 
-  // Remove the nested useEffect that's causing the error
-  // Instead, modify the shake form effect to check for browser environment
-  
-  // Shake form on error
-  useEffect(() => {
-    // Only run in browser environment
-    if (typeof window !== 'undefined' && formError) {
-      const formElement = document.querySelector('form')
-      if (formElement) {
-        formElement.classList.add('shake-animation')
-        const timer = setTimeout(() => {
-          formElement.classList.remove('shake-animation')
-        }, 500)
-        
-        // Cleanup function to remove animation class and clear timeout
-        return () => {
-          clearTimeout(timer)
-          formElement.classList.remove('shake-animation')
-        }
-      }
-    }
-  }, [formError]) // Only run effect when formError changes
-
   // Form submission handler
   const onSubmit = async (data) => {
-    // ... existing code ...
+    setIsLoading(true)
+    setFormError(false)
+
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      console.log("Form submitted:", data)
+      setIsLoading(false)
+      setSignupSuccess(true)
+
+      // Trigger confetti on success - only in browser environment
+      if (typeof window !== 'undefined') {
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#4F46E5', '#10B981', '#3B82F6']
+        })
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error)
+      setIsLoading(false)
+      setFormError(true)
+    }
   }
 
   // Get password strength color
