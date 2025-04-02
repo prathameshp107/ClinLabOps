@@ -215,6 +215,13 @@ export function ModernSidebar({ className, onToggle }) {
                     path: '/reports',
                     badge: null
                 },
+                {
+                    name: 'enquiries',
+                    label: 'Enquiries',
+                    icon: <MessageSquare className="h-5 w-5" />,
+                    path: '/enquiries',
+                    badge: null
+                },
             ]
         },
         {

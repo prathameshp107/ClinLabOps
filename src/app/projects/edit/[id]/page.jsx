@@ -20,7 +20,10 @@ import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { mockProjects } from "@/components/dashboard/project-management" // We'll need to export this
 
-export default function EditProjectPage() {
+// Remove the generateStaticParams function from here
+// Keep all your other imports and component code
+
+export default function EditProjectPage({ params }) {
   const router = useRouter()
   // Rename this variable to avoid the conflict
   const urlParams = useParams()

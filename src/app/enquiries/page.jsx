@@ -6,6 +6,15 @@ import { format, parseISO } from "date-fns"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 
 // UI Components
@@ -1190,7 +1199,7 @@ function EnquiriesPage() {
             <DialogHeader>
               <div className="flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full ${quickViewEnquiry.status === "Pending" ? "bg-yellow-500" :
-                    quickViewEnquiry.status === "In Progress" ? "bg-blue-500" : "bg-green-500"
+                  quickViewEnquiry.status === "In Progress" ? "bg-blue-500" : "bg-green-500"
                   }`}></span>
                 <DialogTitle className="text-2xl font-semibold">
                   {quickViewEnquiry.subject}
