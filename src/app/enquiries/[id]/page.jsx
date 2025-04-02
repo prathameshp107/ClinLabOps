@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { format, parseISO } from "date-fns"
@@ -133,16 +133,7 @@ const mockEnquiry = {
   progress: 65
 };
 
-// Add this function to generate static params for the dynamic route
-export async function generateStaticParams() {
-  // In a real app, you would fetch all possible IDs from your data source
-  // For now, we'll just return the mock data ID
-  return [
-    { id: "e1" },
-    { id: "e2" },
-    { id: "e3" }
-  ];
-}
+
 
 // Function to get file icon based on type
 const getFileIcon = (fileType) => {
@@ -163,94 +154,17 @@ const getFileIcon = (fileType) => {
   }
 };
 
+
+
+// Remove mockEnquiry, mockEnquiries, getFileIcon and generateStaticParams
+
 export default function EnquiryDetailsPage({ params }) {
-  const id = React.use(params).id;
+  const enquiry = mockEnquiries.find(e => e.id === params.id);
   const router = useRouter();
-  const [enquiry, setEnquiry] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
 
-  // In a real application, fetch the enquiry data from an API
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setEnquiry(mockEnquiry);
-      setLoading(false);
-    }, 500);
-  }, [id]);
-
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    
-    const comment = {
-      id: `c${Date.now()}`,
-      user: "Current User", // In a real app, this would be the logged-in user
-      userRole: "Lab Technician",
-      content: newComment,
-      timestamp: new Date().toISOString()
-    };
-    
-    setEnquiry(prev => ({
-      ...prev,
-      comments: [...prev.comments, comment],
-      activities: [...prev.activities, {
-        id: `a${Date.now()}`,
-        action: "Comment added",
-        user: "Current User",
-        timestamp: new Date().toISOString(),
-        details: "Added a new comment to the enquiry"
-      }]
-    }));
-    
-    setNewComment("");
-  };
-
-  // Function to get status badge variant
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "Pending":
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-500 dark:border-yellow-800">
-          <Clock className="mr-1 h-3 w-3" /> Pending
-        </Badge>;
-      case "In Progress":
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-500 dark:border-blue-800">
-          <AlertCircle className="mr-1 h-3 w-3" /> In Progress
-        </Badge>;
-      case "Completed":
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-500 dark:border-green-800">
-          <CheckCircle className="mr-1 h-3 w-3" /> Completed
-        </Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  // Function to get priority badge variant
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case "High":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-500">High</Badge>;
-      case "Medium":
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-500">Medium</Badge>;
-      case "Low":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-500">Low</Badge>;
-      default:
-        return <Badge>{priority}</Badge>;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto py-6 flex items-center justify-center min-h-[70vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading enquiry details...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Remove the useEffect loading state since we're using static data
   if (!enquiry) {
     return (
       <div className="container mx-auto py-6">
