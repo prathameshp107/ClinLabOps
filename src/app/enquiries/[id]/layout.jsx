@@ -1,9 +1,18 @@
+// Define the mock data in the layout file
+const mockEnquiries = [
+  {
+    id: "e1",
+    // Add other properties as needed
+  },
+  {
+    id: "e2",
+    // Add other properties as needed
+  }
+];
+
 export async function generateStaticParams() {
-  // Mock enquiry IDs - replace with your actual data source
-  const enquiryIds = ["e1", "e2", "e3"];
-  
-  return enquiryIds.map(id => ({
-    id: id,
+  return mockEnquiries.map((enquiry) => ({
+    id: enquiry.id,
   }));
 }
 
