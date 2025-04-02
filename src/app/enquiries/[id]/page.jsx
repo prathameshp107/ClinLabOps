@@ -159,7 +159,7 @@ const getFileIcon = (fileType) => {
 // Remove mockEnquiry, mockEnquiries, getFileIcon and generateStaticParams
 
 export default function EnquiryDetailsPage({ params }) {
-  const enquiry = mockEnquiries.find(e => e.id === params.id);
+  const enquiry = mockEnquiry;
   const router = useRouter();
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -227,8 +227,28 @@ export default function EnquiryDetailsPage({ params }) {
                     </CardDescription>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    {getStatusBadge(enquiry.status)}
-                    {getPriorityBadge(enquiry.priority)}
+                    <Badge 
+                      className={
+                        enquiry.status === "Completed" 
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                          : enquiry.status === "In Progress"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400"
+                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+                      }
+                    >
+                      {enquiry.status}
+                    </Badge>
+                    <Badge 
+                      className={
+                        enquiry.priority === "High" 
+                          ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                          : enquiry.priority === "Medium"
+                          ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400"
+                          : "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                      }
+                    >
+                      {enquiry.priority}
+                    </Badge>
                   </div>
                 </div>
               </CardHeader>
@@ -441,7 +461,22 @@ export default function EnquiryDetailsPage({ params }) {
                       />
                       <div className="flex justify-end mt-2">
                         <Button 
-                          onClick={handleAddComment}
+                          onClick={() => {
+                            // Create a new comment object
+                            const comment = {
+                              id: `c${enquiry.comments.length + 1}`,
+                              user: "Current User", // This should be replaced with actual logged-in user
+                              userRole: "Staff",
+                              content: newComment,
+                              timestamp: new Date().toISOString()
+                            };
+                            
+                            // Add comment to the list
+                            enquiry.comments.push(comment);
+                            
+                            // Clear the input
+                            setNewComment("");
+                          }}
                           disabled={!newComment.trim()}
                         >
                           <Send className="mr-2 h-4 w-4" />
