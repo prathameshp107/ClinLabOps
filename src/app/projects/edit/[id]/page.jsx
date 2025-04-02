@@ -25,7 +25,8 @@ import { mockProjects } from "@/components/dashboard/project-management" // We'l
 
 export default function EditProjectPage({ params }) {
   const router = useRouter()
-  const params = useParams()
+  // Rename this variable to avoid the conflict
+  const urlParams = useParams()
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [newTag, setNewTag] = useState("")
