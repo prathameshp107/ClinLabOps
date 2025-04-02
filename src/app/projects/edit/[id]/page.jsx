@@ -20,18 +20,10 @@ import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { mockProjects } from "@/components/dashboard/project-management" // We'll need to export this
 
-// Add this function at the top level of your file (not inside the component)
-export async function generateStaticParams() {
-  // This should ideally fetch your project IDs from your data source
-  // For now, we'll use mock data
-  const projectIds = ["p1", "p2", "p3"]; // Replace with your actual project IDs
-  
-  return projectIds.map(id => ({
-    id: id,
-  }));
-}
+// Remove the generateStaticParams function from here
+// Keep all your other imports and component code
 
-export default function EditProjectPage() {
+export default function EditProjectPage({ params }) {
   const router = useRouter()
   const params = useParams()
   const [project, setProject] = useState(null)
