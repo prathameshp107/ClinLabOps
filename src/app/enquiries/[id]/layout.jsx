@@ -1,8 +1,9 @@
-import { mockEnquiries } from './data';
-
 export async function generateStaticParams() {
-  return mockEnquiries.map((enquiry) => ({
-    id: enquiry.id,
+  // Mock enquiry IDs - replace with your actual data source
+  const enquiryIds = ["e1", "e2", "e3"];
+  
+  return enquiryIds.map(id => ({
+    id: id,
   }));
 }
 
