@@ -194,13 +194,16 @@ export default function RegisterPage() {
     }
     `;
 
-    const styleElement = document.createElement('style');
-    styleElement.innerHTML = globalStyles;
-    document.head.appendChild(styleElement);
+    useEffect(() => {
+      const styleElement = document.createElement('style');
+      styleElement.innerHTML = globalStyles;
+      document.head.appendChild(styleElement);
 
-    return () => {
-      document.head.removeChild(styleElement);
-    };
+      // Cleanup function to remove styles when component unmounts
+      return () => {
+        document.head.removeChild(styleElement);
+      };
+    }, []); // Empty dependency array since we only want this to run once
   }, []);
 
   // Form submission handler
@@ -229,13 +232,21 @@ export default function RegisterPage() {
       setFormError(true)
 
       // Shake form on error
-      const formElement = document.querySelector('form')
-      if (formElement) {
-        formElement.classList.add('shake-animation')
-        setTimeout(() => {
-          formElement.classList.remove('shake-animation')
-        }, 500)
-      }
+useEffect(() => {
+  const formElement = document.querySelector('form')
+  if (formElement) {
+    formElement.classList.add('shake-animation')
+    const timer = setTimeout(() => {
+      formElement.classList.remove('shake-animation')
+    }, 500)
+    
+    // Cleanup function to remove animation class and clear timeout
+    return () => {
+      clearTimeout(timer)
+      formElement.classList.remove('shake-animation')
+    }
+  }
+}, [formError]) // Only run effect when formError changes
     }
   }
 
