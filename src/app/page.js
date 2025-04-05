@@ -103,7 +103,7 @@ export default function Home() {
       <div className="relative min-h-screen w-full overflow-hidden">
         <BackgroundBeams className="opacity-20" />
 
-        <div className="p-6 w-full relative z-10">
+        <div className="p-3 sm:p-4 md:p-6 w-full relative z-10">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -215,21 +215,21 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div variants={itemVariants}>
-                  <div className={`grid ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"} gap-6 mb-8`}>
+                  <div className={`grid ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3" : "grid-cols-1"} gap-6 mb-8`}>
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <TasksOverview data={taskOverviewData} />
                       </div>
                     </HoverGlowCard>
 
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <PendingApprovals data={pendingApprovalsData} />
                       </div>
                     </HoverGlowCard>
 
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <UserActivity activityData={userActivityData} activeUsersData={dailyActiveUsersData} />
                       </div>
                     </HoverGlowCard>
@@ -237,15 +237,15 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div variants={itemVariants}>
-                  <div className={`grid ${viewMode === "grid" ? "grid-cols-1 xl:grid-cols-2" : "grid-cols-1"} gap-6 mb-8`}>
+                  <div className={`grid ${viewMode === "grid" ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1"} gap-6 mb-8`}>
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <ExperimentProgress data={experimentProgressData} />
                       </div>
                     </HoverGlowCard>
 
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <TaskHeatmap data={taskHeatmapData} />
                       </div>
                     </HoverGlowCard>
@@ -253,15 +253,15 @@ export default function Home() {
                 </motion.div>
 
                 <motion.div variants={itemVariants}>
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <ComplianceAlerts data={complianceAlertsData} />
                       </div>
                     </HoverGlowCard>
 
                     <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1">
+                      <div className="p-1 overflow-x-auto">
                         <NotificationCenter data={notificationCenterData} />
                       </div>
                     </HoverGlowCard>
