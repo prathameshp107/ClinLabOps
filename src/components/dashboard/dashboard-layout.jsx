@@ -7,34 +7,69 @@ import { cn } from "@/lib/utils"
 
 export function DashboardLayout({ children }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   
-  // Function to handle sidebar toggle state
+  // Handle responsive sidebar behavior
+  useEffect(() => {
+    const MOBILE_BREAKPOINT = 768
+    
+    const handleResize = () => {
+      const isCurrentlyMobile = window.innerWidth < MOBILE_BREAKPOINT
+      setIsMobile(isCurrentlyMobile)
+      if (isCurrentlyMobile) {
+        setIsSidebarCollapsed(true)
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const handleSidebarToggle = (collapsed) => {
     setIsSidebarCollapsed(collapsed)
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar with toggle state handler */}
+    <div className="relative flex h-screen bg-background overflow-hidden">
+      {/* Sidebar with responsive behavior */}
       <ModernSidebar 
         onToggle={handleSidebarToggle} 
-        className="fixed h-screen z-30"
+        className={cn(
+          "fixed h-screen transition-transform duration-300 ease-in-out",
+          isMobile && isSidebarCollapsed ? "-translate-x-full" : "translate-x-0",
+          "z-30 shadow-lg"
+        )}
         isCollapsed={isSidebarCollapsed}
+        toggleButtonClassName={cn(
+          "absolute right-0 top-20 transform translate-x-1/2",
+          "bg-white rounded-full p-2 shadow-md",
+          "transition-transform duration-300",
+          !isSidebarCollapsed && "rotate-180"
+        )}
       />
       
-      {/* Main content area that adjusts based on sidebar state */}
+      {/* Main content area with responsive margins */}
       <div className={cn(
         "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-        isSidebarCollapsed ? "ml-[70px]" : "ml-[280px]"
+        !isMobile && (isSidebarCollapsed ? "ml-[70px]" : "ml-[280px]"),
+        "bg-gray-50"
       )}>
-        {/* Simple header instead of ModernHeader */}
-        <header className="h-16 border-b border-border/40 bg-background/95 sticky top-0 z-20 px-6 flex items-center">
-          <h1 className="text-xl font-semibold">LabTasker</h1>
-        </header>
-        <main className="flex-1 overflow-auto">
-          {children}
+        {/* Content wrapper with improved scrolling */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6">
+          <div className="container mx-auto max-w-7xl">
+            {children}
+          </div>
         </main>
       </div>
+
+      {/* Mobile overlay when sidebar is open */}
+      {isMobile && !isSidebarCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 backdrop-blur-sm"
+          onClick={() => setIsSidebarCollapsed(true)}
+        />
+      )}
     </div>
   )
 }

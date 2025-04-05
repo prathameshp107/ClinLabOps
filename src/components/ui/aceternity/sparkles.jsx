@@ -1,18 +1,17 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+
+import React, { useRef, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 export const SparklesCore = ({
   id,
-  className,
   background,
   minSize,
   maxSize,
-  particleDensity,
+  speed,
   particleColor,
-  particleOpacity,
-  particleSpeed,
-  ...props
+  className,
+  particleDensity,
 }) => {
   const canvasRef = useRef(null);
   const [context, setContext] = useState(null);
@@ -22,98 +21,123 @@ export const SparklesCore = ({
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
 
-  // Initialize the canvas and context
+  const handleMouseMove = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    setMouse({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
+
+  const resizeCanvas = () => {
+    if (canvasRef.current && context) {
+      canvasRef.current.width = canvasRef.current.clientWidth;
+      canvasRef.current.height = canvasRef.current.clientHeight;
+      setWidth(canvasRef.current.width);
+      setHeight(canvasRef.current.height);
+    }
+  };
+
   useEffect(() => {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
       setContext(ctx);
-      handleResize();
-      initParticles();
-      animate();
-      window.addEventListener("resize", handleResize);
     }
 
+    window.addEventListener("resize", resizeCanvas);
+
     return () => {
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", resizeCanvas);
     };
   }, []);
 
-  // Handle the canvas resize
-  const handleResize = () => {
-    if (canvasRef.current && canvasRef.current.parentElement) {
-      const { width, height } = canvasRef.current.parentElement.getBoundingClientRect();
-      canvasRef.current.width = width;
-      canvasRef.current.height = height;
-      setWidth(width);
-      setHeight(height);
+  useEffect(() => {
+    resizeCanvas();
+  }, [context]);
+
+  useEffect(() => {
+    if (width && height) {
+      setParticles(
+        Array.from({ length: particleDensity || 50 }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: Math.random() * (maxSize - minSize) + minSize || Math.random() * 2 + 1,
+          speed: speed || 0.5,
+          directionX: Math.random() - 0.5,
+          directionY: Math.random() - 0.5,
+        }))
+      );
     }
-  };
+  }, [width, height, minSize, maxSize, speed, particleDensity]);
 
-  // Initialize the particles
-  const initParticles = () => {
-    const particleCount = Math.min(
-      Math.max(Math.floor((width * height) / 10000) * (particleDensity || 1), 50),
-      1000
-    );
-    const newParticles = [];
+  useEffect(() => {
+    if (!context || !width || !height) return;
 
-    for (let i = 0; i < particleCount; i++) {
-      const x = Math.random() * width;
-      const y = Math.random() * height;
-      const size = Math.random() * (maxSize || 3 - minSize || 1) + (minSize || 1);
-      const opacity = Math.random() * (particleOpacity || 1);
-      const speed = Math.random() * (particleSpeed || 0.5) + 0.1;
-
-      newParticles.push({
-        x,
-        y,
-        size,
-        opacity,
-        speed,
-      });
-    }
-
-    setParticles(newParticles);
-  };
-
-  // Animation loop
-  const animate = () => {
-    if (context && width && height) {
+    let animationFrameId;
+    const renderCanvas = () => {
       context.clearRect(0, 0, width, height);
-      context.fillStyle = background || "rgba(0, 0, 0, 0)";
+      context.fillStyle = background || "black";
       context.fillRect(0, 0, width, height);
 
       particles.forEach((particle, i) => {
-        // Update particle position
-        particle.y -= particle.speed;
-
-        // Reset particle when it goes off screen
-        if (particle.y < -particle.size) {
-          particle.y = height + particle.size;
-          particle.x = Math.random() * width;
-        }
+        const { x, y, size, directionX, directionY, speed } = particle;
 
         // Draw particle
         context.beginPath();
-        context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        context.closePath();
-        context.fillStyle = `${particleColor || "#ffffff"}${Math.floor(
-          particle.opacity * 255
-        ).toString(16)}`;
+        context.arc(x, y, size, 0, 2 * Math.PI);
+        context.fillStyle = particleColor || "#ffffff";
         context.fill();
-      });
-    }
 
-    requestAnimationFrame(animate);
-  };
+        // Update particle position
+        particles[i].x += directionX * speed;
+        particles[i].y += directionY * speed;
+
+        // Boundary check
+        if (x < 0 || x > width) particles[i].directionX *= -1;
+        if (y < 0 || y > height) particles[i].directionY *= -1;
+
+        // Mouse interaction
+        if (isHovering) {
+          const dx = mouse.x - x;
+          const dy = mouse.y - y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const maxDistance = 100;
+
+          if (distance < maxDistance) {
+            const force = (maxDistance - distance) / maxDistance;
+            const angle = Math.atan2(dy, dx);
+            particles[i].x -= Math.cos(angle) * force * speed;
+            particles[i].y -= Math.sin(angle) * force * speed;
+          }
+        }
+      });
+
+      animationFrameId = window.requestAnimationFrame(renderCanvas);
+    };
+
+    renderCanvas();
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [context, width, height, particles, isHovering, mouse, background, particleColor]);
 
   return (
     <canvas
-      ref={canvasRef}
       id={id}
-      className={cn("absolute inset-0 w-full h-full", className)}
-      style={{ background: "transparent" }}
-      {...props}
+      ref={canvasRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cn("w-full h-full", className)}
     />
   );
 };
