@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 
 // Custom Components
 import { TaskOverview } from "@/components/tasks/task-overview";
@@ -260,10 +261,10 @@ export default function TaskDetailPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="container mx-auto px-4 py-6 max-w-7xl"
+        className="h-full flex flex-col"
       >
         {/* Header with back button and actions */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b gap-4 bg-background/60 backdrop-blur-sm sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <BackButton />
             <div>
@@ -272,7 +273,7 @@ export default function TaskDetailPage() {
                 <Badge variant={
                   task.status === 'completed' ? 'success' :
                     task.status === 'in_progress' ? 'warning' : 'outline'
-                }>
+                } className="ml-2 animate-fade-in">
                   {task.status.replace('_', ' ')}
                 </Badge>
               </div>
@@ -301,6 +302,11 @@ export default function TaskDetailPage() {
               </Button>
             </HoverBorderGradient>
 
+            <Button variant="default" size="sm" className="gap-1">
+              <Clock className="h-4 w-4" />
+              <span className="hidden sm:inline">Track Time</span>
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="h-9 w-9">
@@ -319,93 +325,170 @@ export default function TaskDetailPage() {
         </div>
 
         {/* Main content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left column - Task details */}
-          <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
-                <TabsTrigger value="files">Files</TabsTrigger>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-              </TabsList>
+        <div className="flex-1 overflow-auto p-4 sm:p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-[1600px] mx-auto">
+            {/* Left column - Task details */}
+            <div className="lg:col-span-3 space-y-6">
+              <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <div className="flex justify-between items-center mb-4">
+                  <TabsList className="grid grid-cols-4 w-auto">
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
+                    <TabsTrigger value="files">Files</TabsTrigger>
+                    <TabsTrigger value="comments">Comments</TabsTrigger>
+                  </TabsList>
 
-              <TabsContent value="overview" className="space-y-6">
-                <TaskOverview task={task} />
-                <TaskProgress task={task} />
-              </TabsContent>
-
-              <TabsContent value="subtasks" className="space-y-6">
-                <SubtasksList task={task} setTask={setTask} />
-              </TabsContent>
-
-              <TabsContent value="files" className="space-y-6">
-                <TaskFiles task={task} />
-              </TabsContent>
-
-              <TabsContent value="comments" className="space-y-6">
-                <TaskComments task={task} />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Right column - Sidebar */}
-          <div className="space-y-6">
-            <TaskAssignee task={task} teamMembers={task.teamMembers} />
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-md flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  Due Date
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{format(new Date(task.dueDate), 'MMM d, yyyy')}</span>
-                  </div>
-                  <Button variant="outline" size="sm">Change</Button>
-                </div>
-                {new Date(task.dueDate) < new Date() && (
-                  <Badge variant="destructive" className="mt-2">Overdue</Badge>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-md flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-primary" />
-                  Tags
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {task.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="bg-primary/5">
-                      {tag}
+                    <Badge variant={
+                      task.priority === 'high' ? 'destructive' :
+                        task.priority === 'medium' ? 'warning' : 'outline'
+                    } className="capitalize">
+                      {task.priority} Priority
                     </Badge>
-                  ))}
-                  <Button variant="ghost" size="sm" className="h-6 px-2">
-                    + Add
-                  </Button>
+                    <Badge variant="outline" className="bg-primary/5">
+                      {task.progress}% Complete
+                    </Badge>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-md flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-primary" />
-                  Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-[300px] overflow-y-auto pr-2">
-                <TaskActivityLog activities={task.activityLog} />
-              </CardContent>
-            </Card>
+                <TabsContent value="overview" className="space-y-6">
+                  <TaskOverview task={task} />
+                  <TaskProgress task={task} />
+
+                  {/* New Timeline Feature */}
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-md flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        Task Timeline
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="relative">
+                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted"></div>
+                        {task.subtasks.map((subtask, index) => (
+                          <div key={subtask.id} className="ml-10 mb-6 relative">
+                            <div className="absolute -left-10 top-1 w-4 h-4 rounded-full bg-background border-2 border-primary"></div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{subtask.title}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(subtask.startDate), 'MMM d')} - {format(new Date(subtask.endDate), 'MMM d, yyyy')}
+                              </span>
+                              <div className="mt-1 flex items-center gap-2">
+                                <Progress value={subtask.progress} className="h-1.5 w-24" />
+                                <span className="text-xs">{subtask.progress}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="subtasks" className="space-y-6">
+                  <SubtasksList task={task} setTask={setTask} />
+                </TabsContent>
+
+                <TabsContent value="files" className="space-y-6">
+                  <TaskFiles task={task} />
+                </TabsContent>
+
+                <TabsContent value="comments" className="space-y-6">
+                  <TaskComments task={task} />
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Right column - Sidebar */}
+            <div className="space-y-6">
+              <TaskAssignee task={task} teamMembers={task.teamMembers} />
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Due Date
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span>{format(new Date(task.dueDate), 'MMM d, yyyy')}</span>
+                    </div>
+                    <Button variant="outline" size="sm">Change</Button>
+                  </div>
+                  {new Date(task.dueDate) < new Date() ? (
+                    <Badge variant="destructive" className="mt-2">Overdue</Badge>
+                  ) : (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {Math.ceil((new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24))} days remaining
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-primary" />
+                    Tags
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {task.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors">
+                        {tag}
+                      </Badge>
+                    ))}
+                    <Button variant="ghost" size="sm" className="h-6 px-2">
+                      + Add
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* New Related Tasks Card */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" />
+                    Related Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="divide-y">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="p-3 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-primary/5">T{i + 10}</Badge>
+                            <span className="text-sm font-medium truncate">Related PCR Analysis Task</span>
+                          </div>
+                          <Badge variant={i === 1 ? 'success' : i === 2 ? 'warning' : 'outline'}>
+                            {i === 1 ? 'Completed' : i === 2 ? 'In Progress' : 'Not Started'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                    Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="max-h-[300px] overflow-y-auto pr-2">
+                  <TaskActivityLog activities={task.activityLog} />
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </motion.div>
