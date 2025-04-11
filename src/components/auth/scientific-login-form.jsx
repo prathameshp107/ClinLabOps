@@ -151,43 +151,63 @@ export default function ScientificLoginForm() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (loginStage === "credentials") {
+        // Connect to backend API for authentication
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        });
 
-      // Mock logic to check credentials
-      if (formData.email && formData.password) {
-        if (loginStage === "credentials") {
-          // Check if user has 2FA enabled (mock check)
-          const has2FA = formData.email.includes("admin");
-          if (has2FA) {
-            setLoginStage("2fa");
-          } else {
-            // Simulate successful login
-            setLoginSuccess(true);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            // Redirect to dashboard based on role
-            router.push("/");
-          }
-        } else if (loginStage === "2fa") {
-          if (formData.twoFactorCode === "123456") {
-            // Simulate successful login
-            setLoginSuccess(true);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            // Redirect to dashboard
-            router.push("/");
-          } else {
-            setError("Invalid two-factor authentication code. Please try again.");
-            setShake(true);
-            setTimeout(() => setShake(false), 500);
-          }
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed');
         }
-      } else {
-        setError("Please enter both email and password.");
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
+
+        // Store token and user data in localStorage
+        localStorage.setItem('userToken', data.token);
+        localStorage.setItem('userData', JSON.stringify({
+          id: data._id,
+          fullName: data.fullName,
+          email: data.email,
+          role: data.role,
+          department: data.department,
+        }));
+
+        // Check if user has 2FA enabled (this would come from your backend)
+        // For now, we'll keep the mock check
+        const has2FA = formData.email.includes("admin");
+        if (has2FA) {
+          setLoginStage("2fa");
+        } else {
+          // Successful login
+          setLoginSuccess(true);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          // Redirect to dashboard based on role
+          router.push("/");
+        }
+      } else if (loginStage === "2fa") {
+        // Here you would verify the 2FA code with your backend
+        // For now, we'll keep the mock verification
+        if (formData.twoFactorCode === "123456") {
+          setLoginSuccess(true);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          router.push("/");
+        } else {
+          setError("Invalid two-factor authentication code. Please try again.");
+          setShake(true);
+          setTimeout(() => setShake(false), 500);
+        }
       }
     } catch (err) {
-      setError("An error occurred during login. Please try again.");
+      console.error("Login error:", err);
+      setError(err.message || "An error occurred during login. Please try again.");
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {
@@ -199,15 +219,44 @@ export default function ScientificLoginForm() {
     router.push('/forgot-password');
   };
 
-  const handleSocialLogin = (provider) => {
+  const handleSocialLogin = async (provider) => {
     setIsLoading(true);
-    // Simulate social login
-    setTimeout(() => {
+    
+    try {
+      // This would be replaced with actual social login API calls
+      // For now, we'll simulate it
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock successful login data
+      const mockUserData = {
+        _id: 'social-user-id',
+        fullName: 'Social User',
+        email: `user@${provider}.com`,
+        role: 'researcher',
+        token: 'mock-social-token'
+      };
+      
+      // Store token and user data
+      localStorage.setItem('userToken', mockUserData.token);
+      localStorage.setItem('userData', JSON.stringify({
+        id: mockUserData._id,
+        fullName: mockUserData.fullName,
+        email: mockUserData.email,
+        role: mockUserData.role
+      }));
+      
       setLoginSuccess(true);
       setTimeout(() => {
         router.push("/");
       }, 1000);
-    }, 1500);
+    } catch (error) {
+      console.error("Social login error:", error);
+      setError("Social login failed. Please try again.");
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Success animation

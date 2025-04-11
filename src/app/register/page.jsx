@@ -160,10 +160,39 @@ export default function RegisterPage() {
     setFormError(false)
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Connect to backend API for registration
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: data.fullName,
+          email: data.email,
+          password: data.password,
+          role: data.role,
+          department: data.department || '',
+          termsAccepted: data.termsAccepted
+        }),
+      })
 
-      console.log("Form submitted:", data)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Registration failed')
+      }
+
+      // Store token and user data in localStorage
+      localStorage.setItem('userToken', result.token)
+      localStorage.setItem('userData', JSON.stringify({
+        id: result._id,
+        fullName: result.fullName,
+        email: result.email,
+        role: result.role,
+        department: result.department,
+      }))
+
+      console.log("Registration successful:", result)
       setIsLoading(false)
       setSignupSuccess(true)
 
