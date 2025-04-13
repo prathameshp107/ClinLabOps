@@ -19,12 +19,13 @@ const createProject = async (req, res) => {
       budget
     } = req.body;
 
+    let isStatus = status.toLowerCase();
 
     // Create new project with the user as creator
     const project = await Project.create({
       title,
       description,
-      status,
+      status: isStatus,
       priority,
       startDate,
       endDate,
@@ -34,6 +35,7 @@ const createProject = async (req, res) => {
       tags: tags || [],
       budget: budget || 0
     });
+
 
     // Populate creator and team members
     const populatedProject = await Project.findById(project._id)
