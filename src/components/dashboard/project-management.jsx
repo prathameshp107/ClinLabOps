@@ -248,7 +248,7 @@ export function ProjectManagement() {
         throw new Error("Authentication token not found");
       }
 
-      const response = await axios.get(`${API_URL}/projects/getAllProjects`, {
+      const response = await axios.get(`${API_URL}/projects`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -477,8 +477,10 @@ export function ProjectManagement() {
         priority: newProject.priority.toLowerCase(),
         department: newProject.department || "",
         tags: newProject.tags || [],
-        budget: newProject.budget || 0
+        budget: newProject.budget || 0,
+        teamMembers: newProject.teamMembers?.map(member => member.id) || []
       };
+      console.log("Sending project data to API:", projectData);
 
       // Create project in backend
       const response = await axios.post(`${API_URL}/projects`, projectData, {
@@ -971,119 +973,18 @@ export function ProjectManagement() {
 }
 
 // ProjectDisplay component to avoid duplicate code
-// ProjectDisplay component to avoid duplicate code
-function ProjectDisplay({
-  projects,
-  viewMode,
-  handleProjectAction,
-  sortConfig,
-  requestSort,
-  searchQuery,
-  statusFilter,
-  priorityFilter,
-  timeframeFilter,
-  setSearchQuery,
-  setStatusFilter,
-  setPriorityFilter,
-  setTimeframeFilter,
-  setShowAddProjectDialog
-}) {
+function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
   if (projects.length === 0) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="flex flex-col items-center justify-center p-8 md:p-12 border border-dashed rounded-lg bg-gradient-to-b from-background to-muted/20"
-      >
-        {/* Rest of the empty state UI remains the same */}
-        <div className="relative mb-6">
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{
-              duration: 0.5,
-              repeat: Infinity,
-              repeatType: "reverse",
-              repeatDelay: 3
-            }}
-            className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center"
-          >
-            <FolderPlus className="h-8 w-8 text-primary" />
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.3 }}
-            className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-background border border-primary flex items-center justify-center text-xs font-medium text-primary"
-          >
-            0
-          </motion.div>
+      <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
+        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+          <FilterIcon className="h-6 w-6 text-muted-foreground" />
         </div>
-
-        <h3 className="text-xl font-semibold text-center">No projects found</h3>
-        <p className="text-muted-foreground text-center mt-2 mb-6 max-w-md">
-          {searchQuery || statusFilter !== "all" || priorityFilter !== "all" || timeframeFilter !== "all" ?
-            "Try adjusting your search criteria or filters to see more results." :
-            "Get started by creating your first project to track your research work."
-          }
+        <h3 className="text-lg font-medium">No projects found</h3>
+        <p className="text-muted-foreground text-sm mt-1">
+          Try adjusting your search or filters
         </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 mt-2">
-          <Button
-            onClick={() => setShowAddProjectDialog(true)}
-            className="gap-2"
-            size="sm"
-          >
-            <PlusCircle className="h-4 w-4" />
-            Create New Project
-          </Button>
-
-          {(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || timeframeFilter !== "all") && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSearchQuery("");
-                setStatusFilter("all");
-                setPriorityFilter("all");
-                setTimeframeFilter("all");
-              }}
-              className="gap-2"
-            >
-              <FilterIcon className="h-4 w-4" />
-              Clear Filters
-            </Button>
-          )}
-        </div>
-
-        {/* Rest of the component remains the same */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
-          <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Quick Start</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Create a project in less than 2 minutes with our templates</p>
-          </div>
-
-          <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Collaboration</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Invite team members to work together on research projects</p>
-          </div>
-
-          <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Track Progress</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Monitor milestones and visualize project timelines</p>
-          </div>
-        </div>
-      </motion.div>
+      </div>
     );
   }
 

@@ -19,6 +19,7 @@ const createProject = async (req, res) => {
       budget
     } = req.body;
 
+
     // Create new project with the user as creator
     const project = await Project.create({
       title,
