@@ -171,8 +171,8 @@ export default function ScientificLoginForm() {
         }
 
         // Store token and user data in localStorage
-        localStorage.setItem('userToken', data.token);
-        localStorage.setItem('userData', JSON.stringify({
+        localStorage.setItem('authToken', data.token); // Changed from 'userToken' to 'authToken'
+        localStorage.setItem('user', JSON.stringify({  // Changed from 'userData' to 'user'
           id: data._id,
           fullName: data.fullName,
           email: data.email,
@@ -190,7 +190,7 @@ export default function ScientificLoginForm() {
           setLoginSuccess(true);
           await new Promise((resolve) => setTimeout(resolve, 1000));
           // Redirect to dashboard based on role
-          router.push("/");
+          router.push("/admin-dashboard"); // Changed from "/admin-dashboard" to "/dashboard"
         }
       } else if (loginStage === "2fa") {
         // Here you would verify the 2FA code with your backend
@@ -221,12 +221,12 @@ export default function ScientificLoginForm() {
 
   const handleSocialLogin = async (provider) => {
     setIsLoading(true);
-    
+
     try {
       // This would be replaced with actual social login API calls
       // For now, we'll simulate it
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Mock successful login data
       const mockUserData = {
         _id: 'social-user-id',
@@ -235,16 +235,16 @@ export default function ScientificLoginForm() {
         role: 'researcher',
         token: 'mock-social-token'
       };
-      
+
       // Store token and user data
-      localStorage.setItem('userToken', mockUserData.token);
-      localStorage.setItem('userData', JSON.stringify({
+      localStorage.setItem('authToken', mockUserData.token); // Changed from 'userToken' to 'authToken'
+      localStorage.setItem('user', JSON.stringify({  // Changed from 'userData' to 'user'
         id: mockUserData._id,
         fullName: mockUserData.fullName,
         email: mockUserData.email,
         role: mockUserData.role
       }));
-      
+
       setLoginSuccess(true);
       setTimeout(() => {
         router.push("/");

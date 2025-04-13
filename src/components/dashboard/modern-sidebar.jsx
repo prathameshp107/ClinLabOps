@@ -106,7 +106,7 @@ export function ModernSidebar({ className, onToggle }) {
         // Clear localStorage
         localStorage.removeItem('userToken');
         localStorage.removeItem('userData');
-        
+
         // Redirect to login page
         router.push('/login');
     };
@@ -145,7 +145,7 @@ export function ModernSidebar({ className, onToggle }) {
                     name: 'dashboard',
                     label: 'Dashboard',
                     icon: <Home className="h-5 w-5" />,
-                    path: '/',
+                    path: '/admin-dashboard',
                     badge: null
                 },
                 {
@@ -619,9 +619,9 @@ export function ModernSidebar({ className, onToggle }) {
                                 <Settings className="h-4 w-4" />
                             </Button>
                         </div>
-                        <Button 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            variant="outline"
+                            size="sm"
                             className="h-9 text-xs rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors shadow-sm hover:shadow-md"
                             onClick={handleLogout}
                         >
@@ -643,7 +643,7 @@ export function ModernSidebar({ className, onToggle }) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
+                        <AlertDialogAction
                             onClick={confirmLogout}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >

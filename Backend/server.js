@@ -19,6 +19,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/projects', require('./routes/projects')); // Add projects routes
 
 // Default route
 app.get('/', (req, res) => {
@@ -28,7 +29,12 @@ app.get('/', (req, res) => {
 // Port configuration
 const PORT = process.env.PORT || 5000;
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start server only if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export app for testing
+module.exports = app;

@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { 
-  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, 
+import {
+  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
   Users, Clock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -38,8 +38,32 @@ import { ActivityLogDialog } from "./project-management/activity-log-dialog"
 import { ProjectDependencies } from "./project-management/project-dependencies"
 import { ProjectStatusTracking } from "./project-management/project-status-tracking"
 import { ProjectGanttChart } from "./project-management/project-gantt-chart"
+// Replace the toast import with a simple implementation
+// import { useToast } from "@/components/ui/use-toast"
+import axios from "axios"
 
-// Mock user data for activity logs
+// Simple toast implementation
+const useToast = () => {
+  const showToast = ({ title, description, variant }) => {
+    // Simple alert for now
+    const message = `${title}: ${description}`;
+    console.log(message);
+    if (typeof window !== 'undefined') {
+      if (variant === 'destructive') {
+        console.error(message);
+      } else {
+        console.log(message);
+      }
+    }
+  };
+
+  return { toast: showToast };
+};
+
+// API base URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+// Mock user data for activity logs (will be replaced with real data later)
 const mockUsers = {
   "u1": { name: "Dr. Sarah Johnson", avatar: "SJ" },
   "u2": { name: "Mark Williams", avatar: "MW" },
@@ -49,7 +73,7 @@ const mockUsers = {
   "u6": { name: "Robert Kim", avatar: "RK" }
 };
 
-// Sample project data
+// Sample project data (will be used as fallback)
 export const mockProjects = [
   {
     id: "p1",
@@ -168,25 +192,22 @@ export const mockProjects = [
 ]
 
 export function ProjectManagement() {
-  // Load projects from localStorage or use mockProjects as default
-  const [projects, setProjects] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedProjects = localStorage.getItem('projects');
-      return savedProjects ? JSON.parse(savedProjects) : mockProjects;
-    }
-    return mockProjects;
-  });
-  
-  const [filteredProjects, setFilteredProjects] = useState(projects);
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Projects state
+  const [projects, setProjects] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [timeframeFilter, setTimeframeFilter] = useState("all");
   const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
   const [activeTab, setActiveTab] = useState("all"); // "all" or "favorites"
-  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'asc' });
   const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
-  
+
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
@@ -194,45 +215,125 @@ export function ProjectManagement() {
   const [showShareProjectDialog, setShowShareProjectDialog] = useState(false);
   const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [currentUser, setCurrentUser] = useState({ id: "u1", name: "Dr. Sarah Johnson" }); // Mock current user
 
-  // Save projects to localStorage whenever they change
+  // User state (will be replaced with auth context)
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Get auth token from localStorage
+  const getAuthToken = () => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('authToken');
+    }
+    return null;
+  };
+
+  // Get current user from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('projects', JSON.stringify(projects));
+      const user = localStorage.getItem('user');
+      if (user) {
+        setCurrentUser(JSON.parse(user));
+      }
     }
-  }, [projects]);
+  }, []);
+
+  // Fetch projects from API
+  const fetchProjects = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      const response = await axios.get(`${API_URL}/projects/getAllProjects`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      // Transform backend data to match frontend structure
+      const transformedProjects = response.data.map(project => ({
+        id: project._id,
+        name: project.title,
+        description: project.description,
+        startDate: project.startDate.split('T')[0],
+        endDate: project.endDate.split('T')[0],
+        status: project.status.charAt(0).toUpperCase() + project.status.slice(1), // Capitalize status
+        priority: project.priority.charAt(0).toUpperCase() + project.priority.slice(1), // Capitalize priority
+        progress: project.progress || 0,
+        isFavorite: project.isFavorite || false,
+        team: project.teamMembers.map(member => ({
+          id: member._id,
+          name: member.fullName,
+          role: member.role || "Team Member",
+          email: member.email
+        })),
+        tags: project.tags || [],
+        dependencies: project.dependencies || [],
+        activityLog: project.activityLog || [],
+        department: project.department,
+        budget: project.budget
+      }));
+
+      setProjects(transformedProjects);
+      setFilteredProjects(transformedProjects);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+      setError("Failed to load projects. Please try again later.");
+      setLoading(false);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.message || "Failed to load projects",
+        variant: "destructive"
+      });
+
+      // Use mock data as fallback
+      setProjects(mockProjects);
+      setFilteredProjects(mockProjects);
+    }
+  };
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   // Apply filters, search, and favorites tab when they change
   useEffect(() => {
     let filtered = [...projects];
-    
+
     // Apply favorites filter if on favorites tab
     if (activeTab === "favorites") {
       filtered = filtered.filter(project => project.isFavorite);
     }
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        project => 
-          project.name.toLowerCase().includes(query) || 
+        project =>
+          project.name.toLowerCase().includes(query) ||
           project.description.toLowerCase().includes(query) ||
-          project.tags.some(tag => tag.toLowerCase().includes(query))
+          (project.tags && project.tags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
-    
+
     // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(project => project.status === statusFilter);
     }
-    
+
     // Apply priority filter
     if (priorityFilter !== "all") {
       filtered = filtered.filter(project => project.priority === priorityFilter);
     }
-    
+
     // Apply timeframe filter
     const now = new Date();
     if (timeframeFilter === "active") {
@@ -244,7 +345,7 @@ export function ProjectManagement() {
     } else if (timeframeFilter === "past") {
       filtered = filtered.filter(project => new Date(project.endDate) < now);
     }
-    
+
     setFilteredProjects(filtered);
   }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab]);
 
@@ -255,7 +356,7 @@ export function ProjectManagement() {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-    
+
     // Apply sorting
     const sortedProjects = [...filteredProjects].sort((a, b) => {
       if (a[key] < b[key]) {
@@ -266,13 +367,13 @@ export function ProjectManagement() {
       }
       return 0;
     });
-    
+
     setFilteredProjects(sortedProjects);
   };
 
   const handleProjectAction = (action, project) => {
     setSelectedProject(project);
-    
+
     switch (action) {
       case "view":
         // Navigate to the project details page instead of opening a modal
@@ -299,156 +400,374 @@ export function ProjectManagement() {
     }
   }
 
-  const toggleProjectFavorite = (projectId) => {
-    const updatedProjects = projects.map(project => 
-      project.id === projectId 
-        ? { 
-            ...project, 
+  const toggleProjectFavorite = async (projectId) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Find the project to get current favorite status
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+
+      // Update project in backend
+      await axios.put(`${API_URL}/projects/${projectId}`,
+        { isFavorite: !project.isFavorite },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map(project =>
+        project.id === projectId
+          ? {
+            ...project,
             isFavorite: !project.isFavorite,
             activityLog: [
               ...project.activityLog || [],
               {
                 id: `a${Date.now()}`,
-                userId: currentUser.id,
+                userId: currentUser?._id,
                 action: !project.isFavorite ? "marked_favorite" : "unmarked_favorite",
                 timestamp: new Date().toISOString(),
                 details: !project.isFavorite ? "Marked as favorite" : "Removed from favorites"
               }
-            ] 
-          } 
-        : project
-    );
-    
-    setProjects(updatedProjects);
-  }
+            ]
+          }
+          : project
+      );
 
-  const handleAddProject = (newProject) => {
-    // In a real application, you would call an API here
-    const projectWithId = {
-      ...newProject,
-      id: `p${projects.length + 1}`,
-      isFavorite: false,
-      activityLog: [
-        {
-          id: `a${Date.now()}`,
-          userId: currentUser.id,
-          action: "created",
-          timestamp: new Date().toISOString(),
-          details: "Project created"
-        }
-      ],
-      team: [
-        { id: currentUser.id, name: currentUser.name, role: "Owner", email: "s.johnson@example.com" }
-      ]
+      setProjects(updatedProjects);
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: project.isFavorite ? "Removed from favorites" : "Added to favorites",
+      });
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive"
+      });
     }
-    
-    setProjects(prev => [...prev, projectWithId]);
   }
 
-  const handleEditProject = (editedProject) => {
-    const updatedProjects = projects.map(project => 
-      project.id === editedProject.id 
-        ? { 
+  const handleAddProject = async (newProject) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Transform frontend data to match backend structure
+      const projectData = {
+        title: newProject.name,
+        description: newProject.description,
+        startDate: newProject.startDate,
+        endDate: newProject.endDate,
+        status: newProject.status.toLowerCase(),
+        priority: newProject.priority.toLowerCase(),
+        department: newProject.department || "",
+        tags: newProject.tags || [],
+        budget: newProject.budget || 0
+      };
+
+      // Create project in backend
+      const response = await axios.post(`${API_URL}/projects`, projectData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Transform response data to match frontend structure
+      const createdProject = {
+        id: response.data._id,
+        name: response.data.title,
+        description: response.data.description,
+        startDate: response.data.startDate.split('T')[0],
+        endDate: response.data.endDate.split('T')[0],
+        status: response.data.status.charAt(0).toUpperCase() + response.data.status.slice(1),
+        priority: response.data.priority.charAt(0).toUpperCase() + response.data.priority.slice(1),
+        progress: response.data.progress || 0,
+        isFavorite: response.data.isFavorite || false,
+        team: response.data.teamMembers ? response.data.teamMembers.map(member => ({
+          id: member._id,
+          name: member.fullName,
+          role: member.role || "Team Member",
+          email: member.email
+        })) : [],
+        tags: response.data.tags || [],
+        dependencies: response.data.dependencies || [],
+        activityLog: response.data.activityLog || [],
+        department: response.data.department,
+        budget: response.data.budget
+      };
+
+      // Update local state
+      setProjects(prev => [...prev, createdProject]);
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      });
+    } catch (err) {
+      console.error("Error creating project:", err);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to create project",
+        variant: "destructive"
+      });
+    }
+  }
+
+  const handleEditProject = async (editedProject) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Transform frontend data to match backend structure
+      const projectData = {
+        title: editedProject.name,
+        description: editedProject.description,
+        startDate: editedProject.startDate,
+        endDate: editedProject.endDate,
+        status: editedProject.status.toLowerCase(),
+        priority: editedProject.priority.toLowerCase(),
+        progress: editedProject.progress,
+        department: editedProject.department || "",
+        tags: editedProject.tags || [],
+        budget: editedProject.budget || 0
+      };
+
+      // Update project in backend
+      await axios.put(`${API_URL}/projects/${editedProject.id}`, projectData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      // Update local state
+      const updatedProjects = projects.map(project =>
+        project.id === editedProject.id
+          ? {
             ...editedProject,
             activityLog: [
               ...project.activityLog || [],
               {
                 id: `a${Date.now()}`,
-                userId: currentUser.id,
+                userId: currentUser?._id,
                 action: "updated",
                 timestamp: new Date().toISOString(),
                 details: "Project updated"
               }
             ]
-          } 
-        : project
-    );
-    
-    setProjects(updatedProjects);
+          }
+          : project
+      );
+
+      setProjects(updatedProjects);
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Project updated successfully",
+      });
+    } catch (err) {
+      console.error("Error updating project:", err);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to update project",
+        variant: "destructive"
+      });
+    }
   }
 
-  const handleDeleteProject = (projectId) => {
-    setProjects(prev => prev.filter(project => project.id !== projectId));
-  }
-
-  const handleShareProject = (projectId, invitedUsers) => {
-    const updatedProjects = projects.map(project => {
-      if (project.id === projectId) {
-        const newTeamMembers = invitedUsers.map(user => ({
-          id: user.id,
-          name: user.name,
-          role: user.projectRole.charAt(0).toUpperCase() + user.projectRole.slice(1),
-          email: user.email
-        }));
-        
-        // Add new activity log entries
-        const newActivityLogs = invitedUsers.map(user => ({
-          id: `a${Date.now()}-${user.id}`,
-          userId: currentUser.id,
-          action: "added_member",
-          timestamp: new Date().toISOString(),
-          details: `Added ${user.name} as ${user.projectRole}`
-        }));
-        
-        return {
-          ...project,
-          team: [...(project.team || []), ...newTeamMembers],
-          activityLog: [...(project.activityLog || []), ...newActivityLogs]
-        };
+  const handleDeleteProject = async (projectId) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
       }
-      return project;
-    });
-    
-    setProjects(updatedProjects);
+
+      // Delete project in backend
+      await axios.delete(`${API_URL}/projects/${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      // Update local state
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+    } catch (err) {
+      console.error("Error deleting project:", err);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to delete project",
+        variant: "destructive"
+      });
+    }
   }
 
-  // Update project dependencies
-  const handleUpdateProjectDependencies = (dependencies) => {
-    // In a real app, you would update this via an API
-    // For now, we'll just update the local state
-    console.log("Updated dependencies:", dependencies);
-    
-    // For demo purposes, we'll update the first project
-    const updatedProjects = projects.map(p => {
-      if (p.id === "p1") {
-        return { ...p, dependencies };
+  const handleShareProject = async (projectId, invitedUsers) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
       }
-      return p;
-    });
-    
-    setProjects(updatedProjects);
-  };
+
+      // Add team members one by one
+      for (const user of invitedUsers) {
+        await axios.post(`${API_URL}/projects/${projectId}/team`,
+          { userId: user.id },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+      }
+
+      // Fetch updated project to get the latest team members
+      const response = await axios.get(`${API_URL}/projects/${projectId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      // Transform response data
+      const updatedProject = {
+        ...projects.find(p => p.id === projectId),
+        team: response.data.teamMembers.map(member => ({
+          id: member._id,
+          name: member.fullName,
+          role: member.role || "Team Member",
+          email: member.email
+        }))
+      };
+
+      // Update local state
+      const updatedProjects = projects.map(project =>
+        project.id === projectId ? updatedProject : project
+      );
+
+      setProjects(updatedProjects);
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Team members added successfully",
+      });
+    } catch (err) {
+      console.error("Error sharing project:", err);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to add team members",
+        variant: "destructive"
+      });
+    }
+  }
 
   // Update project status
-  const handleUpdateProjectStatus = (projectId, newStatus) => {
-    const updatedProjects = projects.map(p => {
-      if (p.id === projectId) {
-        // Add a new activity log entry for status change
-        const newActivityLog = [
-          ...(p.activityLog || []),
-          {
-            id: `a${Date.now()}`,
-            userId: currentUser.id,
-            action: "updated_status",
-            timestamp: new Date().toISOString(),
-            details: `Updated status from ${p.status} to ${newStatus}`
-          }
-        ];
-        
-        return { 
-          ...p, 
-          status: newStatus,
-          // If completed, set progress to 100%
-          progress: newStatus === "Completed" ? 100 : p.progress,
-          activityLog: newActivityLog
-        };
+  const handleUpdateProjectStatus = async (projectId, newStatus) => {
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        throw new Error("Authentication token not found");
       }
-      return p;
-    });
-    
-    setProjects(updatedProjects);
+
+      // Find the project to get current status
+      const project = projects.find(p => p.id === projectId);
+      if (!project) return;
+
+      // Update project in backend
+      await axios.put(`${API_URL}/projects/${projectId}`,
+        {
+          status: newStatus.toLowerCase(),
+          // If completed, set progress to 100%
+          progress: newStatus === "Completed" ? 100 : project.progress
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Update local state
+      const updatedProjects = projects.map(p => {
+        if (p.id === projectId) {
+          // Add a new activity log entry for status change
+          const newActivityLog = [
+            ...(p.activityLog || []),
+            {
+              id: `a${Date.now()}`,
+              userId: currentUser?._id,
+              action: "updated_status",
+              timestamp: new Date().toISOString(),
+              details: `Updated status from ${p.status} to ${newStatus}`
+            }
+          ];
+
+          return {
+            ...p,
+            status: newStatus,
+            // If completed, set progress to 100%
+            progress: newStatus === "Completed" ? 100 : p.progress,
+            activityLog: newActivityLog
+          };
+        }
+        return p;
+      });
+
+      setProjects(updatedProjects);
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: `Project status updated to ${newStatus}`,
+      });
+    } catch (err) {
+      console.error("Error updating project status:", err);
+
+      // Show error toast
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to update project status",
+        variant: "destructive"
+      });
+    }
   };
 
+  // The rest of the component remains the same
   return (
     <div className="space-y-8 pb-10">
       <div className="flex justify-between items-center">
@@ -461,32 +780,32 @@ export function ProjectManagement() {
 
       {/* View Selector Tabs */}
       <div className="border-b">
-        <Tabs 
-          value={activeView} 
-          onValueChange={setActiveView} 
+        <Tabs
+          value={activeView}
+          onValueChange={setActiveView}
           className="w-full"
         >
           <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0">
-            <TabsTrigger 
-              value="projects" 
+            <TabsTrigger
+              value="projects"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Projects
             </TabsTrigger>
-            <TabsTrigger 
-              value="status" 
+            <TabsTrigger
+              value="status"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Status Tracking
             </TabsTrigger>
-            <TabsTrigger 
-              value="gantt" 
+            <TabsTrigger
+              value="gantt"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Gantt Chart
             </TabsTrigger>
-            <TabsTrigger 
-              value="dependencies" 
+            <TabsTrigger
+              value="dependencies"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Dependencies
@@ -495,8 +814,33 @@ export function ProjectManagement() {
         </Tabs>
       </div>
 
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center justify-center p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && !loading && (
+        <div className="flex flex-col items-center justify-center p-12 border border-red-200 bg-red-50 rounded-lg">
+          <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center mb-4">
+            <span className="text-red-500">!</span>
+          </div>
+          <h3 className="text-lg font-medium text-red-800">Error loading projects</h3>
+          <p className="text-red-600 text-sm mt-1">{error}</p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={fetchProjects}
+          >
+            Try Again
+          </Button>
+        </div>
+      )}
+
       {/* Main Content Area */}
-      {activeView === "projects" && (
+      {!loading && !error && activeView === "projects" && (
         <>
           {/* Search & Filter Controls */}
           <div className="flex flex-col sm:flex-row gap-4">
@@ -509,7 +853,7 @@ export function ProjectManagement() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <div className="flex flex-1 flex-col sm:flex-row gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="flex-1">
@@ -523,7 +867,7 @@ export function ProjectManagement() {
                   <SelectItem value="Completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Filter by priority" />
@@ -535,7 +879,7 @@ export function ProjectManagement() {
                   <SelectItem value="High">High</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Filter by timeframe" />
@@ -549,7 +893,7 @@ export function ProjectManagement() {
               </Select>
             </div>
           </div>
-          
+
           {/* Projects Display */}
           <ProjectDisplay
             projects={filteredProjects}
@@ -561,15 +905,16 @@ export function ProjectManagement() {
         </>
       )}
 
-      {activeView === "status" && (
-        <ProjectStatusTracking 
+      {/* Other views remain the same */}
+      {!loading && !error && activeView === "status" && (
+        <ProjectStatusTracking
           projects={projects}
           onUpdateProjectStatus={handleUpdateProjectStatus}
         />
       )}
 
-      {activeView === "gantt" && (
-        <ProjectGanttChart 
+      {!loading && !error && activeView === "gantt" && (
+        <ProjectGanttChart
           projects={projects}
           dependencies={projects.reduce((acc, project) => {
             if (project.dependencies) {
@@ -580,41 +925,41 @@ export function ProjectManagement() {
         />
       )}
 
-      {activeView === "dependencies" && (
-        <ProjectDependencies 
+      {!loading && !error && activeView === "dependencies" && (
+        <ProjectDependencies
           projects={projects}
           onUpdateProjectDependencies={handleUpdateProjectDependencies}
         />
       )}
 
       {/* Dialogs */}
-      <AddProjectDialog 
-        open={showAddProjectDialog} 
+      <AddProjectDialog
+        open={showAddProjectDialog}
         onOpenChange={setShowAddProjectDialog}
         onSubmit={handleAddProject}
       />
-      
-      <DeleteProjectDialog 
-        open={showDeleteProjectDialog} 
+
+      <DeleteProjectDialog
+        open={showDeleteProjectDialog}
         onOpenChange={setShowDeleteProjectDialog}
         project={selectedProject}
         onDelete={handleDeleteProject}
       />
-      
-      <ProjectDetailsDialog 
-        open={showProjectDetailsDialog} 
+
+      <ProjectDetailsDialog
+        open={showProjectDetailsDialog}
         onOpenChange={setShowProjectDetailsDialog}
         project={selectedProject}
         onAction={handleProjectAction}
       />
-      
+
       <ProjectShareDialog
         open={showShareProjectDialog}
         onOpenChange={setShowShareProjectDialog}
         project={selectedProject}
         onShare={handleShareProject}
       />
-      
+
       <ActivityLogDialog
         open={showActivityLogDialog}
         onOpenChange={setShowActivityLogDialog}
@@ -626,29 +971,130 @@ export function ProjectManagement() {
 }
 
 // ProjectDisplay component to avoid duplicate code
-function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
+// ProjectDisplay component to avoid duplicate code
+function ProjectDisplay({
+  projects,
+  viewMode,
+  handleProjectAction,
+  sortConfig,
+  requestSort,
+  searchQuery,
+  statusFilter,
+  priorityFilter,
+  timeframeFilter,
+  setSearchQuery,
+  setStatusFilter,
+  setPriorityFilter,
+  setTimeframeFilter,
+  setShowAddProjectDialog
+}) {
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <FilterIcon className="h-6 w-6 text-muted-foreground" />
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col items-center justify-center p-8 md:p-12 border border-dashed rounded-lg bg-gradient-to-b from-background to-muted/20"
+      >
+        {/* Rest of the empty state UI remains the same */}
+        <div className="relative mb-6">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{
+              duration: 0.5,
+              repeat: Infinity,
+              repeatType: "reverse",
+              repeatDelay: 3
+            }}
+            className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center"
+          >
+            <FolderPlus className="h-8 w-8 text-primary" />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+            className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-background border border-primary flex items-center justify-center text-xs font-medium text-primary"
+          >
+            0
+          </motion.div>
         </div>
-        <h3 className="text-lg font-medium">No projects found</h3>
-        <p className="text-muted-foreground text-sm mt-1">
-          Try adjusting your search or filters
+
+        <h3 className="text-xl font-semibold text-center">No projects found</h3>
+        <p className="text-muted-foreground text-center mt-2 mb-6 max-w-md">
+          {searchQuery || statusFilter !== "all" || priorityFilter !== "all" || timeframeFilter !== "all" ?
+            "Try adjusting your search criteria or filters to see more results." :
+            "Get started by creating your first project to track your research work."
+          }
         </p>
-      </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 mt-2">
+          <Button
+            onClick={() => setShowAddProjectDialog(true)}
+            className="gap-2"
+            size="sm"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Create New Project
+          </Button>
+
+          {(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || timeframeFilter !== "all") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearchQuery("");
+                setStatusFilter("all");
+                setPriorityFilter("all");
+                setTimeframeFilter("all");
+              }}
+              className="gap-2"
+            >
+              <FilterIcon className="h-4 w-4" />
+              Clear Filters
+            </Button>
+          )}
+        </div>
+
+        {/* Rest of the component remains the same */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
+          <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Quick Start</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Create a project in less than 2 minutes with our templates</p>
+          </div>
+
+          <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Collaboration</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Invite team members to work together on research projects</p>
+          </div>
+
+          <div className="p-4 rounded-lg border bg-card hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Track Progress</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Monitor milestones and visualize project timelines</p>
+          </div>
+        </div>
+      </motion.div>
     );
   }
-  
+
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={{
         hidden: { opacity: 0, y: 20 },
-        visible: { 
-          opacity: 1, 
+        visible: {
+          opacity: 1,
           y: 0,
           transition: { duration: 0.3, ease: "easeInOut" }
         }
@@ -656,14 +1102,14 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
       key={viewMode} // This will trigger animation when view mode changes
     >
       {viewMode === "grid" ? (
-        <ProjectCardView 
-          projects={projects} 
-          onAction={handleProjectAction} 
+        <ProjectCardView
+          projects={projects}
+          onAction={handleProjectAction}
         />
       ) : (
-        <ProjectTable 
-          projects={projects} 
-          onAction={handleProjectAction} 
+        <ProjectTable
+          projects={projects}
+          onAction={handleProjectAction}
           sortConfig={sortConfig}
           requestSort={requestSort}
         />
