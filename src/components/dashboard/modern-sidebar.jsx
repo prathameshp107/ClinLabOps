@@ -55,11 +55,12 @@ import {
     Star,
     ToggleRight,
     ToggleLeft,
-    LayoutDashboard,  // Added this import
-    BarChart3,        // Added this import
-    CheckSquare,      // Added this import
-    FolderKanban,     // Added this import
-    Package          // Added this import
+    LayoutDashboard,
+    BarChart3,
+    CheckSquare,
+    FolderKanban,
+    Package,
+    FileUser
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -237,6 +238,21 @@ export function ModernSidebar({ className, onToggle }) {
                     path: '/messages',
                     badge: { count: 8, variant: 'default' }
                 },
+                {
+                    name: 'my page',
+                    label: 'My Page',
+                    icon: <FileUser className="h-5 w-5" />,
+                    path: '/my-page',
+                    badge: null
+                },
+                {
+                    name: 'profile',
+                    label: 'Profile',
+                    icon: <User className="h-5 w-5" />,
+                    path: '/profile',
+                    badge: null
+                }
+
             ]
         },
         {

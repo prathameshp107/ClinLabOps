@@ -19,6 +19,12 @@ const createProject = async (req, res) => {
       budget
     } = req.body;
 
+    // Check if project title already exists
+    const existingProject = await Project.findOne({ title });
+    if (existingProject) {
+      return res.status(409).json({ message: 'Project title already exists' });
+    }
+
     let isStatus = status.toLowerCase();
 
     // Create new project with the user as creator
@@ -35,7 +41,6 @@ const createProject = async (req, res) => {
       tags: tags || [],
       budget: budget || 0
     });
-
 
     // Populate creator and team members
     const populatedProject = await Project.findById(project._id)

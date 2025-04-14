@@ -524,7 +524,14 @@ export function ProjectManagement() {
       });
     } catch (err) {
       console.error("Error creating project:", err);
-
+      if (err.response?.status === 409) {
+        toast({
+          title: "Title already exists",
+          description: "Please change the project title and try again",
+          variant: "destructive"
+        });
+        return;
+      }
       // Show error toast
       toast({
         title: "Error",
