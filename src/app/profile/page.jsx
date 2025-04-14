@@ -403,13 +403,14 @@ export default function ProfilePage() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-card p-6 rounded-lg shadow-sm border border-border/50"
             >
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
                     <p className="text-muted-foreground">Manage your account settings and preferences</p>
                 </div>
-                <Button variant="outline" onClick={() => window.history.back()}>
+                <Button variant="outline" onClick={() => window.history.back()} className="mt-2 md:mt-0">
+                    <ChevronRight className="h-4 w-4 mr-2 rotate-180" />
                     Back to Dashboard
                 </Button>
             </motion.div>
@@ -571,28 +572,43 @@ export default function ProfilePage() {
                         {/* Personal Information Tab */}
                         <TabsContent value="personal">
                             <Card className="border-none shadow-md">
-                                <CardHeader>
-                                    <CardTitle>Personal Information</CardTitle>
-                                    <CardDescription>
-                                        Update your personal details and contact information
-                                    </CardDescription>
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-2xl">Personal Information</CardTitle>
+                                            <CardDescription className="mt-1.5">
+                                                Update your personal details and contact information
+                                            </CardDescription>
+                                        </div>
+                                        {!isEditing && (
+                                            <Button onClick={handleEditToggle} variant="outline" className="h-9">
+                                                <Edit className="h-4 w-4 mr-2" />
+                                                Edit Information
+                                            </Button>
+                                        )}
+                                    </div>
                                 </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name">Full Name</Label>
+                                <CardContent className="pt-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        <div className="space-y-2.5">
+                                            <Label htmlFor="name" className="text-sm font-medium">
+                                                Full Name
+                                            </Label>
                                             <Input
                                                 id="name"
                                                 name="name"
                                                 value={isEditing ? editedUser.name : user.name}
                                                 onChange={handleInputChange}
                                                 disabled={!isEditing}
-                                                className={!isEditing ? "bg-muted" : ""}
+                                                className={`h-10 ${!isEditing ? "bg-muted/50" : ""}`}
+                                                placeholder="Enter your full name"
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email">Email Address</Label>
+                                        <div className="space-y-2.5">
+                                            <Label htmlFor="email" className="text-sm font-medium">
+                                                Email Address
+                                            </Label>
                                             <Input
                                                 id="email"
                                                 name="email"
@@ -600,65 +616,75 @@ export default function ProfilePage() {
                                                 value={isEditing ? editedUser.email : user.email}
                                                 onChange={handleInputChange}
                                                 disabled={!isEditing}
-                                                className={!isEditing ? "bg-muted" : ""}
+                                                className={`h-10 ${!isEditing ? "bg-muted/50" : ""}`}
+                                                placeholder="Enter your email address"
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phone">Phone Number</Label>
+                                        <div className="space-y-2.5">
+                                            <Label htmlFor="phone" className="text-sm font-medium">
+                                                Phone Number
+                                            </Label>
                                             <Input
                                                 id="phone"
                                                 name="phone"
                                                 value={isEditing ? editedUser.phone : user.phone}
                                                 onChange={handleInputChange}
                                                 disabled={!isEditing}
-                                                className={!isEditing ? "bg-muted" : ""}
+                                                className={`h-10 ${!isEditing ? "bg-muted/50" : ""}`}
+                                                placeholder="Enter your phone number"
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="department">Department</Label>
+                                        <div className="space-y-2.5">
+                                            <Label htmlFor="department" className="text-sm font-medium">
+                                                Department
+                                            </Label>
                                             <Input
                                                 id="department"
                                                 name="department"
                                                 value={isEditing ? editedUser.department : user.department}
                                                 onChange={handleInputChange}
                                                 disabled={!isEditing}
-                                                className={!isEditing ? "bg-muted" : ""}
+                                                className={`h-10 ${!isEditing ? "bg-muted/50" : ""}`}
+                                                placeholder="Enter your department"
                                             />
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="role">Role</Label>
+                                        <div className="space-y-2.5">
+                                            <Label htmlFor="role" className="text-sm font-medium">
+                                                Role
+                                            </Label>
                                             <Input
                                                 id="role"
                                                 name="role"
                                                 value={isEditing ? editedUser.role : user.role}
                                                 onChange={handleInputChange}
                                                 disabled={!isEditing}
-                                                className={!isEditing ? "bg-muted" : ""}
+                                                className={`h-10 ${!isEditing ? "bg-muted/50" : ""}`}
+                                                placeholder="Enter your role"
                                             />
                                         </div>
                                     </div>
                                 </CardContent>
-                                <CardFooter className="flex justify-between">
-                                    {isEditing ? (
-                                        <>
-                                            <Button variant="outline" onClick={handleEditToggle}>
-                                                Cancel
-                                            </Button>
-                                            <Button onClick={handleSaveProfile}>
-                                                <Save className="h-4 w-4 mr-2" />
-                                                Save Changes
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <Button onClick={handleEditToggle}>
-                                            <Edit className="h-4 w-4 mr-2" />
-                                            Edit Information
+                                {isEditing && (
+                                    <CardFooter className="flex justify-end gap-3 pt-6">
+                                        <Button 
+                                            variant="outline" 
+                                            onClick={handleEditToggle}
+                                            className="h-9"
+                                        >
+                                            Cancel
                                         </Button>
-                                    )}
-                                </CardFooter>
+                                        <Button 
+                                            onClick={handleSaveProfile}
+                                            className="h-9"
+                                        >
+                                            <Save className="h-4 w-4 mr-2" />
+                                            Save Changes
+                                        </Button>
+                                    </CardFooter>
+                                )}
                             </Card>
                         </TabsContent>
 

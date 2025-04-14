@@ -658,26 +658,101 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                     </Select>
                   </div>
               
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label>Team Members</Label>
                       <Badge variant="outline" className="font-normal">
-                        {formData.teamMembers?.length || 0} selected
+                        {selectedTeamMembers?.length || 0} selected
                       </Badge>
                     </div>
+
+                    {/* Added team members section */}
+                    {selectedTeamMembers.length > 0 && (
+                      <div className="border rounded-md p-3 space-y-2">
+                        <Label className="text-sm text-muted-foreground">Added Team Members</Label>
+                        <div className="space-y-2">
+                          {selectedTeamMembers.map((memberId) => {
+                            const user = mockUsers.find(u => u.id === memberId);
+                            return (
+                              <div
+                                key={user.id}
+                                className="flex items-center justify-between p-2 bg-muted/30 rounded-lg"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback>
+                                      {user.name.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="text-sm font-medium">{user.name}</p>
+                                    <p className="text-xs text-muted-foreground">{user.department}</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedTeamMembers(prev => 
+                                    prev.filter(id => id !== user.id)
+                                  )}
+                                >
+                                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
               
                     <div className="relative">
                       <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search team members..."
-                        value={formData.searchTerm || ""}
-                        onChange={(e) => handleInputChange("searchTerm", e.target.value)}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-9"
                       />
                     </div>
-              
-                    {/* Team members selection remains the same */}
-                    {/* ... existing team members section ... */}
+
+                    <ScrollArea className="h-[200px] border rounded-md">
+                      <div className="p-4 space-y-2">
+                        {filteredUsers.map((user) => (
+                          <div
+                            key={user.id}
+                            className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-lg transition-colors"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback>
+                                  {user.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium">{user.name}</p>
+                                <p className="text-xs text-muted-foreground">{user.department}</p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (!selectedTeamMembers.includes(user.id)) {
+                                  setSelectedTeamMembers(prev => [...prev, user.id])
+                                }
+                              }}
+                              disabled={selectedTeamMembers.includes(user.id)}
+                            >
+                              {selectedTeamMembers.includes(user.id) ? (
+                                <Check className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <UserPlus className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 </div>
               )}
