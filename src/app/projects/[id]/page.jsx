@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import React from "react"
 import { Plus, ChevronRight, LayoutGrid, ListFilter } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Card, CardContent } from "@/components/ui/card"
 
-// Import our new components
+// Import our components
 import { ProjectHeader } from "@/components/projects/project-header"
 import { ProjectOverview } from "@/components/projects/project-overview"
 import { ProjectTasks } from "@/components/projects/project-tasks"
@@ -24,111 +23,176 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 
 
 export default function ProjectPage({ params }) {
-  // Unwrap params using React.use()
-  const unwrappedParams = React.use(params);
-  const { id } = unwrappedParams;
-  
+  const { id } = params;
+  const router = useRouter();
+
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
-  
-  // Add useEffect to fetch project data
+
+  // Fetch project data from API
   useEffect(() => {
-    // Simulate fetching project data
     const fetchProject = async () => {
       try {
-        // Replace with your actual API call
-        // const response = await fetch(`/api/projects/${id}`);
-        // const data = await response.json();
-        
-        // For now, using enhanced mock data
-        const mockProject = {
-          id: id,
-          name: "Laboratory Management System",
-          status: "active",
-          createdAt: new Date().toISOString(),
-          description: "This project aims to develop a new laboratory management system that streamlines sample tracking, experiment scheduling, and result reporting.",
-          progress: 35,
-          deadline: "Dec 31, 2023",
-          priority: "medium",
-          team: [
-            { id: 'm1', name: 'Sarah Miller', role: 'Project Lead', department: 'Research', joinedAt: '3 months ago', avatar: '/avatars/sarah.png' },
-            { id: 'm2', name: 'John Doe', role: 'Lab Technician', department: 'Laboratory', joinedAt: '2 months ago', avatar: '/avatars/john.png' },
-            { id: 'm3', name: 'Emily Chen', role: 'Data Scientist', department: 'Analytics', joinedAt: '1 month ago', avatar: '/avatars/emily.png' },
-            { id: 'm4', name: 'Michael Brown', role: 'Research Assistant', department: 'Research', joinedAt: '3 weeks ago', avatar: '/avatars/michael.png' }
-          ],
-          tasks: [
-            { id: 't1', name: 'Sample Collection', status: 'completed', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Oct 25, 2023', priority: 'high', progress: 100, description: 'Collect all required samples from the laboratory storage.' },
-            { id: 't2', name: 'PCR Analysis', status: 'in_progress', assignee: 'John Doe', assigneeId: 'm2', dueDate: 'Nov 5, 2023', priority: 'medium', progress: 65, description: 'Perform PCR analysis on the collected samples.' },
-            { id: 't3', name: 'Data Processing', status: 'pending', assignee: 'Emily Chen', assigneeId: 'm3', dueDate: 'Nov 15, 2023', priority: 'medium', progress: 0, description: 'Process the raw data from PCR analysis using statistical methods.' },
-            { id: 't4', name: 'Report Generation', status: 'pending', assignee: 'Michael Brown', assigneeId: 'm4', dueDate: 'Nov 30, 2023', priority: 'low', progress: 0, description: 'Generate comprehensive report based on the processed data.' },
-            { id: 't5', name: 'Quality Control', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 10, 2023', priority: 'high', progress: 0, description: 'Perform quality control checks on all results and reports.' },
-            { id: 't6', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 20, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
-            { id: 't7', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' },
-            { id: 't8', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
-            { id: 't9', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' },
-            { id: 't10', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' } ,
-            { id: 't11', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' }
-          ],
-          documents: [
-            { id: 'd1', name: 'Project Proposal.pdf', type: 'pdf', size: '2.4 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Oct 10, 2023', tags: ['proposal', 'planning'] },
-            { id: 'd2', name: 'Experiment Protocol.docx', type: 'docx', size: '1.8 MB', uploadedBy: 'John Doe', uploadedAt: 'Oct 15, 2023', tags: ['protocol', 'methods'] },
-            { id: 'd3', name: 'Initial Results.xlsx', type: 'xlsx', size: '3.2 MB', uploadedBy: 'Emily Chen', uploadedAt: 'Oct 25, 2023', tags: ['data', 'results'] },
-            { id: 'd4', name: 'Literature Review.pdf', type: 'pdf', size: '5.1 MB', uploadedBy: 'Michael Brown', uploadedAt: 'Nov 1, 2023', tags: ['research', 'literature'] },
-            { id: 'd5', name: 'Budget Allocation.xlsx', type: 'xlsx', size: '1.5 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Nov 3, 2023', tags: ['budget', 'planning'] },
-            { id: 'd6', name: 'Project Report.pdf', type: 'pdf', size: '7.2 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Nov 10, 2023', tags: ['report', 'final'] },
-            { id: 'd7', name: 'Sample Collection Protocol.pdf', type: 'pdf', size: '1.9 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Nov 15, 2023', tags: ['protocol', 'collection'] },
-            { id: 'd8', name: 'Sample Storage Guidelines.pdf', type: 'pdf', size: '1.2 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Nov 20, 2023', tags: ['storage', 'guidelines'] },
-            { id: 'd9', name: 'Sample Preparation Protocol.pdf', type: 'pdf', size: '2.1 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Nov 25, 2023', tags: ['protocol', 'preparation'] },
-          ],
-          activities: [
-            { id: 'a1', type: 'task_completed', user: 'Sarah Miller', userId: 'm1', task: 'Sample Collection', taskId: 't1', time: '2 hours ago', timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
-            { id: 'a2', type: 'comment_added', user: 'John Doe', userId: 'm2', task: 'PCR Analysis', taskId: 't2', comment: 'Found some interesting patterns in the samples.', time: '5 hours ago', timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
-            { id: 'a3', type: 'document_uploaded', user: 'Emily Chen', userId: 'm3', document: 'Initial Results.xlsx', documentId: 'd3', time: '1 day ago', timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() },
-            { id: 'a4', type: 'member_joined', user: 'Michael Brown', userId: 'm4', time: '3 days ago', timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-            { id: 'a5', type: 'task_created', user: 'Sarah Miller', userId: 'm1', task: 'Quality Control', taskId: 't5', time: '4 days ago', timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() }
-          ],
-          milestones: [
-            { id: 'ms1', name: 'Phase 1 Completion', date: 'Nov 15, 2023', status: 'upcoming', description: 'Complete all initial sample collection and analysis.' },
-            { id: 'ms2', name: 'Interim Report', date: 'Dec 1, 2023', status: 'upcoming', description: 'Submit interim report with preliminary findings.' },
-            { id: 'ms3', name: 'Final Testing', date: 'Dec 20, 2023', status: 'upcoming', description: 'Complete all testing and validation procedures.' },
-            { id: 'ms4', name: 'Project Delivery', date: 'Dec 31, 2023', status: 'upcoming', description: 'Deliver final project with complete documentation.' }
-          ],
-          timeline: [
-            { id: 'tl1', date: 'Oct 1, 2023', title: 'Project Started', description: 'Initial kickoff meeting and team formation', completed: true },
-            { id: 'tl2', date: 'Oct 15, 2023', title: 'Planning Phase Completed', description: 'Project plan and resource allocation finalized', completed: true },
-            { id: 'tl3', date: 'Nov 1, 2023', title: 'Development Started', description: 'Beginning of core development activities', completed: true },
-            { id: 'tl4', date: 'Dec 15, 2023', title: 'Testing Phase', description: 'Quality assurance and validation testing', completed: false },
-            { id: 'tl5', date: 'Dec 31, 2023', title: 'Project Completion', description: 'Final deliverables and project closure', completed: false }
-          ],
-          tags: ["Research", "Development", "Laboratory", "Software", "Data Analysis"]
-        };
-        
-        setProject(mockProject);
-        setLoading(false);
+        setLoading(true);
+
+        // Get the authentication token from localStorage
+        const token = localStorage.getItem('authToken');
+
+        // If token doesn't exist, redirect to login
+        if (!token) {
+          router.push('/login?redirect=' + encodeURIComponent(`/projects/${id}`));
+          return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/projects/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Authentication required. Please log in again.');
+          } else if (response.status === 404) {
+            throw new Error('Project not found');
+          } else if (response.status === 403) {
+            throw new Error('Not authorized to access this project');
+          } else {
+            throw new Error('Failed to fetch project');
+          }
+        }
+
+        const data = await response.json();
+        setProject(data);
+        setError(null);
       } catch (error) {
         console.error("Error fetching project:", error);
+        setError(error.message);
+      } finally {
         setLoading(false);
       }
     };
-    
-    fetchProject();
+
+    if (id) {
+      fetchProject();
+    }
   }, [id]);
 
   // Handlers for actions
-  const handleAddTask = () => {
-    console.log("Adding new task");
-    // Implement task addition logic here
+  const handleAddTask = async (taskData) => {
+    try {
+      // Get the authentication token
+      const token = localStorage.getItem('authToken');
+
+      // If token doesn't exist, redirect to login
+      if (!token) {
+        router.push('/login?redirect=' + encodeURIComponent(`/projects/${id}`));
+        return;
+      }
+
+      // Implement API call to add task
+      const taskResponse = await fetch(`http://localhost:5000/api/projects/${id}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(taskData)
+      });
+
+      if (!taskResponse.ok) {
+        throw new Error('Failed to add task');
+      }
+
+      // After successful API call, refresh project data
+      const response = await fetch(`http://localhost:5000/api/projects/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const updatedProject = await response.json();
+      setProject(updatedProject);
+      setShowAddTaskModal(false);
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
   };
 
-  const handleAddMember = () => {
-    console.log("Adding new team member");
-    // Implement member addition logic here
+  const handleAddMember = async (memberData) => {
+    try {
+      // Get the authentication token
+      const token = localStorage.getItem('authToken');
+
+      // If token doesn't exist, redirect to login
+      if (!token) {
+        router.push('/login?redirect=' + encodeURIComponent(`/projects/${id}`));
+        return;
+      }
+
+      // Rest of the add member logic
+      // ...
+
+      // Implement API call to add team member
+      const response = await fetch(`http://localhost:5000/api/projects/${id}/team`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: memberData.userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add team member');
+      }
+
+      // Refresh project data
+      const projectResponse = await fetch(`http://localhost:5000/api/projects/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const updatedProject = await projectResponse.json();
+      setProject(updatedProject);
+      setShowAddMemberModal(false);
+    } catch (error) {
+      console.error("Error adding team member:", error);
+    }
   };
-  
+
+  // If there's an error, show error message
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-[70vh]">
+          <Card className="w-full max-w-md border-destructive/50">
+            <CardContent className="pt-6 text-center">
+              <h2 className="text-xl font-semibold text-destructive mb-2">Error</h2>
+              <p className="text-muted-foreground">{error}</p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => router.push('/projects')}
+              >
+                Back to Projects
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-screen bg-gradient-to-br from-background to-background/80">
@@ -151,12 +215,12 @@ export default function ProjectPage({ params }) {
                 onAddTask={() => setShowAddTaskModal(true)}
                 onAddMember={() => setShowAddMemberModal(true)}
               />
-              
+
               {/* Breadcrumb navigation */}
               <div className="flex items-center text-sm text-muted-foreground mt-2">
-                <span>Projects</span>
+                <span className="cursor-pointer hover:text-foreground" onClick={() => router.push('/projects')}>Projects</span>
                 <ChevronRight className="h-4 w-4 mx-1" />
-                <span className="font-medium text-foreground">{project.name}</span>
+                <span className="font-medium text-foreground">{project.title}</span>
               </div>
             </div>
 
@@ -172,20 +236,20 @@ export default function ProjectPage({ params }) {
                       <TabsTrigger value="documents" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Documents</TabsTrigger>
                       <TabsTrigger value="timeline" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Timeline</TabsTrigger>
                     </TabsList>
-                    
+
                     {/* View toggle buttons */}
                     <div className="flex items-center space-x-2">
-                      <Button 
-                        variant={viewMode === "grid" ? "default" : "outline"} 
-                        size="icon" 
+                      <Button
+                        variant={viewMode === "grid" ? "default" : "outline"}
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => setViewMode("grid")}
                       >
                         <LayoutGrid className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant={viewMode === "list" ? "default" : "outline"} 
-                        size="icon" 
+                      <Button
+                        variant={viewMode === "list" ? "default" : "outline"}
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => setViewMode("list")}
                       >
@@ -202,8 +266,8 @@ export default function ProjectPage({ params }) {
 
                     <TabsContent value="tasks" className="mt-0 space-y-4">
                       <ProjectTasks
-                        tasks={project.tasks}
-                        team={project.team}
+                        tasks={project.tasks || []}
+                        team={project.teamMembers || []}
                         onAddTask={() => setShowAddTaskModal(true)}
                         viewMode={viewMode}
                       />
@@ -211,18 +275,21 @@ export default function ProjectPage({ params }) {
 
                     <TabsContent value="team" className="mt-0 space-y-4">
                       <ProjectTeam
-                        team={project.team}
+                        team={project.teamMembers || []}
                         onAddMember={() => setShowAddMemberModal(true)}
                         viewMode={viewMode}
                       />
                     </TabsContent>
 
                     <TabsContent value="documents" className="mt-0 space-y-4">
-                      <ProjectDocuments documents={project.documents} viewMode={viewMode} />
+                      <ProjectDocuments documents={project.attachments || []} viewMode={viewMode} />
                     </TabsContent>
 
                     <TabsContent value="timeline" className="mt-0 space-y-4">
-                      <ProjectTimeline timeline={project.timeline} milestones={project.milestones} />
+                      <ProjectTimeline
+                        timeline={project.timeline || []}
+                        milestones={project.milestones || []}
+                      />
                     </TabsContent>
                   </div>
                 </Tabs>
@@ -248,8 +315,8 @@ export default function ProjectPage({ params }) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      size="icon" 
+                    <Button
+                      size="icon"
                       className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105"
                     >
                       <Plus className="h-6 w-6" />

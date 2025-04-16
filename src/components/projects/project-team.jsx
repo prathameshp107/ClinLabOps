@@ -26,14 +26,14 @@ export function ProjectTeam({ team, onAddMember }) {
               <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarImage src={member.avatar} alt={member.name} />
-                  <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{member.fullName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium">{member.name}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant={
-                      member.role === 'Project Lead' ? 'default' : 
-                      member.role === 'Data Scientist' ? 'secondary' : 'outline'
+                      member.role === 'Project Lead' ? 'default' :
+                        member.role === 'Data Scientist' ? 'secondary' : 'outline'
                     } className="text-xs">
                       {member.role}
                     </Badge>
