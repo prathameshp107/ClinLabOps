@@ -30,7 +30,17 @@ import {
   Sparkles,
   Star,
   Users,
-  Zap
+  Zap,
+  Play,
+  Pause,
+  HelpCircle,
+  Mail,
+  Check,
+  X,
+  PlayCircle,
+  Cloud,
+  MoveRight,
+  BarChart3
 } from "lucide-react";
 import { BackgroundBeams } from "@/components/ui/aceternity/background-beams";
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
@@ -38,9 +48,29 @@ import { TextGenerateEffect } from "@/components/ui/aceternity/text-generate-eff
 import { HoverGlowCard, GlowingStarsBackgroundCard } from "@/components/ui/aceternity/cards";
 import { ThreeDCard } from "@/components/ui/aceternity/three-d-card";
 import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 
 export default function LandingPage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [activeDemoTab, setActiveDemoTab] = useState("dashboard");
+  const [showChatWidget, setShowChatWidget] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -289,8 +319,8 @@ export default function LandingPage() {
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="text-[10px] font-medium">{task.title}</div>
                                   <div className={`text-[8px] px-1.5 py-0.5 rounded-full ${task.status === "Completed" ? "bg-green-500/10 text-green-500" :
-                                      task.status === "In Progress" ? "bg-amber-500/10 text-amber-500" :
-                                        "bg-blue-500/10 text-blue-500"
+                                    task.status === "In Progress" ? "bg-amber-500/10 text-amber-500" :
+                                      "bg-blue-500/10 text-blue-500"
                                     }`}>
                                     {task.status}
                                   </div>
@@ -298,8 +328,8 @@ export default function LandingPage() {
                                 <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                                   <div
                                     className={`h-full ${task.priority === "high" ? "bg-red-500" :
-                                        task.priority === "medium" ? "bg-amber-500" :
-                                          "bg-green-500"
+                                      task.priority === "medium" ? "bg-amber-500" :
+                                        "bg-green-500"
                                       }`}
                                     style={{ width: `${task.progress}%` }}
                                   ></div>
@@ -696,192 +726,113 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-4">
-          <GlowingStarsBackgroundCard className="max-w-5xl mx-auto p-8 md:p-12 bg-background/60 backdrop-blur-md border border-border/50 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center justify-center">
+      <section className="py-24 relative overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-80" />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <GlowingStarsBackgroundCard className="max-w-5xl mx-auto p-8 md:p-14 bg-background/70 backdrop-blur-lg border border-border/50 rounded-2xl shadow-[0_15px_50px_rgba(139,92,246,0.15)]">
+            <div className="relative flex flex-col items-center justify-center">
+              <div className="absolute inset-0">
                 <SparklesCore
                   id="ctaSparkles"
                   background="transparent"
                   minSize={0.6}
-                  maxSize={1.4}
-                  particleDensity={40}
+                  maxSize={1.6}
+                  particleDensity={50}
                   className="w-full h-full"
                   particleColor="#8B5CF6"
                 />
               </div>
-              <div className="relative z-10 text-center">
-                <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
-                  Get Started Today
+
+              <div className="relative z-10 text-center w-full p-6 md:p-8">
+                <Badge className="inline-flex mb-8 bg-primary/15 text-primary border-primary/25 py-2 px-6 text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
+                  Limited Time Offer
                 </Badge>
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+
+                <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-indigo-600">
                   Ready to Transform Your Laboratory?
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-                  Join hundreds of laboratories already using LabTasker to streamline their operations, improve collaboration, and accelerate scientific discovery.
+
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+                  Join over 500+ laboratories already using LabTasker to streamline operations,
+                  improve collaboration, and accelerate scientific discovery.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow" asChild>
-                    <Link href="/admin-dashboard">
-                      Get Started Today
+
+                {/* Testimonial carousel */}
+                <div className="mb-10 bg-white/50 backdrop-blur-sm p-6 rounded-lg max-w-3xl mx-auto">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white font-bold">
+                        RC
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium">Dr. Rachel Chen</p>
+                        <p className="text-sm text-muted-foreground">Research Director, BioTech Labs</p>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      {Array(5).fill(null).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm italic text-left">
+                    "LabTasker has revolutionized how our team collaborates. We've seen a 40% increase in
+                    experiment throughput and significant reduction in documentation errors."
+                  </p>
+                </div>
+
+                {/* Stats section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                  {[
+                    { value: "95%", label: "Reduction in manual data entry" },
+                    { value: "3.5x", label: "Faster experiment documentation" },
+                    { value: "30+", label: "Integrations with lab equipment" }
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white/40 backdrop-blur-sm p-6 rounded-lg flex flex-col items-center">
+                      <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
+                      <p className="text-sm text-muted-foreground text-center whitespace-nowrap">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" asChild>
+                    <Link href="/admin-dashboard" className="flex items-center justify-center">
+                      Start Free Trial
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 shadow-md" asChild>
+                    <Link href="/demo" className="flex items-center justify-center">
+                      <PlayCircle className="mr-2 h-4 w-4" />
+                      Watch Demo
+                    </Link>
+                  </Button>
                 </div>
+
               </div>
             </div>
           </GlowingStarsBackgroundCard>
+
+          {/* Quick feature highlight */}
+          <div className="max-w-5xl mx-auto mt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Shield, label: "HIPAA Compliant" },
+              { icon: Cloud, label: "Cloud-Based" },
+              { icon: MoveRight, label: "Seamless Integration" },
+              { icon: BarChart3, label: "Advanced Analytics" }
+            ].map((feature, i) => (
+              <div key={i} className="p-6 text-center flex flex-col items-center">
+                <feature.icon className="h-8 w-8 text-primary mb-3" />
+                <h4 className="text-sm font-medium">{feature.label}</h4>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-12 border-t border-border/40 bg-background/60 backdrop-blur-md relative">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="bg-primary/10 p-2 rounded-md">
-                  <Microscope className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                  LabTasker
-                </h2>
-              </div>
-              <p className="text-muted-foreground mb-4 text-sm">
-                The all-in-one laboratory management platform designed to streamline operations and accelerate scientific discovery.
-              </p>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="icon" className="rounded-full h-8 w-8">
-                  <Github className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full h-8 w-8">
-                  <Globe className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full h-8 w-8">
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-4">Product</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="#features" className="text-muted-foreground hover:text-primary transition-colors">
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#pricing" className="text-muted-foreground hover:text-primary transition-colors">
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Integrations
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Changelog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Documentation
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-4">Company</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Careers
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Press
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Contact
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-4">Legal</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Cookie Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Data Processing
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                    Compliance
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-border/30 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-muted-foreground mb-4 md:mb-0">
-              © {new Date().getFullYear()} LabTasker. All rights reserved.
-            </p>
-
-            <div className="flex items-center gap-4">
-              <Link href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                Privacy
-              </Link>
-              <Link href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                Terms
-              </Link>
-              <Link href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors">
-                Cookies
-              </Link>
-              <div className="flex items-center gap-2 ml-4">
-                <span className="text-xs text-muted-foreground">Made with</span>
-                <span className="text-primary">♥</span>
-                <span className="text-xs text-muted-foreground">for scientists</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
 
       {/* Mobile Navigation Menu (Hidden by default) */}
       <AnimatePresence>
@@ -934,6 +885,471 @@ export default function LandingPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Feature Comparison Table */}
+      <section className="py-20 relative">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Why Choose Us
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How LabTasker Compares
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              See how LabTasker stacks up against traditional lab management methods and other solutions.
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto overflow-x-auto">
+            <Table className="w-full border-collapse">
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-1/4 py-4 px-6 text-left font-medium">Features</TableHead>
+                  <TableHead className="w-1/4 py-4 px-6 text-center font-medium">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-primary/10 p-2 rounded-full mb-2">
+                        <Microscope className="h-5 w-5 text-primary" />
+                      </div>
+                      <span>LabTasker</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-1/4 py-4 px-6 text-center font-medium">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-muted p-2 rounded-full mb-2">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <span>Traditional Methods</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-1/4 py-4 px-6 text-center font-medium">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-muted p-2 rounded-full mb-2">
+                        <Database className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <span>Other LIMS</span>
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[
+                  { feature: "User-friendly Interface", labtasker: true, traditional: false, others: "Limited" },
+                  { feature: "Real-time Collaboration", labtasker: true, traditional: false, others: "Limited" },
+                  { feature: "Experiment Tracking", labtasker: true, traditional: "Manual", others: true },
+                  { feature: "Compliance Tools", labtasker: true, traditional: "Manual", others: "Limited" },
+                  { feature: "Data Security", labtasker: "Advanced", traditional: "Basic", others: "Standard" },
+                  { feature: "Mobile Access", labtasker: true, traditional: false, others: "Limited" },
+                  { feature: "AI-powered Insights", labtasker: true, traditional: false, others: false },
+                  { feature: "Implementation Time", labtasker: "Days", traditional: "Immediate", others: "Months" },
+                  { feature: "Cost Efficiency", labtasker: "High", traditional: "Low", others: "Medium" },
+                ].map((row, i) => (
+                  <TableRow key={i} className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+                    <TableCell className="py-4 px-6 font-medium">{row.feature}</TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      {row.labtasker === true ? (
+                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : row.labtasker === false ? (
+                        <X className="h-5 w-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-primary font-medium">{row.labtasker}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      {row.traditional === true ? (
+                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : row.traditional === false ? (
+                        <X className="h-5 w-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground">{row.traditional}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      {row.others === true ? (
+                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : row.others === false ? (
+                        <X className="h-5 w-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground">{row.others}</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 relative bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Common Questions
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Find answers to the most common questions about LabTasker and how it can help your laboratory.
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="space-y-4">
+              {[
+                {
+                  question: "How long does it take to implement LabTasker?",
+                  answer: "Most laboratories are up and running with LabTasker in just a few days. Our onboarding team will guide you through the setup process, help import your existing data, and train your team on using the platform effectively."
+                },
+                {
+                  question: "Is LabTasker compliant with laboratory regulations?",
+                  answer: "Yes, LabTasker is designed to meet various regulatory requirements including GLP, GMP, ISO 17025, and 21 CFR Part 11. Our compliance tools help you maintain proper documentation, audit trails, and data integrity."
+                },
+                {
+                  question: "Can LabTasker integrate with our existing laboratory equipment?",
+                  answer: "LabTasker offers integration capabilities with many common laboratory instruments and systems through our API. We support both direct integrations and file-based data exchange with various analytical instruments, LIMS, and ELN systems."
+                },
+                {
+                  question: "How secure is our data with LabTasker?",
+                  answer: "We take data security very seriously. LabTasker employs industry-standard encryption, regular security audits, and robust access controls. All data is backed up regularly, and we offer both cloud and on-premise deployment options to meet your security requirements."
+                },
+                {
+                  question: "Can we customize LabTasker for our specific workflows?",
+                  answer: "Absolutely! LabTasker is highly customizable to accommodate your laboratory's unique processes. You can create custom forms, workflows, report templates, and more. Our Professional and Enterprise plans also include custom field options and workflow automation."
+                },
+                {
+                  question: "What kind of support does LabTasker provide?",
+                  answer: "All LabTasker plans include email support with quick response times. Our Professional plan adds priority support with faster response times, while Enterprise customers receive dedicated support with a named account manager and 24/7 emergency assistance."
+                },
+                {
+                  question: "Can we try LabTasker before purchasing?",
+                  answer: "Yes! We offer a 14-day free trial of our Professional plan with no credit card required. You'll get full access to all features so you can thoroughly evaluate how LabTasker works for your laboratory before making a decision."
+                }
+              ].map((faq, i) => (
+                <AccordionItem key={i} value={`item-${i}`} className="bg-background/60 backdrop-blur-md border border-border/50 rounded-lg overflow-hidden">
+                  <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/20 transition-colors">
+                    <div className="flex items-start gap-3 text-left">
+                      <HelpCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <span className="font-medium">{faq.question}</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4 pt-2 text-muted-foreground">
+                    <div className="pl-8">{faq.answer}</div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+
+            <div className="mt-10 text-center">
+              <p className="text-muted-foreground mb-4">
+                Still have questions? Our team is here to help.
+              </p>
+              <Button variant="outline" className="shadow-md hover:shadow-lg transition-shadow" asChild>
+                <Link href="#contact">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Contact Support
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section - Add before the footer */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-3xl mx-auto bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl p-10 shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
+            <div className="text-center mb-8">
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-2 px-6 text-sm font-medium">
+                Join Our Community
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                Stay Ahead in Lab Management
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+                Subscribe to receive expert insights, industry updates, and exclusive resources for optimizing your laboratory operations.
+              </p>
+            </div>
+
+            {!isSubscribed ? (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Input
+                  type="email"
+                  placeholder="Enter your work email"
+                  className="flex-1 h-12 text-base placeholder:text-muted-foreground/70"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button
+                  size="lg"
+                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90"
+                  onClick={() => {
+                    if (email) setIsSubscribed(true);
+                  }}
+                >
+                  <Mail className="h-5 w-5 mr-2" />
+                  Subscribe Now
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl p-6 flex items-center justify-center gap-3">
+                <CheckCircle2 className="h-6 w-6" />
+                <span className="text-lg font-medium">Success! Please check your inbox to confirm your subscription.</span>
+              </div>
+            )}
+
+            <div className="mt-6 text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>Your data is secure. We respect your privacy and never share your information.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Live Chat Widget */}
+      <AnimatePresence>
+        {showChatWidget ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-24 right-6 z-50 w-80 bg-background border border-border/50 rounded-xl shadow-2xl overflow-hidden"
+          >
+            <div className="bg-primary p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-full">
+                  <MessageSquare className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-white font-medium">LabTasker Support</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:bg-white/20"
+                onClick={() => setShowChatWidget(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="h-64 p-4 bg-muted/20 overflow-y-auto">
+              <div className="space-y-4">
+                <div className="flex items-start gap-2">
+                  <div className="bg-primary/10 p-1.5 rounded-full">
+                    <Microscope className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-sm max-w-[80%]">
+                    <p>Hello! 👋 How can we help you with LabTasker today?</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 justify-end">
+                  <div className="bg-primary/10 rounded-lg p-3 text-sm max-w-[80%]">
+                    <p>I'd like to learn more about your pricing plans.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="bg-primary/10 p-1.5 rounded-full">
+                    <Microscope className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-sm max-w-[80%]">
+                    <p>I'd be happy to explain our pricing plans! We offer three tiers: Starter, Professional, and Enterprise. Would you like me to go through the details of each?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 border-t border-border/30 bg-background">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type your message..."
+                  className="text-sm"
+                />
+                <Button size="sm" className="shrink-0">
+                  Send
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              size="lg"
+              className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => setShowChatWidget(true)}
+            >
+              <MessageSquare className="h-6 w-6" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Navigation Menu (Hidden by default) */}
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 md:hidden"
+          >
+            <div className="bg-background/80 backdrop-blur-md border border-border/40 rounded-full shadow-lg p-1.5 flex items-center">
+              <Link href="#features" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Layers className="h-5 w-5" />
+              </Link>
+              <Link href="#benefits" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Zap className="h-5 w-5" />
+              </Link>
+              <Link href="/admin-dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
+                <LayoutDashboard className="h-5 w-5" />
+              </Link>
+              <Link href="#testimonials" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <MessageSquare className="h-5 w-5" />
+              </Link>
+              <Link href="#pricing" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Database className="h-5 w-5" />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-full bg-background/80 backdrop-blur-md border border-border/40 shadow-lg hover:shadow-xl transition-all"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Footer */}
+      <footer className="py-16 border-t border-border/40 bg-gradient-to-b from-background/60 to-background/80 backdrop-blur-xl relative">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-3 mb-6 group">
+                <div className="bg-primary/10 p-2.5 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                  <Microscope className="h-7 w-7 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/70">
+                  LabTasker
+                </h2>
+              </div>
+              <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+                The all-in-one laboratory management platform designed to streamline operations and accelerate scientific discovery.
+              </p>
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:scale-110 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                  <Github className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:scale-110 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                  <Globe className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:scale-110 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Product</h3>
+              <ul className="space-y-3 text-sm">
+                {["Features", "Pricing", "Integrations", "Changelog", "Documentation"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-primary/50 group-hover:w-2 transition-all duration-300"></span>
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Company</h3>
+              <ul className="space-y-3 text-sm">
+                {["About Us", "Careers", "Blog", "Press", "Contact"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-primary/50 group-hover:w-2 transition-all duration-300"></span>
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Legal</h3>
+              <ul className="space-y-3 text-sm">
+                {["Terms of Service", "Privacy Policy", "Cookie Policy", "Data Processing", "Compliance"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-primary/50 group-hover:w-2 transition-all duration-300"></span>
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-16 pt-8 border-t border-border/30">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} LabTasker. All rights reserved.
+              </p>
+
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 px-6 border-r border-l border-border/30">
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Privacy
+                  </Link>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Terms
+                  </Link>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Cookies
+                  </Link>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Made with</span>
+                  <span className="text-primary animate-pulse">♥</span>
+                  <span className="text-sm text-muted-foreground">for scientists</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
