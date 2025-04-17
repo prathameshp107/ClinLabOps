@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { Plus } from "lucide-react"
+import { Plus, ChevronRight, LayoutGrid, ListFilter } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Card, CardContent } from "@/components/ui/card"
 
 // Import our new components
 import { ProjectHeader } from "@/components/projects/project-header"
@@ -32,6 +33,7 @@ export default function ProjectPage({ params }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [viewMode, setViewMode] = useState("grid");
   
   // Add useEffect to fetch project data
   useEffect(() => {
@@ -129,63 +131,103 @@ export default function ProjectPage({ params }) {
   
   return (
     <DashboardLayout>
-      <div className="min-h-screen p-6 bg-background/60">
+      <div className="flex flex-col h-screen bg-gradient-to-br from-background to-background/80">
         {loading ? (
-          <div className="space-y-4 w-full max-w-6xl mx-auto">
-            <Skeleton className="h-12 w-3/4 rounded-lg" />
-            <Skeleton className="h-6 w-1/2 rounded-lg" />
+          <div className="flex-1 p-6 space-y-6">
+            <Skeleton className="h-16 w-3/4 rounded-lg" />
+            <Skeleton className="h-8 w-1/2 rounded-lg" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <Skeleton className="h-[200px] rounded-xl" />
-              <Skeleton className="h-[200px] rounded-xl" />
-              <Skeleton className="h-[200px] rounded-xl" />
+              <Skeleton className="h-[250px] rounded-xl" />
+              <Skeleton className="h-[250px] rounded-xl" />
+              <Skeleton className="h-[250px] rounded-xl" />
             </div>
           </div>
         ) : (
-          <div className="w-full max-w-6xl mx-auto">
-            {/* Project Header */}
-            <ProjectHeader
-              project={project}
-              onAddTask={() => setShowAddTaskModal(true)}
-              onAddMember={() => setShowAddMemberModal(true)}
-            />
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            {/* Project Header with glass effect */}
+            <div className="bg-background/80 backdrop-blur-sm border-b border-border/40 sticky top-0 z-10 px-6 py-4">
+              <ProjectHeader
+                project={project}
+                onAddTask={() => setShowAddTaskModal(true)}
+                onAddMember={() => setShowAddMemberModal(true)}
+              />
+              
+              {/* Breadcrumb navigation */}
+              <div className="flex items-center text-sm text-muted-foreground mt-2">
+                <span>Projects</span>
+                <ChevronRight className="h-4 w-4 mx-1" />
+                <span className="font-medium text-foreground">{project.name}</span>
+              </div>
+            </div>
 
-            {/* Project Tabs */}
-            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mt-6">
-              <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                <TabsTrigger value="team">Team</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-                <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              </TabsList>
+            {/* Project Tabs with modern styling */}
+            <div className="px-6 pt-4 bg-background/60">
+              <div className="flex justify-between items-center">
+                <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <TabsList className="grid grid-cols-5 w-full max-w-2xl bg-muted/50 p-1 rounded-lg">
+                      <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
+                      <TabsTrigger value="tasks" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Tasks</TabsTrigger>
+                      <TabsTrigger value="team" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Team</TabsTrigger>
+                      <TabsTrigger value="documents" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Documents</TabsTrigger>
+                      <TabsTrigger value="timeline" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Timeline</TabsTrigger>
+                    </TabsList>
+                    
+                    {/* View toggle buttons */}
+                    <div className="flex items-center space-x-2">
+                      <Button 
+                        variant={viewMode === "grid" ? "default" : "outline"} 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => setViewMode("grid")}
+                      >
+                        <LayoutGrid className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant={viewMode === "list" ? "default" : "outline"} 
+                        size="icon" 
+                        className="h-8 w-8"
+                        onClick={() => setViewMode("list")}
+                      >
+                        <ListFilter className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
 
-              <TabsContent value="overview" className="mt-6">
-                <ProjectOverview project={project} />
-              </TabsContent>
+                  {/* Content area with improved styling */}
+                  <div className="overflow-auto pb-6 h-[calc(100vh-220px)]">
+                    <TabsContent value="overview" className="mt-0 space-y-4">
+                      <ProjectOverview project={project} viewMode={viewMode} />
+                    </TabsContent>
 
-              <TabsContent value="tasks" className="mt-6">
-                <ProjectTasks
-                  tasks={project.tasks}
-                  team={project.team}
-                  onAddTask={() => setShowAddTaskModal(true)}
-                />
-              </TabsContent>
+                    <TabsContent value="tasks" className="mt-0 space-y-4">
+                      <ProjectTasks
+                        tasks={project.tasks}
+                        team={project.team}
+                        onAddTask={() => setShowAddTaskModal(true)}
+                        viewMode={viewMode}
+                      />
+                    </TabsContent>
 
-              <TabsContent value="team" className="mt-6">
-                <ProjectTeam
-                  team={project.team}
-                  onAddMember={() => setShowAddMemberModal(true)}
-                />
-              </TabsContent>
+                    <TabsContent value="team" className="mt-0 space-y-4">
+                      <ProjectTeam
+                        team={project.team}
+                        onAddMember={() => setShowAddMemberModal(true)}
+                        viewMode={viewMode}
+                      />
+                    </TabsContent>
 
-              <TabsContent value="documents" className="mt-6">
-                <ProjectDocuments documents={project.documents} />
-              </TabsContent>
+                    <TabsContent value="documents" className="mt-0 space-y-4">
+                      <ProjectDocuments documents={project.documents} viewMode={viewMode} />
+                    </TabsContent>
 
-              <TabsContent value="timeline" className="mt-6">
-                <ProjectTimeline timeline={project.timeline} />
-              </TabsContent>
-            </Tabs>
+                    <TabsContent value="timeline" className="mt-0 space-y-4">
+                      <ProjectTimeline timeline={project.timeline} milestones={project.milestones} />
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </div>
+            </div>
 
             {/* Modals */}
             <AddTaskModal
@@ -201,16 +243,19 @@ export default function ProjectPage({ params }) {
               onAddMember={handleAddMember}
             />
 
-            {/* Floating Action Button */}
-            <div className="fixed bottom-6 right-6">
+            {/* Floating Action Button with animation */}
+            <div className="fixed bottom-6 right-6 z-50">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="icon" className="h-12 w-12 rounded-full shadow-lg">
+                    <Button 
+                      size="icon" 
+                      className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105"
+                    >
                       <Plus className="h-6 w-6" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="left">
+                  <TooltipContent side="left" className="bg-background/80 backdrop-blur-sm border border-border/40">
                     <p>Quick Actions</p>
                   </TooltipContent>
                 </Tooltip>
