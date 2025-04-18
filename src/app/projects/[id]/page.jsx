@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
 import { Plus, ChevronRight, LayoutGrid, ListFilter } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -131,7 +132,7 @@ export default function ProjectPage({ params }) {
   
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-screen bg-gradient-to-br from-background to-background/80">
+      <div className="flex flex-col h-screen bg-gradient-to-br from-background via-primary/10 to-background/90">
         {loading ? (
           <div className="flex-1 p-6 space-y-6">
             <Skeleton className="h-16 w-3/4 rounded-lg" />
@@ -144,8 +145,14 @@ export default function ProjectPage({ params }) {
           </div>
         ) : (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
+            {/* Animated background accent */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.15 }}
+              className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-background"
+            />
             {/* Project Header with glass effect */}
-            <div className="bg-background/80 backdrop-blur-sm border-b border-border/40 sticky top-0 z-10 px-6 py-4">
+            <div className="bg-background/80 backdrop-blur-md border-b border-border/40 sticky top-0 z-20 px-6 py-4 shadow-sm">
               <ProjectHeader
                 project={project}
                 onAddTask={() => setShowAddTaskModal(true)}
@@ -161,16 +168,27 @@ export default function ProjectPage({ params }) {
             </div>
 
             {/* Project Tabs with modern styling */}
-            <div className="px-6 pt-4 bg-background/60">
+            <div className="px-6 pt-4 bg-background/60 rounded-b-2xl shadow-md">
               <div className="flex justify-between items-center">
                 <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <div className="flex justify-between items-center mb-4">
-                    <TabsList className="grid grid-cols-5 w-full max-w-2xl bg-muted/50 p-1 rounded-lg">
-                      <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
-                      <TabsTrigger value="tasks" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Tasks</TabsTrigger>
-                      <TabsTrigger value="team" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Team</TabsTrigger>
-                      <TabsTrigger value="documents" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Documents</TabsTrigger>
-                      <TabsTrigger value="timeline" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Timeline</TabsTrigger>
+                  <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-2">
+                    <TabsList className="grid grid-cols-5 w-full max-w-2xl bg-muted/50 p-1 rounded-lg shadow-sm">
+                      {/* Add icons to tabs for clarity */}
+                      <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
+                        <span className="inline-block"><LayoutGrid className="h-4 w-4" /></span> Overview
+                      </TabsTrigger>
+                      <TabsTrigger value="tasks" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
+                        <span className="inline-block"><ListFilter className="h-4 w-4" /></span> Tasks
+                      </TabsTrigger>
+                      <TabsTrigger value="team" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
+                        <span className="inline-block"><Plus className="h-4 w-4" /></span> Team
+                      </TabsTrigger>
+                      <TabsTrigger value="documents" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
+                        <span className="inline-block"><ChevronRight className="h-4 w-4" /></span> Documents
+                      </TabsTrigger>
+                      <TabsTrigger value="timeline" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
+                        <span className="inline-block"><ChevronRight className="h-4 w-4" /></span> Timeline
+                      </TabsTrigger>
                     </TabsList>
                     
                     {/* View toggle buttons */}
@@ -196,34 +214,82 @@ export default function ProjectPage({ params }) {
 
                   {/* Content area with improved styling */}
                   <div className="overflow-auto pb-6 h-[calc(100vh-220px)]">
-                    <TabsContent value="overview" className="mt-0 space-y-4">
-                      <ProjectOverview project={project} viewMode={viewMode} />
-                    </TabsContent>
-
-                    <TabsContent value="tasks" className="mt-0 space-y-4">
-                      <ProjectTasks
-                        tasks={project.tasks}
-                        team={project.team}
-                        onAddTask={() => setShowAddTaskModal(true)}
-                        viewMode={viewMode}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="team" className="mt-0 space-y-4">
-                      <ProjectTeam
-                        team={project.team}
-                        onAddMember={() => setShowAddMemberModal(true)}
-                        viewMode={viewMode}
-                      />
-                    </TabsContent>
-
-                    <TabsContent value="documents" className="mt-0 space-y-4">
-                      <ProjectDocuments documents={project.documents} viewMode={viewMode} />
-                    </TabsContent>
-
-                    <TabsContent value="timeline" className="mt-0 space-y-4">
-                      <ProjectTimeline timeline={project.timeline} milestones={project.milestones} />
-                    </TabsContent>
+                    <AnimatePresence mode="wait">
+                      {activeTab === "overview" && (
+                        <motion.div
+                          key="overview"
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -24 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TabsContent value="overview" className="mt-0 space-y-4">
+                            <ProjectOverview project={project} viewMode={viewMode} />
+                          </TabsContent>
+                        </motion.div>
+                      )}
+                      {activeTab === "tasks" && (
+                        <motion.div
+                          key="tasks"
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -24 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TabsContent value="tasks" className="mt-0 space-y-4">
+                            <ProjectTasks
+                              tasks={project.tasks}
+                              team={project.team}
+                              onAddTask={() => setShowAddTaskModal(true)}
+                              viewMode={viewMode}
+                            />
+                          </TabsContent>
+                        </motion.div>
+                      )}
+                      {activeTab === "team" && (
+                        <motion.div
+                          key="team"
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -24 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TabsContent value="team" className="mt-0 space-y-4">
+                            <ProjectTeam
+                              team={project.team}
+                              onAddMember={() => setShowAddMemberModal(true)}
+                              viewMode={viewMode}
+                            />
+                          </TabsContent>
+                        </motion.div>
+                      )}
+                      {activeTab === "documents" && (
+                        <motion.div
+                          key="documents"
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -24 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TabsContent value="documents" className="mt-0 space-y-4">
+                            <ProjectDocuments documents={project.documents} viewMode={viewMode} />
+                          </TabsContent>
+                        </motion.div>
+                      )}
+                      {activeTab === "timeline" && (
+                        <motion.div
+                          key="timeline"
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -24 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TabsContent value="timeline" className="mt-0 space-y-4">
+                            <ProjectTimeline timeline={project.timeline} milestones={project.milestones} />
+                          </TabsContent>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </Tabs>
               </div>
@@ -244,7 +310,12 @@ export default function ProjectPage({ params }) {
             />
 
             {/* Floating Action Button with animation */}
-            <div className="fixed bottom-6 right-6 z-50">
+            <motion.div 
+              className="fixed bottom-6 right-6 z-50"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -252,7 +323,13 @@ export default function ProjectPage({ params }) {
                       size="icon" 
                       className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105"
                     >
-                      <Plus className="h-6 w-6" />
+                      <motion.span
+                        initial={{ rotate: 0 }}
+                        whileHover={{ rotate: 90 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <Plus className="h-6 w-6" />
+                      </motion.span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left" className="bg-background/80 backdrop-blur-sm border border-border/40">
@@ -260,7 +337,7 @@ export default function ProjectPage({ params }) {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>

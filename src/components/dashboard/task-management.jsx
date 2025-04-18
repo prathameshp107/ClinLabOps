@@ -219,6 +219,31 @@ const mockTasks = [
         details: 'Task created'
       }
     ]
+  },
+  {
+    id: 't6',
+    name: 'Prepare equipment for next experiment',
+    experimentName: 'Compound C Cellular Study',
+    assignedTo: {
+      id: 'u3',
+      name: 'Alex Wong',
+      avatar: 'AW'
+    },
+    priority: 'high',
+    status: 'pending',
+    dueDate: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+    createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    attachments: [],
+    dependencies: [],
+    activityLog: [
+      {
+        id: 'al10',
+        userId: 'u1',
+        action: 'created',
+        timestamp: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        details: 'Task created' 
+      }
+    ]
   }
 ];
 

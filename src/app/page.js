@@ -2,558 +2,1370 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import { TasksOverview } from "@/components/dashboard/tasks-overview";
-import { PendingApprovals } from "@/components/dashboard/pending-approvals";
-import { UserActivity } from "@/components/dashboard/user-activity";
-import { ExperimentProgress } from "@/components/dashboard/experiment-progress";
-import { ComplianceAlerts } from "@/components/dashboard/compliance-alerts";
-import { SystemLogs } from "@/components/dashboard/system-logs";
-import { SmartInsights } from "@/components/dashboard/smart-insights";
-import { TaskHeatmap } from "@/components/dashboard/task-heatmap";
-import { QuickActions } from "@/components/dashboard/quick-actions";
-import { NotificationCenter } from "@/components/dashboard/notification-center";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import {
-  LayoutGrid,
-  LayoutList,
-  Sparkles,
-  Bell,
-  Settings,
-  RefreshCw,
+  ArrowRight,
+  Beaker,
+  CheckCircle2,
   ChevronRight,
-  Calendar,
   Clock,
+  Database,
+  ExternalLink,
+  FileText,
+  FlaskConical,
+  Github,
+  Globe,
+  Layers,
+  LayoutDashboard,
+  Lightbulb,
+  Lock,
+  MessageSquare,
+  Microscope,
+  Rocket,
+  Shield,
+  Sparkles,
+  Star,
+  Users,
   Zap,
-  Search,
-  Filter,
-  ArrowUpRight,
-  BarChart3,
-  Layers
+  Play,
+  Pause,
+  HelpCircle,
+  Mail,
+  Check,
+  X,
+  PlayCircle,
+  Cloud,
+  MoveRight,
+  BarChart3
 } from "lucide-react";
-import {
-  HoverGlowCard,
-  GlowingStarsBackgroundCard
-} from "@/components/ui/aceternity/cards";
-import { ThreeDCard } from "@/components/ui/aceternity/three-d-card";
 import { BackgroundBeams } from "@/components/ui/aceternity/background-beams";
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
+import { TextGenerateEffect } from "@/components/ui/aceternity/text-generate-effect";
+import { HoverGlowCard, GlowingStarsBackgroundCard } from "@/components/ui/aceternity/cards";
+import { ThreeDCard } from "@/components/ui/aceternity/three-d-card";
 import { cn } from "@/lib/utils";
-import { TasksDashboard } from "@/components/dashboard/tasks-dashboard";
-import { ExperimentsDashboard } from "@/components/dashboard/experiments-dashboard";
-
-// Import all dashboard data
 import {
-  notificationCenterData,
-  quickActionsData,
-  taskOverviewData,
-  pendingApprovalsData,
-  userActivityData,
-  dailyActiveUsersData,
-  experimentProgressData,
-  complianceAlertsData,
-  systemLogsData,
-  smartInsightsData,
-  taskHeatmapData,
-  tasksDashboardData,
-  experimentsDashboardData
-} from "@/data/dashboard-data";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 
-export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("grid");
-  const [notificationCount, setNotificationCount] = useState(
-    notificationCenterData.filter(notification => !notification.read).length
-  );
-  const [lastRefreshed, setLastRefreshed] = useState(new Date());
-  const [showWelcome, setShowWelcome] = useState(true);
+export default function LandingPage() {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [activeDemoTab, setActiveDemoTab] = useState("dashboard");
+  const [showChatWidget, setShowChatWidget] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
-  // Simulate loading state
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    setIsLoaded(true);
   }, []);
 
-  // Auto-hide welcome message after 5 seconds
-  useEffect(() => {
-    if (showWelcome) {
-      const timer = setTimeout(() => {
-        setShowWelcome(false);
-      }, 5000);
-      return () => clearTimeout(timer);
+  const features = [
+    {
+      icon: <LayoutDashboard className="h-5 w-5 text-primary" />,
+      title: "Intuitive Dashboard",
+      description: "Comprehensive overview of all laboratory operations in one place"
+    },
+    {
+      icon: <Layers className="h-5 w-5 text-primary" />,
+      title: "Task Management",
+      description: "Organize, assign and track laboratory tasks with ease"
+    },
+    {
+      icon: <FlaskConical className="h-5 w-5 text-primary" />,
+      title: "Experiment Tracking",
+      description: "Monitor experiments from planning to completion with detailed logs"
+    },
+    {
+      icon: <Users className="h-5 w-5 text-primary" />,
+      title: "Team Collaboration",
+      description: "Seamless communication and task sharing between lab members"
+    },
+    {
+      icon: <Database className="h-5 w-5 text-primary" />,
+      title: "Data Management",
+      description: "Secure storage and organization of research data and results"
+    },
+    {
+      icon: <Shield className="h-5 w-5 text-primary" />,
+      title: "Compliance Tools",
+      description: "Ensure adherence to laboratory standards and regulations"
+    },
+    {
+      icon: <FileText className="h-5 w-5 text-primary" />,
+      title: "Documentation",
+      description: "Generate and manage reports, protocols, and SOPs"
+    },
+    {
+      icon: <Zap className="h-5 w-5 text-primary" />,
+      title: "Automation",
+      description: "Streamline repetitive tasks and workflows with smart automation"
+    },
+    {
+      icon: <Lightbulb className="h-5 w-5 text-primary" />,
+      title: "Smart Insights",
+      description: "AI-powered analytics to optimize laboratory performance"
     }
-  }, [showWelcome]);
+  ];
 
-  const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setLastRefreshed(new Date());
-    }, 1000);
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
+  const testimonials = [
+    {
+      quote: "LabTasker has transformed how we manage our research projects. The efficiency gains are remarkable.",
+      author: "Dr. Sarah Chen",
+      role: "Research Director, BioTech Innovations"
     },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 12,
-      },
+    {
+      quote: "The compliance tools alone saved us countless hours during our last audit. Absolutely worth the investment.",
+      author: "James Wilson",
+      role: "Lab Manager, PharmaSolutions"
     },
-  };
-
-  const fadeVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.5 }
-    },
-    exit: {
-      opacity: 0,
-      transition: { duration: 0.3 }
+    {
+      quote: "Our team collaboration has improved dramatically since implementing LabTasker across our facilities.",
+      author: "Dr. Michael Rodriguez",
+      role: "Principal Investigator, University Research Center"
     }
-  };
+  ];
 
   return (
-    <DashboardLayout>
-      <div className="relative min-h-screen w-full overflow-hidden">
-        <BackgroundBeams className="opacity-20" />
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      <BackgroundBeams className="opacity-20" />
 
-        <div className="p-3 sm:p-4 md:p-6 w-full relative z-10">
-          {/* Welcome Banner */}
-          <AnimatePresence>
-            {showWelcome && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="mb-6 bg-gradient-to-r from-primary/20 to-primary/5 backdrop-blur-md rounded-xl p-4 border border-primary/30 shadow-lg relative overflow-hidden"
+      {/* Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40 transition-all duration-300 hover:bg-background/90">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="bg-primary/10 p-2.5 rounded-lg group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
+              <Microscope className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/70 group-hover:scale-105 transition-transform duration-300">
+              LabTasker
+            </h1>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-8">
+            {[
+              { href: "#features", label: "Features", icon: <Layers className="h-4 w-4" /> },
+              { href: "#benefits", label: "Benefits", icon: <Star className="h-4 w-4" /> },
+              { href: "#testimonials", label: "Testimonials", icon: <MessageSquare className="h-4 w-4" /> },
+              { href: "#pricing", label: "Pricing", icon: <Database className="h-4 w-4" /> }
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors flex items-center gap-2 group"
               >
-                <div className="absolute inset-0 overflow-hidden">
+                <span className="group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              EN
+            </Button>
+            
+            <div className="hidden md:block h-6 w-px bg-border/60"></div>
+            
+            <Button variant="outline" size="sm" className="hover:scale-105 transition-transform duration-300" asChild>
+              <Link href="/login" className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                Log In
+              </Link>
+            </Button>
+            
+            <Button 
+              size="sm" 
+              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105" 
+              asChild
+            >
+              <Link href="/admin-dashboard" className="flex items-center gap-2">
+                Dashboard
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 relative">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <motion.div
+              className="flex-1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 20 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+                Next-Generation Lab Management
+              </Badge>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                  Streamline Your Laboratory Operations
+                </span>
+              </h1>
+              <div className="mb-8 text-lg text-muted-foreground max-w-xl">
+                <TextGenerateEffect words="LabTasker is the all-in-one platform for modern laboratories. Manage tasks, track experiments, ensure compliance, and boost productivity with our intuitive tools." />
+              </div>
+
+              <div className="flex flex-wrap gap-4">
+                <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow group" asChild>
+                  <Link href="/admin-dashboard">
+                    Explore Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="shadow-md hover:shadow-lg transition-shadow" asChild>
+                  <Link href="#features">
+                    Learn More
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+
+              <div className="mt-8 flex items-center gap-6">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-8 w-8 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium">
+                      {i}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium text-foreground">500+</span> labs are already using LabTasker
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              className="flex-1 relative"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: isLoaded ? 1 : 0, scale: isLoaded ? 1 : 0.95 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <div className="relative w-full h-[400px] lg:h-[500px]">
+                <div className="absolute inset-0 flex items-center justify-center">
                   <SparklesCore
-                    id="welcomeSparkles"
+                    id="heroSparkles"
                     background="transparent"
-                    minSize={0.4}
-                    maxSize={1}
-                    particleDensity={40}
+                    minSize={0.6}
+                    maxSize={1.4}
+                    particleDensity={70}
                     className="w-full h-full"
                     particleColor="#8B5CF6"
                   />
                 </div>
-                <div className="relative z-10 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-primary/20 p-2 rounded-full">
-                      <Sparkles className="h-5 w-5 text-primary" />
+                <GlowingStarsBackgroundCard className="w-full h-full bg-background/60 backdrop-blur-md border border-border/50 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] overflow-hidden">
+                  <div className="relative w-full h-full p-4">
+                    <div className="absolute top-0 left-0 right-0 h-10 bg-background/80 backdrop-blur-sm border-b border-border/30 rounded-t-xl flex items-center px-4">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-3 w-3 rounded-full bg-red-500"></div>
+                        <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
+                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
+                      </div>
+                      <div className="mx-auto text-xs font-medium text-muted-foreground">
+                        LabTasker Dashboard
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">Welcome to LabTasker Dashboard</h3>
-                      <p className="text-sm text-muted-foreground">Your lab operations at a glance</p>
+                    <div className="pt-12 h-full">
+                      {/* Top Stats Row */}
+                      <div className="grid grid-cols-4 gap-2 mb-4">
+                        {[
+                          { icon: <Layers className="h-3 w-3" />, label: "Tasks", value: "24", color: "text-blue-500" },
+                          { icon: <FlaskConical className="h-3 w-3" />, label: "Experiments", value: "8", color: "text-green-500" },
+                          { icon: <Users className="h-3 w-3" />, label: "Team", value: "12", color: "text-amber-500" },
+                          { icon: <Clock className="h-3 w-3" />, label: "Hours", value: "128", color: "text-purple-500" }
+                        ].map((stat, i) => (
+                          <div key={i} className="bg-background/70 rounded-md border border-border/20 p-2 flex flex-col items-center justify-center">
+                            <div className={`${stat.color} bg-${stat.color.split('-')[1]}-500/10 p-1 rounded-full mb-1`}>
+                              {stat.icon}
+                            </div>
+                            <div className="text-[10px] font-medium">{stat.value}</div>
+                            <div className="text-[8px] text-muted-foreground">{stat.label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 h-[calc(100%-40px)]">
+                        {/* Task Overview Panel - Enhanced */}
+                        <div className="bg-background/40 backdrop-blur-sm rounded-lg border border-border/30 p-3 flex flex-col">
+                          <div className="text-xs font-medium mb-2 flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Layers className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
+                              Task Overview
+                            </div>
+                            <Badge variant="outline" className="text-[8px] py-0 px-1.5 h-4 bg-primary/5 text-primary border-primary/20">
+                              Today
+                            </Badge>
+                          </div>
+
+                          <div className="flex-1 space-y-2 overflow-hidden">
+                            {[
+                              { title: "PCR Analysis", status: "In Progress", progress: 65, priority: "high" },
+                              { title: "Sample Preparation", status: "Completed", progress: 100, priority: "medium" },
+                              { title: "Data Analysis", status: "Pending", progress: 0, priority: "low" },
+                              { title: "Report Writing", status: "In Progress", progress: 30, priority: "high" }
+                            ].map((task, i) => (
+                              <motion.div
+                                key={i}
+                                className="bg-background/70 rounded-md border border-border/20 p-2 flex flex-col"
+                                initial={{ opacity: 0, x: -5 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="text-[10px] font-medium">{task.title}</div>
+                                  <div className={`text-[8px] px-1.5 py-0.5 rounded-full ${task.status === "Completed" ? "bg-green-500/10 text-green-500" :
+                                    task.status === "In Progress" ? "bg-amber-500/10 text-amber-500" :
+                                      "bg-blue-500/10 text-blue-500"
+                                    }`}>
+                                    {task.status}
+                                  </div>
+                                </div>
+                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full ${task.priority === "high" ? "bg-red-500" :
+                                      task.priority === "medium" ? "bg-amber-500" :
+                                        "bg-green-500"
+                                      }`}
+                                    style={{ width: `${task.progress}%` }}
+                                  ></div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Experiments Panel - Enhanced */}
+                        <div className="bg-background/40 backdrop-blur-sm rounded-lg border border-border/30 p-3 flex flex-col">
+                          <div className="text-xs font-medium mb-2 flex items-center justify-between">
+                            <div className="flex items-center">
+                              <FlaskConical className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
+                              Active Experiments
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                              <span className="text-[8px] text-muted-foreground">Live Data</span>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 space-y-2 overflow-hidden">
+                            {[
+                              { title: "Protein Expression", time: "2h 15m", status: "active", data: [30, 50, 60, 40, 70, 60, 75] },
+                              { title: "Cell Culture", time: "18h 30m", status: "active", data: [20, 30, 40, 50, 40, 30, 35] },
+                              { title: "Antibody Testing", time: "4h 45m", status: "active", data: [60, 50, 40, 45, 55, 70, 65] }
+                            ].map((exp, i) => (
+                              <motion.div
+                                key={i}
+                                className="bg-background/70 rounded-md border border-border/20 p-2 flex items-center justify-between"
+                                initial={{ opacity: 0, x: 5 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                              >
+                                <div>
+                                  <div className="text-[10px] font-medium mb-1">{exp.title}</div>
+                                  <div className="flex items-center">
+                                    <Clock className="h-2 w-2 mr-1 text-muted-foreground" />
+                                    <span className="text-[8px] text-muted-foreground">{exp.time}</span>
+                                  </div>
+                                </div>
+                                <div className="h-8 flex items-end gap-0.5">
+                                  {exp.data.map((value, j) => (
+                                    <div
+                                      key={j}
+                                      className="w-1 bg-primary/60 rounded-sm"
+                                      style={{ height: `${value}%` }}
+                                    ></div>
+                                  ))}
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowWelcome(false)}
-                    className="text-xs"
-                  >
-                    Dismiss
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-background/40 backdrop-blur-md rounded-xl p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 drop-shadow-sm">
-                  Dashboard Overview
-                </h1>
-                <Badge variant="outline" className="ml-2 bg-primary/10 text-primary border-primary/20">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                </Badge>
+                </GlowingStarsBackgroundCard>
               </div>
-              <p className="text-muted-foreground mt-1 flex items-center">
-                Welcome back! Here's what's happening in your lab today
-                <ArrowUpRight className="h-3 w-3 ml-1 text-primary" />
-              </p>
-            </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
-            <div className="flex flex-wrap items-center gap-3">
+      {/* Features Section */}
+      <section id="features" className="py-20 relative">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Powerful Features
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Everything You Need to Run Your Lab
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              LabTasker combines powerful tools in one integrated platform to streamline your laboratory operations from start to finish.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <ThreeDCard className="h-full bg-background/60 backdrop-blur-md border border-border/50 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center mb-4">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
+                </ThreeDCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section id="benefits" className="py-20 relative bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
+            <motion.div
+              className="flex-1"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+                Why Choose LabTasker
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                Transform Your Laboratory Operations
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                LabTasker helps research facilities of all sizes improve efficiency, ensure compliance, and accelerate scientific discovery.
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { icon: <Clock />, title: "Save Time", desc: "Reduce administrative overhead by up to 40%" },
+                  { icon: <Shield />, title: "Ensure Compliance", desc: "Meet regulatory requirements with built-in tools" },
+                  { icon: <Users />, title: "Improve Collaboration", desc: "Connect your entire team on one platform" },
+                  { icon: <Zap />, title: "Boost Productivity", desc: "Complete more experiments with fewer resources" }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="bg-primary/10 p-2 rounded-md text-primary mt-0.5">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow" asChild>
+                <Link href="/admin-dashboard">
+                  Get Started Today
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </motion.div>
+
+            <motion.div
+              className="flex-1"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
               <div className="relative">
-                <div className="absolute inset-y-0 left-2 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-muted-foreground" />
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-purple-500/50 rounded-xl blur-xl opacity-30"></div>
+                <div className="relative bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl overflow-hidden">
+                  <div className="p-1">
+                    <div className="bg-muted/50 rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-primary/10 p-2 rounded-md">
+                            <Rocket className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium">Performance Metrics</h3>
+                            <p className="text-xs text-muted-foreground">Before vs After LabTasker</p>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                          <Star className="h-3 w-3 mr-1" />
+                          ROI Analysis
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-4">
+                        {[
+                          { label: "Task Completion Time", before: "30%", after: "70%" },
+                          { label: "Documentation Accuracy", before: "45%", after: "95%" },
+                          { label: "Team Collaboration", before: "40%", after: "85%" },
+                          { label: "Compliance Success Rate", before: "60%", after: "98%" },
+                          { label: "Resource Utilization", before: "50%", after: "90%" }
+                        ].map((metric, i) => (
+                          <div key={i} className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>{metric.label}</span>
+                              <div className="flex items-center gap-3">
+                                <span className="text-muted-foreground">{metric.before}</span>
+                                <ArrowRight className="h-3 w-3 text-primary" />
+                                <span className="font-medium text-primary">{metric.after}</span>
+                              </div>
+                            </div>
+                            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-primary/80 to-primary rounded-full"
+                                style={{ width: metric.after }}
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-6 pt-6 border-t border-border/30 flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">Average Improvement:</span>
+                          <span className="font-medium text-primary ml-2">+120%</span>
+                        </div>
+                        <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Verified Results
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search dashboard..."
-                  className="h-9 w-[180px] rounded-md border border-border/50 bg-background/70 backdrop-blur-sm pl-8 pr-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary/30"
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 relative">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Success Stories
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Trusted by Leading Laboratories
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              See what our customers have to say about how LabTasker has transformed their laboratory operations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <HoverGlowCard className="h-full bg-background/60 backdrop-blur-md border border-border/50 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                  <div className="flex flex-col h-full">
+                    <div className="mb-4 text-primary">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className="h-4 w-4 inline-block mr-0.5 fill-primary" />
+                      ))}
+                    </div>
+                    <p className="text-foreground italic mb-6 flex-1">"{testimonial.quote}"</p>
+                    <div>
+                      <p className="font-medium">{testimonial.author}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </HoverGlowCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 relative bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Pricing Plans
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Choose the Right Plan for Your Lab
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Flexible pricing options to fit laboratories of all sizes, from academic research to enterprise facilities.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              {
+                name: "Starter",
+                price: "$49",
+                description: "Perfect for small research teams",
+                features: [
+                  "Up to 5 team members",
+                  "Basic task management",
+                  "Experiment tracking",
+                  "Email support",
+                  "1GB storage"
+                ],
+                popular: false,
+                buttonText: "Get Started"
+              },
+              {
+                name: "Professional",
+                price: "$99",
+                description: "Ideal for growing laboratories",
+                features: [
+                  "Up to 20 team members",
+                  "Advanced task management",
+                  "Experiment tracking & analytics",
+                  "Compliance tools",
+                  "Priority support",
+                  "10GB storage",
+                  "API access"
+                ],
+                popular: true,
+                buttonText: "Try Free for 14 Days"
+              },
+              {
+                name: "Enterprise",
+                price: "Custom",
+                description: "For large research facilities",
+                features: [
+                  "Unlimited team members",
+                  "Complete feature access",
+                  "Advanced analytics & reporting",
+                  "Custom integrations",
+                  "Dedicated support manager",
+                  "Unlimited storage",
+                  "On-premise deployment option"
+                ],
+                popular: false,
+                buttonText: "Contact Sales"
+              }
+            ].map((plan, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className={cn(
+                  "relative",
+                  plan.popular && "mt-[-20px] mb-[-20px]"
+                )}
+              >
+                {plan.popular && (
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <Badge className="bg-primary text-primary-foreground border-primary py-1 px-3">
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+                <ThreeDCard className={cn(
+                  "h-full bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden",
+                  plan.popular && "border-primary/50 shadow-lg shadow-primary/10"
+                )}>
+                  <div className="p-6 flex flex-col h-full">
+                    <div className="mb-6">
+                      <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
+                      <div className="flex items-baseline mb-2">
+                        <span className="text-3xl font-bold">{plan.price}</span>
+                        {plan.price !== "Custom" && <span className="text-muted-foreground ml-1">/month</span>}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{plan.description}</p>
+                    </div>
+
+                    <div className="flex-1 mb-6">
+                      <ul className="space-y-3">
+                        {plan.features.map((feature, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <Button
+                      className={cn(
+                        "w-full shadow-md hover:shadow-lg transition-shadow",
+                        plan.popular ? "" : "bg-background text-foreground border border-border hover:bg-muted"
+                      )}
+                      asChild
+                    >
+                      <Link href="/admin-dashboard">
+                        {plan.buttonText}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </ThreeDCard>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 relative overflow-hidden">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 opacity-80" />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <GlowingStarsBackgroundCard className="max-w-5xl mx-auto p-8 md:p-14 bg-background/70 backdrop-blur-lg border border-border/50 rounded-2xl shadow-[0_15px_50px_rgba(139,92,246,0.15)]">
+            <div className="relative flex flex-col items-center justify-center">
+              <div className="absolute inset-0">
+                <SparklesCore
+                  id="ctaSparkles"
+                  background="transparent"
+                  minSize={0.6}
+                  maxSize={1.6}
+                  particleDensity={50}
+                  className="w-full h-full"
+                  particleColor="#8B5CF6"
                 />
               </div>
 
-              <div className="bg-background/70 backdrop-blur-sm rounded-md border border-border/50 p-1 flex items-center shadow-[0_2px_10px_rgb(0,0,0,0.03)]">
-                <Button
-                  variant={viewMode === "grid" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("grid")}
-                  className="h-8 shadow-sm"
-                >
-                  <LayoutGrid className="h-4 w-4 mr-1" />
-                  Grid
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("list")}
-                  className="h-8 shadow-sm"
-                >
-                  <LayoutList className="h-4 w-4 mr-1" />
-                  List
-                </Button>
-              </div>
+              <div className="relative z-10 text-center w-full p-6 md:p-8">
+                <Badge className="inline-flex mb-8 bg-primary/15 text-primary border-primary/25 py-2 px-6 text-sm font-medium shadow-sm hover:shadow-md transition-shadow">
+                  Limited Time Offer
+                </Badge>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="relative h-9 w-9 shadow-md hover:shadow-lg transition-shadow bg-background/70 backdrop-blur-sm border-border/50"
-                      onClick={() => setNotificationCount(0)}
-                    >
-                      <Bell className="h-4 w-4" />
-                      {notificationCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center shadow-[0_2px_4px_rgba(0,0,0,0.1)]">
-                          {notificationCount}
-                        </span>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Notifications</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-indigo-600">
+                  Ready to Transform Your Laboratory?
+                </h2>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 shadow-md hover:shadow-lg transition-shadow bg-background/70 backdrop-blur-sm border-border/50"
-                      onClick={handleRefresh}
-                    >
-                      <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Refresh dashboard</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 shadow-md hover:shadow-lg transition-shadow bg-background/70 backdrop-blur-sm border-border/50"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Settings</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </motion.div>
-
-          {/* Quick Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8"
-          >
-            {isLoading ? (
-              Array(4).fill(0).map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-xl" />
-              ))
-            ) : (
-              <>
-                <ThreeDCard className="bg-gradient-to-br from-blue-50 via-blue-100/70 to-blue-50 dark:from-blue-950/40 dark:via-blue-900/30 dark:to-blue-950/20 border border-blue-200/70 dark:border-blue-800/30 rounded-xl p-5 h-28 hover:scale-[1.02] transition-all duration-300">
-                  <div className="flex items-center justify-between h-full">
-                    <div>
-                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center">
-                        <span className="relative">
-                          Total Tasks
-                          <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-blue-400/30 dark:bg-blue-500/30 rounded-full"></span>
-                        </span>
-                      </p>
-                      <h3 className="text-3xl font-bold mt-2 text-blue-700 dark:text-blue-300">68</h3>
-                      <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1 flex items-center">
-                        <span className="inline-flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full px-1.5 py-0.5 mr-1">
-                          <span className="mr-0.5">↑</span>12%
-                        </span>
-                        from last week
-                      </p>
-                    </div>
-                    <div className="h-14 w-14 bg-gradient-to-br from-blue-100 to-blue-200/50 dark:from-blue-900/40 dark:to-blue-800/20 rounded-full flex items-center justify-center shadow-md">
-                      <Layers className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-                    </div>
-                  </div>
-                </ThreeDCard>
-
-                <ThreeDCard className="bg-gradient-to-br from-purple-50 via-purple-100/70 to-purple-50 dark:from-purple-950/40 dark:via-purple-900/30 dark:to-purple-950/20 border border-purple-200/70 dark:border-purple-800/30 rounded-xl p-5 h-28 hover:scale-[1.02] transition-all duration-300">
-                  <div className="flex items-center justify-between h-full">
-                    <div>
-                      <p className="text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center">
-                        <span className="relative">
-                          Active Users
-                          <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-purple-400/30 dark:bg-purple-500/30 rounded-full"></span>
-                        </span>
-                      </p>
-                      <h3 className="text-3xl font-bold mt-2 text-purple-700 dark:text-purple-300">31</h3>
-                      <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1 flex items-center">
-                        <span className="inline-flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full px-1.5 py-0.5 mr-1">
-                          <span className="mr-0.5">↑</span>8%
-                        </span>
-                        from yesterday
-                      </p>
-                    </div>
-                    <div className="h-14 w-14 bg-gradient-to-br from-purple-100 to-purple-200/50 dark:from-purple-900/40 dark:to-purple-800/20 rounded-full flex items-center justify-center shadow-md">
-                      <BarChart3 className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-                    </div>
-                  </div>
-                </ThreeDCard>
-
-                <ThreeDCard className="bg-gradient-to-br from-amber-50 via-amber-100/70 to-amber-50 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-amber-950/20 border border-amber-200/70 dark:border-amber-800/30 rounded-xl p-5 h-28 hover:scale-[1.02] transition-all duration-300">
-                  <div className="flex items-center justify-between h-full">
-                    <div>
-                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400 flex items-center">
-                        <span className="relative">
-                          Pending Approvals
-                          <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-amber-400/30 dark:bg-amber-500/30 rounded-full"></span>
-                        </span>
-                      </p>
-                      <h3 className="text-3xl font-bold mt-2 text-amber-700 dark:text-amber-300">12</h3>
-                      <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-1 flex items-center">
-                        <span className="inline-flex items-center justify-center bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full px-1.5 py-0.5 mr-1">
-                          <span className="mr-0.5">↑</span>3
-                        </span>
-                        since yesterday
-                      </p>
-                    </div>
-                    <div className="h-14 w-14 bg-gradient-to-br from-amber-100 to-amber-200/50 dark:from-amber-900/40 dark:to-amber-800/20 rounded-full flex items-center justify-center shadow-md">
-                      <Clock className="h-7 w-7 text-amber-600 dark:text-amber-400" />
-                    </div>
-                  </div>
-                </ThreeDCard>
-
-                <ThreeDCard className="bg-gradient-to-br from-green-50 via-green-100/70 to-green-50 dark:from-green-950/40 dark:via-green-900/30 dark:to-green-950/20 border border-green-200/70 dark:border-green-800/30 rounded-xl p-5 h-28 hover:scale-[1.02] transition-all duration-300">
-                  <div className="flex items-center justify-between h-full">
-                    <div>
-                      <p className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center">
-                        <span className="relative">
-                          Completed Tasks
-                          <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-green-400/30 dark:bg-green-500/30 rounded-full"></span>
-                        </span>
-                      </p>
-                      <h3 className="text-3xl font-bold mt-2 text-green-700 dark:text-green-300">24</h3>
-                      <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1 flex items-center">
-                        <span className="inline-flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full px-1.5 py-0.5 mr-1">
-                          <span className="mr-0.5">↑</span>18%
-                        </span>
-                        this week
-                      </p>
-                    </div>
-                    <div className="h-14 w-14 bg-gradient-to-br from-green-100 to-green-200/50 dark:from-green-900/40 dark:to-green-800/20 rounded-full flex items-center justify-center shadow-md">
-                      <Zap className="h-7 w-7 text-green-600 dark:text-green-400" />
-                    </div>
-                  </div>
-                </ThreeDCard>
-              </>
-            )}
-          </motion.div>
-
-          <div className="mb-8">
-            <QuickActions actions={quickActionsData} />
-          </div>
-
-          <Tabs defaultValue="overview" className="mb-8">
-            <TabsList className="mb-6 p-1 bg-background/70 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-border/40 rounded-lg">
-              <TabsTrigger value="overview" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Overview</TabsTrigger>
-              <TabsTrigger value="tasks" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Tasks</TabsTrigger>
-              <TabsTrigger value="experiments" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Experiments</TabsTrigger>
-              <TabsTrigger value="analytics" className="shadow-sm data-[state=active]:shadow-md transition-shadow">Analytics</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview">
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate={isLoading ? "hidden" : "visible"}
-                className="space-y-8"
-              >
-                <motion.div variants={itemVariants}>
-                  <GlowingStarsBackgroundCard className="p-6 bg-background/60 backdrop-blur-md border border-border/50 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] transition-all duration-300">
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <SparklesCore
-                          id="tsparticles"
-                          background="transparent"
-                          minSize={0.6}
-                          maxSize={1.4}
-                          particleDensity={70}
-                          className="w-full h-full"
-                          particleColor="#8B5CF6"
-                        />
-                      </div>
-                      <div className="relative z-10">
-                        <SmartInsights data={smartInsightsData} />
-                      </div>
-                    </div>
-                  </GlowingStarsBackgroundCard>
-                </motion.div>
-
-                <motion.div variants={itemVariants}>
-                  <div className={`grid ${viewMode === "grid" ? "grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3" : "grid-cols-1"} gap-6 mb-8`}>
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <TasksOverview data={taskOverviewData} />
-                      </div>
-                    </HoverGlowCard>
-
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <PendingApprovals data={pendingApprovalsData} />
-                      </div>
-                    </HoverGlowCard>
-
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <UserActivity activityData={userActivityData} activeUsersData={dailyActiveUsersData} />
-                      </div>
-                    </HoverGlowCard>
-                  </div>
-                </motion.div>
-
-                <motion.div variants={itemVariants}>
-                  <div className={`grid ${viewMode === "grid" ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-1"} gap-6 mb-8`}>
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <ExperimentProgress data={experimentProgressData} />
-                      </div>
-                    </HoverGlowCard>
-
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <TaskHeatmap data={taskHeatmapData} />
-                      </div>
-                    </HoverGlowCard>
-                  </div>
-                </motion.div>
-
-                <motion.div variants={itemVariants}>
-                  <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6">
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <ComplianceAlerts data={complianceAlertsData} />
-                      </div>
-                    </HoverGlowCard>
-
-                    <HoverGlowCard className="bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                      <div className="p-1 overflow-x-auto">
-                        <NotificationCenter data={notificationCenterData} />
-                      </div>
-                    </HoverGlowCard>
-                  </div>
-                </motion.div>
-
-                <motion.div variants={itemVariants}>
-                  <HoverGlowCard className="w-full bg-background/60 backdrop-blur-md border border-border/50 rounded-xl overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.1)] transition-all duration-300">
-                    <div className="p-1 overflow-x-auto">
-                      <SystemLogs data={systemLogsData} />
-                    </div>
-                  </HoverGlowCard>
-                </motion.div>
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="tasks">
-              <div className="bg-background/40 backdrop-blur-md rounded-xl p-4 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <TasksDashboard data={tasksDashboardData} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="experiments">
-              <div className="bg-background/40 backdrop-blur-md rounded-xl p-4 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <ExperimentsDashboard data={experimentsDashboardData} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="analytics">
-              <div className="p-12 text-center bg-background/40 backdrop-blur-md rounded-xl border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <div className="relative w-20 h-20 mx-auto mb-6">
-                  <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse"></div>
-                  <Sparkles className="h-12 w-12 absolute inset-0 m-auto text-primary drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" />
-                </div>
-                <h3 className="text-2xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Analytics Dashboard</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
-                  This tab will contain detailed analytics and insights about your laboratory performance.
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+                  Join over 500+ laboratories already using LabTasker to streamline operations,
+                  improve collaboration, and accelerate scientific discovery.
                 </p>
-                <Button className="mt-6 shadow-lg hover:shadow-xl transition-shadow">
-                  Coming Soon
-                </Button>
+
+                {/* Testimonial carousel */}
+                <div className="mb-10 bg-white/50 backdrop-blur-sm p-6 rounded-lg max-w-3xl mx-auto">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white font-bold">
+                        RC
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium">Dr. Rachel Chen</p>
+                        <p className="text-sm text-muted-foreground">Research Director, BioTech Labs</p>
+                      </div>
+                    </div>
+                    <div className="flex">
+                      {Array(5).fill(null).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-sm italic text-left">
+                    "LabTasker has revolutionized how our team collaborates. We've seen a 40% increase in
+                    experiment throughput and significant reduction in documentation errors."
+                  </p>
+                </div>
+
+                {/* Stats section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                  {[
+                    { value: "95%", label: "Reduction in manual data entry" },
+                    { value: "3.5x", label: "Faster experiment documentation" },
+                    { value: "30+", label: "Integrations with lab equipment" }
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white/40 backdrop-blur-sm p-6 rounded-lg flex flex-col items-center">
+                      <h3 className="text-4xl font-bold text-primary mb-2">{stat.value}</h3>
+                      <p className="text-sm text-muted-foreground text-center whitespace-nowrap">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" asChild>
+                    <Link href="/admin-dashboard" className="flex items-center justify-center">
+                      Start Free Trial
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button size="lg" variant="outline" className="w-full sm:w-auto border-primary/30 text-primary hover:bg-primary/10 shadow-md" asChild>
+                    <Link href="/demo" className="flex items-center justify-center">
+                      <PlayCircle className="mr-2 h-4 w-4" />
+                      Watch Demo
+                    </Link>
+                  </Button>
+                </div>
+
               </div>
-            </TabsContent>
-          </Tabs>
-
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-muted-foreground p-2 bg-background/30 backdrop-blur-sm rounded-md border border-border/20 shadow-sm">
-              <span className="mr-2">Last updated:</span>
-              <span className="font-medium">{lastRefreshed.toLocaleTimeString()}</span>
             </div>
+          </GlowingStarsBackgroundCard>
 
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-              <Calendar className="h-3 w-3 mr-1" />
-              View activity log
-              <ChevronRight className="h-3 w-3 ml-1" />
-            </Button>
+          {/* Quick feature highlight */}
+          <div className="max-w-5xl mx-auto mt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { icon: Shield, label: "HIPAA Compliant" },
+              { icon: Cloud, label: "Cloud-Based" },
+              { icon: MoveRight, label: "Seamless Integration" },
+              { icon: BarChart3, label: "Advanced Analytics" }
+            ].map((feature, i) => (
+              <div key={i} className="p-6 text-center flex flex-col items-center">
+                <feature.icon className="h-8 w-8 text-primary mb-3" />
+                <h4 className="text-sm font-medium">{feature.label}</h4>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </section>
+
+      {/* Mobile Navigation Menu (Hidden by default) */}
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 md:hidden"
+          >
+            <div className="bg-background/80 backdrop-blur-md border border-border/40 rounded-full shadow-lg p-1.5 flex items-center">
+              <Link href="#features" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Layers className="h-5 w-5" />
+              </Link>
+              <Link href="#benefits" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Zap className="h-5 w-5" />
+              </Link>
+              <Link href="/admin-dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
+                <LayoutDashboard className="h-5 w-5" />
+              </Link>
+              <Link href="#testimonials" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <MessageSquare className="h-5 w-5" />
+              </Link>
+              <Link href="#pricing" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Database className="h-5 w-5" />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-full bg-background/80 backdrop-blur-md border border-border/40 shadow-lg hover:shadow-xl transition-all"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Feature Comparison Table */}
+      <section className="py-20 relative">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Why Choose Us
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How LabTasker Compares
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              See how LabTasker stacks up against traditional lab management methods and other solutions.
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto overflow-x-auto">
+            <Table className="w-full border-collapse">
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-1/4 py-4 px-6 text-left font-medium">Features</TableHead>
+                  <TableHead className="w-1/4 py-4 px-6 text-center font-medium">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-primary/10 p-2 rounded-full mb-2">
+                        <Microscope className="h-5 w-5 text-primary" />
+                      </div>
+                      <span>LabTasker</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-1/4 py-4 px-6 text-center font-medium">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-muted p-2 rounded-full mb-2">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <span>Traditional Methods</span>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-1/4 py-4 px-6 text-center font-medium">
+                    <div className="flex flex-col items-center">
+                      <div className="bg-muted p-2 rounded-full mb-2">
+                        <Database className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <span>Other LIMS</span>
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[
+                  { feature: "User-friendly Interface", labtasker: true, traditional: false, others: "Limited" },
+                  { feature: "Real-time Collaboration", labtasker: true, traditional: false, others: "Limited" },
+                  { feature: "Experiment Tracking", labtasker: true, traditional: "Manual", others: true },
+                  { feature: "Compliance Tools", labtasker: true, traditional: "Manual", others: "Limited" },
+                  { feature: "Data Security", labtasker: "Advanced", traditional: "Basic", others: "Standard" },
+                  { feature: "Mobile Access", labtasker: true, traditional: false, others: "Limited" },
+                  { feature: "AI-powered Insights", labtasker: true, traditional: false, others: false },
+                  { feature: "Implementation Time", labtasker: "Days", traditional: "Immediate", others: "Months" },
+                  { feature: "Cost Efficiency", labtasker: "High", traditional: "Low", others: "Medium" },
+                ].map((row, i) => (
+                  <TableRow key={i} className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}>
+                    <TableCell className="py-4 px-6 font-medium">{row.feature}</TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      {row.labtasker === true ? (
+                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : row.labtasker === false ? (
+                        <X className="h-5 w-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-primary font-medium">{row.labtasker}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      {row.traditional === true ? (
+                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : row.traditional === false ? (
+                        <X className="h-5 w-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground">{row.traditional}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4 px-6 text-center">
+                      {row.others === true ? (
+                        <Check className="h-5 w-5 text-green-500 mx-auto" />
+                      ) : row.others === false ? (
+                        <X className="h-5 w-5 text-red-500 mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground">{row.others}</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 relative bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-1.5 px-4 text-sm">
+              Common Questions
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Find answers to the most common questions about LabTasker and how it can help your laboratory.
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="space-y-4">
+              {[
+                {
+                  question: "How long does it take to implement LabTasker?",
+                  answer: "Most laboratories are up and running with LabTasker in just a few days. Our onboarding team will guide you through the setup process, help import your existing data, and train your team on using the platform effectively."
+                },
+                {
+                  question: "Is LabTasker compliant with laboratory regulations?",
+                  answer: "Yes, LabTasker is designed to meet various regulatory requirements including GLP, GMP, ISO 17025, and 21 CFR Part 11. Our compliance tools help you maintain proper documentation, audit trails, and data integrity."
+                },
+                {
+                  question: "Can LabTasker integrate with our existing laboratory equipment?",
+                  answer: "LabTasker offers integration capabilities with many common laboratory instruments and systems through our API. We support both direct integrations and file-based data exchange with various analytical instruments, LIMS, and ELN systems."
+                },
+                {
+                  question: "How secure is our data with LabTasker?",
+                  answer: "We take data security very seriously. LabTasker employs industry-standard encryption, regular security audits, and robust access controls. All data is backed up regularly, and we offer both cloud and on-premise deployment options to meet your security requirements."
+                },
+                {
+                  question: "Can we customize LabTasker for our specific workflows?",
+                  answer: "Absolutely! LabTasker is highly customizable to accommodate your laboratory's unique processes. You can create custom forms, workflows, report templates, and more. Our Professional and Enterprise plans also include custom field options and workflow automation."
+                },
+                {
+                  question: "What kind of support does LabTasker provide?",
+                  answer: "All LabTasker plans include email support with quick response times. Our Professional plan adds priority support with faster response times, while Enterprise customers receive dedicated support with a named account manager and 24/7 emergency assistance."
+                },
+                {
+                  question: "Can we try LabTasker before purchasing?",
+                  answer: "Yes! We offer a 14-day free trial of our Professional plan with no credit card required. You'll get full access to all features so you can thoroughly evaluate how LabTasker works for your laboratory before making a decision."
+                }
+              ].map((faq, i) => (
+                <AccordionItem key={i} value={`item-${i}`} className="bg-background/60 backdrop-blur-md border border-border/50 rounded-lg overflow-hidden">
+                  <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-muted/20 transition-colors">
+                    <div className="flex items-start gap-3 text-left">
+                      <HelpCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                      <span className="font-medium">{faq.question}</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4 pt-2 text-muted-foreground">
+                    <div className="pl-8">{faq.answer}</div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+
+            <div className="mt-10 text-center">
+              <p className="text-muted-foreground mb-4">
+                Still have questions? Our team is here to help.
+              </p>
+              <Button variant="outline" className="shadow-md hover:shadow-lg transition-shadow" asChild>
+                <Link href="#contact">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Contact Support
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section - Add before the footer */}
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
+        <div className="container mx-auto px-4 relative">
+          <div className="max-w-3xl mx-auto bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl p-10 shadow-[0_8px_40px_rgba(0,0,0,0.12)]">
+            <div className="text-center mb-8">
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 py-2 px-6 text-sm font-medium">
+                Join Our Community
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+                Stay Ahead in Lab Management
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+                Subscribe to receive expert insights, industry updates, and exclusive resources for optimizing your laboratory operations.
+              </p>
+            </div>
+
+            {!isSubscribed ? (
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Input
+                  type="email"
+                  placeholder="Enter your work email"
+                  className="flex-1 h-12 text-base placeholder:text-muted-foreground/70"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button
+                  size="lg"
+                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90"
+                  onClick={() => {
+                    if (email) setIsSubscribed(true);
+                  }}
+                >
+                  <Mail className="h-5 w-5 mr-2" />
+                  Subscribe Now
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-green-500/10 text-green-500 border border-green-500/20 rounded-xl p-6 flex items-center justify-center gap-3">
+                <CheckCircle2 className="h-6 w-6" />
+                <span className="text-lg font-medium">Success! Please check your inbox to confirm your subscription.</span>
+              </div>
+            )}
+
+            <div className="mt-6 text-sm text-muted-foreground text-center flex items-center justify-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>Your data is secure. We respect your privacy and never share your information.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Live Chat Widget */}
+      <AnimatePresence>
+        {showChatWidget ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-24 right-6 z-50 w-80 bg-background border border-border/50 rounded-xl shadow-2xl overflow-hidden"
+          >
+            <div className="bg-primary p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/20 p-1.5 rounded-full">
+                  <MessageSquare className="h-4 w-4 text-white" />
+                </div>
+                <span className="text-white font-medium">LabTasker Support</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:bg-white/20"
+                onClick={() => setShowChatWidget(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="h-64 p-4 bg-muted/20 overflow-y-auto">
+              <div className="space-y-4">
+                <div className="flex items-start gap-2">
+                  <div className="bg-primary/10 p-1.5 rounded-full">
+                    <Microscope className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-sm max-w-[80%]">
+                    <p>Hello! 👋 How can we help you with LabTasker today?</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 justify-end">
+                  <div className="bg-primary/10 rounded-lg p-3 text-sm max-w-[80%]">
+                    <p>I'd like to learn more about your pricing plans.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="bg-primary/10 p-1.5 rounded-full">
+                    <Microscope className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-sm max-w-[80%]">
+                    <p>I'd be happy to explain our pricing plans! We offer three tiers: Starter, Professional, and Enterprise. Would you like me to go through the details of each?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 border-t border-border/30 bg-background">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type your message..."
+                  className="text-sm"
+                />
+                <Button size="sm" className="shrink-0">
+                  Send
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              size="lg"
+              className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              onClick={() => setShowChatWidget(true)}
+            >
+              <MessageSquare className="h-6 w-6" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Navigation Menu (Hidden by default) */}
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 md:hidden"
+          >
+            <div className="bg-background/80 backdrop-blur-md border border-border/40 rounded-full shadow-lg p-1.5 flex items-center">
+              <Link href="#features" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Layers className="h-5 w-5" />
+              </Link>
+              <Link href="#benefits" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Zap className="h-5 w-5" />
+              </Link>
+              <Link href="/admin-dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
+                <LayoutDashboard className="h-5 w-5" />
+              </Link>
+              <Link href="#testimonials" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <MessageSquare className="h-5 w-5" />
+              </Link>
+              <Link href="#pricing" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
+                <Database className="h-5 w-5" />
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {isLoaded && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-full bg-background/80 backdrop-blur-md border border-border/40 shadow-lg hover:shadow-xl transition-all"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Footer */}
+      <footer className="py-16 border-t border-border/40 bg-gradient-to-b from-background/60 to-background/80 backdrop-blur-xl relative">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div className="md:col-span-1">
+              <div className="flex items-center gap-3 mb-6 group">
+                <div className="bg-primary/10 p-2.5 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                  <Microscope className="h-7 w-7 text-primary" />
+                </div>
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/70">
+                  LabTasker
+                </h2>
+              </div>
+              <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
+                The all-in-one laboratory management platform designed to streamline operations and accelerate scientific discovery.
+              </p>
+              <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:scale-110 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                  <Github className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:scale-110 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                  <Globe className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full h-10 w-10 hover:scale-110 hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Product</h3>
+              <ul className="space-y-3 text-sm">
+                {["Features", "Pricing", "Integrations", "Changelog", "Documentation"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-primary/50 group-hover:w-2 transition-all duration-300"></span>
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Company</h3>
+              <ul className="space-y-3 text-sm">
+                {["About Us", "Careers", "Blog", "Press", "Contact"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-primary/50 group-hover:w-2 transition-all duration-300"></span>
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Legal</h3>
+              <ul className="space-y-3 text-sm">
+                {["Terms of Service", "Privacy Policy", "Cookie Policy", "Data Processing", "Compliance"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                    >
+                      <span className="h-1 w-1 rounded-full bg-primary/50 group-hover:w-2 transition-all duration-300"></span>
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-16 pt-8 border-t border-border/30">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} LabTasker. All rights reserved.
+              </p>
+
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-6 px-6 border-r border-l border-border/30">
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Privacy
+                  </Link>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Terms
+                  </Link>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    Cookies
+                  </Link>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Made with</span>
+                  <span className="text-primary animate-pulse">♥</span>
+                  <span className="text-sm text-muted-foreground">for scientists</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

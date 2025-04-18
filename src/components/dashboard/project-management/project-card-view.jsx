@@ -157,7 +157,7 @@ export function ProjectCardView({ projects, onAction }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/projects/${project.id}/edit`);
+                      router.push(`/projects/edit/${project.id}`);
                     }}>
                       <ClipboardEdit className="h-4 w-4 mr-2" />
                       Edit Project
