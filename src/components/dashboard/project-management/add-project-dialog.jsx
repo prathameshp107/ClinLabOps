@@ -72,6 +72,7 @@ const mockUsers = [
   { id: "u6", name: "Robert Kim", role: "Technician", department: "Equipment Maintenance" }
 ]
 
+
 // Common project tags
 const commonTags = [
   "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience",
@@ -220,7 +221,31 @@ export function AddProjectDialog({ open, onOpenChange }) {
     requiredEquipment: [],
     relatedDocuments: [],
     // Additional new fields
-    principalInvestigator: null,
+    principalInvestigator:
+      [
+        {
+          "id": "pi001",
+          "name": "Dr. Sarah Thompson",
+          "email": "sarah.thompson@biocorelab.com",
+          "department": "Pharmacology",
+          "institution": "BioCore Research Institute"
+        },
+        {
+          "id": "pi002",
+          "name": "Dr. Emily Davis",
+          "email": "Emily.Davis@gmail.com",
+          "department": "Biochemistry",
+          "institution": "University of Medicine "
+        },
+        {
+          "id": "pi003",
+          "name": "Dr. Michael Wilson",
+          "email": "Michael.wilson@reval.com",
+          "department": "Department of Chemistry",
+          "institution": "University of California, San Diego"
+        }
+      ]
+    ,
     researchArea: "",
     studyType: "",
     documents: {
@@ -518,7 +543,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+        className="w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] max-h-[95vh] overflow-hidden flex flex-col border border-border/40 shadow-lg p-6"
         overlayClassName="fixed inset-0 z-50 bg-black/50 dark:bg-black/60 backdrop-blur-md"
       >
         <motion.div
@@ -545,84 +570,103 @@ export function AddProjectDialog({ open, onOpenChange }) {
           value={activeTab}
           onValueChange={setActiveTab}
         >
-          <TabsList className="grid grid-cols-6 mb-6 p-1 bg-muted/50 backdrop-blur-sm shadow-inner rounded-xl whitespace-normal">
+          <TabsList className="grid grid-cols-5 mb-6 p-2 bg-muted/50 backdrop-blur-sm shadow-inner rounded-xl gap-2">
             <TabsTrigger
               value="details"
-              className="flex flex-col items-center gap-1 px-2 py-1 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg whitespace-normal text-center min-w-0 break-words"
+              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
             >
               <motion.div
                 animate={{ scale: activeTab === "details" ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="relative flex items-center justify-center"
               >
-                <Info className={`h-4 w-4 ${activeTab === "details" ? "text-primary" : "text-muted-foreground"}`} />
+                <Info className={`h-5 w-5 ${activeTab === "details" ? "text-primary" : "text-muted-foreground"}`} />
               </motion.div>
-              Basic Details
+              <span className="text-xs font-medium">Basic Details</span>
             </TabsTrigger>
+
             <TabsTrigger
               value="team"
-              className="flex flex-col items-center gap-1 px-2 py-1 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg whitespace-normal text-center min-w-0 break-words"
+              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
             >
               <motion.div
                 animate={{ scale: activeTab === "team" ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="relative flex items-center justify-center"
               >
-                <Users className={`h-4 w-4 ${activeTab === "team" ? "text-primary" : "text-muted-foreground"}`} />
+                <Users className={`h-5 w-5 ${activeTab === "team" ? "text-primary" : "text-muted-foreground"}`} />
               </motion.div>
-              Team
+              <span className="text-xs font-medium">Team</span>
             </TabsTrigger>
+
             <TabsTrigger
               value="research"
-              className="flex flex-col items-center gap-1 px-2 py-1 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg whitespace-normal text-center min-w-0 break-words"
+              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
             >
               <motion.div
                 animate={{ scale: activeTab === "research" ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="relative flex items-center justify-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${activeTab === "research" ? "text-primary" : "text-muted-foreground"}`}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`${activeTab === "research" ? "text-primary" : "text-muted-foreground"}`}
+                >
                   <path d="M10 2v8a2 2 0 0 1-2 2H2" />
                   <path d="M4.271 10.271A10 10 0 1 0 12 4" />
                 </svg>
               </motion.div>
-              Research
+              <span className="text-xs font-medium">Research</span>
             </TabsTrigger>
+
             <TabsTrigger
               value="documents"
-              className="flex flex-col items-center gap-1 px-2 py-1 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg whitespace-normal text-center min-w-0 break-words"
+              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
             >
               <motion.div
                 animate={{ scale: activeTab === "documents" ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="relative flex items-center justify-center"
               >
-                <FileText className={`h-4 w-4 ${activeTab === "documents" ? "text-primary" : "text-muted-foreground"}`} />
+                <FileText className={`h-5 w-5 ${activeTab === "documents" ? "text-primary" : "text-muted-foreground"}`} />
               </motion.div>
-              Documents
+              <span className="text-xs font-medium">Documents</span>
             </TabsTrigger>
-            <TabsTrigger
-              value="resources"
-              className="flex flex-col items-center gap-1 px-2 py-1 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg whitespace-normal text-center min-w-0 break-words"
-            >
-              <motion.div
-                animate={{ scale: activeTab === "resources" ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <Beaker className={`h-4 w-4 ${activeTab === "resources" ? "text-primary" : "text-muted-foreground"}`} />
-              </motion.div>
-              Resources
-            </TabsTrigger>
+
             <TabsTrigger
               value="additional"
-              className="flex flex-col items-center gap-1 px-2 py-1 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg whitespace-normal text-center min-w-0 break-words"
+              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
             >
               <motion.div
                 animate={{ scale: activeTab === "additional" ? 1.1 : 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                className="relative flex items-center justify-center"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${activeTab === "additional" ? "text-primary" : "text-muted-foreground"}`}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`${activeTab === "additional" ? "text-primary" : "text-muted-foreground"}`}
+                >
                   <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
                   <path d="M7 7h.01" />
                 </svg>
               </motion.div>
-              Additional
+              <span className="text-xs font-medium">Additional</span>
             </TabsTrigger>
           </TabsList>
 
@@ -844,14 +888,19 @@ export function AddProjectDialog({ open, onOpenChange }) {
                       <Label htmlFor="pi" className="text-sm font-medium flex items-center gap-1">
                         Principal Investigator (PI) <span className="text-destructive">*</span>
                       </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-between bg-background/50 border-border/50"
-                            id="pi"
-                          >
-                            {projectData.principalInvestigator ? (
+                      <Select
+                        value={projectData.principalInvestigator?.id}
+                        onValueChange={(value) => {
+                          const selectedPI = projectData.principalInvestigator.find(pi => pi.id === value);
+                          setProjectData(prev => ({
+                            ...prev,
+                            principalInvestigator: selectedPI
+                          }))
+                        }}
+                      >
+                        <SelectTrigger className="w-full bg-background/50 border-border/50">
+                          <SelectValue placeholder="Select Principal Investigator">
+                            {projectData.principalInvestigator?.name ? (
                               <div className="flex items-center gap-2">
                                 <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
                                   {projectData.principalInvestigator.name.split(' ').map(n => n[0]).join('')}
@@ -859,93 +908,116 @@ export function AddProjectDialog({ open, onOpenChange }) {
                                 <span>{projectData.principalInvestigator.name}</span>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground">Select Principal Investigator</span>
+                              "Select Principal Investigator"
                             )}
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                              <circle cx="9" cy="7" r="4" />
-                              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0" align="start">
-                          <Command>
-                            <CommandInput placeholder="Search users..." />
-                            <CommandEmpty>No users found.</CommandEmpty>
-                            <CommandGroup heading="Users">
-                              {mockUsers.map(user => (
-                                <CommandItem
-                                  key={user.id}
-                                  onSelect={() => {
-                                    setProjectData(prev => ({
-                                      ...prev,
-                                      principalInvestigator: user
-                                    }))
-                                  }}
-                                  className="flex items-center gap-2 cursor-pointer"
-                                >
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projectData.principalInvestigator && Array.isArray(projectData.principalInvestigator) ? (
+                            projectData.principalInvestigator.map(pi => (
+                              <SelectItem
+                                key={pi.id}
+                                value={pi.id}
+                                className="flex items-center gap-2 py-2"
+                              >
+                                <div className="flex items-center gap-2 w-full">
                                   <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                                    {pi.name.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span>{pi.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {pi.department} • {pi.institution}
+                                    </span>
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="no-pi">No Principal Investigators Available</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Team Members Selection */}
+                    <div className="space-y-4">
+                      <Label>Team Members</Label>
+
+                      {/* Team member dropdown selection */}
+                      <Select
+                        onValueChange={(value) => {
+                          const selectedUser = mockUsers.find(user => user.id === value);
+                          if (selectedUser) {
+                            handleTeamMemberAdd(selectedUser);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full bg-background/50 border-border/50">
+                          <SelectValue placeholder="Select team members" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockUsers
+                            .filter(user => !projectData.team.some(member => member.id === user.id) &&
+                              (!projectData.principalInvestigator || user.id !== projectData.principalInvestigator.id))
+                            .map(user => (
+                              <SelectItem
+                                key={user.id}
+                                value={user.id}
+                                className="flex items-center gap-2 py-2"
+                              >
+                                <div className="flex items-center gap-2 w-full">
+                                  <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
                                     {user.name.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span>{user.name}</span>
+                                    <span className="font-medium">{user.name}</span>
                                     <span className="text-xs text-muted-foreground">
                                       {user.role} • {user.department}
                                     </span>
                                   </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                                </div>
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
 
-                    {/* Team Members Selection */}
-                    <div className="space-y-2">
-                      <Label>Team Members</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-between bg-background/50 border-border/50">
-                            <span>Add Team Members</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user-plus">
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                              <circle cx="9" cy="7" r="4" />
-                              <line x1="19" x2="19" y1="8" y2="14" />
-                              <line x1="16" x2="22" y1="11" y2="11" />
-                            </svg>
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-full p-0" align="start">
-                          <Command>
-                            <CommandInput placeholder="Search users..." />
-                            <CommandEmpty>No users found.</CommandEmpty>
-                            <CommandGroup heading="Users">
-                              {mockUsers
-                                .filter(user => !projectData.team.some(member => member.id === user.id) &&
-                                  (!projectData.principalInvestigator || user.id !== projectData.principalInvestigator.id))
-                                .map(user => (
-                                  <CommandItem
-                                    key={user.id}
-                                    onSelect={() => handleTeamMemberAdd(user)}
-                                    className="flex items-center gap-2 cursor-pointer"
-                                  >
-                                    <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
-                                      {user.name.split(' ').map(n => n[0]).join('')}
-                                    </div>
-                                    <div className="flex flex-col">
-                                      <span>{user.name}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {user.role} • {user.department}
-                                      </span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
+                      {/* Display selected team members */}
+                      {projectData.team.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-sm text-muted-foreground">
+                            Selected Team Members ({projectData.team.length})
+                          </div>
+                          <div className="space-y-2">
+                            {projectData.team.map(member => (
+                              <div
+                                key={member.id}
+                                className="flex items-center justify-between p-2 rounded-lg border border-border/50 bg-background/50"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                    {member.name.split(' ').map(n => n[0]).join('')}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{member.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {member.role} • {member.department}
+                                    </span>
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleTeamMemberRemove(member.id)}
+                                  className="hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Rest of team members display code remains the same */}
@@ -1146,7 +1218,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                         Study Type
                       </Label>
                       <Select
-                        value={projectData.experimentDetails.studyType}
+                        value={projectData.experimentDetails?.studyType}
                         onValueChange={(value) => {
                           setProjectData(prev => ({
                             ...prev,
@@ -1182,7 +1254,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                             id="numberOfExperiments"
                             type="number"
                             min="1"
-                            value={projectData.experimentDetails.numberOfExperiments}
+                            value={projectData.experimentDetails?.numberOfExperiments}
                             onChange={(e) => {
                               const value = parseInt(e.target.value) || 1
                               setProjectData(prev => ({
@@ -1206,7 +1278,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                             id="numberOfGroups"
                             type="number"
                             min="1"
-                            value={projectData.experimentDetails.numberOfGroups}
+                            value={projectData.experimentDetails?.numberOfGroups}
                             onChange={(e) => {
                               const value = parseInt(e.target.value) || 1
                               setProjectData(prev => ({
@@ -1228,7 +1300,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                           Data Collection Frequency
                         </Label>
                         <Select
-                          value={projectData.experimentDetails.dataCollectionFrequency}
+                          value={projectData.experimentDetails?.dataCollectionFrequency}
                           onValueChange={(value) => {
                             setProjectData(prev => ({
                               ...prev,
