@@ -122,15 +122,6 @@ export default function TasksPage() {
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
               <Button
-                variant="default"
-                size="sm"
-                className="gap-1.5 shadow-md hover:shadow-lg transition-shadow"
-                onClick={() => setShowTaskModal(true)}
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New Task</span>
-              </Button>
-              <Button
                 variant="outline"
                 size="icon"
                 className="h-9 w-9 shadow-md hover:shadow-lg transition-shadow bg-background/70 backdrop-blur-sm border-border/50"
