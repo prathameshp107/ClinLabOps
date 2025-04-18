@@ -323,27 +323,24 @@ export function ProjectManagement() {
   }
 
   const handleAddProject = (newProject) => {
-    // In a real application, you would call an API here
-    const projectWithId = {
-      ...newProject,
-      id: `p${projects.length + 1}`,
-      isFavorite: false,
-      activityLog: [
-        {
-          id: `a${Date.now()}`,
-          userId: currentUser.id,
-          action: "created",
-          timestamp: new Date().toISOString(),
-          details: "Project created"
-        }
-      ],
-      team: [
-        { id: currentUser.id, name: currentUser.name, role: "Owner", email: "s.johnson@example.com" }
-      ]
+      // Clean up description if it contains HTML tags
+      const cleanedProject = {
+        ...newProject,
+        description: newProject.description?.replace(/<\/?[^>]+(>|$)/g, "") || ""
+      };
+      
+      // Add the new project to the projects array
+      const updatedProjects = [...projects, cleanedProject];
+      
+      // Update state with the new projects array
+      setProjects(updatedProjects);
+      
+      // Close the dialog
+      setShowAddProjectDialog(false);
+      
+      // Show a success message or notification (you can implement this later)
+      console.log("Project added successfully:", cleanedProject);
     }
-    
-    setProjects(prev => [...prev, projectWithId]);
-  }
 
   const handleEditProject = (editedProject) => {
     const updatedProjects = projects.map(project => 
