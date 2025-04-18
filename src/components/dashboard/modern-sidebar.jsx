@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // Added useRouter
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -55,19 +55,62 @@ import {
     Star,
     ToggleRight,
     ToggleLeft,
-    LayoutDashboard,  // Added this import
-    BarChart3,        // Added this import
-    CheckSquare,      // Added this import
-    FolderKanban,     // Added this import
-    Package          // Added this import
+    LayoutDashboard,
+    BarChart3,
+    CheckSquare,
+    FolderKanban,
+    Package,
+    FileUser
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"; // Add this import
 
 export function ModernSidebar({ className, onToggle }) {
     const pathname = usePathname();
+    const router = useRouter(); // Add router
     const [expandedSections, setExpandedSections] = useState(['main', 'lab', 'team', 'insights', 'system']);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false); // Add state for logout dialog
+    const [userData, setUserData] = useState(null); // Add state for user data
+
+    // Load user data from localStorage on component mount
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const storedUserData = localStorage.getItem('userData');
+            if (storedUserData) {
+                try {
+                    setUserData(JSON.parse(storedUserData));
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+        }
+    }, []);
+
+    // Logout function
+    const handleLogout = () => {
+        setShowLogoutDialog(true);
+    };
+
+    // Confirm logout function
+    const confirmLogout = () => {
+        // Clear localStorage
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+
+        // Redirect to login page
+        router.push('/login');
+    };
 
     // Toggle section expansion
     const toggleSection = (section) => {
@@ -103,7 +146,7 @@ export function ModernSidebar({ className, onToggle }) {
                     name: 'dashboard',
                     label: 'Dashboard',
                     icon: <Home className="h-5 w-5" />,
-                    path: '/',
+                    path: '/admin-dashboard',
                     badge: null
                 },
                 {
@@ -195,6 +238,21 @@ export function ModernSidebar({ className, onToggle }) {
                     path: '/messages',
                     badge: { count: 8, variant: 'default' }
                 },
+                {
+                    name: 'my page',
+                    label: 'My Page',
+                    icon: <FileUser className="h-5 w-5" />,
+                    path: '/my-page',
+                    badge: null
+                },
+                {
+                    name: 'profile',
+                    label: 'Profile',
+                    icon: <User className="h-5 w-5" />,
+                    path: '/profile',
+                    badge: null
+                }
+
             ]
         },
         {
@@ -506,11 +564,11 @@ export function ModernSidebar({ className, onToggle }) {
                     <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-primary/20 ring-2 ring-primary/5 shadow-[0_0_10px_rgba(139,92,246,0.2)]">
                             <AvatarImage src="/avatars/user.jpg" alt="User" />
-                            <AvatarFallback>JD</AvatarFallback>
+                            <AvatarFallback>{userData?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                                <p className="font-medium truncate">Dr. Jane Doe</p>
+                                <p className="font-medium truncate">{userData?.fullName || 'User'}</p>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-primary/10">
@@ -520,11 +578,11 @@ export function ModernSidebar({ className, onToggle }) {
                                     <DropdownMenuContent align="end" className="w-56 shadow-lg border-border/60">
                                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="hover:bg-accent/70 cursor-pointer">
+                                        <DropdownMenuItem className="hover:bg-accent/70 cursor-pointer" onClick={() => router.push('/profile')}>
                                             <User className="mr-2 h-4 w-4" />
                                             <span>Profile</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="hover:bg-accent/70 cursor-pointer">
+                                        <DropdownMenuItem className="hover:bg-accent/70 cursor-pointer" onClick={() => router.push('/settings')}>
                                             <Cog className="mr-2 h-4 w-4" />
                                             <span>Settings</span>
                                         </DropdownMenuItem>
@@ -542,7 +600,7 @@ export function ModernSidebar({ className, onToggle }) {
                                             )}
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="hover:bg-accent/70 cursor-pointer">
+                                        <DropdownMenuItem onClick={handleLogout} className="text-destructive hover:bg-destructive/10 cursor-pointer">
                                             <LogOut className="mr-2 h-4 w-4" />
                                             <span>Log out</span>
                                         </DropdownMenuItem>
@@ -557,7 +615,7 @@ export function ModernSidebar({ className, onToggle }) {
                 <div className="border-t border-border/40 p-4 flex justify-center">
                     <Avatar className="h-10 w-10 border-2 border-primary/20 ring-2 ring-primary/5 shadow-[0_0_10px_rgba(139,92,246,0.2)]">
                         <AvatarImage src="/avatars/user.jpg" alt="User" />
-                        <AvatarFallback>JD</AvatarFallback>
+                        <AvatarFallback>{userData?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
                     </Avatar>
                 </div>
             )}
@@ -577,13 +635,39 @@ export function ModernSidebar({ className, onToggle }) {
                                 <Settings className="h-4 w-4" />
                             </Button>
                         </div>
-                        <Button variant="outline" size="sm" className="h-9 text-xs rounded-lg hover:bg-primary/10 hover:text-primary transition-colors shadow-sm hover:shadow-md">
-                            <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
-                            Help
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 text-xs rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors shadow-sm hover:shadow-md"
+                            onClick={handleLogout}
+                        >
+                            <LogOut className="h-3.5 w-3.5 mr-1.5" />
+                            Logout
                         </Button>
                     </div>
                 </div>
             )}
+
+            {/* Logout Confirmation Dialog */}
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Log out of LabTasker?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You will be logged out of your account. You will need to log in again to access your data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmLogout}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Log out
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 };

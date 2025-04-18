@@ -147,42 +147,58 @@ export default function LandingPage() {
       <BackgroundBeams className="opacity-20" />
 
       {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40 transition-all duration-300 hover:bg-background/90">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="bg-primary/10 p-2.5 rounded-lg group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
               <Microscope className="h-6 w-6 text-primary" />
             </div>
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
+            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/70 group-hover:scale-105 transition-transform duration-300">
               LabTasker
             </h1>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="#features" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Features
-            </Link>
-            <Link href="#benefits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Benefits
-            </Link>
-            <Link href="#testimonials" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Testimonials
-            </Link>
-            <Link href="#pricing" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              Pricing
-            </Link>
+          <nav className="hidden md:flex items-center gap-8">
+            {[
+              { href: "#features", label: "Features", icon: <Layers className="h-4 w-4" /> },
+              { href: "#benefits", label: "Benefits", icon: <Star className="h-4 w-4" /> },
+              { href: "#testimonials", label: "Testimonials", icon: <MessageSquare className="h-4 w-4" /> },
+              { href: "#pricing", label: "Pricing", icon: <Database className="h-4 w-4" /> }
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors flex items-center gap-2 group"
+              >
+                <span className="group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/login">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              EN
+            </Button>
+            
+            <div className="hidden md:block h-6 w-px bg-border/60"></div>
+            
+            <Button variant="outline" size="sm" className="hover:scale-105 transition-transform duration-300" asChild>
+              <Link href="/login" className="flex items-center gap-2">
+                <Lock className="h-4 w-4" />
                 Log In
               </Link>
             </Button>
-            <Button size="sm" className="shadow-md hover:shadow-lg transition-shadow" asChild>
-              <Link href="/admin-dashboard">
+            
+            <Button 
+              size="sm" 
+              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105" 
+              asChild
+            >
+              <Link href="/admin-dashboard" className="flex items-center gap-2">
                 Dashboard
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
           </div>

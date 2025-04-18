@@ -19,7 +19,8 @@ import {
   SlidersHorizontal,
   RefreshCw,
   AlertCircle,
-  Clock
+  Clock,
+  CheckCircle2
 } from "lucide-react"
 
 export default function TasksPage() {
@@ -41,17 +42,62 @@ export default function TasksPage() {
     }, 800)
   }
 
+  // --- Stats mock data (replace with real data logic) ---
+  const stats = [
+    { label: "Total Tasks", value: 42, icon: <BarChart2 className="h-5 w-5 text-primary" /> },
+    { label: "Completed", value: 18, icon: <CheckCircle2 className="h-5 w-5 text-green-500" /> },
+    { label: "In Progress", value: 12, icon: <Clock className="h-5 w-5 text-yellow-500" /> },
+    { label: "Overdue", value: 3, icon: <AlertCircle className="h-5 w-5 text-red-500" /> },
+  ];
+  const [showTaskModal, setShowTaskModal] = useState(false);
+
   return (
     <DashboardLayout>
       <div className="relative min-h-screen w-full overflow-hidden">
         <BackgroundBeams className="opacity-20" />
-        
+        {/* Floating Action Button for quick task creation */}
+        <motion.button
+          onClick={() => setShowTaskModal(true)}
+          className="fixed bottom-7 right-7 z-50 h-14 w-14 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:bg-primary/90 transition-all"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.1 }}
+        >
+          <Plus className="h-7 w-7" />
+          <span className="sr-only">Add Task</span>
+        </motion.button>
+        {/* Modal placeholder for quick add */}
+        <AnimatePresence>
+          {showTaskModal && (
+            <motion.div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowTaskModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                className="bg-background rounded-xl p-8 shadow-2xl min-w-[320px] max-w-[90vw] border border-border/50"
+                onClick={e => e.stopPropagation()}
+              >
+                <h2 className="text-xl font-bold mb-4">Quick Add Task</h2>
+                <p className="text-muted-foreground mb-4">(Coming soon: A full-featured quick add task form!)</p>
+                <Button onClick={() => setShowTaskModal(false)} variant="outline">Close</Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div className="p-6 w-full relative z-10">
-          <motion.div 
+          {/* Sticky header/toolbar */}
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-background/40 backdrop-blur-md rounded-xl p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
+            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-background/40 backdrop-blur-md rounded-xl p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sticky top-0 z-30"
           >
             <div>
               <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 drop-shadow-sm">
@@ -61,27 +107,29 @@ export default function TasksPage() {
                 Create, assign, and track laboratory tasks efficiently
               </p>
             </div>
-            
             <div className="flex items-center gap-3 w-full md:w-auto">
               <div className="relative flex-1 md:w-64">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search tasks..." 
+                <Input
+                  placeholder="Search tasks..."
                   className="pl-9 bg-background/70 border-border/50 shadow-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              
-              <Button 
-                variant="default" 
-                size="sm" 
+              {/* Advanced filters placeholder */}
+              <Button variant="outline" size="icon" className="h-9 w-9 shadow-md bg-background/70 border-border/50 ml-1">
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
                 className="gap-1.5 shadow-md hover:shadow-lg transition-shadow"
+                onClick={() => setShowTaskModal(true)}
               >
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">New Task</span>
               </Button>
-              
               <Button
                 variant="outline"
                 size="icon"
@@ -92,7 +140,22 @@ export default function TasksPage() {
               </Button>
             </div>
           </motion.div>
-          
+          {/* Animated statistics cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            {stats.map((stat, idx) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + idx * 0.07, duration: 0.4 }}
+                className="bg-background/70 border border-border/40 rounded-xl p-4 flex flex-col items-center justify-center shadow-md"
+              >
+                <div className="mb-2">{stat.icon}</div>
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -125,7 +188,7 @@ export default function TasksPage() {
                 </CardContent>
               </Card>
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -186,7 +249,7 @@ export default function TasksPage() {
                   <Button variant="ghost" size="sm" className="w-full mt-2">View all deadlines</Button>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-background/60 backdrop-blur-md border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -241,7 +304,7 @@ export default function TasksPage() {
                   <Button variant="ghost" size="sm" className="w-full mt-2">Manage team</Button>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-background/60 backdrop-blur-md border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
                 <div className="absolute inset-0 z-0">
                   <SparklesCore

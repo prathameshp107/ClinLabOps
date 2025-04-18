@@ -70,6 +70,7 @@ export default function TaskDetailPage() {
   const [showAiInsights, setShowAiInsights] = useState(false);
   const [timeSpent, setTimeSpent] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const timerRef = useRef(null);
 
   // New feature: AI suggestions
@@ -116,39 +117,7 @@ export default function TaskDetailPage() {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Toggle time tracking
-  const toggleTimeTracking = () => {
-    setIsTracking(prev => !prev);
 
-    if (!isTracking) {
-      // Add to activity log when starting tracking
-      const newActivity = {
-        id: `a${task.activityLog.length + 1}`,
-        type: "time_tracking_started",
-        timestamp: new Date().toISOString(),
-        user: task.assignee.name
-      };
-
-      setTask(prev => ({
-        ...prev,
-        activityLog: [newActivity, ...prev.activityLog]
-      }));
-    } else {
-      // Add to activity log when stopping tracking
-      const newActivity = {
-        id: `a${task.activityLog.length + 1}`,
-        type: "time_tracking_stopped",
-        timestamp: new Date().toISOString(),
-        user: task.assignee.name,
-        details: `Time spent: ${formatTimeSpent()}`
-      };
-
-      setTask(prev => ({
-        ...prev,
-        activityLog: [newActivity, ...prev.activityLog]
-      }));
-    }
-  };
 
   // Rest of your existing code for fetching task data
   useEffect(() => {
@@ -403,83 +372,107 @@ export default function TaskDetailPage() {
                 <span>Project: {task.project.name}</span>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            {/* Time tracking feature */}
-            <Card className={`border ${isTracking ? 'border-primary animate-pulse' : ''} p-1 flex items-center gap-2`}>
-              <span className="text-sm font-medium px-2">{formatTimeSpent()}</span>
-              <Button
-                variant={isTracking ? "destructive" : "default"}
-                size="sm"
-                className="gap-1"
-                onClick={toggleTimeTracking}
+            <div className="flex items-center gap-2">
+              
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="focus-mode" className="sr-only">Focus Mode</Label>
+                      <Switch
+                        id="focus-mode"
+                        checked={focusMode}
+                        onCheckedChange={setFocusMode}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Focus Mode</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Floating action buttons for edit, complete, delete */}
+              <motion.div
+                className="flex gap-2"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
               >
-                <Clock className="h-4 w-4" />
-                <span className="hidden sm:inline">{isTracking ? "Stop" : "Track"}</span>
-              </Button>
-            </Card>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="focus-mode" className="sr-only">Focus Mode</Label>
-                    <Switch
-                      id="focus-mode"
-                      checked={focusMode}
-                      onCheckedChange={setFocusMode}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Focus Mode</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <HoverBorderGradient className="rounded-md">
-              <Button variant="outline" size="sm" className="gap-1">
-                <Link2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Copy Link</span>
-              </Button>
-            </HoverBorderGradient>
-
-            <HoverBorderGradient className="rounded-md">
-              <Button variant="outline" size="sm" className="gap-1">
-                <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Share</span>
-              </Button>
-            </HoverBorderGradient>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9">
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="h-9 w-9" title="Edit Task" onClick={() => setShowEditModal(true)}>
+                  <Edit className="h-4 w-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Task
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  Add to Favorites
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Bell className="h-4 w-4 mr-2" />
-                  Set Reminder
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Task
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <Button variant="outline" size="icon" className="h-9 w-9" title="Mark Complete">
+                  <CheckSquare className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9" title="Delete Task">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </motion.div>
+
+              <HoverBorderGradient className="rounded-md">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <Link2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Copy Link</span>
+                </Button>
+              </HoverBorderGradient>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-9 w-9">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Task
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Bookmark className="h-4 w-4 mr-2" />
+                    Add to Favorites
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Bell className="h-4 w-4 mr-2" />
+                    Set Reminder
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Task
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
+        {/* Animated Edit Task Modal */}
+        <AnimatePresence>
+          {showEditModal && (
+            <motion.div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEditModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                className="bg-background rounded-xl p-8 shadow-2xl min-w-[320px] max-w-[90vw] border border-border/50"
+                onClick={e => e.stopPropagation()}
+              >
+                <h2 className="text-xl font-bold mb-4">Edit Task (Coming Soon)</h2>
+                <p className="text-muted-foreground mb-4">A full-featured edit form for all task fields will appear here.</p>
+                <Button onClick={() => setShowEditModal(false)} variant="outline">Close</Button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Main content */}
         <div className="flex-1 overflow-auto p-4 sm:p-6">
@@ -496,7 +489,7 @@ export default function TaskDetailPage() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Card className="border-primary/20 bg-primary/5 overflow-hidden">
+                      <Card className="border-primary/20 bg-primary/5 overflow-hidden glass-card">
                         <CardHeader className="pb-2">
                           <div className="flex justify-between items-center">
                             <CardTitle className="text-md flex items-center gap-2">
@@ -617,10 +610,10 @@ export default function TaskDetailPage() {
                             transition={{ delay: index * 0.1 }}
                           >
                             <div className={`absolute -left-10 top-1 w-4 h-4 rounded-full bg-background border-2 ${subtask.status === 'completed'
-                                ? 'border-green-500'
-                                : subtask.status === 'in_progress'
-                                  ? 'border-amber-500'
-                                  : 'border-muted-foreground'
+                              ? 'border-green-500'
+                              : subtask.status === 'in_progress'
+                                ? 'border-amber-500'
+                                : 'border-muted-foreground'
                               }`}></div>
                             <div className="flex flex-col">
                               <div className="flex items-center gap-2">
