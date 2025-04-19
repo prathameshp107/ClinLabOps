@@ -176,49 +176,6 @@ export default function Home() {
                 <BackgroundBeams className="opacity-20" />
 
                 <div className="p-3 sm:p-4 md:p-6 w-full relative z-10">
-                    {/* Welcome Banner */}
-                    <AnimatePresence>
-                        {showWelcome && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3 }}
-                                className="mb-6 bg-gradient-to-r from-primary/20 to-primary/5 backdrop-blur-md rounded-xl p-4 border border-primary/30 shadow-lg relative overflow-hidden"
-                            >
-                                <div className="absolute inset-0 overflow-hidden">
-                                    <SparklesCore
-                                        id="welcomeSparkles"
-                                        background="transparent"
-                                        minSize={0.4}
-                                        maxSize={1}
-                                        particleDensity={40}
-                                        className="w-full h-full"
-                                        particleColor="#8B5CF6"
-                                    />
-                                </div>
-                                <div className="relative z-10 flex justify-between items-center">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-primary/20 p-2 rounded-full">
-                                            <Sparkles className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-lg">Welcome to LabTasker Dashboard</h3>
-                                            <p className="text-sm text-muted-foreground">Your lab operations at a glance</p>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setShowWelcome(false)}
-                                        className="text-xs"
-                                    >
-                                        Dismiss
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
 
                     {/* Header */}
                     <motion.div
