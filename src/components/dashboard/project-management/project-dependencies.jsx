@@ -146,57 +146,63 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
 
   return (
     <div className="space-y-4">
-      <Card className="border border-gray-200 dark:border-gray-800 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <Link className="h-5 w-5 text-blue-500" />
+      <Card className="border border-border/40 shadow-sm overflow-hidden">
+        <CardHeader className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-gray-900/50 dark:to-gray-800/50 pb-4">
+          <CardTitle className="text-xl flex items-center gap-2 text-foreground">
+            <div className="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-md">
+              <Link className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
             Project Dependencies
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground">
             Define relationships between projects to ensure proper sequencing
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-5">
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {dependencies.length} dependencies defined
+              <div className="text-sm text-muted-foreground flex items-center gap-2">
+                <Badge variant="outline" className="bg-background">
+                  {dependencies.length}
+                </Badge>
+                dependencies defined
               </div>
               <Button 
                 onClick={() => setDialogOpen(true)}
-                className="rounded-lg"
+                className="gap-2"
                 size="sm"
+                variant="outline"
               >
-                <Link className="mr-2 h-4 w-4" />
+                <Link className="h-4 w-4" />
                 Add Dependency
               </Button>
             </div>
             
             {dependencies.length > 0 ? (
-              <ScrollArea className="h-[300px] rounded-md border p-4">
+              <ScrollArea className="h-[300px] rounded-md border border-border/40 bg-background/50">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Source Project</TableHead>
-                      <TableHead>Dependency Type</TableHead>
-                      <TableHead>Target Project</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="w-[30%]">Source Project</TableHead>
+                      <TableHead className="w-[25%]">Dependency Type</TableHead>
+                      <TableHead className="w-[30%]">Target Project</TableHead>
+                      <TableHead className="text-right w-[15%]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {dependencies.map((dep) => (
-                      <TableRow key={dep.id}>
+                      <TableRow key={dep.id} className="hover:bg-muted/30">
                         <TableCell className="font-medium">{dep.sourceName}</TableCell>
                         <TableCell>
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger>
-                                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/20">
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="bg-blue-50/50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
                                   {getDependencyTypeLabel(dep.type)}
                                 </Badge>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">{getDependencyTypeDescription(dep.type)}</p>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <p>{getDependencyTypeDescription(dep.type)}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -207,7 +213,7 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleRemoveDependency(dep.id)}
-                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
                           >
                             <AlertCircle className="h-4 w-4" />
                             <span className="sr-only">Remove dependency</span>
@@ -219,20 +225,28 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
                 </Table>
               </ScrollArea>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[300px] border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
-                <Info className="h-12 w-12 text-gray-300 dark:text-gray-700 mb-2" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No Dependencies</h3>
-                <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mt-1">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center justify-center h-[300px] border border-dashed rounded-lg p-6 bg-muted/30"
+              >
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-full mb-4">
+                  <Info className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                </div>
+                <h3 className="text-lg font-medium text-foreground">No Dependencies</h3>
+                <p className="text-muted-foreground text-center max-w-md mt-2 mb-4">
                   Project dependencies help you define relationships and ensure proper workflow sequencing
                 </p>
                 <Button
                   onClick={() => setDialogOpen(true)}
-                  className="mt-4"
+                  className="gap-2"
                   variant="outline"
                 >
+                  <Link className="h-4 w-4" />
                   Add Your First Dependency
                 </Button>
-              </div>
+              </motion.div>
             )}
           </div>
         </CardContent>
@@ -240,17 +254,22 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
 
       {/* Add Dependency Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Add Project Dependency</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[500px] bg-background/95 backdrop-blur-md border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+          <DialogHeader className="space-y-2 pb-4">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-md">
+                <Link className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              Add Project Dependency
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Define how projects depend on each other to ensure proper sequencing
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-2">
+          <div className="space-y-5 py-2">
             <div className="space-y-2">
-              <Label htmlFor="source-project">Source Project</Label>
+              <Label htmlFor="source-project" className="text-sm font-medium">Source Project</Label>
               <Select
                 value={selectedProject?.id || ""}
                 onValueChange={(value) => {
@@ -258,7 +277,7 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
                   setSelectedProject(project)
                 }}
               >
-                <SelectTrigger id="source-project">
+                <SelectTrigger id="source-project" className="bg-background border-border/60">
                   <SelectValue placeholder="Select source project" />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,12 +291,12 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="dependency-type">Dependency Type</Label>
+              <Label htmlFor="dependency-type" className="text-sm font-medium">Dependency Type</Label>
               <Select
                 value={dependencyType}
                 onValueChange={setDependencyType}
               >
-                <SelectTrigger id="dependency-type">
+                <SelectTrigger id="dependency-type" className="bg-background border-border/60">
                   <SelectValue placeholder="Select dependency type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -287,17 +306,17 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
                   <SelectItem value="start-to-finish">Start to Finish (SF)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1.5 pl-1">
                 {getDependencyTypeDescription(dependencyType)}
               </p>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="target-project">Target Project</Label>
+              <Label htmlFor="target-project" className="text-sm font-medium">Target Project</Label>
               <Select
                 disabled={!selectedProject}
               >
-                <SelectTrigger id="target-project">
+                <SelectTrigger id="target-project" className={`bg-background border-border/60 ${!selectedProject ? 'opacity-50' : ''}`}>
                   <SelectValue placeholder={selectedProject ? "Select target project" : "Select source project first"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -312,19 +331,27 @@ export function ProjectDependencies({ projects, onUpdateProjectDependencies }) {
                   ))}
                 </SelectContent>
               </Select>
+              {selectedProject && getAvailableProjects().length === 0 && (
+                <p className="text-sm text-amber-600 dark:text-amber-400 mt-1.5 pl-1 flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  No available projects to create dependency
+                </p>
+              )}
             </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+          <DialogFooter className="flex justify-between items-center gap-3 pt-4 border-t">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="font-normal">
               Cancel
             </Button>
             <Button 
               onClick={() => {
                 // This is handled in the target project selection
               }}
-              disabled={!selectedProject}
+              disabled={!selectedProject || getAvailableProjects().length === 0}
+              className="gap-2"
             >
+              <ArrowRight className="h-4 w-4" />
               Add Dependency
             </Button>
           </DialogFooter>

@@ -200,7 +200,7 @@ const EditorMenuBar = ({ editor }) => {
   )
 }
 
-export function AddProjectDialog({ open, onOpenChange }) {
+export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [activeTab, setActiveTab] = useState("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [projectData, setProjectData] = useState({
@@ -496,8 +496,35 @@ export function AddProjectDialog({ open, onOpenChange }) {
     setIsSubmitting(true)
 
     try {
-      // In a real application, you would send the data to your API here
-      console.log("Creating new project:", projectData)
+      // Create a new project object with all the form data
+      const newProject = {
+        id: `p${Date.now()}`, // Generate a unique ID
+        name: projectData.name,
+        description: projectData.description,
+        startDate: format(projectData.startDate, 'yyyy-MM-dd'),
+        endDate: format(projectData.endDate, 'yyyy-MM-dd'),
+        status: projectData.status || "Pending",
+        priority: projectData.priority || "Medium",
+        progress: 0,
+        isFavorite: false,
+        team: [],
+        tags: projectData.tags || [],
+        dependencies: [],
+        activityLog: [
+          {
+            id: `a${Date.now()}`,
+            userId: "u1", // Assuming current user
+            action: "created",
+            timestamp: new Date().toISOString(),
+            details: "Project created"
+          }
+        ]
+      }
+
+      console.log("Creating new project:", newProject)
+
+      // Pass the new project to the parent component
+      onSubmit(newProject)
 
       // Simulate successful API call
       setTimeout(() => {
@@ -543,23 +570,22 @@ export function AddProjectDialog({ open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] max-h-[95vh] overflow-hidden flex flex-col border border-border/40 shadow-lg p-6"
-        overlayClassName="fixed inset-0 z-50 bg-black/50 dark:bg-black/60 backdrop-blur-md"
+        className="w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] max-h-[95vh] flex flex-col border border-border/40 shadow-2xl rounded-2xl p-0 bg-background/95"
+        overlayClassName="fixed inset-0 z-50 bg-black/50 dark:bg-black/60 backdrop-blur-md flex items-center justify-center"
+        style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
       >
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <DialogHeader className="px-1">
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <div className="bg-primary/10 p-2 rounded-md">
-                <FolderPlus className="h-5 w-5 text-primary" />
-              </div>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">Create New Project</span>
+          <DialogHeader className="px-8 pt-6 w-full flex flex-col items-center">
+            <DialogTitle className="flex items-center gap-3 text-primary text-2xl font-bold justify-center">
+              <FolderPlus className="h-7 w-7 text-primary" />
+              <span>Add New Project</span>
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground/80">
-              Add a new research project to the system with all necessary details
+            <DialogDescription className="text-muted-foreground text-center">
+              Fill in the details below to create a new project.
             </DialogDescription>
           </DialogHeader>
         </motion.div>
@@ -570,108 +596,31 @@ export function AddProjectDialog({ open, onOpenChange }) {
           value={activeTab}
           onValueChange={setActiveTab}
         >
-          <TabsList className="grid grid-cols-5 mb-6 p-2 bg-muted/50 backdrop-blur-sm shadow-inner rounded-xl gap-2">
-            <TabsTrigger
-              value="details"
-              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
-            >
-              <motion.div
-                animate={{ scale: activeTab === "details" ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                className="relative flex items-center justify-center"
-              >
-                <Info className={`h-5 w-5 ${activeTab === "details" ? "text-primary" : "text-muted-foreground"}`} />
-              </motion.div>
-              <span className="text-xs font-medium">Basic Details</span>
+          <TabsList className="w-full flex gap-1 mb-4 px-4 py-1 bg-muted/40 rounded-lg">
+            <TabsTrigger value="details" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
+              <Info className="h-3 w-3" />
+              Details
             </TabsTrigger>
-
-            <TabsTrigger
-              value="team"
-              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
-            >
-              <motion.div
-                animate={{ scale: activeTab === "team" ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                className="relative flex items-center justify-center"
-              >
-                <Users className={`h-5 w-5 ${activeTab === "team" ? "text-primary" : "text-muted-foreground"}`} />
-              </motion.div>
-              <span className="text-xs font-medium">Team</span>
+            <TabsTrigger value="team" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
+              <Users className="h-3 w-3" />
+              Team
             </TabsTrigger>
-
-            <TabsTrigger
-              value="research"
-              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
-            >
-              <motion.div
-                animate={{ scale: activeTab === "research" ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                className="relative flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={`${activeTab === "research" ? "text-primary" : "text-muted-foreground"}`}
-                >
-                  <path d="M10 2v8a2 2 0 0 1-2 2H2" />
-                  <path d="M4.271 10.271A10 10 0 1 0 12 4" />
-                </svg>
-              </motion.div>
-              <span className="text-xs font-medium">Research</span>
+            <TabsTrigger value="research" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
+              <Beaker className="h-3 w-3" />
+              Research
             </TabsTrigger>
-
-            <TabsTrigger
-              value="documents"
-              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
-            >
-              <motion.div
-                animate={{ scale: activeTab === "documents" ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                className="relative flex items-center justify-center"
-              >
-                <FileText className={`h-5 w-5 ${activeTab === "documents" ? "text-primary" : "text-muted-foreground"}`} />
-              </motion.div>
-              <span className="text-xs font-medium">Documents</span>
+            <TabsTrigger value="documents" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
+              <FileText className="h-3 w-3" />
+              Documents
             </TabsTrigger>
-
-            <TabsTrigger
-              value="additional"
-              className="flex flex-col items-center justify-center gap-2 px-3 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-md transition-all duration-200 rounded-lg text-center min-h-[80px]"
-            >
-              <motion.div
-                animate={{ scale: activeTab === "additional" ? 1.1 : 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                className="relative flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={`${activeTab === "additional" ? "text-primary" : "text-muted-foreground"}`}
-                >
-                  <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
-                  <path d="M7 7h.01" />
-                </svg>
-              </motion.div>
-              <span className="text-xs font-medium">Additional</span>
+            <TabsTrigger value="additional" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
+              <FolderPlus className="h-3 w-3" />
+              Additional
             </TabsTrigger>
           </TabsList>
 
-          <form onSubmit={handleSubmit}>
-            <ScrollArea className="pr-4" style={{ height: 'calc(75vh - 180px)' }}>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <ScrollArea className="flex-1 min-h-0 max-h-[calc(95vh-220px)] pr-2 px-8" style={{ overflowY: 'auto' }}>
               <TabsContent value="details" className="mt-0 space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -680,7 +629,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                 >
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm font-medium flex items-center gap-1">
+                      <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1">
                         Project Name <span className="text-destructive">*</span>
                       </Label>
                       <div className="relative">
@@ -711,7 +660,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="description" className="text-sm font-medium flex items-center gap-1">
+                      <Label htmlFor="description" className="text-sm font-semibold flex items-center gap-1">
                         Description <span className="text-destructive">*</span>
                       </Label>
                       <div className={cn(
@@ -885,7 +834,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                   <div className="space-y-4">
                     {/* Principal Investigator Selection */}
                     <div className="space-y-2">
-                      <Label htmlFor="pi" className="text-sm font-medium flex items-center gap-1">
+                      <Label htmlFor="pi" className="text-sm font-semibold flex items-center gap-1">
                         Principal Investigator (PI) <span className="text-destructive">*</span>
                       </Label>
                       <Select
@@ -1160,8 +1109,8 @@ export function AddProjectDialog({ open, onOpenChange }) {
                         <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-xl text-muted-foreground/70 bg-muted/20">
                           <div className="bg-primary/5 rounded-full p-3 mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/80">
-                              <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
-                              <path d="M7 7h.01" />
+                              <path d="M12 2H2v8a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V4h2" />
+                              <path d="M12 2H2v8a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V4h2" />
                             </svg>
                           </div>
                           <p className="text-base font-medium mb-1">No tags added yet</p>
@@ -1194,7 +1143,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                   <div className="space-y-4">
                     {/* Research Area */}
                     <div className="space-y-2">
-                      <Label htmlFor="researchArea" className="text-sm font-medium">
+                      <Label htmlFor="researchArea" className="text-sm font-semibold">
                         Research Area
                       </Label>
                       <Select
@@ -1214,7 +1163,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                     {/* Study Type */}
                     <div className="space-y-2">
-                      <Label htmlFor="studyType" className="text-sm font-medium">
+                      <Label htmlFor="studyType" className="text-sm font-semibold">
                         Study Type
                       </Label>
                       <Select
@@ -1242,12 +1191,12 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                     {/* Experiment Details */}
                     <div className="pt-4 border-t">
-                      <h3 className="text-sm font-medium mb-4">Experiment Details</h3>
+                      <h3 className="text-sm font-semibold mb-4">Experiment Details</h3>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Number of Experiments */}
                         <div className="space-y-2">
-                          <Label htmlFor="numberOfExperiments" className="text-sm font-medium">
+                          <Label htmlFor="numberOfExperiments" className="text-sm font-semibold">
                             Number of Experiments
                           </Label>
                           <Input
@@ -1271,7 +1220,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                         {/* Number of Test Groups */}
                         <div className="space-y-2">
-                          <Label htmlFor="numberOfGroups" className="text-sm font-medium">
+                          <Label htmlFor="numberOfGroups" className="text-sm font-semibold">
                             Number of Test Groups / Arms
                           </Label>
                           <Input
@@ -1296,7 +1245,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                       {/* Data Collection Frequency */}
                       <div className="space-y-2 mt-4">
-                        <Label htmlFor="dataCollectionFrequency" className="text-sm font-medium">
+                        <Label htmlFor="dataCollectionFrequency" className="text-sm font-semibold">
                           Data Collection Frequency
                         </Label>
                         <Select
@@ -1335,7 +1284,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                   <div className="space-y-4">
                     {/* Research Area / Study Type */}
                     <div className="space-y-2">
-                      <Label htmlFor="researchArea" className="text-sm font-medium">
+                      <Label htmlFor="researchArea" className="text-sm font-semibold">
                         Research Area / Study Type
                       </Label>
                       <Select
@@ -1362,12 +1311,12 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                     {/* Experiment Details */}
                     <div className="pt-4 border-t">
-                      <h3 className="text-sm font-medium mb-4">Experiment Details</h3>
+                      <h3 className="text-sm font-semibold mb-4">Experiment Details</h3>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Number of Experiments */}
                         <div className="space-y-2">
-                          <Label htmlFor="numberOfExperiments" className="text-sm font-medium">
+                          <Label htmlFor="numberOfExperiments" className="text-sm font-semibold">
                             Number of Experiments
                           </Label>
                           <Input
@@ -1388,7 +1337,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                         {/* Number of Test Groups */}
                         <div className="space-y-2">
-                          <Label htmlFor="numberOfGroups" className="text-sm font-medium">
+                          <Label htmlFor="numberOfGroups" className="text-sm font-semibold">
                             Number of Test Groups / Arms
                           </Label>
                           <Input
@@ -1410,7 +1359,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                       {/* Data Collection Frequency */}
                       <div className="space-y-2 mt-4">
-                        <Label htmlFor="dataCollectionFrequency" className="text-sm font-medium">
+                        <Label htmlFor="dataCollectionFrequency" className="text-sm font-semibold">
                           Data Collection Frequency
                         </Label>
                         <Select
@@ -1433,7 +1382,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
 
                       {/* Study Type */}
                       <div className="space-y-2 mt-4">
-                        <Label htmlFor="studyType" className="text-sm font-medium">
+                        <Label htmlFor="studyType" className="text-sm font-semibold">
                           Study Type
                         </Label>
                         <Select
@@ -1514,129 +1463,11 @@ export function AddProjectDialog({ open, onOpenChange }) {
                   transition={{ duration: 0.5 }}
                 >
                   <div className="space-y-4">
-                    {/* Protocol Document */}
-                    <div className="space-y-2">
-                      <Label htmlFor="protocolDoc" className="text-sm font-medium">
-                        Protocol Document
-                      </Label>
-                      <div className="border-2 border-dashed rounded-md p-6 bg-background/50 border-border/50 hover:border-primary/50 transition-colors">
-                        <div className="flex flex-col items-center justify-center text-center">
-                          <FileText className="h-10 w-10 text-muted-foreground mb-2" />
-                          <h3 className="text-sm font-medium">Upload Protocol Document</h3>
-                          <p className="text-xs text-muted-foreground mt-1 mb-3">
-                            PDF, Word, or other document formats
-                          </p>
-                          <Input
-                            id="protocolDoc"
-                            type="file"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                setProjectData(prev => ({
-                                  ...prev,
-                                  protocolDocument: e.target.files[0]
-                                }));
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => document.getElementById('protocolDoc').click()}
-                            className="bg-primary/5 hover:bg-primary/10"
-                          >
-                            Select File
-                          </Button>
-                        </div>
-                        {projectData.protocolDocument && (
-                          <div className="mt-4 p-2 bg-primary/5 rounded-md flex items-center justify-between">
-                            <div className="flex items-center">
-                              <FileText className="h-4 w-4 mr-2 text-primary" />
-                              <span className="text-sm truncate max-w-[200px]">
-                                {projectData.protocolDocument.name}
-                              </span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setProjectData(prev => ({
-                                  ...prev,
-                                  protocolDocument: null
-                                }));
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Ethics Approval Document */}
-                    <div className="space-y-2">
-                      <Label htmlFor="ethicsDoc" className="text-sm font-medium">
-                        Ethics Approval Document
-                      </Label>
-                      <div className="border-2 border-dashed rounded-md p-6 bg-background/50 border-border/50 hover:border-primary/50 transition-colors">
-                        <div className="flex flex-col items-center justify-center text-center">
-                          <FileText className="h-10 w-10 text-muted-foreground mb-2" />
-                          <h3 className="text-sm font-medium">Upload Ethics Approval</h3>
-                          <p className="text-xs text-muted-foreground mt-1 mb-3">
-                            PDF, Word, or other document formats
-                          </p>
-                          <Input
-                            id="ethicsDoc"
-                            type="file"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files && e.target.files[0]) {
-                                setProjectData(prev => ({
-                                  ...prev,
-                                  ethicsDocument: e.target.files[0]
-                                }));
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => document.getElementById('ethicsDoc').click()}
-                            className="bg-primary/5 hover:bg-primary/10"
-                          >
-                            Select File
-                          </Button>
-                        </div>
-                        {projectData.ethicsDocument && (
-                          <div className="mt-4 p-2 bg-primary/5 rounded-md flex items-center justify-between">
-                            <div className="flex items-center">
-                              <FileText className="h-4 w-4 mr-2 text-primary" />
-                              <span className="text-sm truncate max-w-[200px]">
-                                {projectData.ethicsDocument.name}
-                              </span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setProjectData(prev => ({
-                                  ...prev,
-                                  ethicsDocument: null
-                                }));
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
 
                     {/* Related Files */}
                     <div className="space-y-2">
-                      <Label htmlFor="relatedFiles" className="text-sm font-medium">
+                      <Label htmlFor="relatedFiles" className="text-sm font-semibold">
                         Related Files (PDFs, Excel, etc.)
                       </Label>
                       <div className="border-2 border-dashed rounded-md p-6 bg-background/50 border-border/50 hover:border-primary/50 transition-colors">
@@ -1649,7 +1480,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                             <path d="M14 13h2" />
                             <path d="M14 17h2" />
                           </svg>
-                          <h3 className="text-sm font-medium">Upload Related Files</h3>
+                          <h3 className="text-sm font-semibold">Upload Related Files</h3>
                           <p className="text-xs text-muted-foreground mt-1 mb-3">
                             PDF, Excel, Word, or other document formats
                           </p>
@@ -1768,7 +1599,8 @@ export function AddProjectDialog({ open, onOpenChange }) {
               </TabsContent>
             </ScrollArea>
 
-            <DialogFooter className="mt-6 gap-2 pb-2">
+            <DialogFooter className="flex flex-col sm:flex-row justify-end items-center gap-3 pt-6 border-t border-border/20 px-8 pb-6 mt-6 w-full">
+
               <div className="flex items-center mr-auto">
                 {activeTab !== "details" && (
                   <Button
@@ -1778,7 +1610,7 @@ export function AddProjectDialog({ open, onOpenChange }) {
                     className="gap-2 bg-background/70 border-border/50 shadow-sm hover:shadow transition-all"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m15 18-6-6 6-6" />
+                      <path d="M15 18-6-6 6-6" />
                     </svg>
                     Back
                   </Button>
@@ -1786,51 +1618,41 @@ export function AddProjectDialog({ open, onOpenChange }) {
               </div>
 
               {activeTab !== "additional" ? (
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button
-                    type="button"
-                    onClick={() => setActiveTab(activeTab === "details" ? "team" : "additional")}
-                    className="gap-2 shadow-md hover:shadow-lg transition-all"
-                  >
-                    Continue
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m9 18 6-6-6-6" />
-                    </svg>
-                  </Button>
-                </motion.div>
-              ) : (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                        <Button
-                          type="submit"
-                          className="gap-2 shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-primary to-primary/80"
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              Creating Project...
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle2 className="h-4 w-4" />
-                              Create Project
-                            </>
-                          )}
-                        </Button>
-                      </motion.div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Create new project with the specified details</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
+  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+    <Button
+      type="button"
+      onClick={() => setActiveTab(activeTab === "details" ? "team" : "additional")}
+      className="gap-2 shadow-md hover:shadow-lg transition-all"
+    >
+      Continue
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 18 15 12 9 6" />
+      </svg>
+    </Button>
+  </motion.div>
+) : (
+  <Button
+    type="submit"
+    variant="primary"
+    disabled={isSubmitting}
+    className="gap-2 w-full sm:w-auto py-3 px-8 rounded-lg bg-primary text-white font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-base flex items-center justify-center"
+  >
+    {isSubmitting ? (
+      <>
+        <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Creating...
+      </>
+    ) : (
+      <>
+        <CheckCircle2 className="h-5 w-5 mr-2" />
+        Create Project
+      </>
+    )}
+  </Button>
+)}
             </DialogFooter>
           </form>
         </Tabs>

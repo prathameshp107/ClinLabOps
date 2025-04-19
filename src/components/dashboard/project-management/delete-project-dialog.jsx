@@ -66,79 +66,98 @@ export function DeleteProjectDialog({ project, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-destructive">
-            <Trash2 className="h-5 w-5" />
-            Delete Project
+      <DialogContent className="max-w-md w-full bg-background/95 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl flex flex-col items-center justify-center p-0 overflow-hidden">
+        <DialogHeader className="space-y-2 pb-4 pt-6 px-6 w-full flex flex-col items-center">
+          <DialogTitle className="flex items-center gap-3 text-destructive text-2xl font-bold justify-center">
+            <div className="bg-destructive/10 p-2 rounded-full">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <span>Delete Project</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground text-center">
             This action is irreversible. All project data will be permanently deleted.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2.5 border rounded-md p-4 bg-muted/50">
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Project Information</p>
-              <p className="text-base font-semibold">{project.name}</p>
+        <div className="space-y-6 px-6 pb-2">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col gap-4 border rounded-xl p-5 bg-muted/40 shadow-inner"
+          >
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Project Information</p>
+              <h3 className="text-base font-semibold">{project.name}</h3>
               <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 text-sm mt-2">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm mt-1">
               <div>
-                <p className="text-muted-foreground">Start Date:</p>
-                <p>{formatDate(project.startDate)}</p>
+                <p className="text-xs text-muted-foreground font-medium">Start Date</p>
+                <p className="font-medium">{formatDate(project.startDate)}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">End Date:</p>
-                <p>{formatDate(project.endDate)}</p>
+                <p className="text-xs text-muted-foreground font-medium">End Date</p>
+                <p className="font-medium">{formatDate(project.endDate)}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Status:</p>
-                <Badge variant="outline">{project.status}</Badge>
+                <p className="text-xs text-muted-foreground font-medium">Status</p>
+                <Badge variant={project.status === "Completed" ? "success" : 
+                       project.status === "In Progress" ? "default" : 
+                       project.status === "On Hold" ? "warning" : "outline"} 
+                       className="mt-1">
+                  {project.status}
+                </Badge>
               </div>
               <div>
-                <p className="text-muted-foreground">Priority:</p>
-                <Badge variant="outline">{project.priority}</Badge>
+                <p className="text-xs text-muted-foreground font-medium">Priority</p>
+                <Badge variant={project.priority === "High" ? "destructive" : 
+                       project.priority === "Medium" ? "warning" : "outline"} 
+                       className="mt-1">
+                  {project.priority}
+                </Badge>
               </div>
             </div>
             
-            <div className="mt-2">
-              <p className="text-sm text-muted-foreground">Team Members:</p>
-              <p>{project.team.length} members</p>
+            <div className="mt-1 border-t border-border/40 pt-3">
+              <p className="text-xs text-muted-foreground font-medium">Team Members</p>
+              <p className="text-sm font-medium">{project.team.length} members</p>
             </div>
-          </div>
+          </motion.div>
           
-          <div className="space-y-2 border-t pt-4">
-            <div className="flex items-center gap-2 text-amber-500 mb-4">
+          <div className="space-y-4 border-t border-border/30 pt-4">
+            <div className="flex items-center gap-2.5 p-3 bg-amber-500/20 rounded-xl text-amber-700 border border-amber-300/40">
               <AlertTriangle className="h-5 w-5" />
-              <p className="font-medium">Warning</p>
+              <p className="font-medium text-sm">This action cannot be undone</p>
             </div>
             
-            <p className="text-sm">
-              This will delete the project and all associated data. This action cannot be undone.
+            <p className="text-sm text-muted-foreground text-center">
+              This will permanently delete the project and all associated data including tasks, files, and team assignments.
             </p>
             
             <div className="space-y-2 mt-4">
-              <Label htmlFor="confirm">
-                Type <span className="font-medium">"{project.name}"</span> to confirm deletion
+              <Label htmlFor="confirm" className="text-sm font-semibold">
+                Type <span className="font-semibold text-foreground">"{project.name}"</span> to confirm deletion
               </Label>
               <Input
                 id="confirm"
                 value={confirmText}
                 onChange={(e) => setConfirmText(e.target.value)}
-                className={!isConfirmValid && confirmText ? "border-destructive" : ""}
+                className={`mt-1 w-full px-3 py-2 rounded-lg border ${!isConfirmValid && confirmText ? "border-destructive focus-visible:ring-destructive/20" : "border-border/40"} focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all`}
                 placeholder={project.name}
+                autoComplete="off"
+                autoFocus
               />
             </div>
           </div>
         </div>
         
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-border/20 px-0">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => handleOpenChange(false)}
+            className="font-normal w-full sm:w-auto py-2 px-6"
           >
             Cancel
           </Button>
@@ -146,11 +165,11 @@ export function DeleteProjectDialog({ project, open, onOpenChange }) {
             variant="destructive"
             onClick={handleDelete}
             disabled={!isConfirmValid || isDeleting}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto py-2 px-6 shadow-sm hover:shadow-md focus:shadow-md transition-all"
           >
             {isDeleting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>

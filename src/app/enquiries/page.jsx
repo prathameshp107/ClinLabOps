@@ -499,861 +499,864 @@ function EnquiriesPage() {
   };
 
   return (
-    <TooltipProvider>
-      <div className="w-full max-w-[1800px] mx-auto px-4 py-6 space-y-6">
-        {/* Page Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Customer Enquiries</h1>
-            <p className="text-muted-foreground mt-1">Manage and respond to customer lab enquiries</p>
+    <DashboardLayout>
+
+      <TooltipProvider>
+        <div className="w-full max-w-[1800px] mx-auto px-4 py-6 space-y-6">
+          {/* Page Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Customer Enquiries</h1>
+              <p className="text-muted-foreground mt-1">Manage and respond to customer lab enquiries</p>
+            </div>
+            <Button onClick={() => router.push("/enquiries/new")} size="sm">
+              <Plus className="mr-2 h-4 w-4" /> New Enquiry
+            </Button>
           </div>
-          <Button onClick={() => router.push("/enquiries/new")} size="sm">
-            <Plus className="mr-2 h-4 w-4" /> New Enquiry
-          </Button>
-        </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-12 gap-6">
-          {/* Filters Panel - 2 columns on larger screens, full width on mobile */}
-          <div className="col-span-12 lg:col-span-2 space-y-4">
-            <Card className="border border-muted/40 bg-background/60 backdrop-blur-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Filters</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Status Filter */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Status</h3>
-                  <div className="space-y-1.5">
-                    <Button
-                      variant={statusFilter === "all" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handleStatusFilter("all")}
-                    >
-                      <Inbox className="h-4 w-4" />
-                      All Enquiries
-                      <Badge className="ml-auto">{enquiries.length}</Badge>
-                    </Button>
-                    <Button
-                      variant={statusFilter === "Pending" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handleStatusFilter("Pending")}
-                    >
-                      <Clock className="h-4 w-4 text-yellow-500" />
-                      Pending
-                      <Badge variant="outline" className="ml-auto bg-yellow-50 text-yellow-700 border-yellow-200">{pendingCount}</Badge>
-                    </Button>
-                    <Button
-                      variant={statusFilter === "In Progress" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handleStatusFilter("In Progress")}
-                    >
-                      <AlertCircle className="h-4 w-4 text-blue-500" />
-                      In Progress
-                      <Badge variant="outline" className="ml-auto bg-blue-50 text-blue-700 border-blue-200">{inProgressCount}</Badge>
-                    </Button>
-                    <Button
-                      variant={statusFilter === "Completed" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handleStatusFilter("Completed")}
-                    >
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      Completed
-                      <Badge variant="outline" className="ml-auto bg-green-50 text-green-700 border-green-200">{completedCount}</Badge>
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Priority Filter */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Priority</h3>
-                  <div className="space-y-1.5">
-                    <Button
-                      variant={priorityFilter === "all" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handlePriorityFilter("all")}
-                    >
-                      <Hash className="h-4 w-4" />
-                      All Priorities
-                    </Button>
-                    <Button
-                      variant={priorityFilter === "High" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handlePriorityFilter("High")}
-                    >
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                      High
-                    </Button>
-                    <Button
-                      variant={priorityFilter === "Medium" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handlePriorityFilter("Medium")}
-                    >
-                      <AlertCircle className="h-4 w-4 text-amber-500" />
-                      Medium
-                    </Button>
-                    <Button
-                      variant={priorityFilter === "Low" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handlePriorityFilter("Low")}
-                    >
-                      <CircleCheck className="h-4 w-4 text-green-500" />
-                      Low
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Team Members Filter */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Assignee</h3>
-                  <div className="space-y-1.5">
-                    <Button
-                      variant={assigneeFilter === "all" ? "default" : "ghost"}
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => handleAssigneeFilter("all")}
-                    >
-                      <Users className="h-4 w-4" />
-                      All Team Members
-                    </Button>
-                    {teamMembers.map(member => (
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-12 gap-6">
+            {/* Filters Panel - 2 columns on larger screens, full width on mobile */}
+            <div className="col-span-12 lg:col-span-2 space-y-4">
+              <Card className="border border-muted/40 bg-background/60 backdrop-blur-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Filters</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Status Filter */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Status</h3>
+                    <div className="space-y-1.5">
                       <Button
-                        key={member.id}
-                        variant={assigneeFilter === member.name ? "default" : "ghost"}
+                        variant={statusFilter === "all" ? "default" : "ghost"}
                         className="w-full justify-start gap-2 font-normal"
                         size="sm"
-                        onClick={() => handleAssigneeFilter(member.name)}
+                        onClick={() => handleStatusFilter("all")}
                       >
-                        <Avatar className="h-5 w-5">
-                          <AvatarFallback className="text-[10px]">
-                            {member.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        {member.name}
+                        <Inbox className="h-4 w-4" />
+                        All Enquiries
+                        <Badge className="ml-auto">{enquiries.length}</Badge>
                       </Button>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Quick Actions */}
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Quick Actions</h3>
-                  <div className="space-y-1.5">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                      onClick={() => router.push("/enquiries/new")}
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                      New Enquiry
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start gap-2 font-normal"
-                      size="sm"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Export Data
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Content */}
-          <div className="col-span-12 lg:col-span-10 space-y-6">
-            {/* Stats Overview */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-              <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Enquiries</p>
-                      <h3 className="text-3xl font-bold mt-1">{enquiries.length}</h3>
-                    </div>
-                    <div className="p-3 rounded-full bg-primary/10">
-                      <Inbox className="h-5 w-5 text-primary" />
+                      <Button
+                        variant={statusFilter === "Pending" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handleStatusFilter("Pending")}
+                      >
+                        <Clock className="h-4 w-4 text-yellow-500" />
+                        Pending
+                        <Badge variant="outline" className="ml-auto bg-yellow-50 text-yellow-700 border-yellow-200">{pendingCount}</Badge>
+                      </Button>
+                      <Button
+                        variant={statusFilter === "In Progress" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handleStatusFilter("In Progress")}
+                      >
+                        <AlertCircle className="h-4 w-4 text-blue-500" />
+                        In Progress
+                        <Badge variant="outline" className="ml-auto bg-blue-50 text-blue-700 border-blue-200">{inProgressCount}</Badge>
+                      </Button>
+                      <Button
+                        variant={statusFilter === "Completed" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handleStatusFilter("Completed")}
+                      >
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        Completed
+                        <Badge variant="outline" className="ml-auto bg-green-50 text-green-700 border-green-200">{completedCount}</Badge>
+                      </Button>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <Progress value={100} className="h-1.5" />
+
+                  <Separator />
+
+                  {/* Priority Filter */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Priority</h3>
+                    <div className="space-y-1.5">
+                      <Button
+                        variant={priorityFilter === "all" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handlePriorityFilter("all")}
+                      >
+                        <Hash className="h-4 w-4" />
+                        All Priorities
+                      </Button>
+                      <Button
+                        variant={priorityFilter === "High" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handlePriorityFilter("High")}
+                      >
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                        High
+                      </Button>
+                      <Button
+                        variant={priorityFilter === "Medium" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handlePriorityFilter("Medium")}
+                      >
+                        <AlertCircle className="h-4 w-4 text-amber-500" />
+                        Medium
+                      </Button>
+                      <Button
+                        variant={priorityFilter === "Low" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handlePriorityFilter("Low")}
+                      >
+                        <CircleCheck className="h-4 w-4 text-green-500" />
+                        Low
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Team Members Filter */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Assignee</h3>
+                    <div className="space-y-1.5">
+                      <Button
+                        variant={assigneeFilter === "all" ? "default" : "ghost"}
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => handleAssigneeFilter("all")}
+                      >
+                        <Users className="h-4 w-4" />
+                        All Team Members
+                      </Button>
+                      {teamMembers.map(member => (
+                        <Button
+                          key={member.id}
+                          variant={assigneeFilter === member.name ? "default" : "ghost"}
+                          className="w-full justify-start gap-2 font-normal"
+                          size="sm"
+                          onClick={() => handleAssigneeFilter(member.name)}
+                        >
+                          <Avatar className="h-5 w-5">
+                            <AvatarFallback className="text-[10px]">
+                              {member.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          {member.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Quick Actions */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">Quick Actions</h3>
+                    <div className="space-y-1.5">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                        onClick={() => router.push("/enquiries/new")}
+                      >
+                        <PlusCircle className="h-4 w-4" />
+                        New Enquiry
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start gap-2 font-normal"
+                        size="sm"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Export Data
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+            </div>
 
-              <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                      <h3 className="text-3xl font-bold mt-1">{pendingCount}</h3>
-                    </div>
-                    <div className="p-3 rounded-full bg-yellow-100">
-                      <Clock className="h-5 w-5 text-yellow-600" />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <Progress value={(pendingCount / enquiries.length) * 100} className="h-1.5 bg-yellow-100" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                      <h3 className="text-3xl font-bold mt-1">{inProgressCount}</h3>
-                    </div>
-                    <div className="p-3 rounded-full bg-blue-100">
-                      <AlertCircle className="h-5 w-5 text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <Progress value={(inProgressCount / enquiries.length) * 100} className="h-1.5 bg-blue-100" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                      <h3 className="text-3xl font-bold mt-1">{completedCount}</h3>
-                    </div>
-                    <div className="p-3 rounded-full bg-green-100">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <Progress value={(completedCount / enquiries.length) * 100} className="h-1.5 bg-green-100" />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Enquiries Table */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-              className="flex-1"
-            >
-              <Card className="border border-muted/40 bg-background/60 backdrop-blur-lg overflow-hidden shadow-sm">
-                <CardHeader className="pb-0">
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex justify-between items-center">
+            {/* Main Content */}
+            <div className="col-span-12 lg:col-span-10 space-y-6">
+              {/* Stats Overview */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+              >
+                <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-2xl">Enquiries</CardTitle>
-                        <CardDescription className="text-base">
-                          {filteredEnquiries.length} enquiries found
-                        </CardDescription>
+                        <p className="text-sm font-medium text-muted-foreground">Total Enquiries</p>
+                        <h3 className="text-3xl font-bold mt-1">{enquiries.length}</h3>
                       </div>
-
-                      {/* View Options */}
-                      <div className="flex items-center gap-2">
-                        {selectedEnquiries.length > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                              {selectedEnquiries.length} selected
-                            </span>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  Bulk Actions
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem>
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Mark as Completed
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <AlertCircle className="mr-2 h-4 w-4" />
-                                  Mark as In Progress
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Upload className="mr-2 h-4 w-4" />
-                                  Export Selected
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete Selected
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        ) : (
-                          <>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-1">
-                                  <LayoutGrid className="h-4 w-4" />
-                                  <span className="sr-only md:not-sr-only md:inline-flex">Grid View</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Switch to Grid View</TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-1">
-                                  <CalendarDays className="h-4 w-4" />
-                                  <span className="sr-only md:not-sr-only md:inline-flex">Calendar</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Calendar</TooltipContent>
-                            </Tooltip>
-
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-1">
-                                  <SlidersHorizontal className="h-4 w-4" />
-                                  <span className="sr-only md:not-sr-only md:inline-flex">Customize</span>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Customize View</TooltipContent>
-                            </Tooltip>
-                          </>
-                        )}
+                      <div className="p-3 rounded-full bg-primary/10">
+                        <Inbox className="h-5 w-5 text-primary" />
                       </div>
                     </div>
+                    <div className="mt-4">
+                      <Progress value={100} className="h-1.5" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                    {/* Improved Search and Filters */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-                      <div className="relative md:col-span-5">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="Search by customer, subject, or details..."
-                          className="pl-10 py-2 text-sm bg-background/80 border-muted/60 focus:border-primary w-full"
-                          value={searchQuery}
-                          onChange={(e) => handleSearch(e.target.value)}
-                        />
+                <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                        <h3 className="text-3xl font-bold mt-1">{pendingCount}</h3>
                       </div>
-
-                      <div className="flex gap-2 flex-wrap md:col-span-7 justify-end">
-                        <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm bg-background/80 border-muted/60">
-                            <SelectValue placeholder="Status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Statuses</SelectItem>
-                            <SelectItem value="Pending">Pending</SelectItem>
-                            <SelectItem value="In Progress">In Progress</SelectItem>
-                            <SelectItem value="Completed">Completed</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={priorityFilter} onValueChange={handlePriorityFilter}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm bg-background/80 border-muted/60">
-                            <SelectValue placeholder="Priority" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Priorities</SelectItem>
-                            <SelectItem value="High">High</SelectItem>
-                            <SelectItem value="Medium">Medium</SelectItem>
-                            <SelectItem value="Low">Low</SelectItem>
-                          </SelectContent>
-                        </Select>
-
-                        <Select value={assigneeFilter} onValueChange={handleAssigneeFilter}>
-                          <SelectTrigger className="w-[140px] h-9 text-sm bg-background/80 border-muted/60">
-                            <SelectValue placeholder="Assignee" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Assignees</SelectItem>
-                            {teamMembers.map(member => (
-                              <SelectItem key={member.id} value={member.name}>
-                                {member.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-9 w-9"
-                              disabled={!(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || assigneeFilter !== "all")}
-                              onClick={() => {
-                                setSearchQuery("");
-                                setStatusFilter("all");
-                                setPriorityFilter("all");
-                                setAssigneeFilter("all");
-                                applyFilters("", "all", "all", "all");
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Clear Filters</TooltipContent>
-                        </Tooltip>
+                      <div className="p-3 rounded-full bg-yellow-100">
+                        <Clock className="h-5 w-5 text-yellow-600" />
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <ScrollArea className="h-[calc(100vh-22rem)]">
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-muted/30">
-                          <TableHead className="w-[40px]">
-                            <input
-                              type="checkbox"
-                              className="h-4 w-4 rounded border-gray-300"
-                              checked={selectedEnquiries.length === filteredEnquiries.length && filteredEnquiries.length > 0}
-                              onChange={toggleSelectAll}
-                            />
-                          </TableHead>
-                          <TableHead className="w-[250px]">
-                            <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('customerName')}>
-                              Customer / Company
-                              <ArrowUpDown className="ml-2 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>
-                            <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('subject')}>
-                              Subject
-                              <ArrowUpDown className="ml-2 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>
-                            <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('priority')}>
-                              Priority
-                              <ArrowUpDown className="ml-2 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>
-                            <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('status')}>
-                              Status
-                              <ArrowUpDown className="ml-2 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>
-                            <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('assignedTo')}>
-                              Assigned To
-                              <ArrowUpDown className="ml-2 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead>
-                            <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('createdAt')}>
-                              Created
-                              <ArrowUpDown className="ml-2 h-3 w-3" />
-                            </Button>
-                          </TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {isLoading ? (
-                          <TableRow>
-                            <TableCell colSpan={8} className="text-center py-12">
-                              <div className="flex flex-col items-center gap-2">
-                                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                                <p className="text-base text-muted-foreground mt-2">Loading enquiries...</p>
-                              </div>
-                            </TableCell>
+                    <div className="mt-4">
+                      <Progress value={(pendingCount / enquiries.length) * 100} className="h-1.5 bg-yellow-100" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+                        <h3 className="text-3xl font-bold mt-1">{inProgressCount}</h3>
+                      </div>
+                      <div className="p-3 rounded-full bg-blue-100">
+                        <AlertCircle className="h-5 w-5 text-blue-600" />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Progress value={(inProgressCount / enquiries.length) * 100} className="h-1.5 bg-blue-100" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="overflow-hidden border border-muted/40 bg-background/60 backdrop-blur-lg hover:shadow-md transition-all duration-200">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                        <h3 className="text-3xl font-bold mt-1">{completedCount}</h3>
+                      </div>
+                      <div className="p-3 rounded-full bg-green-100">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Progress value={(completedCount / enquiries.length) * 100} className="h-1.5 bg-green-100" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Enquiries Table */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                className="flex-1"
+              >
+                <Card className="border border-muted/40 bg-background/60 backdrop-blur-lg overflow-hidden shadow-sm">
+                  <CardHeader className="pb-0">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-2xl">Enquiries</CardTitle>
+                          <CardDescription className="text-base">
+                            {filteredEnquiries.length} enquiries found
+                          </CardDescription>
+                        </div>
+
+                        {/* View Options */}
+                        <div className="flex items-center gap-2">
+                          {selectedEnquiries.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">
+                                {selectedEnquiries.length} selected
+                              </span>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    Bulk Actions
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Mark as Completed
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <AlertCircle className="mr-2 h-4 w-4" />
+                                    Mark as In Progress
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Export Selected
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete Selected
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          ) : (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-1">
+                                    <LayoutGrid className="h-4 w-4" />
+                                    <span className="sr-only md:not-sr-only md:inline-flex">Grid View</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Switch to Grid View</TooltipContent>
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-1">
+                                    <CalendarDays className="h-4 w-4" />
+                                    <span className="sr-only md:not-sr-only md:inline-flex">Calendar</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>View Calendar</TooltipContent>
+                              </Tooltip>
+
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-1">
+                                    <SlidersHorizontal className="h-4 w-4" />
+                                    <span className="sr-only md:not-sr-only md:inline-flex">Customize</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Customize View</TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Improved Search and Filters */}
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                        <div className="relative md:col-span-5">
+                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            placeholder="Search by customer, subject, or details..."
+                            className="pl-10 py-2 text-sm bg-background/80 border-muted/60 focus:border-primary w-full"
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                          />
+                        </div>
+
+                        <div className="flex gap-2 flex-wrap md:col-span-7 justify-end">
+                          <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                            <SelectTrigger className="w-[140px] h-9 text-sm bg-background/80 border-muted/60">
+                              <SelectValue placeholder="Status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Statuses</SelectItem>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="Completed">Completed</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Select value={priorityFilter} onValueChange={handlePriorityFilter}>
+                            <SelectTrigger className="w-[140px] h-9 text-sm bg-background/80 border-muted/60">
+                              <SelectValue placeholder="Priority" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Priorities</SelectItem>
+                              <SelectItem value="High">High</SelectItem>
+                              <SelectItem value="Medium">Medium</SelectItem>
+                              <SelectItem value="Low">Low</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Select value={assigneeFilter} onValueChange={handleAssigneeFilter}>
+                            <SelectTrigger className="w-[140px] h-9 text-sm bg-background/80 border-muted/60">
+                              <SelectValue placeholder="Assignee" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">All Assignees</SelectItem>
+                              {teamMembers.map(member => (
+                                <SelectItem key={member.id} value={member.name}>
+                                  {member.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9"
+                                disabled={!(searchQuery || statusFilter !== "all" || priorityFilter !== "all" || assigneeFilter !== "all")}
+                                onClick={() => {
+                                  setSearchQuery("");
+                                  setStatusFilter("all");
+                                  setPriorityFilter("all");
+                                  setAssigneeFilter("all");
+                                  applyFilters("", "all", "all", "all");
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Clear Filters</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <ScrollArea className="h-[calc(100vh-22rem)]">
+                    <CardContent className="p-0">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/30">
+                            <TableHead className="w-[40px]">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300"
+                                checked={selectedEnquiries.length === filteredEnquiries.length && filteredEnquiries.length > 0}
+                                onChange={toggleSelectAll}
+                              />
+                            </TableHead>
+                            <TableHead className="w-[250px]">
+                              <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('customerName')}>
+                                Customer / Company
+                                <ArrowUpDown className="ml-2 h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead>
+                              <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('subject')}>
+                                Subject
+                                <ArrowUpDown className="ml-2 h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead>
+                              <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('priority')}>
+                                Priority
+                                <ArrowUpDown className="ml-2 h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead>
+                              <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('status')}>
+                                Status
+                                <ArrowUpDown className="ml-2 h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead>
+                              <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('assignedTo')}>
+                                Assigned To
+                                <ArrowUpDown className="ml-2 h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead>
+                              <Button variant="ghost" className="p-0 h-8 font-medium" onClick={() => requestSort('createdAt')}>
+                                Created
+                                <ArrowUpDown className="ml-2 h-3 w-3" />
+                              </Button>
+                            </TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
-                        ) : filteredEnquiries.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={8} className="text-center py-16 text-muted-foreground">
-                              <div className="flex flex-col items-center gap-2">
-                                <Inbox className="h-12 w-12 text-muted-foreground/50" />
-                                <p className="text-lg mt-2">No enquiries found matching your filters.</p>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="mt-4"
-                                  onClick={() => {
-                                    setSearchQuery("");
-                                    setStatusFilter("all");
-                                    setPriorityFilter("all");
-                                    setAssigneeFilter("all");
-                                    applyFilters("", "all", "all", "all");
-                                  }}
-                                >
-                                  Clear Filters
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          filteredEnquiries.map((enquiry, index) => (
-                            <TableRow
-                              key={enquiry.id}
-                              onClick={(e) => handleQuickView(enquiry, e)}
-                              className={cn(
-                                "cursor-pointer transition-colors hover:bg-muted/30",
-                                selectedEnquiries.includes(enquiry.id) && "bg-primary/5",
-                                enquiry.hasUnreadMessages && "bg-blue-50/50 dark:bg-blue-950/20",
-                                "border-l-4",
-                                enquiry.priority === "High" ? "border-l-red-500" :
-                                  enquiry.priority === "Medium" ? "border-l-amber-500" : "border-l-green-500"
-                              )}
-                            >
-                              <TableCell className="align-middle py-3">
-                                <input
-                                  type="checkbox"
-                                  className="h-4 w-4 rounded border-gray-300"
-                                  checked={selectedEnquiries.includes(enquiry.id)}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    toggleEnquiry(enquiry.id);
-                                  }}
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                              </TableCell>
-                              <TableCell className="py-3">
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="font-medium">{enquiry.customerName}</div>
-                                  <div className="text-sm text-muted-foreground">{enquiry.company || "Individual"}</div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="py-3">
-                                <div className="flex flex-col gap-0.5 max-w-[280px]">
-                                  <div className="font-medium truncate">{enquiry.subject}</div>
-                                  <div className="text-xs text-muted-foreground truncate">
-                                    {enquiry.details ? enquiry.details.substring(0, 80) + '...' : ''}
-                                  </div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="py-3">
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    "font-normal",
-                                    enquiry.priority === "High" ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50" :
-                                      enquiry.priority === "Medium" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50" :
-                                        "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50"
-                                  )}
-                                >
-                                  {enquiry.priority}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="py-3">
-                                <Badge
-                                  variant="outline"
-                                  className={cn(
-                                    "font-normal",
-                                    enquiry.status === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-900/50" :
-                                      enquiry.status === "In Progress" ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50" :
-                                        "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50"
-                                  )}
-                                >
-                                  {enquiry.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="py-3">
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="h-6 w-6">
-                                    <AvatarFallback className="text-xs">
-                                      {enquiry.assignedTo ? enquiry.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm">{enquiry.assignedTo}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="py-3 text-sm text-muted-foreground">
-                                {format(parseISO(enquiry.createdAt), "MMM d, yyyy")}
-                              </TableCell>
-                              <TableCell className="text-right py-3">
-                                <div className="flex justify-end gap-1.5">
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            router.push(`/enquiries/${enquiry.id}/edit`);
-                                          }}
-                                        >
-                                          <Pencil className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Edit</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            // Handle mark as completed
-                                            // toast.success(`Marked ${enquiry.subject} as completed`);
-                                          }}
-                                        >
-                                          <CheckCircle className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Mark as Completed</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={(e) => {
-                                        e.stopPropagation();
-                                        router.push(`/enquiries/${enquiry.id}/edit`);
-                                      }}>
-                                        <Pencil className="mr-2 h-4 w-4" />
-                                        Edit
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Handle mark as completed
-                                        // toast.success(`Marked ${enquiry.subject} as completed`);
-                                      }}>
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Mark as Completed
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        className="text-destructive"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          // Handle delete
-                                        }}
-                                      >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                        </TableHeader>
+                        <TableBody>
+                          {isLoading ? (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-12">
+                                <div className="flex flex-col items-center gap-2">
+                                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                  <p className="text-base text-muted-foreground mt-2">Loading enquiries...</p>
                                 </div>
                               </TableCell>
                             </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </ScrollArea>
-                <CardFooter className="flex items-center justify-between border-t p-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing <span className="font-medium text-foreground">{filteredEnquiries.length}</span> of{" "}
-                    <span className="font-medium text-foreground">{enquiries.length}</span> enquiries
-                  </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={true}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        <span className="sr-only">Previous</span>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={true}
-                      >
-                        <span className="sr-only">Next</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                          ) : filteredEnquiries.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-16 text-muted-foreground">
+                                <div className="flex flex-col items-center gap-2">
+                                  <Inbox className="h-12 w-12 text-muted-foreground/50" />
+                                  <p className="text-lg mt-2">No enquiries found matching your filters.</p>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-4"
+                                    onClick={() => {
+                                      setSearchQuery("");
+                                      setStatusFilter("all");
+                                      setPriorityFilter("all");
+                                      setAssigneeFilter("all");
+                                      applyFilters("", "all", "all", "all");
+                                    }}
+                                  >
+                                    Clear Filters
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredEnquiries.map((enquiry, index) => (
+                              <TableRow
+                                key={enquiry.id}
+                                onClick={(e) => handleQuickView(enquiry, e)}
+                                className={cn(
+                                  "cursor-pointer transition-colors hover:bg-muted/30",
+                                  selectedEnquiries.includes(enquiry.id) && "bg-primary/5",
+                                  enquiry.hasUnreadMessages && "bg-blue-50/50 dark:bg-blue-950/20",
+                                  "border-l-4",
+                                  enquiry.priority === "High" ? "border-l-red-500" :
+                                    enquiry.priority === "Medium" ? "border-l-amber-500" : "border-l-green-500"
+                                )}
+                              >
+                                <TableCell className="align-middle py-3">
+                                  <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-gray-300"
+                                    checked={selectedEnquiries.includes(enquiry.id)}
+                                    onChange={(e) => {
+                                      e.stopPropagation();
+                                      toggleEnquiry(enquiry.id);
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <div className="flex flex-col gap-0.5">
+                                    <div className="font-medium">{enquiry.customerName}</div>
+                                    <div className="text-sm text-muted-foreground">{enquiry.company || "Individual"}</div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <div className="flex flex-col gap-0.5 max-w-[280px]">
+                                    <div className="font-medium truncate">{enquiry.subject}</div>
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {enquiry.details ? enquiry.details.substring(0, 80) + '...' : ''}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      "font-normal",
+                                      enquiry.priority === "High" ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50" :
+                                        enquiry.priority === "Medium" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50" :
+                                          "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50"
+                                    )}
+                                  >
+                                    {enquiry.priority}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      "font-normal",
+                                      enquiry.status === "Pending" ? "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-400 dark:border-yellow-900/50" :
+                                        enquiry.status === "In Progress" ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50" :
+                                          "bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-400 dark:border-green-900/50"
+                                    )}
+                                  >
+                                    {enquiry.status}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="py-3">
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="h-6 w-6">
+                                      <AvatarFallback className="text-xs">
+                                        {enquiry.assignedTo ? enquiry.assignedTo.split(' ').map(n => n[0]).join('') : 'NA'}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-sm">{enquiry.assignedTo}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="py-3 text-sm text-muted-foreground">
+                                  {format(parseISO(enquiry.createdAt), "MMM d, yyyy")}
+                                </TableCell>
+                                <TableCell className="text-right py-3">
+                                  <div className="flex justify-end gap-1.5">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              router.push(`/enquiries/${enquiry.id}/edit`);
+                                            }}
+                                          >
+                                            <Pencil className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Edit</TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              // Handle mark as completed
+                                              // toast.success(`Marked ${enquiry.subject} as completed`);
+                                            }}
+                                          >
+                                            <CheckCircle className="h-4 w-4" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Mark as Completed</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={(e) => {
+                                          e.stopPropagation();
+                                          router.push(`/enquiries/${enquiry.id}/edit`);
+                                        }}>
+                                          <Pencil className="mr-2 h-4 w-4" />
+                                          Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={(e) => {
+                                          e.stopPropagation();
+                                          // Handle mark as completed
+                                          // toast.success(`Marked ${enquiry.subject} as completed`);
+                                        }}>
+                                          <CheckCircle className="mr-2 h-4 w-4" />
+                                          Mark as Completed
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem
+                                          className="text-destructive"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Handle delete
+                                          }}
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                  </ScrollArea>
+                  <CardFooter className="flex items-center justify-between border-t p-4">
+                    <div className="text-sm text-muted-foreground">
+                      Showing <span className="font-medium text-foreground">{filteredEnquiries.length}</span> of{" "}
+                      <span className="font-medium text-foreground">{enquiries.length}</span> enquiries
                     </div>
-                  </div>
-                </CardFooter>
-              </Card>
-            </motion.div>
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={true}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          <span className="sr-only">Previous</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={true}
+                        >
+                          <span className="sr-only">Next</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            </div>
           </div>
         </div>
-      </div>
-      {quickViewEnquiry && (
-        <Dialog open={!!quickViewEnquiry} onOpenChange={() => setQuickViewEnquiry(null)}>
-          <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <div className="flex items-center gap-2">
-                <span className={`h-2 w-2 rounded-full ${quickViewEnquiry.status === "Pending" ? "bg-yellow-500" :
-                  quickViewEnquiry.status === "In Progress" ? "bg-blue-500" : "bg-green-500"
-                  }`}></span>
-                <DialogTitle className="text-2xl font-semibold">
-                  {quickViewEnquiry.subject}
-                </DialogTitle>
-              </div>
-              <DialogDescription className="text-base">
-                {quickViewEnquiry.id} • Created {format(parseISO(quickViewEnquiry.createdAt), "MMM d, yyyy")}
-              </DialogDescription>
-            </DialogHeader>
+        {quickViewEnquiry && (
+          <Dialog open={!!quickViewEnquiry} onOpenChange={() => setQuickViewEnquiry(null)}>
+            <DialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${quickViewEnquiry.status === "Pending" ? "bg-yellow-500" :
+                    quickViewEnquiry.status === "In Progress" ? "bg-blue-500" : "bg-green-500"
+                    }`}></span>
+                  <DialogTitle className="text-2xl font-semibold">
+                    {quickViewEnquiry.subject}
+                  </DialogTitle>
+                </div>
+                <DialogDescription className="text-base">
+                  {quickViewEnquiry.id} • Created {format(parseISO(quickViewEnquiry.createdAt), "MMM d, yyyy")}
+                </DialogDescription>
+              </DialogHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-              {/* Left column - Enquiry details */}
-              <div className="md:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Details</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm whitespace-pre-line">{quickViewEnquiry.details}</p>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                {/* Left column - Enquiry details */}
+                <div className="md:col-span-2 space-y-6">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Details</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm whitespace-pre-line">{quickViewEnquiry.details}</p>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <Timeline className="px-6 py-2">
-                      {[...quickViewEnquiry.activities || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((activity, index) => (
-                        <TimelineItem key={index}>
-                          <TimelineIcon>
-                            {activity.action === "comment" ? (
-                              <MessageSquare className="h-4 w-4" />
-                            ) : activity.action === "status" ? (
-                              <AlertCircle className="h-4 w-4" />
-                            ) : (
-                              <FileText className="h-4 w-4" />
-                            )}
-                          </TimelineIcon>
-                          <TimelineContent>
-                            <div className="flex justify-between items-start">
-                              <p className="font-medium">{activity.action}</p>
-                              <span className="text-xs text-muted-foreground">{format(parseISO(activity.timestamp), "MMM d, yyyy")}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{activity.user}</p>
-                          </TimelineContent>
-                        </TimelineItem>
-                      ))}
-                    </Timeline>
-                  </CardContent>
-                </Card>
-              </div>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Activity</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <Timeline className="px-6 py-2">
+                        {[...quickViewEnquiry.activities || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((activity, index) => (
+                          <TimelineItem key={index}>
+                            <TimelineIcon>
+                              {activity.action === "comment" ? (
+                                <MessageSquare className="h-4 w-4" />
+                              ) : activity.action === "status" ? (
+                                <AlertCircle className="h-4 w-4" />
+                              ) : (
+                                <FileText className="h-4 w-4" />
+                              )}
+                            </TimelineIcon>
+                            <TimelineContent>
+                              <div className="flex justify-between items-start">
+                                <p className="font-medium">{activity.action}</p>
+                                <span className="text-xs text-muted-foreground">{format(parseISO(activity.timestamp), "MMM d, yyyy")}</span>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{activity.user}</p>
+                            </TimelineContent>
+                          </TimelineItem>
+                        ))}
+                      </Timeline>
+                    </CardContent>
+                  </Card>
+                </div>
 
-              {/* Right column - Customer info and metadata */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Customer</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={`https://avatar.vercel.sh/${quickViewEnquiry.customerName.replace(' ', '')}.png`} />
-                        <AvatarFallback>
-                          {quickViewEnquiry.customerName.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{quickViewEnquiry.customerName}</h3>
-                        <p className="text-sm text-muted-foreground">{quickViewEnquiry.email}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-1 text-sm">
-                        <span className="text-muted-foreground">Phone:</span>
-                        <span>{quickViewEnquiry.phone || 'N/A'}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-1 text-sm">
-                        <span className="text-muted-foreground">Company:</span>
-                        <span>{quickViewEnquiry.companyName || 'N/A'}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Enquiry Info</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="grid grid-cols-2 gap-1 text-sm">
-                      <span className="text-muted-foreground">Status:</span>
-                      <Badge variant={
-                        quickViewEnquiry.status === "Pending" ? "warning" :
-                          quickViewEnquiry.status === "In Progress" ? "info" : "success"
-                      }>
-                        {quickViewEnquiry.status}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-sm">
-                      <span className="text-muted-foreground">Priority:</span>
-                      <Badge variant={
-                        quickViewEnquiry.priority === "High" ? "destructive" :
-                          quickViewEnquiry.priority === "Medium" ? "warning" : "outline"
-                      }>
-                        {quickViewEnquiry.priority}
-                      </Badge>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-sm">
-                      <span className="text-muted-foreground">Assignee:</span>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-5 w-5">
-                          <AvatarFallback className="text-[10px]">
-                            {quickViewEnquiry.assignedTo.split(' ').map(n => n[0]).join('')}
+                {/* Right column - Customer info and metadata */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Customer</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={`https://avatar.vercel.sh/${quickViewEnquiry.customerName.replace(' ', '')}.png`} />
+                          <AvatarFallback>
+                            {quickViewEnquiry.customerName.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
-                        <span>{quickViewEnquiry.assignedTo}</span>
+                        <div>
+                          <h3 className="font-medium">{quickViewEnquiry.customerName}</h3>
+                          <p className="text-sm text-muted-foreground">{quickViewEnquiry.email}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-sm">
-                      <span className="text-muted-foreground">Created:</span>
-                      <span>{format(parseISO(quickViewEnquiry.createdAt), "MMM d, yyyy")}</span>
-                    </div>
-                    {quickViewEnquiry.updatedAt && (
-                      <div className="grid grid-cols-2 gap-1 text-sm">
-                        <span className="text-muted-foreground">Updated:</span>
-                        <span>{format(parseISO(quickViewEnquiry.updatedAt), "MMM d, yyyy")}</span>
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-1 text-sm">
+                          <span className="text-muted-foreground">Phone:</span>
+                          <span>{quickViewEnquiry.phone || 'N/A'}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 text-sm">
+                          <span className="text-muted-foreground">Company:</span>
+                          <span>{quickViewEnquiry.companyName || 'N/A'}</span>
+                        </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardContent className="pt-6 space-y-2">
-                    <Button className="w-full" onClick={() => {
-                      setQuickViewEnquiry(null);
-                      router.push(`/enquiries/${quickViewEnquiry.id}`);
-                    }}>
-                      View Full Details
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={() => {
-                      setQuickViewEnquiry(null);
-                      router.push(`/enquiries/${quickViewEnquiry.id}/edit`);
-                    }}>
-                      Edit Enquiry
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Enquiry Info</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-1 text-sm">
+                        <span className="text-muted-foreground">Status:</span>
+                        <Badge variant={
+                          quickViewEnquiry.status === "Pending" ? "warning" :
+                            quickViewEnquiry.status === "In Progress" ? "info" : "success"
+                        }>
+                          {quickViewEnquiry.status}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 text-sm">
+                        <span className="text-muted-foreground">Priority:</span>
+                        <Badge variant={
+                          quickViewEnquiry.priority === "High" ? "destructive" :
+                            quickViewEnquiry.priority === "Medium" ? "warning" : "outline"
+                        }>
+                          {quickViewEnquiry.priority}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 text-sm">
+                        <span className="text-muted-foreground">Assignee:</span>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5">
+                            <AvatarFallback className="text-[10px]">
+                              {quickViewEnquiry.assignedTo.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{quickViewEnquiry.assignedTo}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 text-sm">
+                        <span className="text-muted-foreground">Created:</span>
+                        <span>{format(parseISO(quickViewEnquiry.createdAt), "MMM d, yyyy")}</span>
+                      </div>
+                      {quickViewEnquiry.updatedAt && (
+                        <div className="grid grid-cols-2 gap-1 text-sm">
+                          <span className="text-muted-foreground">Updated:</span>
+                          <span>{format(parseISO(quickViewEnquiry.updatedAt), "MMM d, yyyy")}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="pt-6 space-y-2">
+                      <Button className="w-full" onClick={() => {
+                        setQuickViewEnquiry(null);
+                        router.push(`/enquiries/${quickViewEnquiry.id}`);
+                      }}>
+                        View Full Details
+                      </Button>
+                      <Button variant="outline" className="w-full" onClick={() => {
+                        setQuickViewEnquiry(null);
+                        router.push(`/enquiries/${quickViewEnquiry.id}/edit`);
+                      }}>
+                        Edit Enquiry
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
-    </TooltipProvider>
+            </DialogContent>
+          </Dialog>
+        )}
+      </TooltipProvider>
+    </DashboardLayout>
   );
 }
 

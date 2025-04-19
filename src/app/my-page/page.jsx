@@ -35,6 +35,7 @@ import ActivityTimeline from "@/components/dashboard/my-page/activity-timeline";
 import PerformanceMetrics from "@/components/dashboard/my-page/performance-metrics";
 import NotificationsPanel from "@/components/dashboard/my-page/notifications-panel";
 import UpcomingDeadlines from "@/components/dashboard/my-page/upcoming-deadlines";
+import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 
 // Mock data - would be fetched from API in real app
 import { 
@@ -62,6 +63,7 @@ export default function MyPage() {
   };
 
   return (
+    <DashboardLayout>
     <div className="container mx-auto p-4 space-y-6">
       {/* Header with user info */}
       <motion.div 
@@ -675,6 +677,7 @@ export default function MyPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </DashboardLayout>
   );
 }
 

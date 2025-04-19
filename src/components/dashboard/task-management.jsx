@@ -38,6 +38,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { format, isAfter, isBefore, parseISO } from "date-fns"
+
+// Helper to safely get a Date object from string or Date
+const getDueDate = (dueDate) => {
+  if (typeof dueDate === 'string') {
+    return parseISO(dueDate);
+  }
+  if (dueDate instanceof Date) {
+    return dueDate;
+  }
+  return new Date(dueDate); // fallback for timestamps etc.
+};
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { SparklesCore } from "@/components/ui/aceternity/sparkles"
@@ -241,7 +252,7 @@ const mockTasks = [
         userId: 'u1',
         action: 'created',
         timestamp: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created' 
+        details: 'Task created'
       }
     ]
   }
@@ -270,9 +281,13 @@ import { useRouter } from "next/navigation"
 export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   // Add router
   const router = useRouter();
-  
+
   // State for tasks
   const [tasks, setTasks] = useState(mockTasks);
+
+  // Add state for toast notifications
+  const [toastMessage, setToastMessage] = useState(null);
+
   const [filteredTasks, setFilteredTasks] = useState(mockTasks);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -332,7 +347,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       inProgress: tasks.filter(task => task.status === 'in-progress').length,
       completed: tasks.filter(task => task.status === 'completed').length,
       overdue: tasks.filter(task => {
-        const dueDate = parseISO(task.dueDate);
+        const dueDate = getDueDate(task.dueDate);
         return isBefore(dueDate, new Date()) && task.status !== 'completed';
       }).length,
       highPriority: tasks.filter(task => task.priority === 'high').length
@@ -351,7 +366,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       result = result.filter(task => task.status === "completed");
     } else if (view === "overdue") {
       result = result.filter(task => {
-        const dueDate = parseISO(task.dueDate);
+        const dueDate = getDueDate(task.dueDate);
         return isBefore(dueDate, new Date()) && task.status !== 'completed';
       });
     }
@@ -394,7 +409,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       nextWeek.setDate(today.getDate() + 7);
 
       result = result.filter(task => {
-        const dueDate = parseISO(task.dueDate);
+        const dueDate = getDueDate(task.dueDate);
 
         switch (dueDateFilter) {
           case "today":
@@ -480,8 +495,28 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       ]
     };
 
+    // Add the new task to the tasks array
     setTasks(prevTasks => [...prevTasks, taskWithMeta]);
     setShowTaskFormDialog(false);
+
+    // Show success notification
+    setToastMessage({
+      title: "Task created successfully",
+      description: `Task "${newTask.name}" has been added to your task list.`,
+      variant: "success",
+      id: Date.now()
+    });
+
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // Function to handle creating a new task
+  const handleCreateNewTask = () => {
+    setSelectedTask(null);
+    setFormMode("create");
+    setShowTaskFormDialog(true);
   };
 
   // Function to update an existing task
@@ -551,11 +586,28 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
     setDueDateFilter("all");
   };
 
-  // Function to handle creating a new task
-  const handleCreateNewTask = () => {
-    setSelectedTask(null);
-    setFormMode("create");
-    setShowTaskFormDialog(true);
+  const Toast = ({ message, onClose }) => {
+    if (!message) return null;
+
+    const bgColor = message.variant === "success"
+      ? "bg-green-100 border-green-500 text-green-800"
+      : message.variant === "error"
+        ? "bg-red-100 border-red-500 text-red-800"
+        : "bg-blue-100 border-blue-500 text-blue-800";
+
+    return (
+      <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg border-l-4 ${bgColor} z-50 max-w-md`}>
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-medium">{message.title}</h3>
+            <p className="text-sm mt-1">{message.description}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <XCircle className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Get unique experiments from tasks
@@ -598,83 +650,79 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
       >
-        {/* Simplified UI without the redundant card header */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="flex">
+        {/* Controls Bar */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex rounded-lg shadow-sm border border-border/40 bg-background overflow-hidden">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={viewMode === "list" ? "secondary" : "outline"}
+                      variant={viewMode === "list" ? "secondary" : "ghost"}
                       size="icon"
-                      className="rounded-r-none h-9 w-9"
+                      className={`rounded-none h-10 w-10 ${viewMode === "list" ? 'bg-primary/10 text-primary' : ''}`}
                       onClick={() => setViewMode("list")}
                     >
-                      <ListChecks className="h-4 w-4" />
+                      <ListChecks className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>List View</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={viewMode === "board" ? "secondary" : "outline"}
+                      variant={viewMode === "board" ? "secondary" : "ghost"}
                       size="icon"
-                      className="rounded-l-none h-9 w-9"
+                      className={`rounded-none h-10 w-10 border-l border-border/30 ${viewMode === "board" ? 'bg-primary/10 text-primary' : ''}`}
                       onClick={() => setViewMode("board")}
                     >
-                      <LayoutGrid className="h-4 w-4" />
+                      <LayoutGrid className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Board View</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
-
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9 shadow-sm hover:shadow-md transition-shadow bg-background/70 backdrop-blur-sm border-border/50"
+              className="h-10 w-10 shadow-sm hover:shadow-md transition-shadow bg-background/80 border-border/50 ml-2"
               onClick={handleRefresh}
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`} />
             </Button>
           </div>
-
           <Button
             onClick={handleCreateNewTask}
-            className="gap-1.5 shadow-md hover:shadow-lg transition-shadow bg-primary/90 hover:bg-primary"
+            className="gap-2 shadow-md hover:shadow-lg transition-shadow bg-primary/90 hover:bg-primary text-base px-6 py-2 rounded-lg"
           >
-            <Plus className="h-4 w-4" /> New Task
+            <Plus className="h-5 w-5" /> New Task
           </Button>
         </div>
 
-        <div className="bg-background/60 backdrop-blur-sm border border-border/50 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-          <div className="p-4 border-b bg-muted/30">
-            <div className="flex flex-col md:flex-row gap-3">
+        <div className="bg-background/70 backdrop-blur-md border border-border/50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+          <div className="p-6 border-b bg-muted/20">
+            <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch">
               <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search tasks..."
-                  className="pl-9 bg-background/70 border-border/50 h-9"
+                  className="pl-11 bg-background/80 border-border/40 h-11 rounded-lg focus:ring-2 focus:ring-primary/30"
                   value={localSearchQuery}
                   onChange={(e) => setLocalSearchQuery(e.target.value)}
                 />
               </div>
-
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 md:gap-3 items-center">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[130px] bg-background/70 border-border/50 h-9">
+                  <SelectTrigger className="w-[130px] bg-background/80 border-border/40 h-11 rounded-lg">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -684,9 +732,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
-
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-[130px] bg-background/70 border-border/50 h-9">
+                  <SelectTrigger className="w-[130px] bg-background/80 border-border/40 h-11 rounded-lg">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -696,9 +743,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     <SelectItem value="low">Low</SelectItem>
                   </SelectContent>
                 </Select>
-
                 <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                  <SelectTrigger className="w-[160px] bg-background/70 border-border/50 h-9">
+                  <SelectTrigger className="w-[160px] bg-background/80 border-border/40 h-11 rounded-lg">
                     <SelectValue placeholder="Assignee" />
                   </SelectTrigger>
                   <SelectContent>
@@ -710,9 +756,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     ))}
                   </SelectContent>
                 </Select>
-
                 <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
-                  <SelectTrigger className="w-[130px] bg-background/70 border-border/50 h-9">
+                  <SelectTrigger className="w-[130px] bg-background/80 border-border/40 h-11 rounded-lg">
                     <SelectValue placeholder="Due Date" />
                   </SelectTrigger>
                   <SelectContent>
@@ -723,14 +768,13 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     <SelectItem value="overdue">Overdue</SelectItem>
                   </SelectContent>
                 </Select>
-
                 <Button
                   variant="outline"
                   size="icon"
                   onClick={resetFilters}
-                  className="bg-background/70 border-border/50 h-9 w-9"
+                  className="bg-background/80 border-border/40 h-11 w-11 rounded-lg"
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -835,10 +879,10 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                 <div className="flex items-center gap-2">
                                   <Avatar className="h-6 w-6">
                                     <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                      {task.assignedTo.avatar}
+                                      {task.assignedTo?.avatar ?? "?"}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-sm">{task.assignedTo.name}</span>
+                                  <span className="text-sm">{task.assignedTo?.name ?? "Unassigned"}</span>
                                 </div>
                               </td>
                               <td className="px-4 py-3">
@@ -854,7 +898,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                 </Badge>
                               </td>
                               <td className="px-4 py-3 text-sm">
-                                {format(parseISO(task.dueDate), "MMM d, yyyy")}
+                                {format(getDueDate(task.dueDate), "MMM d, yyyy")}
                               </td>
                               <td className="px-4 py-3">
                                 <DropdownMenu>
@@ -976,6 +1020,13 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         task={selectedTask}
         onDelete={deleteTask}
       />
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </div>
   );
 };
