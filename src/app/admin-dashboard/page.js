@@ -83,27 +83,27 @@ export default function Home() {
             const userData = localStorage.getItem('userData');
             const token = localStorage.getItem('userToken');
 
-            if (!userData || !token) {
-                // No user data or token, redirect to login
-                router.push('/login');
-                return;
-            }
+            // if (!userData || !token) {
+            //     // No user data or token, redirect to login
+            //     router.push('/login');
+            //     return;
+            // }
 
-            try {
-                const user = JSON.parse(userData);
-                // Check if user is admin
-                if (user.role === 'admin' || user.role === 'Admin') {
-                    setIsAuthenticated(true);
-                } else {
-                    // User is not admin, redirect to access denied page
-                    router.push('/access-denied');
-                }
-            } catch (error) {
-                console.error('Error parsing user data:', error);
-                router.push('/login');
-            } finally {
-                setIsAuthLoading(false);
-            }
+            // try {
+            //     const user = JSON.parse(userData);
+            //     // Check if user is admin
+            //     if (user.role === 'admin' || user.role === 'Admin') {
+            //         setIsAuthenticated(true);
+            //     } else {
+            //         // User is not admin, redirect to access denied page
+            //         router.push('/access-denied');
+            //     }
+            // } catch (error) {
+            //     console.error('Error parsing user data:', error);
+            //     router.push('/login');
+            // } finally {
+            //     setIsAuthLoading(false);
+            // }
         };
 
         checkAuth();

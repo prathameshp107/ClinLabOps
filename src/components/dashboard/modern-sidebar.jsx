@@ -191,10 +191,10 @@ export function ModernSidebar({ className, onToggle }) {
                     badge: null
                 },
                 {
-                    name: 'equipment',
-                    label: 'Equipment',
+                    name: 'equipments',
+                    label: 'Equipments',
                     icon: <Microscope className="h-5 w-5" />,
-                    path: '/equipment',
+                    path: '/equipments',
                     badge: null
                 },
                 {
@@ -203,13 +203,6 @@ export function ModernSidebar({ className, onToggle }) {
                     icon: <Database className="h-5 w-5" />,
                     path: '/inventory',
                     badge: { count: 3, variant: 'destructive' }
-                },
-                {
-                    name: 'samples',
-                    label: 'Samples',
-                    icon: <Beaker className="h-5 w-5" />,
-                    path: '/samples',
-                    badge: null
                 },
             ]
         },
