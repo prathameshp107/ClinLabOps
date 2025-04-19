@@ -38,6 +38,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { format, isAfter, isBefore, parseISO } from "date-fns"
+
+// Helper to safely get a Date object from string or Date
+const getDueDate = (dueDate) => {
+  if (typeof dueDate === 'string') {
+    return parseISO(dueDate);
+  }
+  if (dueDate instanceof Date) {
+    return dueDate;
+  }
+  return new Date(dueDate); // fallback for timestamps etc.
+};
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { SparklesCore } from "@/components/ui/aceternity/sparkles"
@@ -241,7 +252,7 @@ const mockTasks = [
         userId: 'u1',
         action: 'created',
         timestamp: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created' 
+        details: 'Task created'
       }
     ]
   }
@@ -270,9 +281,13 @@ import { useRouter } from "next/navigation"
 export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   // Add router
   const router = useRouter();
-  
+
   // State for tasks
   const [tasks, setTasks] = useState(mockTasks);
+
+  // Add state for toast notifications
+  const [toastMessage, setToastMessage] = useState(null);
+
   const [filteredTasks, setFilteredTasks] = useState(mockTasks);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -332,7 +347,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       inProgress: tasks.filter(task => task.status === 'in-progress').length,
       completed: tasks.filter(task => task.status === 'completed').length,
       overdue: tasks.filter(task => {
-        const dueDate = parseISO(task.dueDate);
+        const dueDate = getDueDate(task.dueDate);
         return isBefore(dueDate, new Date()) && task.status !== 'completed';
       }).length,
       highPriority: tasks.filter(task => task.priority === 'high').length
@@ -351,7 +366,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       result = result.filter(task => task.status === "completed");
     } else if (view === "overdue") {
       result = result.filter(task => {
-        const dueDate = parseISO(task.dueDate);
+        const dueDate = getDueDate(task.dueDate);
         return isBefore(dueDate, new Date()) && task.status !== 'completed';
       });
     }
@@ -394,7 +409,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       nextWeek.setDate(today.getDate() + 7);
 
       result = result.filter(task => {
-        const dueDate = parseISO(task.dueDate);
+        const dueDate = getDueDate(task.dueDate);
 
         switch (dueDateFilter) {
           case "today":
@@ -480,8 +495,28 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       ]
     };
 
+    // Add the new task to the tasks array
     setTasks(prevTasks => [...prevTasks, taskWithMeta]);
     setShowTaskFormDialog(false);
+
+    // Show success notification
+    setToastMessage({
+      title: "Task created successfully",
+      description: `Task "${newTask.name}" has been added to your task list.`,
+      variant: "success",
+      id: Date.now()
+    });
+
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // Function to handle creating a new task
+  const handleCreateNewTask = () => {
+    setSelectedTask(null);
+    setFormMode("create");
+    setShowTaskFormDialog(true);
   };
 
   // Function to update an existing task
@@ -551,11 +586,28 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
     setDueDateFilter("all");
   };
 
-  // Function to handle creating a new task
-  const handleCreateNewTask = () => {
-    setSelectedTask(null);
-    setFormMode("create");
-    setShowTaskFormDialog(true);
+  const Toast = ({ message, onClose }) => {
+    if (!message) return null;
+
+    const bgColor = message.variant === "success"
+      ? "bg-green-100 border-green-500 text-green-800"
+      : message.variant === "error"
+        ? "bg-red-100 border-red-500 text-red-800"
+        : "bg-blue-100 border-blue-500 text-blue-800";
+
+    return (
+      <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg border-l-4 ${bgColor} z-50 max-w-md`}>
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 className="font-medium">{message.title}</h3>
+            <p className="text-sm mt-1">{message.description}</p>
+          </div>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <XCircle className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Get unique experiments from tasks
@@ -835,10 +887,10 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                 <div className="flex items-center gap-2">
                                   <Avatar className="h-6 w-6">
                                     <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                      {task.assignedTo.avatar}
+                                      {task.assignedTo?.avatar ?? "?"}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-sm">{task.assignedTo.name}</span>
+                                  <span className="text-sm">{task.assignedTo?.name ?? "Unassigned"}</span>
                                 </div>
                               </td>
                               <td className="px-4 py-3">
@@ -854,7 +906,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                 </Badge>
                               </td>
                               <td className="px-4 py-3 text-sm">
-                                {format(parseISO(task.dueDate), "MMM d, yyyy")}
+                                {format(getDueDate(task.dueDate), "MMM d, yyyy")}
                               </td>
                               <td className="px-4 py-3">
                                 <DropdownMenu>
@@ -976,6 +1028,13 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         task={selectedTask}
         onDelete={deleteTask}
       />
+
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </div>
   );
 };

@@ -155,9 +155,11 @@ export const TaskFormDialog = ({
   
   // Handle form submission
   const handleSubmit = (data) => {
-    // Format the task data
+    // Map form fields to expected task fields
     const formattedTask = {
       ...data,
+      name: data.title,
+      experimentName: experiments.find(e => e.id === data.experimentId)?.name || "",
       tags,
       subtasks,
     };
