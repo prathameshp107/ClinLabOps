@@ -170,13 +170,6 @@ export function ModernSidebar({ className, onToggle }) {
                     path: '/experiments',
                     badge: { count: 5, variant: 'outline' }
                 },
-                {
-                    name: 'calendar',
-                    label: 'Calendar',
-                    icon: <Calendar className="h-5 w-5" />,
-                    path: '/calendar',
-                    badge: null
-                },
             ]
         },
         {
@@ -218,18 +211,39 @@ export function ModernSidebar({ className, onToggle }) {
                     badge: null
                 },
                 {
-                    name: 'members',
-                    label: 'Members',
-                    icon: <Users className="h-5 w-5" />,
-                    path: '/members',
-                    badge: null
-                },
-                {
                     name: 'messages',
                     label: 'Messages',
                     icon: <MessageSquare className="h-5 w-5" />,
-                    path: '/messages',
-                    badge: { count: 8, variant: 'default' }
+                    path: '#',
+                    badge: { 
+                        count: "Soon", 
+                        variant: 'secondary',
+                        className: "bg-amber-100 text-amber-800 border-amber-200 px-2 text-[10px]"
+                    },
+                    renderItem: (item, isActive) => (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={cn(
+                                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm my-1",
+                                "bg-muted/20 text-muted-foreground cursor-not-allowed opacity-70 pointer-events-none border border-dashed border-muted/50",
+                                isActive && "bg-muted/30"
+                              )}>
+                                <div className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground bg-muted/10">
+                                  <MessageSquare className="h-5 w-5" />
+                                </div>
+                                <span className="flex-1">Messages</span>
+                                <Badge variant="outline" className="ml-auto text-xs uppercase">
+                                  Soon
+                                </Badge>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right" sideOffset={5}>
+                              <p className="max-w-[200px]">This feature is in development and will be released soon.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                    )
                 },
                 {
                     name: 'my page',
@@ -255,16 +269,70 @@ export function ModernSidebar({ className, onToggle }) {
                 {
                     name: 'analytics',
                     label: 'Analytics',
-                    icon: <BarChart2 className="h-5 w-5" />,
-                    path: '/analytics',
-                    badge: null
+                    icon:
+                        <BarChart2 className="h-5 w-5" />,
+                    path: '#',
+                    badge: {
+                        count: "Soon",
+                        variant: 'secondary',
+                        className: "bg-amber-100 text-amber-800 border-amber-200 px-2 text-[10px]"
+                    },
+                    renderItem: (item, isActive) => (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm my-1"
+                                        , "bg-muted/20 text-muted-foreground cursor-not-allowed opacity-70 pointer-events-none border border-dashed border-muted/50"
+                                        , isActive && "bg-muted/30")}>
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground bg-muted/10">
+                                            <MessageSquare className="h-5 w-5" />
+                                        </div>
+                                        <span className="flex-1">Messages</span>
+                                        <Badge variant="outline" className="ml-auto text-xs uppercase">
+                                            Soon
+                                        </Badge>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" sideOffset={5}>
+                                    <p className="max-w-[200px]">This feature is in development and will be released soon.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )
                 },
                 {
                     name: 'reports',
                     label: 'Reports',
-                    icon: <FileText className="h-5 w-5" />,
-                    path: '/reports',
-                    badge: null
+                    icon:
+                        <FileText className="h-5 w-5" />,
+                    path: '#',
+                    badge: {
+                        count: "Soon",
+                        variant: 'secondary',
+                        className: "bg-amber-100 text-amber-800 border-amber-200 px-2 text-[10px]"
+                    },
+                    renderItem: (item, isActive) => (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm my-1"
+                                        , "bg-muted/20 text-muted-foreground cursor-not-allowed opacity-70 pointer-events-none border border-dashed border-muted/50"
+                                        , isActive && "bg-muted/30")}>
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground bg-muted/10">
+                                            <MessageSquare className="h-5 w-5" />
+                                        </div>
+                                        <span className="flex-1">Messages</span>
+                                        <Badge variant="outline" className="ml-auto text-xs uppercase">
+                                            Soon
+                                        </Badge>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" sideOffset={5}>
+                                    <p className="max-w-[200px]">This feature is in development and will be released soon.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )
                 },
                 {
                     name: 'enquiries',
