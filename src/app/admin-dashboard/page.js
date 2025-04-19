@@ -195,7 +195,7 @@ export default function Home() {
                                 </Badge>
                             </div>
                             <p className="text-muted-foreground mt-1 flex items-center">
-                                Welcome back! Here's what's happening in your lab today
+                                Welcome back! Here&apos;s what&apos;s happening in your lab today
                                 <ArrowUpRight className="h-3 w-3 ml-1 text-primary" />
                             </p>
                         </div>
@@ -641,7 +641,7 @@ export default function Home() {
                                 </Badge>
                             </div>
                             <p className="text-muted-foreground mt-1 flex items-center">
-                                Welcome back! Here's what's happening in your lab today
+                                Welcome back! Here&apos;s what&apos;s happening in your lab today
                                 <ArrowUpRight className="h-3 w-3 ml-1 text-primary" />
                             </p>
                         </div>

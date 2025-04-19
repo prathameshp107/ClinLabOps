@@ -181,19 +181,19 @@ export default function LandingPage() {
               <Globe className="h-4 w-4" />
               EN
             </Button>
-            
+
             <div className="hidden md:block h-6 w-px bg-border/60"></div>
-            
+
             <Button variant="outline" size="sm" className="hover:scale-105 transition-transform duration-300" asChild>
               <Link href="/login" className="flex items-center gap-2">
                 <Lock className="h-4 w-4" />
                 Log In
               </Link>
             </Button>
-            
-            <Button 
-              size="sm" 
-              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105" 
+
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
               asChild
             >
               <Link href="/admin-dashboard" className="flex items-center gap-2">
@@ -601,7 +601,7 @@ export default function LandingPage() {
                         <Star key={star} className="h-4 w-4 inline-block mr-0.5 fill-primary" />
                       ))}
                     </div>
-                    <p className="text-foreground italic mb-6 flex-1">"{testimonial.quote}"</p>
+                    <p className="text-foreground italic mb-6 flex-1">&ldquo;{testimonial.quote}&rdquo;</p>
                     <div>
                       <p className="font-medium">{testimonial.author}</p>
                       <p className="text-sm text-muted-foreground">{testimonial.role}</p>
@@ -794,8 +794,8 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <p className="text-sm italic text-left">
-                    "LabTasker has revolutionized how our team collaborates. We've seen a 40% increase in
-                    experiment throughput and significant reduction in documentation errors."
+                    &ldquo;LabTasker has revolutionized how our team collaborates. We&apos;ve seen a 40% increase in
+                    experiment throughput and significant reduction in documentation errors.&rdquo;
                   </p>
                 </div>
 
@@ -1162,7 +1162,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-start gap-2 justify-end">
                   <div className="bg-primary/10 rounded-lg p-3 text-sm max-w-[80%]">
-                    <p>I'd like to learn more about your pricing plans.</p>
+                    <p>I&apos;d like to learn more about your pricing plans.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -1170,7 +1170,7 @@ export default function LandingPage() {
                     <Microscope className="h-4 w-4 text-primary" />
                   </div>
                   <div className="bg-muted/50 rounded-lg p-3 text-sm max-w-[80%]">
-                    <p>I'd be happy to explain our pricing plans! We offer three tiers: Starter, Professional, and Enterprise. Would you like me to go through the details of each?</p>
+                    <p>I&apos;d be happy to explain our pricing plans! We offer three tiers: Starter, Professional, and Enterprise. Would you like me to go through the details of each?</p>
                   </div>
                 </div>
               </div>
