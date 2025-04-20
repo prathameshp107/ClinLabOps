@@ -438,34 +438,25 @@ export function ModernSidebar({ className, onToggle }) {
         >
             {/* Header with Logo and Toggle */}
             <div className="flex items-center justify-between p-5 h-16 border-b border-border/40 bg-gradient-to-r from-background to-background/95">
-                {!isCollapsed && (
-                    <div className="flex items-center gap-3">
-                        <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-                            <Microscope className="h-5 w-5 text-primary" />
-                            <div className="absolute inset-0 rounded-xl">
-                                <SparklesCore
-                                    id="tsparticles-logo"
-                                    background="transparent"
-                                    minSize={0.4}
-                                    maxSize={0.8}
-                                    particleDensity={60}
-                                    className="w-full h-full"
-                                    particleColor="#8B5CF6"
-                                />
-                            </div>
+                <div className="flex items-center gap-3 mx-auto cursor-pointer select-none" onClick={handleToggle} tabIndex={0} role="button" aria-pressed={!isCollapsed}>
+                    <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                        <Microscope className="h-5 w-5 text-primary" />
+                        <div className="absolute inset-0 rounded-xl">
+                            <SparklesCore
+                                id="tsparticles-logo"
+                                background="transparent"
+                                minSize={0.4}
+                                maxSize={0.8}
+                                particleDensity={60}
+                                className="w-full h-full"
+                                particleColor="#8B5CF6"
+                            />
                         </div>
+                    </div>
+                    {!isCollapsed && (
                         <span className="font-bold text-lg tracking-tight">LabTasker</span>
-                    </div>
-                )}
-
-                {isCollapsed && (
-                    <div className="mx-auto">
-                        <div className="relative h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-                            <Microscope className="h-5 w-5 text-primary" />
-                        </div>
-                    </div>
-                )}
-
+                    )}
+                </div>
                 <Button
                     variant="ghost"
                     size="icon"
