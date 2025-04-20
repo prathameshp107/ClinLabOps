@@ -4,11 +4,13 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useTheme } from "next-themes"
-import Lottie from "lottie-react"
+// Dynamically import Lottie to avoid SSR issues with document/window
+import dynamic from "next/dynamic"
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
+// If you encounter SSR errors with other components, use dynamic import with ssr: false as shown above.
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import confetti from 'canvas-confetti'
 
 // UI Components
 import { Button } from "@/components/ui/button"
@@ -169,12 +171,16 @@ export default function RegisterPage() {
 
       // Trigger confetti on success - only in browser environment
       if (typeof window !== 'undefined') {
-        confetti({
-          particleCount: 150,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ['#4F46E5', '#10B981', '#3B82F6']
-        })
+        // Import confetti dynamically only on the client side
+        import('canvas-confetti').then((confettiModule) => {
+          const confetti = confettiModule.default;
+          confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#4F46E5', '#10B981', '#3B82F6']
+          });
+        });
       }
     } catch (error) {
       console.error("Error submitting form:", error)
