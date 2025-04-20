@@ -4,7 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Lottie from "lottie-react";
+// Dynamically import Lottie to avoid SSR issues with document/window
+import dynamic from "next/dynamic"
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
+// If you encounter SSR errors with other components, use dynamic import with ssr: false as shown above.
 import {
   Eye,
   EyeOff,
@@ -112,13 +115,16 @@ export default function ScientificLoginForm() {
     }
     `;
 
-    const styleElement = document.createElement('style');
-    styleElement.innerHTML = globalStyles;
-    document.head.appendChild(styleElement);
+    if (typeof document !== 'undefined') {
+      const styleElement = document.createElement('style');
+      styleElement.innerHTML = globalStyles;
+      document.head.appendChild(styleElement);
 
-    return () => {
-      document.head.removeChild(styleElement);
-    };
+      return () => {
+        document.head.removeChild(styleElement);
+      };
+    }
+    return undefined;
   }, []);
 
   useEffect(() => {
