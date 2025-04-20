@@ -350,9 +350,36 @@ export function ModernSidebar({ className, onToggle }) {
                 {
                     name: 'settings',
                     label: 'Settings',
-                    icon: <Settings className="h-5 w-5" />,
-                    path: '/settings',
-                    badge: null
+                    icon:
+                        <MessageSquare className="h-5 w-5" />,
+                    path: '#',
+                    badge: {
+                        count: "Soon",
+                        variant: 'secondary',
+                        className: "bg-amber-100 text-amber-800 border-amber-200 px-2 text-[10px]"
+                    },
+                    renderItem: (item, isActive) => (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm my-1"
+                                        , "bg-muted/20 text-muted-foreground cursor-not-allowed opacity-70 border border-dashed border-muted/50",
+                                        isActive && "bg-muted/30")}>
+                                        <div className="flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground bg-muted/10">
+                                            <MessageSquare className="h-5 w-5" />
+                                        </div>
+                                        <span className="flex-1">Messages</span>
+                                        <Badge variant="outline" className="ml-auto text-xs uppercase">
+                                            Soon
+                                        </Badge>
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" sideOffset={5}>
+                                    <p className="max-w-[200px]">This feature is in development. We will release it soon.</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )
                 },
                 {
                     name: 'compliance',
