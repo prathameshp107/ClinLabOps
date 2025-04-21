@@ -168,12 +168,14 @@ export default function ScientificLoginForm() {
           const has2FA = formData.email.includes("admin");
           if (has2FA) {
             setLoginStage("2fa");
+            setIsLoading(false); // Important: stop loading when switching to 2FA
+            return; // Early return is fine here as we're not in the render function
           } else {
             // Simulate successful login
             setLoginSuccess(true);
             await new Promise((resolve) => setTimeout(resolve, 1000));
             // Redirect to dashboard based on role
-            router.push("/");
+            router.push("/admin-dashboard");
           }
         } else if (loginStage === "2fa") {
           if (formData.twoFactorCode === "123456") {
@@ -181,7 +183,7 @@ export default function ScientificLoginForm() {
             setLoginSuccess(true);
             await new Promise((resolve) => setTimeout(resolve, 1000));
             // Redirect to dashboard
-            router.push("/");
+            router.push("/admin-dashboard");
           } else {
             setError("Invalid two-factor authentication code. Please try again.");
             setShake(true);
@@ -212,12 +214,12 @@ export default function ScientificLoginForm() {
     setTimeout(() => {
       setLoginSuccess(true);
       setTimeout(() => {
-        router.push("/");
+        router.push("/admin-dashboard");
       }, 1000);
     }, 1500);
   };
 
-  // Success animation
+  // Render success animation if login is successful
   if (loginSuccess) {
     return (
       <div className="min-h-screen flex flex-col molecule-bg overflow-auto">
@@ -281,13 +283,7 @@ export default function ScientificLoginForm() {
     );
   }
 
-  // Remove the animation import and related code
-  useEffect(() => {
-    // No need to load animation for this login page
-  }, []);
-
-  // Success animation remains the same...
-
+  // Main login form render
   return (
     <div className="min-h-screen bg-white flex flex-col overflow-auto">
       <div className="container mx-auto px-4 py-6">

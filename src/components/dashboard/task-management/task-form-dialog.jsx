@@ -54,8 +54,22 @@ const taskFormSchema = z.object({
   priority: z.string({
     required_error: "Please select a priority level.",
   }),
-  dueDate: z.date().optional(),
-  assigneeId: z.string().optional(),
+  dueDate: z.date({
+    required_error: "Please select a due date.",
+  }).refine(
+    (date) => date >= new Date(new Date().setHours(0, 0, 0, 0)),
+    {
+      message: "Due date cannot be in the past",
+    }
+  ),
+  assigneeId: z.string({
+    required_error: "Please select an assignee.",
+  }).refine(
+    (value) => value !== "unassigned",
+    {
+      message: "Task must be assigned to a team member",
+    }
+  ),
   experimentId: z.string().optional(),
   parentTaskId: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -157,6 +171,17 @@ export const TaskFormDialog = ({
 
   // Handle form submission
   const handleSubmit = (data) => {
+    // Find the assignee user object based on the selected ID
+    const assignee = userArray.find(user => user.id === data.assigneeId) ||
+      // Fallback for hardcoded users
+      [
+        { id: 'user1', name: 'John Doe' },
+        { id: 'user2', name: 'Jane Smith' },
+        { id: 'user3', name: 'Sarah Johnson' },
+        { id: 'user4', name: 'Jenny Parker' },
+        { id: 'user5', name: 'Harry Potter' }
+      ].find(user => user.id === data.assigneeId);
+
     // Map form fields to expected task fields
     const formattedTask = {
       ...data,
@@ -164,6 +189,13 @@ export const TaskFormDialog = ({
       experimentName: experiments.find(e => e.id === data.experimentId)?.name || "",
       tags,
       subtasks,
+      // Add assignee information
+      assignee: assignee ? {
+        id: assignee.id,
+        name: assignee.name,
+        avatar: assignee.avatar || null
+      } : null,
+      assigneeName: assignee?.name || "Unassigned"
     };
 
     // If editing, add the id
@@ -445,6 +477,7 @@ export const TaskFormDialog = ({
                             <FormLabel className="text-sm font-medium flex items-center gap-2">
                               <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                               Due Date
+                              <span className="text-xs text-red-500 font-normal ml-1">*Required</span>
                             </FormLabel>
                             <div className="relative">
                               <Popover open={showCalendar} onOpenChange={setShowCalendar}>
@@ -510,6 +543,8 @@ export const TaskFormDialog = ({
                                     onSelect={field.onChange}
                                     initialFocus
                                     className="rounded-md border"
+                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                    fromDate={new Date()}
                                   />
                                   {field.value && (
                                     <div className="p-3 border-t border-border">
@@ -573,18 +608,30 @@ export const TaskFormDialog = ({
                         name="assigneeId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-medium">Assignee</FormLabel>
+                            <FormLabel className="text-sm font-medium">
+                              Assignee
+                              <span className="text-xs text-red-500 font-normal ml-1">*Required</span>
+                            </FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                               value={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="focus-visible:ring-primary/70">
+                                <SelectTrigger className={cn(
+                                  "focus-visible:ring-primary/70",
+                                  field.value === "unassigned" && "border-red-300 bg-red-50/50"
+                                )}>
                                   <SelectValue placeholder="Assign to..." />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
+                                <SelectItem value="unassigned" disabled>
+                                  <div className="flex items-center gap-2 text-muted-foreground">
+                                    <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                    Select an assignee
+                                  </div>
+                                </SelectItem>
                                 <SelectItem value="user1">
                                   <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-green-500"></div>
@@ -606,7 +653,7 @@ export const TaskFormDialog = ({
                                 <SelectItem value="user4">
                                   <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                                    jenny parker
+                                    Jenny Parker
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="user5">
@@ -626,6 +673,71 @@ export const TaskFormDialog = ({
                                 ))}
                               </SelectContent>
                             </Select>
+                            <FormMessage className="text-xs" />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="experimentId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm font-medium">
+                              Experiment
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="focus-visible:ring-primary/70">
+                                  <SelectValue placeholder="Select experiment" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="none_experiment">
+                                  <div className="flex items-center gap-2 text-muted-foreground">
+                                    <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                    No experiment
+                                  </div>
+                                </SelectItem>
+                                
+                                {/* Default experiment options */}
+                                <SelectItem value="exp1">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                    Compound A Toxicity Study
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="exp2">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                                    Compound B Efficacy Test
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="exp3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                    Compound C Cellular Study
+                                  </div>
+                                </SelectItem>
+                                
+                                {/* Dynamic experiment options from props */}
+                                {experimentsArray.map((experiment) => (
+                                  <SelectItem key={experiment.id} value={experiment.id}>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+                                      {experiment.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription className="text-xs text-muted-foreground/70 mt-1">
+                              Associate this task with a specific experiment
+                            </FormDescription>
                             <FormMessage className="text-xs" />
                           </FormItem>
                         )}

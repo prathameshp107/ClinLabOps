@@ -480,10 +480,57 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   // Function to create a new task
   const createTask = (newTask) => {
     // In a real app, you would send this to your API
+    
+    // Format the assignee data to match the expected structure
+    const assigneeData = (() => {
+      // Check if we have an assignee from the form
+      if (newTask.assigneeId) {
+        // Try to find the user in the mockUsers object
+        const user = Object.values(mockUsers).find(u => u.id === newTask.assigneeId);
+        
+        // If found in mockUsers, use that data
+        if (user) {
+          return {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar
+          };
+        }
+        
+        // For hardcoded users in the form that aren't in mockUsers
+        const hardcodedUsers = {
+          'user1': { id: 'user1', name: 'John Doe', avatar: 'JD' },
+          'user2': { id: 'user2', name: 'Jane Smith', avatar: 'JS' },
+          'user3': { id: 'user3', name: 'Sarah Johnson', avatar: 'SJ' },
+          'user4': { id: 'user4', name: 'Jenny Parker', avatar: 'JP' },
+          'user5': { id: 'user5', name: 'Harry Potter', avatar: 'HP' }
+        };
+        
+        if (hardcodedUsers[newTask.assigneeId]) {
+          return hardcodedUsers[newTask.assigneeId];
+        }
+        
+        // Fallback if we can't find the user
+        return {
+          id: newTask.assigneeId,
+          name: newTask.assigneeName || "Unknown User",
+          avatar: newTask.assigneeId.substring(0, 2).toUpperCase()
+        };
+      }
+      
+      // Default to unassigned
+      return {
+        id: 'unassigned',
+        name: 'Unassigned',
+        avatar: 'UN'
+      };
+    })();
+
     const taskWithMeta = {
       ...newTask,
       id: `t${tasks.length + 1}`,
       createdAt: new Date().toISOString(),
+      assignedTo: assigneeData, // Use the properly formatted assignee data
       activityLog: [
         {
           id: `al${Date.now()}`,
@@ -521,6 +568,51 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
 
   // Function to update an existing task
   const updateTask = (updatedTask) => {
+    // Format the assignee data to match the expected structure
+    const assigneeData = (() => {
+      // Check if we have an assignee from the form
+      if (updatedTask.assigneeId) {
+        // Try to find the user in the mockUsers object
+        const user = Object.values(mockUsers).find(u => u.id === updatedTask.assigneeId);
+        
+        // If found in mockUsers, use that data
+        if (user) {
+          return {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar
+          };
+        }
+        
+        // For hardcoded users in the form that aren't in mockUsers
+        const hardcodedUsers = {
+          'user1': { id: 'user1', name: 'John Doe', avatar: 'JD' },
+          'user2': { id: 'user2', name: 'Jane Smith', avatar: 'JS' },
+          'user3': { id: 'user3', name: 'Sarah Johnson', avatar: 'SJ' },
+          'user4': { id: 'user4', name: 'Jenny Parker', avatar: 'JP' },
+          'user5': { id: 'user5', name: 'Harry Potter', avatar: 'HP' }
+        };
+        
+        if (hardcodedUsers[updatedTask.assigneeId]) {
+          return hardcodedUsers[updatedTask.assigneeId];
+        }
+        
+        // Fallback if we can't find the user
+        return {
+          id: updatedTask.assigneeId,
+          name: updatedTask.assigneeName || "Unknown User",
+          avatar: updatedTask.assigneeId.substring(0, 2).toUpperCase()
+        };
+      }
+      
+      // Default to unassigned
+      return {
+        id: 'unassigned',
+        name: 'Unassigned',
+        avatar: 'UN'
+      };
+    })();
+
     // In a real app, you would send this to your API
     const updatedTasks = tasks.map(task => {
       if (task.id === updatedTask.id) {
@@ -535,6 +627,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
 
         return {
           ...updatedTask,
+          assignedTo: assigneeData, // Use the properly formatted assignee data
           activityLog: [...task.activityLog, newLog]
         };
       }
