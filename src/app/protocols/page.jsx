@@ -106,47 +106,71 @@ export default function ProtocolsPage() {
       sidebarOpen={sidebarOpen} 
       setSidebarOpen={setSidebarOpen}
     >
-      <div className="transition-all duration-300 ease-in-out w-full">
-        <div className="container px-4 sm:px-6 lg:px-6 py-6 max-w-full mx-auto">
+      <div className="transition-all duration-300 ease-in-out w-full bg-gradient-to-b from-background to-background/80 min-h-screen">
+        <div className="container px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
           {/* Header Section */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 backdrop-blur-sm bg-card/40 p-6 rounded-2xl border border-border/30 shadow-sm">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Protocols</h1>
-              <p className="text-muted-foreground text-sm sm:text-base mt-1">
-                Manage laboratory protocols, methods, and procedures
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Laboratory Protocols
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base mt-2">
+                Manage standardized procedures, methods, and experimental protocols
               </p>
             </div>
             <Button 
               onClick={handleCreateProtocol}
-              className="bg-primary hover:bg-primary/90 text-white font-medium"
+              className="bg-primary hover:bg-primary/90 text-white font-medium shadow-sm transition-all duration-200 hover:translate-y-[-1px] hover:shadow-md"
+              size="lg"
             >
-              <PlusCircle className="mr-2 h-4 w-4" />
+              <PlusCircle className="mr-2 h-5 w-5" />
               New Protocol
             </Button>
           </div>
 
           {/* Search and Filters */}
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="mb-8">
+            <div className="relative max-w-3xl mx-auto">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search protocols by name, category, or author..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background"
+                className="pl-12 h-14 bg-card/40 backdrop-blur-sm border-border/30 rounded-xl shadow-sm focus-visible:ring-primary/30 text-base"
               />
             </div>
           </div>
 
+          {/* Empty State */}
+          {filteredProtocols.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center bg-card/40 backdrop-blur-sm rounded-2xl border border-border/30 shadow-sm">
+              <div className="rounded-full bg-primary/10 p-4 mb-5">
+                <Search className="h-8 w-8 text-primary/80" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No protocols found</h3>
+              <p className="text-muted-foreground max-w-md mb-6">
+                We couldn't find any protocols matching your search criteria. Try adjusting your search or create a new protocol.
+              </p>
+              <Button onClick={handleCreateProtocol} variant="outline" className="bg-background/50 hover:bg-primary/5">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create New Protocol
+              </Button>
+            </div>
+          )}
+
           {/* Protocol List */}
-          <ProtocolList
-            protocols={filteredProtocols}
-            onView={handleViewProtocol}
-            onEdit={handleEditProtocol}
-            onDuplicate={handleDuplicateProtocol}
-            onArchive={handleArchiveProtocol}
-            onDelete={handleDeleteProtocol}
-          />
+          {filteredProtocols.length > 0 && (
+            <div className="bg-card/40 backdrop-blur-sm rounded-2xl border border-border/30 shadow-sm overflow-hidden">
+              <ProtocolList
+                protocols={filteredProtocols}
+                onView={handleViewProtocol}
+                onEdit={handleEditProtocol}
+                onDuplicate={handleDuplicateProtocol}
+                onArchive={handleArchiveProtocol}
+                onDelete={handleDeleteProtocol}
+              />
+            </div>
+          )}
 
           {/* Protocol Form Dialog */}
           <ProtocolFormDialog
