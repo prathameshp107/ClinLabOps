@@ -179,58 +179,52 @@ export default function LandingPage() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-3 bg-background/60 backdrop-blur-sm border border-border/20 rounded-full px-3 py-1.5 shadow-sm">
-              <Button variant="ghost" size="sm" className="flex items-center gap-2 rounded-full h-7 px-2.5">
-                <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 bg-background/60 backdrop-blur-sm border border-border/20 rounded-full px-3 py-1.5 shadow-sm">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 rounded-full h-8 px-4">
+                <Globe className="h-4 w-4 text-muted-foreground" />
                 <span className="text-xs font-medium">EN</span>
               </Button>
 
               <div className="h-4 w-px bg-border/40"></div>
 
-              <Button variant="ghost" size="sm" className="flex items-center gap-2 rounded-full h-7 px-2.5">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 rounded-full h-8 px-4">
                 <Link href="/help" className="flex items-center gap-2">
-                  <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs font-medium">Help</span>
                 </Link>
               </Button>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hover:scale-105 transition-all duration-300 bg-background/80 hover:bg-background border-border/30 rounded-full h-8 px-4 shadow-sm"
-                asChild
-              >
-                <Link href="/login" className="flex items-center gap-2">
-                  <Lock className="h-3.5 w-3.5 text-primary" />
-                  <span className="font-medium text-xs">Log In</span>
-                </Link>
-              </Button>
+              <div className="hidden md:flex items-center gap-1 bg-background/60 backdrop-blur-sm border border-border/20 rounded-full px-3 py-1.5 shadow-sm">
+                <Button variant="outline" size="sm" className="flex items-center gap-2 rounded-full h-8 px-4">
+                  <Link href="/login" className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium">Log In</span>
+                  </Link>
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="hover:scale-105 transition-all duration-300 bg-gradient-to-r from-primary/5 to-purple-500/5 hover:from-primary/10 hover:to-purple-500/10 border-primary/20 rounded-full h-8 px-4 shadow-sm"
-                asChild
-              >
-                <Link href="/register" className="flex items-center gap-2">
-                  <UserPlus className="h-3.5 w-3.5 text-primary" />
-                  <span className="font-medium text-xs">Register</span>
-                </Link>
-              </Button>
+                <div className="h-4 w-px bg-border/40"></div>
+
+                <Button variant="outline" size="sm" className="flex items-center gap-2 rounded-full h-8 px-4 ">
+                  <Link href="/register" className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium">Register</span>
+                  </Link>
+                </Button>
+              </div>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 bg-background/60 backdrop-blur-sm border border-border/20 rounded-full px-1.5 py-1 shadow-sm">
+            <div className="hidden md:flex items-center gap-2 bg-background/60 backdrop-blur-sm border border-border/20 rounded-full px-2 py-1.5 shadow-sm">
               <Button
                 variant="ghost"
                 size="sm"
-                className="rounded-full h-7 px-3 hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                className="rounded-full h-8 px-4 hover:bg-primary/10 hover:text-primary transition-all duration-300"
                 asChild
               >
                 <Link href="/projects" className="flex items-center gap-2">
-                  <FolderKanban className="h-3.5 w-3.5" />
+                  <FolderKanban className="h-4 w-4" />
                   <span className="font-medium text-xs">Projects</span>
                   <div className="px-1.5 py-0.5 bg-primary/10 rounded-full text-[10px] font-medium text-primary">
                     3
@@ -241,11 +235,11 @@ export default function LandingPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="rounded-full h-7 px-3 hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                className="rounded-full h-8 px-4 hover:bg-primary/10 hover:text-primary transition-all duration-300"
                 asChild
               >
                 <Link href="/tasks" className="flex items-center gap-2">
-                  <CheckSquare className="h-3.5 w-3.5" />
+                  <CheckSquare className="h-4 w-4" />
                   <span className="font-medium text-xs">Tasks</span>
                   <div className="px-1.5 py-0.5 bg-primary/10 rounded-full text-[10px] font-medium text-primary">
                     5
@@ -261,7 +255,7 @@ export default function LandingPage() {
             >
               <Link href="/admin-dashboard" className="flex items-center gap-2">
                 <span className="font-medium text-xs">Dashboard</span>
-                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
           </div>
