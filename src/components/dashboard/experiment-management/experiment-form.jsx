@@ -23,14 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { format } from "date-fns"
-import { CalendarIcon, Beaker, Users, Clock, AlertTriangle, ArrowRight, ArrowLeft } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker" // Import the custom DatePicker
+import { Beaker, Users, ArrowRight, ArrowLeft, AlertTriangle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
@@ -244,35 +238,16 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                   control={form.control}
                   name="startDate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel className="text-sm sm:text-base">Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={`w-full pl-3 text-left text-sm sm:text-base h-8 sm:h-10 font-normal transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 ${!field.value && "text-muted-foreground"}`}
-                            >
-                              <Clock className="mr-2 h-3 w-3 sm:h-4 sm:w-4 opacity-70" />
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="rounded-md border"
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <DatePicker
+                          selectedDate={field.value}
+                          onDateChange={field.onChange}
+                          placeholder="Select start date"
+                          className="text-sm sm:text-base h-8 sm:h-10 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1"
+                        />
+                      </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
                     </FormItem>
                   )}
@@ -282,35 +257,17 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                   control={form.control}
                   name="endDate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel className="text-sm sm:text-base">End Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={`w-full pl-3 text-left text-sm sm:text-base h-8 sm:h-10 font-normal transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 ${!field.value && "text-muted-foreground"}`}
-                            >
-                              <Clock className="mr-2 h-3 w-3 sm:h-4 sm:w-4 opacity-70" />
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-3 w-3 sm:h-4 sm:w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                            className="rounded-md border"
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <DatePicker
+                          selectedDate={field.value}
+                          onDateChange={field.onChange}
+                          placeholder="Select end date"
+                          className="text-sm sm:text-base h-8 sm:h-10 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1"
+                          minDate={form.watch('startDate')} // Ensure end date is after start date
+                        />
+                      </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
                     </FormItem>
                   )}

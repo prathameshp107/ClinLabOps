@@ -54,6 +54,7 @@ import { cn } from "@/lib/utils"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
+import { DatePicker } from "@/components/ui/date-picker"
 
 // Rich text editor imports
 import { EditorContent, useEditor } from '@tiptap/react'
@@ -691,34 +692,16 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         <Label htmlFor="startDate">
                           Start Date <span className="text-destructive">*</span>
                         </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id="startDate"
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !projectData.startDate && "text-muted-foreground",
-                                formErrors.startDate ? "border-destructive" : ""
-                              )}
-                            >
-                              <Calendar className="mr-2 h-4 w-4" />
-                              {projectData.startDate ? (
-                                format(projectData.startDate, "PPP")
-                              ) : (
-                                <span>Select start date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <CalendarComponent
-                              mode="single"
-                              selected={projectData.startDate}
-                              onSelect={(date) => handleDateChange(date, "startDate")}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <DatePicker
+                          selectedDate={projectData.startDate}
+                          onDateChange={(date) => handleDateChange(date, "startDate")}
+                          placeholder="Select start date"
+                          className={cn(
+                            formErrors.startDate ? "border-destructive" : ""
+                          )}
+                          showTodayButton={true}
+                          showClearButton={false}
+                        />
                         {formErrors.startDate && (
                           <p className="text-sm text-destructive">{formErrors.startDate}</p>
                         )}
@@ -728,35 +711,17 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         <Label htmlFor="endDate">
                           End Date <span className="text-destructive">*</span>
                         </Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id="endDate"
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !projectData.endDate && "text-muted-foreground",
-                                formErrors.endDate ? "border-destructive" : ""
-                              )}
-                            >
-                              <Calendar className="mr-2 h-4 w-4" />
-                              {projectData.endDate ? (
-                                format(projectData.endDate, "PPP")
-                              ) : (
-                                <span>Select end date</span>
-                              )}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <CalendarComponent
-                              mode="single"
-                              selected={projectData.endDate}
-                              onSelect={(date) => handleDateChange(date, "endDate")}
-                              initialFocus
-                              disabled={(date) => date < projectData.startDate}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                        <DatePicker
+                          selectedDate={projectData.endDate}
+                          onDateChange={(date) => handleDateChange(date, "endDate")}
+                          placeholder="Select end date"
+                          className={cn(
+                            formErrors.endDate ? "border-destructive" : ""
+                          )}
+                          minDate={projectData.startDate}
+                          showTodayButton={true}
+                          showClearButton={false}
+                        />
                         {formErrors.endDate && (
                           <p className="text-sm text-destructive">{formErrors.endDate}</p>
                         )}
@@ -1618,41 +1583,41 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
               </div>
 
               {activeTab !== "additional" ? (
-  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-    <Button
-      type="button"
-      onClick={() => setActiveTab(activeTab === "details" ? "team" : "additional")}
-      className="gap-2 shadow-md hover:shadow-lg transition-all"
-    >
-      Continue
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 18 15 12 9 6" />
-      </svg>
-    </Button>
-  </motion.div>
-) : (
-  <Button
-    type="submit"
-    variant="primary"
-    disabled={isSubmitting}
-    className="gap-2 w-full sm:w-auto py-3 px-8 rounded-lg bg-primary text-white font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-base flex items-center justify-center"
-  >
-    {isSubmitting ? (
-      <>
-        <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        Creating...
-      </>
-    ) : (
-      <>
-        <CheckCircle2 className="h-5 w-5 mr-2" />
-        Create Project
-      </>
-    )}
-  </Button>
-)}
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button
+                    type="button"
+                    onClick={() => setActiveTab(activeTab === "details" ? "team" : "additional")}
+                    className="gap-2 shadow-md hover:shadow-lg transition-all"
+                  >
+                    Continue
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18 15 12 9 6" />
+                    </svg>
+                  </Button>
+                </motion.div>
+              ) : (
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={isSubmitting}
+                  className="gap-2 w-full sm:w-auto py-3 px-8 rounded-lg bg-primary text-white font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-base flex items-center justify-center"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-5 w-5 mr-2" />
+                      Create Project
+                    </>
+                  )}
+                </Button>
+              )}
             </DialogFooter>
           </form>
         </Tabs>
