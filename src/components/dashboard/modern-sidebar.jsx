@@ -38,7 +38,8 @@ import {
     FileText,
     Database,
     Shield,
-    HelpCircle
+    HelpCircle,
+    Star
 } from "lucide-react";
 import {
     AlertDialog,
@@ -50,6 +51,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 export function ModernSidebar({ className, onToggle }) {
     const pathname = usePathname();
@@ -67,32 +71,30 @@ export function ModernSidebar({ className, onToggle }) {
     // Simulate notification for settings
     const [hasSettingsNotification] = useState(true);
 
-    useEffect(() => {
+    // Drag-and-drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    );
+
+    // Load/persist order from localStorage
+    const getInitialOrder = (key, defaultOrder) => {
         if (typeof window !== 'undefined') {
-            const storedUserData = localStorage.getItem('userData');
-            if (storedUserData) {
+            const stored = localStorage.getItem(key);
+            if (stored) {
                 try {
-                    setUserData(JSON.parse(storedUserData));
-                } catch (error) {
-                    console.error('Error parsing user data:', error);
-                }
+                    return JSON.parse(stored);
+                } catch { }
             }
         }
-    }, []);
-
-    const handleLogout = () => setShowLogoutDialog(true);
-    const confirmLogout = () => {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        router.push('/login');
+        return defaultOrder;
     };
-    const handleToggle = () => {
-        const newCollapsedState = !isCollapsed;
-        setIsCollapsed(newCollapsedState);
-        if (onToggle) onToggle(newCollapsedState);
-    };
-    const isActive = (path) => pathname === path;
 
+    // Group order state
+    const [groupOrder, setGroupOrder] = useState(() => getInitialOrder('sidebarGroupOrder', [
+        'main', 'lab', 'team', 'insights', 'system'
+    ]));
+    // Item order state per group
+    const [itemOrder, setItemOrder] = useState(() => getInitialOrder('sidebarItemOrder', {}));
     // Grouped navigation items
     const navigationGroups = [
         {
@@ -148,9 +150,115 @@ export function ModernSidebar({ className, onToggle }) {
         }
     ];
 
+    // Save order to localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('sidebarGroupOrder', JSON.stringify(groupOrder));
+            localStorage.setItem('sidebarItemOrder', JSON.stringify(itemOrder));
+        }
+    }, [groupOrder, itemOrder]);
+
+    // Helper: get group/items in current order
+    const orderedGroups = groupOrder.map(key => navigationGroups.find(g => g.key === key)).filter(Boolean);
+    const getOrderedItems = (group) => {
+        const order = itemOrder[group.key] || group.items.map(i => i.name);
+        // Remove pinning logic, just order by order array
+        return group.items.slice().sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+    };
+
+    // Drag-and-drop handlers
+    const handleGroupDragEnd = (event) => {
+        const { active, over } = event;
+        if (active.id !== over?.id) {
+            const oldIndex = groupOrder.indexOf(active.id);
+            const newIndex = groupOrder.indexOf(over.id);
+            const newOrder = arrayMove(groupOrder, oldIndex, newIndex);
+            setGroupOrder(newOrder);
+        }
+    };
+    const handleItemDragEnd = (groupKey) => (event) => {
+        const { active, over } = event;
+        if (active.id !== over?.id) {
+            const group = navigationGroups.find(g => g.key === groupKey);
+            const order = itemOrder[groupKey] || group.items.map(i => i.name);
+            const oldIndex = order.indexOf(active.id);
+            const newIndex = order.indexOf(over.id);
+            const newOrder = arrayMove(order, oldIndex, newIndex);
+            setItemOrder((prev) => ({ ...prev, [groupKey]: newOrder }));
+        }
+    };
+
+    // Sortable wrappers
+    function SortableGroup({ group, children }) {
+        const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: group.key });
+        return (
+            <div
+                ref={setNodeRef}
+                style={{
+                    transform: CSS.Transform.toString(transform),
+                    transition,
+                    opacity: isDragging ? 0.5 : 1
+                }}
+                {...attributes}
+                {...listeners}
+            >
+                {children}
+            </div>
+        );
+    }
+    function SortableItem({ item, children }) {
+        const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.name });
+        return (
+            <div
+                ref={setNodeRef}
+                style={{
+                    transform: CSS.Transform.toString(transform),
+                    transition,
+                    opacity: isDragging ? 0.5 : 1
+                }}
+                {...attributes}
+                {...listeners}
+            >
+                {children}
+            </div>
+        );
+    }
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const storedUserData = localStorage.getItem('userData');
+            if (storedUserData) {
+                try {
+                    setUserData(JSON.parse(storedUserData));
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
+            }
+        }
+    }, []);
+
+    const handleLogout = () => setShowLogoutDialog(true);
+    const confirmLogout = () => {
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        router.push('/login');
+    };
+    const handleToggle = () => {
+        const newCollapsedState = !isCollapsed;
+        setIsCollapsed(newCollapsedState);
+        if (onToggle) onToggle(newCollapsedState);
+    };
+    const isActive = (path) => pathname === path;
+
+
     const toggleGroup = (key) => {
         setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
     };
+
+    // Helper: check if group contains active route
+    const groupIsActive = (group) => group.items.some(item => isActive(item.path));
+    // Helper: get total badge count for group
+    const groupBadgeCount = (group) => group.items.reduce((acc, item) => acc + (item.badge && item.badge.count ? Number(item.badge.count) : 0), 0);
 
     return (
         <aside
@@ -211,84 +319,104 @@ export function ModernSidebar({ className, onToggle }) {
 
             {/* Navigation with Groups */}
             <ScrollArea className="flex-1 px-1 overflow-y-auto">
-                <nav className="space-y-2 mt-2">
-                    <TooltipProvider>
-                        {navigationGroups.map((group, idx) => (
-                            <div key={group.key} className="mb-1">
-                                {/* Group Header */}
-                                <div
-                                    className={cn(
-                                        "flex items-center gap-2 px-2 py-1 text-[11px] uppercase tracking-wider text-[#64748b] font-bold cursor-pointer select-none hover:text-[#2563eb]",
-                                        isCollapsed && "justify-center px-0"
-                                    )}
-                                    onClick={() => !isCollapsed && toggleGroup(group.key)}
-                                >
-                                    {isCollapsed ? (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <span className="flex items-center justify-center h-7 w-7">{group.icon}</span>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="right">{group.label}</TooltipContent>
-                                        </Tooltip>
-                                    ) : (
-                                        <>
-                                            <span>{group.label}</span>
-                                            <Button variant="ghost" size="icon" className="h-5 w-5 p-0 ml-auto" tabIndex={-1}>
-                                                <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", expandedGroups[group.key] ? "rotate-0" : "-rotate-90")} />
-                                            </Button>
-                                        </>
-                                    )}
-                                </div>
-                                {/* Group Items */}
-                                {expandedGroups[group.key] && (
-                                    <div className="space-y-1">
-                                        {group.items.map((item) => (
-                                            <Tooltip key={item.name} delayDuration={300}>
-                                                <TooltipTrigger asChild>
-                                                    <Link
-                                                        href={item.path}
-                                                        className={cn(
-                                                            "flex items-center gap-3 px-3 py-2 rounded-md group transition-all duration-150 text-[15px] font-medium relative",
-                                                            isActive(item.path)
-                                                                ? "bg-white border-l-4 border-[#2563eb] text-[#2563eb] shadow-sm"
-                                                                : "hover:bg-[#e0e7ff] text-[#1e293b]"
-                                                        )}
-                                                    >
-                                                        <span className={cn(
-                                                            "flex items-center justify-center h-7 w-7",
-                                                            isActive(item.path) ? "text-[#2563eb]" : "text-[#64748b] group-hover:text-[#2563eb]"
-                                                        )}>
-                                                            {item.icon}
-                                                        </span>
-                                                        {!isCollapsed && <span className="flex-1">{item.label}</span>}
-                                                        {item.badge && !isCollapsed && (
-                                                            <Badge
-                                                                variant={isActive(item.path) ? "outline" : item.badge.variant}
-                                                                className={cn(
-                                                                    "h-5 text-xs ml-2",
-                                                                    isActive(item.path) && "bg-[#e0e7ff] text-[#2563eb] border-[#2563eb]"
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
+                    <SortableContext items={orderedGroups.map(g => g.key)} strategy={verticalListSortingStrategy}>
+                        <nav className="space-y-2 mt-2">
+                            <TooltipProvider>
+                                {orderedGroups.map((group, idx) => (
+                                    <SortableGroup key={group.key} group={group}>
+                                        <div className="mb-1">
+                                            {/* Group Header */}
+                                            <div
+                                                className={cn(
+                                                    "flex items-center gap-2 px-2 py-1 text-[11px] uppercase tracking-wider font-bold cursor-pointer select-none hover:text-[#2563eb]",
+                                                    isCollapsed && "justify-center px-0",
+                                                    groupIsActive(group) && !isCollapsed && "bg-[#e0e7ff] text-[#2563eb] rounded-md"
+                                                )}
+                                                onClick={() => !isCollapsed && toggleGroup(group.key)}
+                                            >
+                                                {isCollapsed ? (
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <span className="flex items-center justify-center h-7 w-7 relative">{group.icon}
+                                                                {groupBadgeCount(group) > 0 && (
+                                                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">{groupBadgeCount(group)}</span>
                                                                 )}
-                                                            >
-                                                                {item.badge.count}
-                                                            </Badge>
+                                                            </span>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="right">{group.label}</TooltipContent>
+                                                    </Tooltip>
+                                                ) : (
+                                                    <>
+                                                        <span>{group.label}</span>
+                                                        {groupBadgeCount(group) > 0 && (
+                                                            <span className="ml-2 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-4 px-1 flex items-center justify-center">{groupBadgeCount(group)}</span>
                                                         )}
-                                                    </Link>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="right" className="text-xs">
-                                                    {item.label}
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        ))}
-                                    </div>
-                                )}
-                                {/* Divider between groups, except last */}
-                                {idx < navigationGroups.length - 1 && (
-                                    <div className="h-px bg-[#e5e7eb] my-2 mx-2" />
-                                )}
-                            </div>
-                        ))}
-                    </TooltipProvider>
-                </nav>
+                                                        <Button variant="ghost" size="icon" className="h-5 w-5 p-0 ml-auto" tabIndex={-1}>
+                                                            <ChevronDown className={cn("h-3 w-3 transition-transform duration-200", expandedGroups[group.key] ? "rotate-0" : "-rotate-90")} />
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </div>
+                                            {/* Group Items */}
+                                            {expandedGroups[group.key] && (
+                                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleItemDragEnd(group.key)}>
+                                                    <SortableContext items={getOrderedItems(group).map(i => i.name)} strategy={verticalListSortingStrategy}>
+                                                        <div className="space-y-1">
+                                                            {getOrderedItems(group).map((item) => (
+                                                                <SortableItem key={item.name} item={item}>
+                                                                    <Tooltip delayDuration={300}>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Link
+                                                                                href={item.path}
+                                                                                className={cn(
+                                                                                    "flex items-center gap-3 px-3 py-2 rounded-md group transition-all duration-150 text-[15px] font-medium relative",
+                                                                                    isActive(item.path)
+                                                                                        ? "bg-white border-l-4 border-[#2563eb] text-[#2563eb] shadow-sm"
+                                                                                        : "hover:bg-[#e0e7ff] text-[#1e293b]"
+                                                                                )}
+                                                                            >
+                                                                                <span className={cn(
+                                                                                    "flex items-center justify-center h-7 w-7",
+                                                                                    isActive(item.path) ? "text-[#2563eb]" : "text-[#64748b] group-hover:text-[#2563eb]"
+                                                                                )}>
+                                                                                    {item.icon}
+                                                                                </span>
+                                                                                {!isCollapsed && <span className="flex-1">{item.label}</span>}
+                                                                                {item.badge && !isCollapsed && (
+                                                                                    <Badge
+                                                                                        variant={isActive(item.path) ? "outline" : item.badge.variant}
+                                                                                        className={cn(
+                                                                                            "h-5 text-xs ml-2",
+                                                                                            isActive(item.path) && "bg-[#e0e7ff] text-[#2563eb] border-[#2563eb]"
+                                                                                        )}
+                                                                                    >
+                                                                                        {item.badge.count}
+                                                                                    </Badge>
+                                                                                )}
+                                                                            </Link>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent side="right" className="text-xs">
+                                                                            {item.label}
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </SortableItem>
+                                                            ))}
+                                                        </div>
+                                                    </SortableContext>
+                                                </DndContext>
+                                            )}
+                                            {/* Divider between groups, except last */}
+                                            {idx < orderedGroups.length - 1 && (
+                                                <div className="h-px bg-[#e5e7eb] my-2 mx-2" />
+                                            )}
+                                        </div>
+                                    </SortableGroup>
+                                ))}
+                            </TooltipProvider>
+                        </nav>
+                    </SortableContext>
+                </DndContext>
             </ScrollArea>
 
             {/* Footer */}
