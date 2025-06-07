@@ -63,6 +63,12 @@ export function ProjectOverview({ project }) {
 
         {/* Recent Activity */}
         <RecentActivity activities={project.activities} team={project.team} />
+
+        {/* Upcoming Milestones */}
+        <UpcomingMilestones milestones={project.milestones} />
+
+        {/* Priority Breakdown */}
+        <PriorityBreakdown />
       </div>
 
       {/* Right Column */}
@@ -102,12 +108,6 @@ export function ProjectOverview({ project }) {
 
         {/* Task Status Overview */}
         <TaskStatusOverview />
-
-        {/* Upcoming Milestones */}
-        <UpcomingMilestones milestones={project.milestones} />
-
-        {/* Priority Breakdown */}
-        <PriorityBreakdown />
 
         {/* Team Workload */}
         <TeamWorkload />
