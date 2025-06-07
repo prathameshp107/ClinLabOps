@@ -22,7 +22,7 @@ export function ProjectTimeline({ timeline }) {
                 <div className="relative w-6 flex-shrink-0 flex flex-col items-center">
                   <div className={`h-4 w-4 rounded-full ${event.completed ? 'bg-blue-600' : 'bg-gray-300'} border-2 border-white z-10 flex items-center justify-center`} />
                   {i < timeline.length - 1 && (
-                    <div className="absolute top-2 bottom-[-6.5rem] w-0.5 bg-gray-200" />
+                    <div className="absolute w-0.5 bg-gray-200 z-0" style={{ top: '8px', height: 'calc(100% + 24px)' }} />
                   )}
                 </div>
 

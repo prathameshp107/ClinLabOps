@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { RecentActivity } from "./recent-activity"
 import { UpcomingMilestones } from "./upcoming-milestones"
+import { TaskStatusOverview } from "./task-status-overview"
+import { PriorityBreakdown } from "./priority-breakdown"
+import { TeamWorkload } from "./team-workload"
 
 const StatProgress = ({ label, value, total, progress, color = "blue" }) => (
   <div className="mb-4 last:mb-0">
@@ -97,8 +100,17 @@ export function ProjectOverview({ project }) {
           </CardContent>
         </Card>
 
+        {/* Task Status Overview */}
+        <TaskStatusOverview />
+
         {/* Upcoming Milestones */}
         <UpcomingMilestones milestones={project.milestones} />
+
+        {/* Priority Breakdown */}
+        <PriorityBreakdown />
+
+        {/* Team Workload */}
+        <TeamWorkload />
       </div>
     </div>
   )
