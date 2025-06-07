@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet } from "lucide-react"
+import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -72,27 +72,6 @@ const mockUsers = [
   { id: "u5", name: "Olivia Taylor", role: "Scientist", department: "Microbiology" },
   { id: "u6", name: "Robert Kim", role: "Technician", department: "Equipment Maintenance" }
 ]
-
-
-// Common project tags
-const commonTags = [
-  "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience",
-  "Data Analysis", "Genetics", "Protocol", "Screening", "Equipment", "Validation",
-  "Mass Spec", "Vaccines", "Stability", "mRNA", "Immunology", "Biomarkers"
-]
-
-// Research areas for dropdown
-const researchAreas = [
-  "Oncology", "Pharmacology", "Toxicology", "Immunology", "Neuroscience",
-  "Cardiology", "Microbiology", "Genetics", "Biochemistry", "Cell Biology",
-  "Molecular Biology", "Virology", "Endocrinology", "Hematology", "Pathology"
-]
-
-// Study types
-const studyTypes = ["In vivo", "In vitro", "Ex vivo", "Clinical", "Computational", "Observational"]
-
-// Data collection frequencies
-const dataCollectionFrequencies = ["Hourly", "Daily", "Twice Daily", "Weekly", "Bi-weekly", "Monthly", "Quarterly", "Custom"]
 
 // Rich text editor toolbar component
 const EditorMenuBar = ({ editor }) => {
@@ -268,6 +247,46 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [documentInput, setDocumentInput] = useState("")
   const [collaboratorInput, setCollaboratorInput] = useState("")
 
+  const projectStatuses = [
+    { value: "Not Started", label: "Not Started", color: "#9ca3af" }, // gray-400
+    { value: "In Progress", label: "In Progress", color: "#3b82f6" }, // blue-500
+    { value: "Completed", label: "Completed", color: "#22c55e" }, // green-500
+    { value: "On Hold", label: "On Hold", color: "#eab308" }, // yellow-500
+    { value: "Cancelled", label: "Cancelled", color: "#ef4444" }, // red-500
+  ];
+
+  const projectPriorities = [
+    { value: "Low", label: "Low", color: "#22c55e" }, // green-500
+    { value: "Medium", label: "Medium", color: "#eab308" }, // yellow-500
+    { value: "High", label: "High", color: "#f97316" }, // orange-500
+    { value: "Critical", label: "Critical", color: "#ef4444" }, // red-500
+  ];
+
+  const researchAreas = [
+    "Oncology", "Pharmacology", "Toxicology", "Immunology",
+    "Neuroscience", "Cardiology", "Microbiology", "Genetics",
+    "Biochemistry", "Cell Biology", "Virology", "Pathology",
+    "Bioinformatics", "Biostatistics", "Clinical Research"
+  ];
+
+  const studyTypes = [
+    "In vivo", "In vitro", "Ex vivo", "Clinical", "Computational",
+    "Observational", "Interventional", "Retrospective", "Prospective"
+  ];
+
+  const dataCollectionFrequencies = [
+    "Daily", "Twice Daily", "Weekly", "Bi-weekly", "Monthly", "Quarterly",
+    "Annually", "As Needed", "Custom"
+  ];
+
+  const commonTags = [
+    "Oncology", "Clinical Trial", "Drug Discovery", "Genomics", "Proteomics",
+    "Immunotherapy", "Neuroscience", "Cardiology", "Infectious Disease", "Bioinformatics",
+    "Data Analysis", "Machine Learning", "AI", "Biomarkers", "Diagnostics",
+    "Therapeutics", "Vaccine Development", "Public Health", "Epidemiology",
+    "Personalized Medicine", "Rare Disease", "Orphan Drug", "Pediatrics", "Geriatrics"
+  ];
+
   // Rich text editor setup
   const editor = useEditor({
     extensions: [
@@ -373,7 +392,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const handleSliderChange = (value, field) => {
     setProjectData(prev => ({
       ...prev,
-      [field]: value[0]
+      [field]: value
     }))
   }
 
@@ -570,53 +589,43 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="w-full sm:w-[90vw] md:w-[80vw] lg:w-[60vw] max-h-[95vh] flex flex-col border border-border/40 shadow-2xl rounded-2xl p-0 bg-background/95"
-        overlayClassName="fixed inset-0 z-50 bg-black/50 dark:bg-black/60 backdrop-blur-md flex items-center justify-center"
-        style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <DialogHeader className="px-8 pt-6 w-full flex flex-col items-center">
-            <DialogTitle className="flex items-center gap-3 text-primary text-2xl font-bold justify-center">
-              <FolderPlus className="h-7 w-7 text-primary" />
-              <span>Add New Project</span>
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground text-center">
-              Fill in the details below to create a new project.
-            </DialogDescription>
-          </DialogHeader>
-        </motion.div>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-4 border-b">
+          <DialogTitle className="text-2xl font-bold">Add New Project</DialogTitle>
+          <DialogDescription className="text-base">
+            Create a new research project and assign team members
+          </DialogDescription>
+        </DialogHeader>
 
-        <Tabs
-          defaultValue="details"
-          className="w-full overflow-hidden mt-4"
-          value={activeTab}
-          onValueChange={setActiveTab}
-        >
-          <TabsList className="w-full flex gap-1 mb-4 px-4 py-1 bg-muted/40 rounded-lg">
-            <TabsTrigger value="details" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
-              <Info className="h-3 w-3" />
-              Details
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 h-auto">
+            <TabsTrigger
+              value="details"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-2"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Project Details
             </TabsTrigger>
-            <TabsTrigger value="team" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
-              <Users className="h-3 w-3" />
+            <TabsTrigger
+              value="team"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-2"
+            >
+              <Users className="h-4 w-4 mr-2" />
               Team
             </TabsTrigger>
-            <TabsTrigger value="research" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
-              <Beaker className="h-3 w-3" />
+            <TabsTrigger
+              value="research"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-2"
+            >
+              <Beaker className="h-4 w-4 mr-2" />
               Research
             </TabsTrigger>
-            <TabsTrigger value="documents" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
-              <FileText className="h-3 w-3" />
+            <TabsTrigger
+              value="documents"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-2"
+            >
+              <FileText className="h-4 w-4 mr-2" />
               Documents
-            </TabsTrigger>
-            <TabsTrigger value="additional" className="flex-1 flex items-center justify-center gap-1 px-1 py-1 text-sm">
-              <FolderPlus className="h-3 w-3" />
-              Additional
             </TabsTrigger>
           </TabsList>
 
@@ -687,9 +696,9 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="startDate">
+                        <Label htmlFor="startDate" className="text-sm font-semibold">
                           Start Date <span className="text-destructive">*</span>
                         </Label>
                         <DatePicker
@@ -697,6 +706,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           onDateChange={(date) => handleDateChange(date, "startDate")}
                           placeholder="Select start date"
                           className={cn(
+                            "w-full",
                             formErrors.startDate ? "border-destructive" : ""
                           )}
                           showTodayButton={true}
@@ -708,7 +718,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="endDate">
+                        <Label htmlFor="endDate" className="text-sm font-semibold">
                           End Date <span className="text-destructive">*</span>
                         </Label>
                         <DatePicker
@@ -716,6 +726,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           onDateChange={(date) => handleDateChange(date, "endDate")}
                           placeholder="Select end date"
                           className={cn(
+                            "w-full",
                             formErrors.endDate ? "border-destructive" : ""
                           )}
                           minDate={projectData.startDate}
@@ -728,64 +739,98 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Status and Priority */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+                      {/* Status */}
                       <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
+                        <Label htmlFor="status" className="text-sm font-semibold">
+                          Status
+                        </Label>
                         <Select
                           value={projectData.status}
                           onValueChange={(value) => handleSelectChange(value, "status")}
                         >
                           <SelectTrigger id="status" className="bg-background/50 border-border/50">
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder="Select project status" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Not Started">Not Started</SelectItem>
-                            <SelectItem value="In Progress">In Progress</SelectItem>
-                            <SelectItem value="Completed">Completed</SelectItem>
-                            <SelectItem value="On Hold">On Hold</SelectItem>
-                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            {projectStatuses.map(status => (
+                              <SelectItem key={status.value} value={status.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: status.color }} />
+                                  {status.label}
+                                </div>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
 
+                      {/* Priority */}
                       <div className="space-y-2">
-                        <Label htmlFor="priority">Priority</Label>
+                        <Label htmlFor="priority" className="text-sm font-semibold">
+                          Priority
+                        </Label>
                         <Select
                           value={projectData.priority}
                           onValueChange={(value) => handleSelectChange(value, "priority")}
                         >
                           <SelectTrigger id="priority" className="bg-background/50 border-border/50">
-                            <SelectValue placeholder="Select priority" />
+                            <SelectValue placeholder="Select project priority" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Low">
-                              <div className="flex items-center">
-                                <div className="h-2 w-2 rounded-full bg-green-500 mr-2"></div>
-                                Low
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Medium">
-                              <div className="flex items-center">
-                                <div className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></div>
-                                Medium
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="High">
-                              <div className="flex items-center">
-                                <div className="h-2 w-2 rounded-full bg-red-500 mr-2"></div>
-                                High
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Critical">
-                              <div className="flex items-center">
-                                <div className="h-2 w-2 rounded-full bg-purple-500 mr-2"></div>
-                                Critical
-                              </div>
-                            </SelectItem>
+                            {projectPriorities.map(priority => (
+                              <SelectItem key={priority.value} value={priority.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: priority.color }} />
+                                  {priority.label}
+                                </div>
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
+
+                    {/* Department & Project Complexity */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
+                      {/* Department */}
+                      <div className="space-y-2">
+                        <Label htmlFor="department" className="text-sm font-semibold">
+                          Department
+                        </Label>
+                        <Input
+                          id="department"
+                          name="department"
+                          value={projectData.department}
+                          onChange={handleInputChange}
+                          placeholder="e.g., Oncology, Cardiology"
+                          className="bg-background/50 border-border/50"
+                        />
+                      </div>
+
+                      {/* Project Complexity */}
+                      <div className="space-y-4">
+                        <Label htmlFor="complexity" className="text-sm font-semibold flex items-center justify-between">
+                          Project Complexity
+                          <span className="font-normal text-muted-foreground text-sm">{projectData.complexity}/100</span>
+                        </Label>
+                        <Slider
+                          id="complexity"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={[projectData.complexity]}
+                          onValueChange={(value) => handleSliderChange(value[0], "complexity")}
+                          className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Simple</span>
+                          <span>Complex</span>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </motion.div>
               </TabsContent>
@@ -796,7 +841,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {/* Principal Investigator Selection */}
                     <div className="space-y-2">
                       <Label htmlFor="pi" className="text-sm font-semibold flex items-center gap-1">
@@ -816,10 +861,15 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           <SelectValue placeholder="Select Principal Investigator">
                             {projectData.principalInvestigator?.name ? (
                               <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
                                   {projectData.principalInvestigator.name.split(' ').map(n => n[0]).join('')}
                                 </div>
-                                <span>{projectData.principalInvestigator.name}</span>
+                                <div className="flex flex-col items-start">
+                                  <span className="font-medium">{projectData.principalInvestigator.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {projectData.principalInvestigator.department} • {projectData.principalInvestigator.institution}
+                                  </span>
+                                </div>
                               </div>
                             ) : (
                               "Select Principal Investigator"
@@ -832,14 +882,14 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                               <SelectItem
                                 key={pi.id}
                                 value={pi.id}
-                                className="flex items-center gap-2 py-2"
+                                className="py-2"
                               >
-                                <div className="flex items-center gap-2 w-full">
-                                  <div className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
                                     {pi.name.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
-                                    <span>{pi.name}</span>
+                                    <span className="font-medium">{pi.name}</span>
                                     <span className="text-xs text-muted-foreground">
                                       {pi.department} • {pi.institution}
                                     </span>
@@ -856,9 +906,13 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
                     {/* Team Members Selection */}
                     <div className="space-y-4">
-                      <Label>Team Members</Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Team Members</Label>
+                        <span className="text-xs text-muted-foreground">
+                          {projectData.team.length} members selected
+                        </span>
+                      </div>
 
-                      {/* Team member dropdown selection */}
                       <Select
                         onValueChange={(value) => {
                           const selectedUser = mockUsers.find(user => user.id === value);
@@ -868,7 +922,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         }}
                       >
                         <SelectTrigger className="w-full bg-background/50 border-border/50">
-                          <SelectValue placeholder="Select team members" />
+                          <SelectValue placeholder="Add team members" />
                         </SelectTrigger>
                         <SelectContent>
                           {mockUsers
@@ -878,10 +932,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                               <SelectItem
                                 key={user.id}
                                 value={user.id}
-                                className="flex items-center gap-2 py-2"
+                                className="py-2"
                               >
-                                <div className="flex items-center gap-2 w-full">
-                                  <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
                                     {user.name.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
@@ -899,14 +953,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       {/* Display selected team members */}
                       {projectData.team.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-sm text-muted-foreground">
-                            Selected Team Members ({projectData.team.length})
-                          </div>
-                          <div className="space-y-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             {projectData.team.map(member => (
                               <div
                                 key={member.id}
-                                className="flex items-center justify-between p-2 rounded-lg border border-border/50 bg-background/50"
+                                className="flex items-center justify-between p-2 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/50 transition-colors"
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
@@ -934,19 +985,9 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       )}
                     </div>
 
-                    {/* Rest of team members display code remains the same */}
-                    <div className="space-y-2">
-                      <Label className={projectData.team.length > 0 ? "" : "sr-only"}>
-                        Selected Team Members ({projectData.team.length})
-                      </Label>
-
-                      {/* Existing team members display code */}
-                      {/* ... existing code ... */}
-                    </div>
-
                     {/* External Collaborators */}
                     <div className="space-y-2 pt-4 border-t">
-                      <Label htmlFor="collaborators">External Collaborators / Institutions</Label>
+                      <Label htmlFor="collaborators" className="text-sm font-semibold">External Collaborators / Institutions</Label>
                       <div className="flex gap-2">
                         <Input
                           id="collaborators"
@@ -1001,111 +1042,13 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 </motion.div>
               </TabsContent>
 
-              <TabsContent value="additional" className="mt-0 space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="tags">Tags</Label>
-                      <div className="relative">
-                        <Input
-                          id="tags"
-                          placeholder="Add tags (e.g., Oncology, Clinical)"
-                          value={tagInput}
-                          onChange={(e) => {
-                            setTagInput(e.target.value)
-                            setShowTagSuggestions(e.target.value.length > 0)
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleTagAdd(tagInput)
-                            }
-                          }}
-                          className="bg-background/50 border-border/50"
-                        />
-                        {showTagSuggestions && filteredTagSuggestions.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 border rounded-md bg-background shadow-md">
-                            {filteredTagSuggestions.map(tag => (
-                              <div
-                                key={tag}
-                                className="px-2 py-1.5 hover:bg-muted cursor-pointer"
-                                onClick={() => {
-                                  handleTagAdd(tag)
-                                  setShowTagSuggestions(false)
-                                }}
-                              >
-                                {tag}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Press Enter to add a tag
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className={projectData.tags.length > 0 ? "" : "sr-only"}>
-                        Selected Tags ({projectData.tags.length})
-                      </Label>
-
-                      {projectData.tags.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {projectData.tags.map(tag => (
-                            <Badge key={tag} variant="secondary" className="px-2 py-1 gap-1">
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => handleTagRemove(tag)}
-                                className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-muted-foreground/20"
-                                aria-label={`Remove ${tag} tag`}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-xl text-muted-foreground/70 bg-muted/20">
-                          <div className="bg-primary/5 rounded-full p-3 mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/80">
-                              <path d="M12 2H2v8a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V4h2" />
-                              <path d="M12 2H2v8a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V4h2" />
-                            </svg>
-                          </div>
-                          <p className="text-base font-medium mb-1">No tags added yet</p>
-                          <p className="text-sm">Add tags to categorize and organize your project</p>
-                          <div className="flex flex-wrap gap-2 mt-4 justify-center max-w-xs">
-                            {commonTags.slice(0, 5).map(tag => (
-                              <Badge
-                                key={tag}
-                                variant="outline"
-                                className="bg-primary/5 hover:bg-primary/10 cursor-pointer transition-colors border-primary/20"
-                                onClick={() => handleTagAdd(tag)}
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              </TabsContent>
-
               <TabsContent value="research" className="mt-0 space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {/* Research Area */}
                     <div className="space-y-2">
                       <Label htmlFor="researchArea" className="text-sm font-semibold">
@@ -1120,7 +1063,12 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         </SelectTrigger>
                         <SelectContent>
                           {researchAreas.map(area => (
-                            <SelectItem key={area} value={area}>{area}</SelectItem>
+                            <SelectItem key={area} value={area}>
+                              <div className="flex items-center gap-2">
+                                <Beaker className="h-4 w-4 text-primary" />
+                                {area}
+                              </div>
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -1148,7 +1096,12 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         </SelectTrigger>
                         <SelectContent>
                           {studyTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                            <SelectItem key={type} value={type}>
+                              <div className="flex items-center gap-2">
+                                <FileSpreadsheet className="h-4 w-4 text-primary" />
+                                {type}
+                              </div>
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -1158,7 +1111,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                     <div className="pt-4 border-t">
                       <h3 className="text-sm font-semibold mb-4">Experiment Details</h3>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Number of Experiments */}
                         <div className="space-y-2">
                           <Label htmlFor="numberOfExperiments" className="text-sm font-semibold">
@@ -1230,192 +1183,17 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           </SelectTrigger>
                           <SelectContent>
                             {dataCollectionFrequencies.map(frequency => (
-                              <SelectItem key={frequency} value={frequency}>{frequency}</SelectItem>
+                              <SelectItem key={frequency} value={frequency}>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="h-4 w-4 text-primary" />
+                                  {frequency}
+                                </div>
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              </TabsContent>
-
-              <TabsContent value="resources" className="mt-0 space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="space-y-4">
-                    {/* Research Area / Study Type */}
-                    <div className="space-y-2">
-                      <Label htmlFor="researchArea" className="text-sm font-semibold">
-                        Research Area / Study Type
-                      </Label>
-                      <Select
-                        value={projectData.researchArea}
-                        onValueChange={(value) => handleSelectChange(value, "researchArea")}
-                      >
-                        <SelectTrigger id="researchArea" className="bg-background/50 border-border/50">
-                          <SelectValue placeholder="Select research area" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Oncology">Oncology</SelectItem>
-                          <SelectItem value="Pharmacology">Pharmacology</SelectItem>
-                          <SelectItem value="Toxicology">Toxicology</SelectItem>
-                          <SelectItem value="Immunology">Immunology</SelectItem>
-                          <SelectItem value="Neuroscience">Neuroscience</SelectItem>
-                          <SelectItem value="Cardiology">Cardiology</SelectItem>
-                          <SelectItem value="Microbiology">Microbiology</SelectItem>
-                          <SelectItem value="Genetics">Genetics</SelectItem>
-                          <SelectItem value="Biochemistry">Biochemistry</SelectItem>
-                          <SelectItem value="Cell Biology">Cell Biology</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Experiment Details */}
-                    <div className="pt-4 border-t">
-                      <h3 className="text-sm font-semibold mb-4">Experiment Details</h3>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Number of Experiments */}
-                        <div className="space-y-2">
-                          <Label htmlFor="numberOfExperiments" className="text-sm font-semibold">
-                            Number of Experiments
-                          </Label>
-                          <Input
-                            id="numberOfExperiments"
-                            type="number"
-                            min="1"
-                            placeholder="1"
-                            className="bg-background/50 border-border/50"
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 1;
-                              setProjectData(prev => ({
-                                ...prev,
-                                numberOfExperiments: value
-                              }));
-                            }}
-                          />
-                        </div>
-
-                        {/* Number of Test Groups */}
-                        <div className="space-y-2">
-                          <Label htmlFor="numberOfGroups" className="text-sm font-semibold">
-                            Number of Test Groups / Arms
-                          </Label>
-                          <Input
-                            id="numberOfGroups"
-                            type="number"
-                            min="1"
-                            placeholder="2"
-                            className="bg-background/50 border-border/50"
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 2;
-                              setProjectData(prev => ({
-                                ...prev,
-                                numberOfGroups: value
-                              }));
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Data Collection Frequency */}
-                      <div className="space-y-2 mt-4">
-                        <Label htmlFor="dataCollectionFrequency" className="text-sm font-semibold">
-                          Data Collection Frequency
-                        </Label>
-                        <Select
-                          onValueChange={(value) => handleSelectChange(value, "dataCollectionFrequency")}
-                          defaultValue="Weekly"
-                        >
-                          <SelectTrigger id="dataCollectionFrequency" className="bg-background/50 border-border/50">
-                            <SelectValue placeholder="Select frequency" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Daily">Daily</SelectItem>
-                            <SelectItem value="Twice Daily">Twice Daily</SelectItem>
-                            <SelectItem value="Weekly">Weekly</SelectItem>
-                            <SelectItem value="Bi-weekly">Bi-weekly</SelectItem>
-                            <SelectItem value="Monthly">Monthly</SelectItem>
-                            <SelectItem value="Custom">Custom</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Study Type */}
-                      <div className="space-y-2 mt-4">
-                        <Label htmlFor="studyType" className="text-sm font-semibold">
-                          Study Type
-                        </Label>
-                        <Select
-                          onValueChange={(value) => handleSelectChange(value, "studyType")}
-                          defaultValue="In vitro"
-                        >
-                          <SelectTrigger id="studyType" className="bg-background/50 border-border/50">
-                            <SelectValue placeholder="Select study type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="In vivo">In vivo</SelectItem>
-                            <SelectItem value="In vitro">In vitro</SelectItem>
-                            <SelectItem value="Ex vivo">Ex vivo</SelectItem>
-                            <SelectItem value="Clinical">Clinical</SelectItem>
-                            <SelectItem value="Computational">Computational</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Required Equipment */}
-                    <div className="space-y-2 pt-4 border-t">
-                      <Label htmlFor="equipment">Required Equipment</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="equipment"
-                          placeholder="Add required equipment"
-                          value={equipmentInput}
-                          onChange={(e) => setEquipmentInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleEquipmentAdd(equipmentInput);
-                            }
-                          }}
-                          className="bg-background/50 border-border/50"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => handleEquipmentAdd(equipmentInput)}
-                        >
-                          Add
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Press Enter to add equipment
-                      </div>
-                    </div>
-
-                    {projectData.requiredEquipment.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {projectData.requiredEquipment.map(equipment => (
-                          <Badge key={equipment} variant="outline" className="px-2 py-1 gap-1 bg-blue-50">
-                            <Beaker className="h-3 w-3 mr-1" />
-                            {equipment}
-                            <button
-                              type="button"
-                              onClick={() => handleEquipmentRemove(equipment)}
-                              className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-muted-foreground/20"
-                              aria-label={`Remove ${equipment}`}
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               </TabsContent>
@@ -1427,26 +1205,19 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="space-y-4">
-
-
+                  <div className="space-y-6">
                     {/* Related Files */}
                     <div className="space-y-2">
                       <Label htmlFor="relatedFiles" className="text-sm font-semibold">
                         Related Files (PDFs, Excel, etc.)
                       </Label>
-                      <div className="border-2 border-dashed rounded-md p-6 bg-background/50 border-border/50 hover:border-primary/50 transition-colors">
+                      <div className="border-2 border-dashed rounded-lg p-6 bg-background/50 border-border/50 hover:border-primary/50 transition-colors">
                         <div className="flex flex-col items-center justify-center text-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground mb-2">
-                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <path d="M8 13h2" />
-                            <path d="M8 17h2" />
-                            <path d="M14 13h2" />
-                            <path d="M14 17h2" />
-                          </svg>
-                          <h3 className="text-sm font-semibold">Upload Related Files</h3>
-                          <p className="text-xs text-muted-foreground mt-1 mb-3">
+                          <div className="p-3 rounded-full bg-primary/5 mb-3">
+                            <FileText className="h-8 w-8 text-primary" />
+                          </div>
+                          <h3 className="text-sm font-semibold mb-1">Upload Related Files</h3>
+                          <p className="text-xs text-muted-foreground mb-4">
                             PDF, Excel, Word, or other document formats
                           </p>
                           <Input
@@ -1505,7 +1276,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
                     {/* Document Links */}
                     <div className="space-y-2 pt-4 border-t">
-                      <Label htmlFor="documentLink">Document Links</Label>
+                      <Label htmlFor="documentLink" className="text-sm font-semibold">Document Links</Label>
                       <div className="flex gap-2">
                         <Input
                           id="documentLink"
@@ -1536,7 +1307,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                     {projectData.relatedDocuments.length > 0 && (
                       <div className="space-y-2">
                         {projectData.relatedDocuments.map(doc => (
-                          <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md bg-background/50 border-border/50">
+                          <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md bg-background/50 border-border/50 hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-primary" />
                               <a
@@ -1571,7 +1342,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setActiveTab(activeTab === "team" ? "details" : "team")}
+                    onClick={() => {
+                      if (activeTab === "team") setActiveTab("details");
+                      else if (activeTab === "research") setActiveTab("team");
+                      else if (activeTab === "documents") setActiveTab("research");
+                    }}
                     className="gap-2 bg-background/70 border-border/50 shadow-sm hover:shadow transition-all"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1582,11 +1357,15 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 )}
               </div>
 
-              {activeTab !== "additional" ? (
+              {activeTab !== "documents" ? (
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button
                     type="button"
-                    onClick={() => setActiveTab(activeTab === "details" ? "team" : "additional")}
+                    onClick={() => {
+                      if (activeTab === "details") setActiveTab("team");
+                      else if (activeTab === "team") setActiveTab("research");
+                      else if (activeTab === "research") setActiveTab("documents");
+                    }}
                     className="gap-2 shadow-md hover:shadow-lg transition-all"
                   >
                     Continue
