@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { Plus, ChevronRight, LayoutGrid, ListFilter } from "lucide-react"
+import { Plus, ChevronRight, LayoutGrid, ListFilter, Users, FileText, Clock, BarChart3, GripVertical } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
@@ -28,14 +28,14 @@ export default function ProjectPage({ params }) {
   // Unwrap params using React.use()
   const unwrappedParams = React.use(params);
   const { id } = unwrappedParams;
-  
+
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
-  
+
   // Add useEffect to fetch project data
   useEffect(() => {
     // Simulate fetching project data
@@ -44,7 +44,7 @@ export default function ProjectPage({ params }) {
         // Replace with your actual API call
         // const response = await fetch(`/api/projects/${id}`);
         // const data = await response.json();
-        
+
         // For now, using enhanced mock data
         const mockProject = {
           id: id,
@@ -67,12 +67,12 @@ export default function ProjectPage({ params }) {
             { id: 't3', name: 'Data Processing', status: 'pending', assignee: 'Emily Chen', assigneeId: 'm3', dueDate: 'Nov 15, 2023', priority: 'medium', progress: 0, description: 'Process the raw data from PCR analysis using statistical methods.' },
             { id: 't4', name: 'Report Generation', status: 'pending', assignee: 'Michael Brown', assigneeId: 'm4', dueDate: 'Nov 30, 2023', priority: 'low', progress: 0, description: 'Generate comprehensive report based on the processed data.' },
             { id: 't5', name: 'Quality Control', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 10, 2023', priority: 'high', progress: 0, description: 'Perform quality control checks on all results and reports.' },
-            { id: 't6', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 20, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
-            { id: 't7', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' },
-            { id: 't8', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
-            { id: 't9', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' },
-            { id: 't10', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' } ,
-            { id: 't11', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId:'m1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' }
+            { id: 't6', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 20, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
+            { id: 't7', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' },
+            { id: 't8', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
+            { id: 't9', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' },
+            { id: 't10', name: 'Report Review', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Review the final report and provide feedback to the team.' },
+            { id: 't11', name: 'Report Submission', status: 'pending', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Dec 30, 2023', priority: 'high', progress: 0, description: 'Submit the final report to the client.' }
           ],
           documents: [
             { id: 'd1', name: 'Project Proposal.pdf', type: 'pdf', size: '2.4 MB', uploadedBy: 'Sarah Miller', uploadedAt: 'Oct 10, 2023', tags: ['proposal', 'planning'] },
@@ -107,7 +107,7 @@ export default function ProjectPage({ params }) {
           ],
           tags: ["Research", "Development", "Laboratory", "Software", "Data Analysis"]
         };
-        
+
         setProject(mockProject);
         setLoading(false);
       } catch (error) {
@@ -115,230 +115,171 @@ export default function ProjectPage({ params }) {
         setLoading(false);
       }
     };
-    
+
     fetchProject();
   }, [id]);
 
   // Handlers for actions
   const handleAddTask = () => {
-    console.log("Adding new task");
-    // Implement task addition logic here
+    setShowAddTaskModal(true);
   };
 
   const handleAddMember = () => {
-    console.log("Adding new team member");
-    // Implement member addition logic here
+    setShowAddMemberModal(true);
   };
-  
+
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-screen bg-gradient-to-br from-background via-primary/10 to-background/90">
+      <div className="flex flex-col min-h-screen bg-white">
         {loading ? (
-          <div className="flex-1 p-6 space-y-6">
-            <Skeleton className="h-16 w-3/4 rounded-lg" />
-            <Skeleton className="h-8 w-1/2 rounded-lg" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-              <Skeleton className="h-[250px] rounded-xl" />
-              <Skeleton className="h-[250px] rounded-xl" />
-              <Skeleton className="h-[250px] rounded-xl" />
+          <div className="flex-1 p-4 space-y-4">
+            <Skeleton className="h-20 w-full rounded" />
+            <Skeleton className="h-8 w-2/3 rounded" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <Skeleton className="h-[200px] rounded col-span-2" />
+              <Skeleton className="h-[200px] rounded" />
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            {/* Animated background accent */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.15 }}
-              className="absolute inset-0 pointer-events-none z-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-background"
-            />
-            {/* Project Header with glass effect */}
-            <div className="bg-background/80 backdrop-blur-md border-b border-border/40 sticky top-0 z-20 px-6 py-4 shadow-sm">
-              <ProjectHeader
-                project={project}
-                onAddTask={() => setShowAddTaskModal(true)}
-                onAddMember={() => setShowAddMemberModal(true)}
-              />
-              
-              {/* Breadcrumb navigation */}
-              <div className="flex items-center text-sm text-muted-foreground mt-2">
-                <span>Projects</span>
-                <ChevronRight className="h-4 w-4 mx-1" />
-                <span className="font-medium text-foreground">{project.name}</span>
+          <div className="flex-1 flex flex-col">
+            {/* Breadcrumb */}
+            <div className="px-4 py-2 border-b border-gray-200">
+              <div className="max-w-[1400px] mx-auto">
+                <div className="flex items-center text-sm text-gray-500">
+                  <span>Projects</span>
+                  <ChevronRight className="h-4 w-4 mx-2" />
+                  <span className="font-medium text-gray-900">{project.name}</span>
+                </div>
               </div>
             </div>
 
-            {/* Project Tabs with modern styling */}
-            <div className="px-6 pt-4 bg-background/60 rounded-b-2xl shadow-md">
-              <div className="flex justify-between items-center">
-                <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-2">
-                    <TabsList className="grid grid-cols-5 w-full max-w-2xl bg-muted/50 p-1 rounded-lg shadow-sm">
-                      {/* Add icons to tabs for clarity */}
-                      <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
-                        <span className="inline-block"><LayoutGrid className="h-4 w-4" /></span> Overview
-                      </TabsTrigger>
-                      <TabsTrigger value="tasks" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
-                        <span className="inline-block"><ListFilter className="h-4 w-4" /></span> Tasks
-                      </TabsTrigger>
-                      <TabsTrigger value="team" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
-                        <span className="inline-block"><Plus className="h-4 w-4" /></span> Team
-                      </TabsTrigger>
-                      <TabsTrigger value="documents" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
-                        <span className="inline-block"><ChevronRight className="h-4 w-4" /></span> Documents
-                      </TabsTrigger>
-                      <TabsTrigger value="timeline" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center gap-1 transition-all duration-150">
-                        <span className="inline-block"><ChevronRight className="h-4 w-4" /></span> Timeline
-                      </TabsTrigger>
-                    </TabsList>
-                    
-                    {/* View toggle buttons */}
-                    <div className="flex items-center space-x-2">
-                      <Button 
-                        variant={viewMode === "grid" ? "default" : "outline"} 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => setViewMode("grid")}
-                      >
-                        <LayoutGrid className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant={viewMode === "list" ? "default" : "outline"} 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => setViewMode("list")}
-                      >
-                        <ListFilter className="h-4 w-4" />
-                      </Button>
+            {/* Project Header */}
+            <div className="border-b border-gray-200">
+              <div className="max-w-[1400px] mx-auto px-4">
+                <ProjectHeader
+                  project={project}
+                  onAddTask={handleAddTask}
+                  onAddMember={handleAddMember}
+                />
+              </div>
+            </div>
+
+            {/* Project Navigation */}
+            <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+              <div className="max-w-[1400px] mx-auto px-4">
+                <div className="flex items-center justify-between py-2">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <div className="flex items-center justify-between">
+                      <TabsList className="bg-gray-50 p-1 rounded-md">
+                        <TabsTrigger
+                          value="overview"
+                          className="px-3 py-1.5 text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                        >
+                          <LayoutGrid className="h-4 w-4 mr-2" />
+                          Overview
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="tasks"
+                          className="px-3 py-1.5 text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                        >
+                          <ListFilter className="h-4 w-4 mr-2" />
+                          Tasks
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="team"
+                          className="px-3 py-1.5 text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Team
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="documents"
+                          className="px-3 py-1.5 text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Documents
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="timeline"
+                          className="px-3 py-1.5 text-sm font-medium rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                        >
+                          <Clock className="h-4 w-4 mr-2" />
+                          Timeline
+                        </TabsTrigger>
+                      </TabsList>
+
+                      {/* View Toggle */}
+                      <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-md">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('grid')}
+                                className="h-8 w-8 p-0"
+                              >
+                                <LayoutGrid className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Grid View</TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                                size="sm"
+                                onClick={() => setViewMode('list')}
+                                className="h-8 w-8 p-0"
+                              >
+                                <GripVertical className="h-4 w-4 rotate-90" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>List View</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Content area with improved styling */}
-                  <div className="overflow-auto pb-6 h-[calc(100vh-220px)]">
-                    <AnimatePresence mode="wait">
-                      {activeTab === "overview" && (
-                        <motion.div
-                          key="overview"
-                          initial={{ opacity: 0, y: 24 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -24 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <TabsContent value="overview" className="mt-0 space-y-4">
-                            <ProjectOverview project={project} viewMode={viewMode} />
-                          </TabsContent>
-                        </motion.div>
-                      )}
-                      {activeTab === "tasks" && (
-                        <motion.div
-                          key="tasks"
-                          initial={{ opacity: 0, y: 24 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -24 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <TabsContent value="tasks" className="mt-0 space-y-4">
-                            <ProjectTasks
-                              tasks={project.tasks}
-                              team={project.team}
-                              onAddTask={() => setShowAddTaskModal(true)}
-                              viewMode={viewMode}
-                            />
-                          </TabsContent>
-                        </motion.div>
-                      )}
-                      {activeTab === "team" && (
-                        <motion.div
-                          key="team"
-                          initial={{ opacity: 0, y: 24 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -24 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <TabsContent value="team" className="mt-0 space-y-4">
-                            <ProjectTeam
-                              team={project.team}
-                              onAddMember={() => setShowAddMemberModal(true)}
-                              viewMode={viewMode}
-                            />
-                          </TabsContent>
-                        </motion.div>
-                      )}
-                      {activeTab === "documents" && (
-                        <motion.div
-                          key="documents"
-                          initial={{ opacity: 0, y: 24 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -24 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <TabsContent value="documents" className="mt-0 space-y-4">
-                            <ProjectDocuments documents={project.documents} viewMode={viewMode} />
-                          </TabsContent>
-                        </motion.div>
-                      )}
-                      {activeTab === "timeline" && (
-                        <motion.div
-                          key="timeline"
-                          initial={{ opacity: 0, y: 24 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -24 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <TabsContent value="timeline" className="mt-0 space-y-4">
-                            <ProjectTimeline timeline={project.timeline} milestones={project.milestones} />
-                          </TabsContent>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </Tabs>
+                    {/* Tab Content */}
+                    <div className="mt-4">
+                      <TabsContent value="overview" className="mt-0">
+                        {project && <ProjectOverview project={project} />}
+                      </TabsContent>
+                      <TabsContent value="tasks" className="mt-0">
+                        {project && <ProjectTasks tasks={project.tasks} team={project.team} onAddTask={handleAddTask} />}
+                      </TabsContent>
+                      <TabsContent value="team" className="mt-0">
+                        {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
+                      </TabsContent>
+                      <TabsContent value="documents" className="mt-0">
+                        {project && <ProjectDocuments documents={project.documents} />}
+                      </TabsContent>
+                      <TabsContent value="timeline" className="mt-0">
+                        {project && <ProjectTimeline timeline={project.timeline} />}
+                      </TabsContent>
+                    </div>
+                  </Tabs>
+                </div>
               </div>
             </div>
-
-            {/* Modals */}
-            <AddTaskModal
-              open={showAddTaskModal}
-              onOpenChange={setShowAddTaskModal}
-              project={project}
-              onAddTask={handleAddTask}
-            />
-
-            <AddMemberModal
-              open={showAddMemberModal}
-              onOpenChange={setShowAddMemberModal}
-              onAddMember={handleAddMember}
-            />
-
-            {/* Floating Action Button with animation */}
-            <motion.div 
-              className="fixed bottom-6 right-6 z-50"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      size="icon" 
-                      className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 transition-all duration-200 hover:scale-105"
-                    >
-                      <motion.span
-                        initial={{ rotate: 0 }}
-                        whileHover={{ rotate: 90 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Plus className="h-6 w-6" />
-                      </motion.span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="bg-background/80 backdrop-blur-sm border border-border/40">
-                    <p>Quick Actions</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </motion.div>
           </div>
+        )}
+
+        {/* Action Button */}
+        <Button
+          onClick={handleAddTask}
+          className="fixed bottom-6 right-6 h-10 w-10 rounded-full shadow-md"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
+
+        {/* Modals */}
+        {showAddTaskModal && (
+          <AddTaskModal isOpen={showAddTaskModal} onClose={() => setShowAddTaskModal(false)} />
+        )}
+        {showAddMemberModal && (
+          <AddMemberModal isOpen={showAddMemberModal} onClose={() => setShowAddMemberModal(false)} />
         )}
       </div>
     </DashboardLayout>

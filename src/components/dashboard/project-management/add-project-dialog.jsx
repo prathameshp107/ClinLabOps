@@ -637,7 +637,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1">
                         Project Name <span className="text-destructive">*</span>
@@ -953,14 +953,14 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       {/* Display selected team members */}
                       {projectData.team.length > 0 && (
                         <div className="space-y-2">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {projectData.team.map(member => (
                               <div
                                 key={member.id}
-                                className="flex items-center justify-between p-2 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/50 transition-colors"
+                                className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/50 transition-colors"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                  <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-base font-medium">
                                     {member.name.split(' ').map(n => n[0]).join('')}
                                   </div>
                                   <div className="flex flex-col">
@@ -1247,7 +1247,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         {projectData.relatedFiles && projectData.relatedFiles.length > 0 && (
                           <div className="mt-4 space-y-2">
                             {projectData.relatedFiles.map((file, index) => (
-                              <div key={index} className="p-2 bg-primary/5 rounded-md flex items-center justify-between">
+                              <div key={index} className="p-3 bg-primary/5 rounded-md flex items-center justify-between">
                                 <div className="flex items-center">
                                   <FileText className="h-4 w-4 mr-2 text-primary" />
                                   <span className="text-sm truncate max-w-[200px]">
@@ -1307,7 +1307,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                     {projectData.relatedDocuments.length > 0 && (
                       <div className="space-y-2">
                         {projectData.relatedDocuments.map(doc => (
-                          <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md bg-background/50 border-border/50 hover:bg-muted/50 transition-colors">
+                          <div key={doc.id} className="flex items-center justify-between p-3 border rounded-md bg-background/50 border-border/50 hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-2">
                               <FileText className="h-4 w-4 text-primary" />
                               <a
