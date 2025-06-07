@@ -28,7 +28,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Calendar } from "@/components/ui/calendar"
+// Remove Calendar import
+// import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, PlusCircle, Save, X, Clock } from "lucide-react"
@@ -39,6 +40,8 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { TaskSubtasks } from "./task-subtasks"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+// Add DatePicker import
+import { DatePicker } from "@/components/ui/date-picker"
 
 // Define form schema with Zod
 const taskFormSchema = z.object({
@@ -87,7 +90,6 @@ export const TaskFormDialog = ({
   templates = []
 }) => {
   // State for calendar popover
-  const [showCalendar, setShowCalendar] = useState(false);
   const [tags, setTags] = useState([]);
   const [currentTag, setCurrentTag] = useState("");
   const [subtasks, setSubtasks] = useState([]);
@@ -479,126 +481,23 @@ export const TaskFormDialog = ({
                               Due Date
                               <span className="text-xs text-red-500 font-normal ml-1">*Required</span>
                             </FormLabel>
-                            <div className="relative">
-                              <Popover open={showCalendar} onOpenChange={setShowCalendar}>
-                                <PopoverTrigger asChild>
-                                  {/* Open calendar on button click */}
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "w-full pl-3 text-left font-normal focus-visible:ring-primary/70 shadow-sm",
-                                        !field.value && "text-muted-foreground",
-                                        field.value && "border-purple-500/30 bg-purple-500/5"
-                                      )}
-                                      type="button"
-                                      onClick={() => setShowCalendar(true)}
-                                    >
-                                      {field.value ? (
-                                        <span className="flex items-center gap-2">
-                                          <CalendarIcon className="h-3.5 w-3.5 text-purple-500" />
-                                          {format(field.value, "PPP")}
-                                        </span>
-                                      ) : (
-                                        <span className="flex items-center gap-2">
-                                          <CalendarIcon className="h-3.5 w-3.5 opacity-50" />
-                                          Pick a date
-                                        </span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <div className="p-2 border-b border-border flex justify-between items-center">
-                                    <span className="text-xs font-medium">Select date</span>
-                                    <div className="flex gap-1">
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 px-2 text-xs"
-                                        onClick={() => field.onChange(new Date())}
-                                      >
-                                        Today
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 px-2 text-xs"
-                                        onClick={() => {
-                                          const tomorrow = new Date();
-                                          tomorrow.setDate(tomorrow.getDate() + 1);
-                                          field.onChange(tomorrow);
-                                        }}
-                                      >
-                                        Tomorrow
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                    className="rounded-md border"
-                                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                    fromDate={new Date()}
-                                  />
-                                  {field.value && (
-                                    <div className="p-3 border-t border-border">
-                                      <div className="flex flex-col space-y-2">
-                                        <div className="bg-muted/40 rounded-md p-2 flex items-center justify-between">
-                                          <span className="text-xs font-medium text-foreground/80 flex items-center gap-1.5">
-                                            <CalendarIcon className="h-3 w-3 text-purple-500" />
-                                            Selected:
-                                          </span>
-                                          <span className="text-xs font-medium">
-                                            {format(field.value, "EEEE, MMMM do, yyyy")}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between gap-2 mt-1">
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 px-3 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                                            onClick={() => field.onChange(undefined)}
-                                          >
-                                            <X className="h-3 w-3 mr-1.5" />
-                                            Clear
-                                          </Button>
-                                          <Button
-                                            variant="default"
-                                            size="sm"
-                                            className="h-8 px-3 text-xs bg-purple-500 hover:bg-purple-600 text-white"
-                                            type="button"
-                                            onClick={() => setShowCalendar(false)}
-                                          >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5">
-                                              <path d="M20 6 9 17l-5-5"></path>
-                                            </svg>
-                                            Done
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </PopoverContent>
-                              </Popover>
-                              {field.value && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-0 top-0 h-full px-3 rounded-l-none"
-                                  onClick={() => field.onChange(undefined)}
-                                >
-                                  <X className="h-3.5 w-3.5 opacity-70" />
-                                </Button>
-                              )}
-                            </div>
-                            <FormMessage className="text-xs mt-1" />
+                            <FormControl>
+                              <DatePicker
+                                selectedDate={field.value}
+                                onDateChange={field.onChange}
+                                placeholder="Pick a date"
+                                className={cn(
+                                  "w-full focus-visible:ring-primary/70 shadow-sm",
+                                  field.value && "border-purple-500/30 bg-purple-500/5"
+                                )}
+                                minDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                                showTodayButton={true}
+                                showClearButton={false}
+                                // Remove the disabled prop that's causing the error
+                                // disabled={disabled}
+                              />
+                            </FormControl>
+                            <FormMessage className="text-xs mt-1.5" />
                           </FormItem>
                         )}
                       />

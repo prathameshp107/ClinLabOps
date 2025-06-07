@@ -1,13 +1,15 @@
 "use client"
 
-import { 
-  Calendar, Clock, AlertTriangle, CheckCircle, PauseCircle, 
-  MoreHorizontal, ClipboardEdit, Trash2, Eye, AlarmClock, Star
+import {
+  Calendar, Clock, AlertTriangle, CheckCircle, PauseCircle,
+  MoreHorizontal, ClipboardEdit, Trash2, Eye, AlarmClock, Star,
+  Users, Tag, ChevronRight, MessageSquare, BarChart2,
+  ArrowUpRight, ArrowDownRight, CheckCircle2, XCircle
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,19 +18,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Progress } from "@/components/ui/progress"
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { motion } from "framer-motion"
-import { format, differenceInDays } from "date-fns"
+import { motion, AnimatePresence } from "framer-motion"
+import { format, differenceInDays, isAfter, isBefore } from "date-fns"
 import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 export function ProjectCardView({ projects, onAction }) {
   const router = useRouter();
-  
+  const [hoveredProject, setHoveredProject] = useState(null);
+
   const getStatusIcon = (status) => {
     switch (status) {
       case "Pending":
@@ -43,7 +48,7 @@ export function ProjectCardView({ projects, onAction }) {
         return null;
     }
   };
-  
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":
@@ -58,7 +63,7 @@ export function ProjectCardView({ projects, onAction }) {
         return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     }
   };
-  
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
@@ -84,7 +89,7 @@ export function ProjectCardView({ projects, onAction }) {
     const now = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
-    
+
     if (now < start) {
       const daysToStart = differenceInDays(start, now);
       return `Starts in ${daysToStart} day${daysToStart !== 1 ? 's' : ''}`;
@@ -96,8 +101,15 @@ export function ProjectCardView({ projects, onAction }) {
     }
   };
 
+  const getProgressColor = (progress) => {
+    if (progress >= 75) return "bg-green-500";
+    if (progress >= 50) return "bg-blue-500";
+    if (progress >= 25) return "bg-amber-500";
+    return "bg-red-500";
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {projects.map((project, index) => (
         <motion.div
           key={project.id}
@@ -106,46 +118,54 @@ export function ProjectCardView({ projects, onAction }) {
           transition={{ duration: 0.3, delay: index * 0.05 }}
           whileHover={{ y: -5, transition: { duration: 0.2 } }}
           className="h-full"
+          onMouseEnter={() => setHoveredProject(project.id)}
+          onMouseLeave={() => setHoveredProject(null)}
         >
-          <Card className="h-full flex flex-col shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group" onClick={() => router.push(`/projects/${project.id}`)}>
-            <CardHeader className="pb-3">
+          <Card className="h-full flex flex-col shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group border border-border/50 hover:border-border relative overflow-hidden">
+            {/* Health Status Indicator */}
+
+
+            <CardHeader className="pb-3 space-y-4">
               <div className="flex justify-between items-start">
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={`h-8 w-8 p-0 ${project.isFavorite ? 'text-yellow-500' : 'text-muted-foreground'}`}
+                      className={cn(
+                        "h-8 w-8 p-0 transition-colors",
+                        project.isFavorite ? 'text-yellow-500 hover:text-yellow-600' : 'text-muted-foreground hover:text-foreground'
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         onAction("toggleFavorite", project);
                       }}
                     >
-                      <Star className={`h-4 w-4 ${project.isFavorite ? 'fill-yellow-500' : ''}`} />
+                      <Star className={cn("h-4 w-4 transition-all", project.isFavorite ? 'fill-yellow-500' : '')} />
                     </Button>
-                    <h3 className="font-medium leading-tight group-hover:text-primary transition-colors duration-200">
+                    <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors duration-200">
                       {project.name}
                     </h3>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="outline" className={`${getStatusColor(project.status)}`}>
-                      <span className="flex items-center gap-1">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline" className={cn("px-2 py-1", getStatusColor(project.status))}>
+                      <span className="flex items-center gap-1.5">
                         {getStatusIcon(project.status)}
                         {project.status}
                       </span>
                     </Badge>
-                    <Badge variant="outline" className={`${getPriorityColor(project.priority)}`}>
+                    <Badge variant="outline" className={cn("px-2 py-1", getPriorityColor(project.priority))}>
                       {project.priority}
                     </Badge>
                   </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted/50">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel>Project Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={(e) => {
@@ -162,7 +182,7 @@ export function ProjectCardView({ projects, onAction }) {
                       <ClipboardEdit className="h-4 w-4 mr-2" />
                       Edit Project
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
                         onAction("delete", project);
@@ -176,93 +196,138 @@ export function ProjectCardView({ projects, onAction }) {
                 </DropdownMenu>
               </div>
             </CardHeader>
-            <CardContent className="pb-3 flex-1">
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+            <CardContent className="pb-3 flex-1 space-y-4">
+              <p className="text-sm text-muted-foreground line-clamp-2">
                 {project.description}
               </p>
-              
-              <div className="space-y-3">
+
+              <div className="space-y-4">
                 <div className="flex justify-between text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5" />
                     <span>{formatDate(project.startDate)}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5" />
                     <span>{formatDate(project.endDate)}</span>
                   </div>
                 </div>
-                
-                <div className="space-y-1">
+
+                <div className="space-y-2">
                   <div className="flex justify-between items-center text-sm">
-                    <span>Progress</span>
-                    <span>{project.progress}%</span>
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-medium">{project.progress}%</span>
                   </div>
-                  <Progress value={project.progress} className="h-2" />
+                  <div className="relative">
+                    <Progress value={project.progress} className={cn("h-2", getProgressColor(project.progress))} />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                  </div>
                 </div>
-                
+
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <AlarmClock className="h-3.5 w-3.5" />
                   <span>{getTimeRemaining(project.startDate, project.endDate)}</span>
                 </div>
               </div>
-              
+
               {project.tags && project.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-3">
+                <div className="flex flex-wrap gap-1.5">
                   {project.tags.map(tag => (
-                    <Badge key={tag} variant="outline" className="text-xs font-normal">
+                    <Badge key={tag} variant="outline" className="text-xs font-normal bg-muted/50">
+                      <Tag className="h-3 w-3 mr-1" />
                       {tag}
                     </Badge>
                   ))}
                 </div>
               )}
             </CardContent>
-            <CardFooter className="pt-0">
-              <div className="flex -space-x-2">
-                {project.team.slice(0, 4).map((member, index) => (
-                  <TooltipProvider key={member.id} delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div
-                          className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-background"
-                          style={{ zIndex: 10 - index }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {member.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{member.name}</p>
-                        <p className="text-xs text-muted-foreground">{member.role}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ))}
-                {project.team.length > 4 && (
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div 
-                          className="h-8 w-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-medium border-2 border-background"
-                          style={{ zIndex: 6 }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          +{project.team.length - 4}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          {project.team.slice(4).map(member => (
-                            <div key={member.id}>
-                              <p>{member.name}</p>
-                              <p className="text-xs text-muted-foreground">{member.role}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+            <CardFooter className="pt-0 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {project.team.slice(0, 4).map((member, index) => (
+                    <TooltipProvider key={member.id} delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-background hover:ring-2 hover:ring-primary/20 transition-all"
+                            style={{ zIndex: 10 - index }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {member.name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{member.name}</p>
+                          <p className="text-xs text-muted-foreground">{member.role}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+                  {project.team.length > 4 && (
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="h-8 w-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-medium border-2 border-background hover:bg-muted/80 transition-colors"
+                            style={{ zIndex: 6 }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            +{project.team.length - 4}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            {project.team.slice(4).map(member => (
+                              <div key={member.id}>
+                                <p>{member.name}</p>
+                                <p className="text-xs text-muted-foreground">{member.role}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>{project.comments?.length || 0}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <AnimatePresence>
+                  {hoveredProject === project.id && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="flex items-center gap-1"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/projects/${project.id}/analytics`);
+                        }}
+                      >
+                        <BarChart2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/projects/${project.id}`);
+                        }}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </CardFooter>
           </Card>
