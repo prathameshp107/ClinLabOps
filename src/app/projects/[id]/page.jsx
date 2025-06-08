@@ -279,7 +279,15 @@ export default function ProjectPage({ params }) {
           <AddTaskModal isOpen={showAddTaskModal} onClose={() => setShowAddTaskModal(false)} />
         )}
         {showAddMemberModal && (
-          <AddMemberModal isOpen={showAddMemberModal} onClose={() => setShowAddMemberModal(false)} />
+          <AddMemberModal
+            open={showAddMemberModal}
+            onOpenChange={setShowAddMemberModal}
+            onAddMember={(memberData) => {
+              // Handle adding member to project
+              console.log('Adding member:', memberData)
+              setShowAddMemberModal(false)
+            }}
+          />
         )}
       </div>
     </DashboardLayout>

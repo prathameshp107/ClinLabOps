@@ -285,14 +285,12 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
 
   return (
     <>
-      <Card className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-border/40 shadow-lg">
-        <CardHeader className="px-6 py-4 border-b border-border/30">
+      <Card className="bg-background border border-border">
+        <CardHeader className="px-6 py-4 border-b border-border">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <div className="bg-primary/10 p-1.5 rounded-full">
-                  <LayoutList className="h-5 w-5 text-primary" />
-                </div>
+              <CardTitle className="text-lg font-medium flex items-center gap-2">
+                <LayoutList className="h-5 w-5 text-muted-foreground" />
                 Project Tasks
               </CardTitle>
               <Badge variant="secondary" className="text-xs">
@@ -300,14 +298,14 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               </Badge>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex rounded-lg shadow-sm border border-border/40 bg-background overflow-hidden">
+              <div className="flex rounded-md border border-border bg-background overflow-hidden">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant={viewMode === "list" ? "secondary" : "ghost"}
                         size="icon"
-                        className={`rounded-none h-9 w-9 ${viewMode === "list" ? 'bg-primary/10 text-primary' : ''}`}
+                        className={`rounded-none h-9 w-9 ${viewMode === "list" ? 'bg-muted' : ''}`}
                         onClick={() => setViewMode("list")}
                       >
                         <ListChecks className="h-4 w-4" />
@@ -322,7 +320,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                       <Button
                         variant={viewMode === "board" ? "secondary" : "ghost"}
                         size="icon"
-                        className={`rounded-none h-9 w-9 border-l border-border/30 ${viewMode === "board" ? 'bg-primary/10 text-primary' : ''}`}
+                        className={`rounded-none h-9 w-9 border-l border-border ${viewMode === "board" ? 'bg-muted' : ''}`}
                         onClick={() => setViewMode("board")}
                       >
                         <LayoutGrid className="h-4 w-4" />
@@ -335,7 +333,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               <Button
                 size="sm"
                 onClick={() => setIsAddTaskModalOpen(true)}
-                className="h-9 px-4 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="h-9 px-4 text-sm font-medium"
               >
                 <Plus className="h-4 w-4 mr-1.5" />
                 Add Task
@@ -348,7 +346,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search tasks..."
-                className="pl-9 h-9 w-full text-sm border-border/40 focus:border-primary/70 focus:ring-1 focus:ring-primary/70"
+                className="pl-9 h-9 w-full text-sm"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
@@ -363,7 +361,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-9 w-[140px] text-sm border-border/40">
+              <SelectTrigger className="h-9 w-[140px] text-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -381,7 +379,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-9 w-[140px] text-sm border-border/40">
+              <SelectTrigger className="h-9 w-[140px] text-sm">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
               <SelectContent>
@@ -395,7 +393,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               value={sortBy}
               onValueChange={setSortBy}
             >
-              <SelectTrigger className="h-9 w-[140px] text-sm border-border/40">
+              <SelectTrigger className="h-9 w-[140px] text-sm">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -408,7 +406,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9 border-border/40"
+              className="h-9 w-9"
               onClick={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
             >
               <ArrowUpDown className="h-4 w-4" />
@@ -420,7 +418,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
           {paginatedTasks.length > 0 ? (
             <div>
               {selectedTasks.length > 0 && (
-                <div className="flex justify-between items-center px-6 py-2 bg-muted/50 border-b border-border/30">
+                <div className="flex justify-between items-center px-6 py-2 bg-muted border-b border-border">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -436,7 +434,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               )}
 
               <ScrollArea className="h-[calc(100vh-300px)]">
-                <div className="divide-y divide-border/30">
+                <div className="divide-y divide-border">
                   {paginatedTasks.map((task, i) => (
                     <motion.div
                       key={task.id}
@@ -450,7 +448,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                           id={`task-${task.id}`}
                           checked={selectedTasks.includes(task.id)}
                           onCheckedChange={() => handleTaskSelection(task.id)}
-                          className="h-4 w-4 rounded-sm border-border/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          className="h-4 w-4 rounded-sm"
                         />
                         <span className="text-sm text-muted-foreground">
                           {(currentPage - 1) * itemsPerPage + i + 1}
@@ -506,13 +504,13 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               </ScrollArea>
 
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-1 px-6 py-3 border-t border-border/30">
+                <div className="flex justify-center items-center gap-1 px-6 py-3 border-t border-border">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="h-8 w-8 p-0 border-border/40"
+                    className="h-8 w-8 p-0"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -524,8 +522,8 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                       onClick={() => typeof page === 'number' && goToPage(page)}
                       disabled={typeof page !== 'number'}
                       className={`h-8 w-8 p-0 ${page === currentPage
-                        ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                        : 'border-border/40 text-muted-foreground hover:bg-muted'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted'
                         }`}
                     >
                       {page}
@@ -536,7 +534,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                     size="sm"
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="h-8 w-8 p-0 border-border/40"
+                    className="h-8 w-8 p-0"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -545,14 +543,14 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center p-8 text-center">
-              <div className="bg-muted/50 p-4 rounded-full mb-4">
+              <div className="bg-muted p-4 rounded-full mb-4">
                 <LayoutList className="h-8 w-8 text-muted-foreground" />
               </div>
               <p className="text-sm font-medium mb-1">No tasks found</p>
               <p className="text-sm text-muted-foreground mb-4">Try adjusting your filters or add a new task.</p>
               <Button
                 onClick={() => setIsAddTaskModalOpen(true)}
-                className="h-9 px-4 text-sm font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="h-9 px-4 text-sm font-medium"
               >
                 <Plus className="h-4 w-4 mr-1.5" />
                 Add Task
