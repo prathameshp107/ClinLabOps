@@ -480,14 +480,14 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   // Function to create a new task
   const createTask = (newTask) => {
     // In a real app, you would send this to your API
-    
+
     // Format the assignee data to match the expected structure
     const assigneeData = (() => {
       // Check if we have an assignee from the form
       if (newTask.assigneeId) {
         // Try to find the user in the mockUsers object
         const user = Object.values(mockUsers).find(u => u.id === newTask.assigneeId);
-        
+
         // If found in mockUsers, use that data
         if (user) {
           return {
@@ -496,7 +496,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
             avatar: user.avatar
           };
         }
-        
+
         // For hardcoded users in the form that aren't in mockUsers
         const hardcodedUsers = {
           'user1': { id: 'user1', name: 'John Doe', avatar: 'JD' },
@@ -505,11 +505,11 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
           'user4': { id: 'user4', name: 'Jenny Parker', avatar: 'JP' },
           'user5': { id: 'user5', name: 'Harry Potter', avatar: 'HP' }
         };
-        
+
         if (hardcodedUsers[newTask.assigneeId]) {
           return hardcodedUsers[newTask.assigneeId];
         }
-        
+
         // Fallback if we can't find the user
         return {
           id: newTask.assigneeId,
@@ -517,7 +517,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
           avatar: newTask.assigneeId.substring(0, 2).toUpperCase()
         };
       }
-      
+
       // Default to unassigned
       return {
         id: 'unassigned',
@@ -574,7 +574,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       if (updatedTask.assigneeId) {
         // Try to find the user in the mockUsers object
         const user = Object.values(mockUsers).find(u => u.id === updatedTask.assigneeId);
-        
+
         // If found in mockUsers, use that data
         if (user) {
           return {
@@ -583,7 +583,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
             avatar: user.avatar
           };
         }
-        
+
         // For hardcoded users in the form that aren't in mockUsers
         const hardcodedUsers = {
           'user1': { id: 'user1', name: 'John Doe', avatar: 'JD' },
@@ -592,11 +592,11 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
           'user4': { id: 'user4', name: 'Jenny Parker', avatar: 'JP' },
           'user5': { id: 'user5', name: 'Harry Potter', avatar: 'HP' }
         };
-        
+
         if (hardcodedUsers[updatedTask.assigneeId]) {
           return hardcodedUsers[updatedTask.assigneeId];
         }
-        
+
         // Fallback if we can't find the user
         return {
           id: updatedTask.assigneeId,
@@ -604,7 +604,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
           avatar: updatedTask.assigneeId.substring(0, 2).toUpperCase()
         };
       }
-      
+
       // Default to unassigned
       return {
         id: 'unassigned',
@@ -743,23 +743,23 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-6 bg-gradient-to-br from-background to-background/95">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
       >
         {/* Controls Bar */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="flex rounded-lg shadow-sm border border-border/40 bg-background overflow-hidden">
+            <div className="flex rounded-xl shadow-lg border border-border/40 bg-background/80 backdrop-blur-sm overflow-hidden">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant={viewMode === "list" ? "secondary" : "ghost"}
                       size="icon"
-                      className={`rounded-none h-10 w-10 ${viewMode === "list" ? 'bg-primary/10 text-primary' : ''}`}
+                      className={`rounded-none h-11 w-11 ${viewMode === "list" ? 'bg-primary/10 text-primary' : ''}`}
                       onClick={() => setViewMode("list")}
                     >
                       <ListChecks className="h-5 w-5" />
@@ -774,7 +774,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     <Button
                       variant={viewMode === "board" ? "secondary" : "ghost"}
                       size="icon"
-                      className={`rounded-none h-10 w-10 border-l border-border/30 ${viewMode === "board" ? 'bg-primary/10 text-primary' : ''}`}
+                      className={`rounded-none h-11 w-11 border-l border-border/30 ${viewMode === "board" ? 'bg-primary/10 text-primary' : ''}`}
                       onClick={() => setViewMode("board")}
                     >
                       <LayoutGrid className="h-5 w-5" />
@@ -787,7 +787,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
             <Button
               variant="outline"
               size="icon"
-              className="h-10 w-10 shadow-sm hover:shadow-md transition-shadow bg-background/80 border-border/50 ml-2"
+              className="h-11 w-11 shadow-lg hover:shadow-xl transition-all duration-300 bg-background/80 border-border/50 ml-2 hover:bg-primary/5"
               onClick={handleRefresh}
             >
               <RefreshCw className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`} />
@@ -795,27 +795,27 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
           </div>
           <Button
             onClick={handleCreateNewTask}
-            className="gap-2 shadow-md hover:shadow-lg transition-shadow bg-primary/90 hover:bg-primary text-base px-6 py-2 rounded-lg"
+            className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-base px-8 py-2.5 rounded-xl font-medium"
           >
             <Plus className="h-5 w-5" /> New Task
           </Button>
         </div>
 
-        <div className="bg-background/70 backdrop-blur-md border border-border/50 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-          <div className="p-6 border-b bg-muted/20">
-            <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch">
+        <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+          <div className="p-8 border-b bg-gradient-to-r from-muted/20 to-muted/10">
+            <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-stretch">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search tasks..."
-                  className="pl-11 bg-background/80 border-border/40 h-11 rounded-lg focus:ring-2 focus:ring-primary/30"
+                  className="pl-12 bg-background/90 border-border/40 h-12 rounded-xl focus:ring-2 focus:ring-primary/30 text-base"
                   value={localSearchQuery}
                   onChange={(e) => setLocalSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="flex flex-wrap gap-2 md:gap-3 items-center">
+              <div className="flex flex-wrap gap-3 md:gap-4 items-center">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[130px] bg-background/80 border-border/40 h-11 rounded-lg">
+                  <SelectTrigger className="w-[140px] bg-background/90 border-border/40 h-12 rounded-xl">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -826,7 +826,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   </SelectContent>
                 </Select>
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-[130px] bg-background/80 border-border/40 h-11 rounded-lg">
+                  <SelectTrigger className="w-[140px] bg-background/90 border-border/40 h-12 rounded-xl">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -837,7 +837,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   </SelectContent>
                 </Select>
                 <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
-                  <SelectTrigger className="w-[160px] bg-background/80 border-border/40 h-11 rounded-lg">
+                  <SelectTrigger className="w-[180px] bg-background/90 border-border/40 h-12 rounded-xl">
                     <SelectValue placeholder="Assignee" />
                   </SelectTrigger>
                   <SelectContent>
@@ -850,7 +850,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   </SelectContent>
                 </Select>
                 <Select value={dueDateFilter} onValueChange={setDueDateFilter}>
-                  <SelectTrigger className="w-[130px] bg-background/80 border-border/40 h-11 rounded-lg">
+                  <SelectTrigger className="w-[140px] bg-background/90 border-border/40 h-12 rounded-xl">
                     <SelectValue placeholder="Due Date" />
                   </SelectTrigger>
                   <SelectContent>
@@ -865,7 +865,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   variant="outline"
                   size="icon"
                   onClick={resetFilters}
-                  className="bg-background/80 border-border/40 h-11 w-11 rounded-lg"
+                  className="bg-background/90 border-border/40 h-12 w-12 rounded-xl hover:bg-primary/5"
                 >
                   <XCircle className="h-5 w-5" />
                 </Button>
@@ -874,23 +874,26 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center p-12">
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center p-16">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
                 <p className="text-sm text-muted-foreground">Loading tasks...</p>
               </div>
             </div>
           ) : filteredTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center">
-              <div className="rounded-full bg-primary/10 p-3 mb-4">
-                <Search className="h-6 w-6 text-primary" />
+            <div className="flex flex-col items-center justify-center p-16 text-center">
+              <div className="rounded-2xl bg-primary/10 p-4 mb-6">
+                <Search className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-medium mb-1">No tasks found</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Try adjusting your filters or create a new task
+              <h3 className="text-xl font-semibold mb-2">No tasks found</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                Try adjusting your filters or create a new task to get started
               </p>
-              <Button onClick={handleCreateNewTask} className="gap-1.5">
-                <Plus className="h-4 w-4" /> Create New Task
+              <Button
+                onClick={handleCreateNewTask}
+                className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary px-6 py-2.5 rounded-xl font-medium"
+              >
+                <Plus className="h-5 w-5" /> Create New Task
               </Button>
             </div>
           ) : (
@@ -903,51 +906,54 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                 transition={{ duration: 0.2 }}
               >
                 {viewMode === "list" ? (
-                  <div className="p-4">
+                  <div className="p-6">
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="border-b border-border/40">
-                            <th className="w-[40px] px-2 py-3 text-left">
-                              <Checkbox />
+                            <th className="w-[40px] px-4 py-4 text-left">
+                              <Checkbox className="border-border/50" />
+                            </th>
+                            <th className="px-6 py-4 text-left font-medium text-sm">
+                              Task ID
                             </th>
                             <th
-                              className="px-4 py-3 text-left font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                              className="px-6 py-4 text-left font-medium text-sm cursor-pointer hover:text-primary transition-colors"
                               onClick={() => requestSort("name")}
                             >
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 Task Name
                                 {sortConfig.key === "name" && (
-                                  <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                                  <ArrowUpDown className="h-4 w-4" />
                                 )}
                               </div>
                             </th>
-                            <th className="px-4 py-3 text-left font-medium text-sm">Experiment</th>
-                            <th className="px-4 py-3 text-left font-medium text-sm">Assigned To</th>
+                            <th className="px-6 py-4 text-left font-medium text-sm">Experiment</th>
+                            <th className="px-6 py-4 text-left font-medium text-sm">Assigned To</th>
                             <th
-                              className="px-4 py-3 text-left font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                              className="px-6 py-4 text-left font-medium text-sm cursor-pointer hover:text-primary transition-colors"
                               onClick={() => requestSort("priority")}
                             >
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 Priority
                                 {sortConfig.key === "priority" && (
-                                  <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                                  <ArrowUpDown className="h-4 w-4" />
                                 )}
                               </div>
                             </th>
-                            <th className="px-4 py-3 text-left font-medium text-sm">Status</th>
+                            <th className="px-6 py-4 text-left font-medium text-sm">Status</th>
                             <th
-                              className="px-4 py-3 text-left font-medium text-sm cursor-pointer hover:text-primary transition-colors"
+                              className="px-6 py-4 text-left font-medium text-sm cursor-pointer hover:text-primary transition-colors"
                               onClick={() => requestSort("dueDate")}
                             >
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-2">
                                 Due Date
                                 {sortConfig.key === "dueDate" && (
-                                  <span>{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                                  <ArrowUpDown className="h-4 w-4" />
                                 )}
                               </div>
                             </th>
-                            <th className="px-4 py-3 text-left font-medium text-sm">Actions</th>
+                            <th className="px-6 py-4 text-left font-medium text-sm">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -956,10 +962,15 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                               key={task.id}
                               className="border-b border-border/20 hover:bg-muted/30 transition-colors"
                             >
-                              <td className="px-2 py-3">
-                                <Checkbox />
+                              <td className="px-4 py-4">
+                                <Checkbox className="border-border/50" />
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-6 py-4">
+                                <span className="text-sm font-mono bg-muted/50 px-2 py-1 rounded-md">
+                                  {task.id}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
                                 <div
                                   className="font-medium cursor-pointer hover:text-primary transition-colors"
                                   onClick={() => handleTaskAction("view", task)}
@@ -967,44 +978,44 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                   {task.name}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 text-sm">{task.experimentName}</td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="h-6 w-6">
-                                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                              <td className="px-6 py-4 text-sm">{task.experimentName}</td>
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8 border-2 border-background shadow-sm">
+                                    <AvatarFallback className="text-sm bg-primary/10 text-primary">
                                       {task.assignedTo?.avatar ?? "?"}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-sm">{task.assignedTo?.name ?? "Unassigned"}</span>
+                                  <span className="text-sm font-medium">{task.assignedTo?.name ?? "Unassigned"}</span>
                                 </div>
                               </td>
-                              <td className="px-4 py-3">
-                                <Badge className={getPriorityColor(task.priority)}>
+                              <td className="px-6 py-4">
+                                <Badge className={`${getPriorityColor(task.priority)} px-3 py-1 rounded-full`}>
                                   {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-3">
-                                <Badge className={getStatusColor(task.status)}>
+                              <td className="px-6 py-4">
+                                <Badge className={`${getStatusColor(task.status)} px-3 py-1 rounded-full`}>
                                   {task.status === "in-progress"
                                     ? "In Progress"
                                     : task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-3 text-sm">
+                              <td className="px-6 py-4 text-sm">
                                 {format(getDueDate(task.dueDate), "MMM d, yyyy")}
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-6 py-4">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-9 w-9 hover:bg-primary/5"
                                     >
                                       <EllipsisVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
+                                  <DropdownMenuContent align="end" className="w-48">
                                     <DropdownMenuItem onClick={() => router.push(`/tasks/${task.id}`)}>
                                       <Search className="h-4 w-4 mr-2" />
                                       View Details
@@ -1016,7 +1027,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                       onClick={() => handleTaskAction("delete", task)}
-                                      className="text-destructive"
+                                      className="text-destructive focus:text-destructive"
                                     >
                                       <Trash2 className="h-4 w-4 mr-2" />
                                       Delete Task
@@ -1031,7 +1042,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4">
+                  <div className="p-6">
                     <TaskBoard
                       tasks={filteredTasks}
                       onAction={handleTaskAction}
@@ -1044,20 +1055,20 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
             </AnimatePresence>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:justify-between p-4 text-sm text-muted-foreground border-t gap-3">
+          <div className="flex flex-col sm:flex-row sm:justify-between p-6 text-sm text-muted-foreground border-t bg-muted/5 gap-4">
             <div className="flex items-center">
-              <Badge variant="outline" className="mr-2 bg-background/70">
+              <Badge variant="outline" className="mr-3 bg-background/90 px-3 py-1 rounded-full">
                 {filteredTasks.length}
               </Badge>
               <span>Showing {filteredTasks.length} of {tasks.length} tasks</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <span>Sort by:</span>
               <Select
                 value={sortConfig.key}
                 onValueChange={(value) => setSortConfig({ key: value, direction: sortConfig.direction })}
               >
-                <SelectTrigger className="h-8 w-[130px] text-xs bg-background/70 border-border/50">
+                <SelectTrigger className="h-9 w-[140px] text-sm bg-background/90 border-border/50 rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1071,7 +1082,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-9 w-9 hover:bg-primary/5"
                 onClick={() => setSortConfig({
                   key: sortConfig.key,
                   direction: sortConfig.direction === "asc" ? "desc" : "asc"
