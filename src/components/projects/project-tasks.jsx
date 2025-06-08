@@ -23,7 +23,12 @@ import {
   LayoutGrid,
   ListChecks,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Zap,
+  TrendingUp,
+  BarChart3,
+  Target,
+  Users
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -75,25 +80,25 @@ const TaskStatus = ({ status }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'completed':
-        return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       case 'in_progress':
-        return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'review':
-        return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'pending':
-        return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+        return 'bg-amber-100 text-amber-800 border-amber-200';
       default:
-        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   return (
-    <Badge
-      variant="outline"
-      className={`text-xs font-medium px-2 py-0.5 rounded-full ${getStatusColor(status)}`}
-    >
-      {status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-    </Badge>
+    <div className={`px-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${getStatusColor(status)}`}>
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-current"></div>
+        {status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+      </div>
+    </div>
   );
 };
 
@@ -101,23 +106,23 @@ const TaskPriority = ({ priority }) => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'high':
-        return 'bg-red-500/10 text-red-600 border-red-500/20';
+        return 'bg-red-100 text-red-800 border-red-200';
       case 'medium':
-        return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'low':
-        return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       default:
-        return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   return (
-    <Badge
-      variant="outline"
-      className={`text-xs font-medium px-2 py-0.5 rounded-full ${getPriorityColor(priority)}`}
-    >
-      {priority.charAt(0).toUpperCase() + priority.slice(1)}
-    </Badge>
+    <div className={`px-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${getPriorityColor(priority)}`}>
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-current"></div>
+        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      </div>
+    </div>
   );
 };
 
@@ -285,30 +290,44 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
 
   return (
     <>
-      <Card className="bg-background border border-border">
-        <CardHeader className="px-6 py-4 border-b border-border">
+      <Card className="bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/20 border border-gray-200/50 backdrop-blur-sm">
+        <CardHeader className="px-6 py-6 border-b border-gray-200/50">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <CardTitle className="text-lg font-medium flex items-center gap-2">
-                <LayoutList className="h-5 w-5 text-muted-foreground" />
-                Project Tasks
-              </CardTitle>
-              <Badge variant="secondary" className="text-xs">
-                {tasks?.length || 0} tasks
-              </Badge>
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-2xl shadow-lg">
+                  <LayoutList className="h-7 w-7 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  Project Tasks
+                </h2>
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-white/60 backdrop-blur-sm border border-gray-200/50">
+                    {tasks?.length || 0} tasks
+                  </Badge>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <BarChart3 className="h-4 w-4" />
+                    <span>65% completed</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex rounded-md border border-border bg-background overflow-hidden">
+
+            <div className="flex items-center gap-3">
+              <div className="flex rounded-xl border border-gray-200/50 bg-white/60 backdrop-blur-sm overflow-hidden shadow-sm">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant={viewMode === "list" ? "secondary" : "ghost"}
                         size="icon"
-                        className={`rounded-none h-9 w-9 ${viewMode === "list" ? 'bg-muted' : ''}`}
+                        className={`rounded-none h-11 w-11 ${viewMode === "list" ? 'bg-blue-50 text-blue-600' : ''}`}
                         onClick={() => setViewMode("list")}
                       >
-                        <ListChecks className="h-4 w-4" />
+                        <ListChecks className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>List View</TooltipContent>
@@ -320,33 +339,34 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                       <Button
                         variant={viewMode === "board" ? "secondary" : "ghost"}
                         size="icon"
-                        className={`rounded-none h-9 w-9 border-l border-border ${viewMode === "board" ? 'bg-muted' : ''}`}
+                        className={`rounded-none h-11 w-11 border-l border-gray-200/50 ${viewMode === "board" ? 'bg-blue-50 text-blue-600' : ''}`}
                         onClick={() => setViewMode("board")}
                       >
-                        <LayoutGrid className="h-4 w-4" />
+                        <LayoutGrid className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Board View</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
+
               <Button
                 size="sm"
                 onClick={() => setIsAddTaskModalOpen(true)}
-                className="h-9 px-4 text-sm font-medium"
+                className="h-11 px-6 text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"
               >
-                <Plus className="h-4 w-4 mr-1.5" />
+                <Plus className="h-5 w-5 mr-2" />
                 Add Task
               </Button>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 mt-4">
+          <div className="flex flex-wrap items-center gap-4 mt-6">
             <div className="relative flex-1 min-w-[250px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search tasks..."
-                className="pl-9 h-9 w-full text-sm"
+                className="pl-11 h-11 w-full text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
@@ -354,6 +374,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                 }}
               />
             </div>
+
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -361,10 +382,10 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-9 w-[140px] text-sm">
+              <SelectTrigger className="h-11 w-[160px] text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="in_progress">In Progress</SelectItem>
@@ -372,6 +393,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                 <SelectItem value="completed">Completed</SelectItem>
               </SelectContent>
             </Select>
+
             <Select
               value={priorityFilter}
               onValueChange={(value) => {
@@ -379,37 +401,39 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-9 w-[140px] text-sm">
+              <SelectTrigger className="h-11 w-[160px] text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
                 <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
               </SelectContent>
             </Select>
+
             <Select
               value={sortBy}
               onValueChange={setSortBy}
             >
-              <SelectTrigger className="h-9 w-[140px] text-sm">
+              <SelectTrigger className="h-11 w-[160px] text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
                 <SelectItem value="dueDate">Due Date</SelectItem>
                 <SelectItem value="priority">Priority</SelectItem>
                 <SelectItem value="status">Status</SelectItem>
                 <SelectItem value="name">Name</SelectItem>
               </SelectContent>
             </Select>
+
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-11 w-11 bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50 rounded-xl shadow-sm"
               onClick={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
             >
-              <ArrowUpDown className="h-4 w-4" />
+              <ArrowUpDown className="h-5 w-5" />
             </Button>
           </div>
         </CardHeader>
@@ -418,49 +442,49 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
           {paginatedTasks.length > 0 ? (
             <div>
               {selectedTasks.length > 0 && (
-                <div className="flex justify-between items-center px-6 py-2 bg-muted border-b border-border">
+                <div className="flex justify-between items-center px-6 py-3 bg-white/60 backdrop-blur-sm border-b border-gray-200/50">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-sm"
+                    className="text-sm hover:bg-gray-100 rounded-lg"
                     onClick={handleSelectAllTasks}
                   >
                     {selectedTasks.length === paginatedTasks.length ? "Deselect All" : "Select All"}
                   </Button>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-gray-600 font-medium">
                     {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''} selected
                   </span>
                 </div>
               )}
 
               <ScrollArea className="h-[calc(100vh-300px)]">
-                <div className="divide-y divide-border">
+                <div className="divide-y divide-gray-200/50">
                   {paginatedTasks.map((task, i) => (
                     <motion.div
                       key={task.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
-                      className="grid grid-cols-[0.5fr_4fr_1.5fr_1.5fr_2fr_2fr_0.5fr] gap-4 items-center px-6 py-3 hover:bg-muted/50 transition-colors"
+                      className="grid grid-cols-[0.5fr_4fr_1.5fr_1.5fr_2fr_2fr_0.5fr] gap-4 items-center px-6 py-4 hover:bg-white/60 backdrop-blur-sm transition-colors"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <Checkbox
                           id={`task-${task.id}`}
                           checked={selectedTasks.includes(task.id)}
                           onCheckedChange={() => handleTaskSelection(task.id)}
-                          className="h-4 w-4 rounded-sm"
+                          className="h-4 w-4 rounded-sm border-gray-300"
                         />
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-gray-500 font-medium">
                           {(currentPage - 1) * itemsPerPage + i + 1}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
                         <div>
-                          <label htmlFor={`task-${task.id}`} className="text-sm font-medium cursor-pointer hover:text-primary transition-colors">
+                          <label htmlFor={`task-${task.id}`} className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors">
                             {task.name}
                           </label>
-                          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{task.description}</p>
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-1">{task.description}</p>
                         </div>
                       </div>
 
@@ -472,7 +496,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                         <TaskPriority priority={task.priority} />
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar className="h-4 w-4" />
                         <span>{task.dueDate}</span>
                       </div>
@@ -482,17 +506,17 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                       <div className="flex justify-end">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded hover:bg-muted">
-                              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-gray-100">
+                              <MoreHorizontal className="h-5 w-5 text-gray-500" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem className="text-sm">
-                              <Edit className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <DropdownMenuContent align="end" className="w-64 p-2 bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
+                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-blue-50 transition-colors">
+                              <Edit className="h-4 w-4 mr-3 text-blue-600" />
                               Edit Task
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm text-destructive">
-                              <Trash className="h-4 w-4 mr-2" />
+                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+                              <Trash className="h-4 w-4 mr-3" />
                               Delete Task
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -504,13 +528,13 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               </ScrollArea>
 
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-1 px-6 py-3 border-t border-border">
+                <div className="flex justify-center items-center gap-2 px-6 py-4 border-t border-gray-200/50 bg-white/60 backdrop-blur-sm">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="h-8 w-8 p-0"
+                    className="h-9 w-9 p-0 rounded-lg bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -521,9 +545,9 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                       size="sm"
                       onClick={() => typeof page === 'number' && goToPage(page)}
                       disabled={typeof page !== 'number'}
-                      className={`h-8 w-8 p-0 ${page === currentPage
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted'
+                      className={`h-9 w-9 p-0 rounded-lg ${page === currentPage
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                          : 'bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50 text-gray-600'
                         }`}
                     >
                       {page}
@@ -534,7 +558,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                     size="sm"
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="h-8 w-8 p-0"
+                    className="h-9 w-9 p-0 rounded-lg bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -542,17 +566,17 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center p-8 text-center">
-              <div className="bg-muted p-4 rounded-full mb-4">
-                <LayoutList className="h-8 w-8 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center p-12 text-center">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 rounded-2xl mb-6">
+                <LayoutList className="h-12 w-12 text-blue-600" />
               </div>
-              <p className="text-sm font-medium mb-1">No tasks found</p>
-              <p className="text-sm text-muted-foreground mb-4">Try adjusting your filters or add a new task.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No tasks found</h3>
+              <p className="text-sm text-gray-500 mb-6 max-w-sm">Try adjusting your filters or add a new task to get started.</p>
               <Button
                 onClick={() => setIsAddTaskModalOpen(true)}
-                className="h-9 px-4 text-sm font-medium"
+                className="h-11 px-6 text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"
               >
-                <Plus className="h-4 w-4 mr-1.5" />
+                <Plus className="h-5 w-5 mr-2" />
                 Add Task
               </Button>
             </div>
