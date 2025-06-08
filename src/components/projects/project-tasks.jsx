@@ -39,6 +39,37 @@ import { AddTaskModal } from "./add-task-modal"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
+
+const getInitials = (name) => {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+const getRandomColor = (name) => {
+  const colors = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-pink-500',
+    'bg-indigo-500',
+    'bg-cyan-500',
+    'bg-amber-500',
+    'bg-emerald-500',
+    'bg-violet-500',
+    'bg-rose-500'
+  ]
+
+  const hash = name.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc)
+  }, 0)
+
+  return colors[Math.abs(hash) % colors.length]
+}
 
 const TaskStatus = ({ status }) => {
   const getStatusColor = (status) => {
@@ -102,7 +133,6 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
   const [sortDirection, setSortDirection] = useState("asc")
   const [selectedTasks, setSelectedTasks] = useState([])
 
-  // Filter and paginate tasks
   const filteredTasks = useMemo(() => {
     return tasks?.filter(task => {
       const matchesSearch = searchQuery === "" ||
@@ -114,7 +144,6 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
     }) || []
   }, [tasks, searchQuery, statusFilter, priorityFilter])
 
-  // Sort tasks
   const sortedTasks = useMemo(() => {
     return [...filteredTasks].sort((a, b) => {
       let comparison = 0;
@@ -207,6 +236,50 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
       prev.length === paginatedTasks.length
         ? []
         : paginatedTasks.map(task => task.id)
+    )
+  }
+
+  const renderAssignee = (task) => {
+    const assignee = team?.find(m => m.id === task.assigneeId)
+    const assigneeName = assignee?.name || task.assignee || 'Unassigned'
+    const initials = getInitials(assigneeName)
+    const bgColor = getRandomColor(assigneeName)
+
+    return (
+      <div className="flex items-center gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative">
+                <Avatar className="h-6 w-6 border border-border/40">
+                  {assignee?.avatar ? (
+                    <AvatarImage
+                      src={assignee.avatar}
+                      alt={assigneeName}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        e.currentTarget.nextSibling.style.display = 'flex'
+                      }}
+                    />
+                  ) : null}
+                  <AvatarFallback
+                    className={cn(
+                      "text-xs font-medium text-white",
+                      bgColor
+                    )}
+                  >
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{assigneeName}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <span className="text-sm text-muted-foreground">{assigneeName}</span>
+      </div>
     )
   }
 
@@ -406,28 +479,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                         <span>{task.dueDate}</span>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {task.assigneeId && team?.find(m => m.id === task.assigneeId) ? (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Avatar className="h-6 w-6 border border-border/40">
-                                  <AvatarImage src={team.find(m => m.id === task.assigneeId)?.avatar} alt={task.assignee} />
-                                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                                    {task.assignee.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </TooltipTrigger>
-                              <TooltipContent><p>{task.assignee}</p></TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        ) : (
-                          <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs text-muted-foreground border border-border/40">
-                            <UserPlus className="h-3 w-3" />
-                          </div>
-                        )}
-                        <span className="text-sm text-muted-foreground">{task.assignee || 'Unassigned'}</span>
-                      </div>
+                      {renderAssignee(task)}
 
                       <div className="flex justify-end">
                         <DropdownMenu>
