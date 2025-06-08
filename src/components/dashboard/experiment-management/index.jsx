@@ -2,29 +2,29 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import {
   Select,
@@ -36,40 +36,40 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog"
-import { 
-  Beaker, 
-  Calendar, 
-  ChevronDown, 
-  Clock, 
-  Download, 
-  Edit, 
-  Filter, 
-  GitBranch, 
-  Grid, 
-  List, 
-  MoreHorizontal, 
-  Plus, 
-  Search, 
-  SlidersHorizontal, 
-  Trash2, 
-  Users 
+import {
+  Beaker,
+  Calendar,
+  ChevronDown,
+  Clock,
+  Download,
+  Edit,
+  Filter,
+  GitBranch,
+  Grid,
+  List,
+  MoreHorizontal,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Trash2,
+  Users
 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { ExperimentForm } from "./experiment-form"
@@ -101,7 +101,7 @@ export function ExperimentManagement() {
         setIsLoading(true)
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000))
-        
+
         const data = generateMockExperiments()
         setExperiments(data)
         setFilteredExperiments(data)
@@ -118,39 +118,39 @@ export function ExperimentManagement() {
   // Filter and sort experiments
   useEffect(() => {
     let result = [...experiments]
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       result = result.filter(
-        exp => 
-          exp.title.toLowerCase().includes(query) || 
+        exp =>
+          exp.title.toLowerCase().includes(query) ||
           exp.description.toLowerCase().includes(query) ||
           exp.protocol.toLowerCase().includes(query)
       )
     }
-    
+
     // Apply status filter
     if (statusFilter !== "all") {
       result = result.filter(exp => exp.status === statusFilter)
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let valueA = a[sortBy]
       let valueB = b[sortBy]
-      
+
       // Handle date fields
       if (typeof valueA === 'string' && valueA.includes('T')) {
         valueA = new Date(valueA)
         valueB = new Date(valueB)
       }
-      
+
       if (valueA < valueB) return sortOrder === 'asc' ? -1 : 1
       if (valueA > valueB) return sortOrder === 'asc' ? 1 : -1
       return 0
     })
-    
+
     setFilteredExperiments(result)
   }, [experiments, searchQuery, statusFilter, sortBy, sortOrder])
 
@@ -171,7 +171,7 @@ export function ExperimentManagement() {
       ],
       ...experimentData
     }
-    
+
     setExperiments([newExperiment, ...experiments])
     setIsCreateDialogOpen(false)
   }
@@ -186,7 +186,7 @@ export function ExperimentManagement() {
       updatedBy: "Current User",
       changes: `Updated to version ${newVersion}`
     }
-    
+
     // Update the experiment with new version info
     const updated = {
       ...updatedExperiment,
@@ -194,8 +194,8 @@ export function ExperimentManagement() {
       updatedAt: new Date().toISOString(),
       versionHistory: [...updatedExperiment.versionHistory, versionEntry]
     }
-    
-    setExperiments(experiments.map(exp => 
+
+    setExperiments(experiments.map(exp =>
       exp.id === updated.id ? updated : exp
     ))
     setSelectedExperiment(null)
@@ -238,7 +238,7 @@ export function ExperimentManagement() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -268,7 +268,7 @@ export function ExperimentManagement() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-10">
@@ -300,7 +300,7 @@ export function ExperimentManagement() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            
+
             <Button variant="ghost" size="icon" onClick={resetFilters} title="Reset filters">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
@@ -309,7 +309,7 @@ export function ExperimentManagement() {
             </Button>
           </div>
         </div>
-        
+
         <div className="flex gap-2 w-full md:w-auto justify-between md:justify-end">
           <div className="flex border rounded-md p-1">
             <Button
@@ -329,7 +329,7 @@ export function ExperimentManagement() {
               <List className="h-4 w-4" />
             </Button>
           </div>
-          
+
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -349,39 +349,39 @@ export function ExperimentManagement() {
           </Dialog>
         </div>
       </div>
-      
+
       {/* Status Filters */}
       <div className="flex overflow-x-auto pb-2">
         <div className="flex space-x-2">
-          <Button 
+          <Button
             variant={statusFilter === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("all")}
           >
             All
           </Button>
-          <Button 
+          <Button
             variant={statusFilter === "planning" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("planning")}
           >
             Planning
           </Button>
-          <Button 
+          <Button
             variant={statusFilter === "in-progress" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("in-progress")}
           >
             In Progress
           </Button>
-          <Button 
+          <Button
             variant={statusFilter === "completed" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("completed")}
           >
             Completed
           </Button>
-          <Button 
+          <Button
             variant={statusFilter === "archived" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("archived")}
@@ -390,7 +390,7 @@ export function ExperimentManagement() {
           </Button>
         </div>
       </div>
-      
+
       {/* Experiments Display */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -420,7 +420,7 @@ export function ExperimentManagement() {
                 </div>
                 <h3 className="text-lg font-semibold mb-1">No experiments found</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-4">
-                  {searchQuery || statusFilter !== "all" 
+                  {searchQuery || statusFilter !== "all"
                     ? "Try adjusting your filters or search query to find what you're looking for."
                     : "Get started by creating your first experiment."}
                 </p>
@@ -432,20 +432,20 @@ export function ExperimentManagement() {
             </Card>
           ) : (
             view === "grid" ? (
-              <ExperimentGrid 
-                experiments={filteredExperiments} 
+              <ExperimentGrid
+                experiments={filteredExperiments}
                 onView={handleViewExperiment}
               />
             ) : (
-              <ExperimentList 
-                experiments={filteredExperiments} 
+              <ExperimentList
+                experiments={filteredExperiments}
                 onView={handleViewExperiment}
               />
             )
           )}
         </>
       )}
-      
+
       {/* Experiment Details Dialog */}
       <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
         <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden flex flex-col">
@@ -453,7 +453,7 @@ export function ExperimentManagement() {
             <DialogTitle>Experiment Details</DialogTitle>
           </DialogHeader>
           {selectedExperiment && (
-            <ExperimentDetails 
+            <ExperimentDetails
               experiment={selectedExperiment}
               onUpdate={handleUpdateExperiment}
               onDelete={handleDeleteExperiment}

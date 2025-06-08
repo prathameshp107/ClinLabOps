@@ -132,21 +132,7 @@ export default function TasksPage() {
             </div>
           </motion.div>
           {/* Animated statistics cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-            {stats.map((stat, idx) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + idx * 0.07, duration: 0.4 }}
-                className="bg-background/70 border border-border/40 rounded-xl p-4 flex flex-col items-center justify-center shadow-md"
-              >
-                <div className="mb-2">{stat.icon}</div>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-xs text-muted-foreground mt-1">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

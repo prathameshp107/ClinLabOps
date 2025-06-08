@@ -1,56 +1,63 @@
 "use client"
 
-import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { ProjectManagement } from "@/components/dashboard/project-management"
-import { BackgroundBeams } from "@/components/ui/aceternity/background-beams"
-import { motion } from "framer-motion"
-import { Sparkles, Beaker, FolderKanban } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
+import { useState } from "react"
+
+const statusChips = [
+  { label: "All", value: "all" },
+  { label: "In Progress", value: "in-progress" },
+  { label: "On Hold", value: "on-hold" },
+  { label: "Completed", value: "completed" },
+]
 
 export default function ProjectsPage() {
+  // Demo state for view toggle and status filter
+  const [view, setView] = useState("board")
+  const [status, setStatus] = useState("all")
+
+
   return (
-    <DashboardLayout>
-      <div className="relative min-h-screen w-full overflow-hidden transition-all duration-300 ease-in-out">
-        <BackgroundBeams className="opacity-15" />
-        
-        <div className="container max-w-full mx-auto p-4 md:p-8 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-8"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-background/80 to-background/40 backdrop-blur-sm p-6 rounded-xl border border-border/30 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-3 rounded-xl">
-                  <FolderKanban className="h-8 w-8 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight mb-1 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                    Projects
-                  </h1>
-                  <p className="text-muted-foreground text-sm md:text-base max-w-md">
-                    Manage your research projects and experiments in one centralized workspace
-                  </p>
-                </div>
+    <div className="min-h-screen w-full bg-[#f4f5f7]">
+      <DashboardLayout>
+        <div className="w-full px-0 py-8">
+          {/* Sticky Responsive Header for Mobile */}
+          <div className="md:hidden sticky top-0 z-20 bg-[#f4f5f7] px-4 py-3 flex items-center justify-between border-b border-[#e5e7eb]">
+            <h1 className="text-lg font-bold text-[#1e293b]">Projects</h1>
+            <Button className="bg-[#2563eb] text-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-none hover:bg-[#174ea6]">
+              <Plus className="h-4 w-4" />
+              New
+            </Button>
+          </div>
+
+          {/* Header */}
+          <div className="hidden md:flex flex-row items-center justify-between gap-4 mb-6 px-8">
+            <div>
+              <h1 className="text-2xl font-bold text-[#1e293b]">Projects</h1>
+              <p className="text-sm text-[#64748b] mt-1">
+                Manage your research projects and experiments in one centralized workspace.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 bg-primary/5 px-3 py-1.5 rounded-full text-xs text-primary">
+                <Beaker className="h-3.5 w-3.5" />
+                <span>Research Hub</span>
               </div>
-              
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5 bg-primary/5 px-3 py-1.5 rounded-full">
-                  <Beaker className="h-3.5 w-3.5 text-primary" />
-                  <span>Research Hub</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-amber-500/5 px-3 py-1.5 rounded-full">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                  <span>Innovation Center</span>
-                </div>
+              <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 rounded-full text-xs text-amber-600">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Innovation Center</span>
               </div>
             </div>
-            
-            <ProjectManagement />
-          </motion.div>
+          </div>
+
+          {/* ProjectManagement (board/list) */}
+          <div className="w-full px-4 md:px-8">
+            <ProjectManagement view={view} status={status} />
+          </div>
         </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </div>
   )
 }
