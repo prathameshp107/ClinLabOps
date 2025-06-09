@@ -649,56 +649,7 @@ export default function TaskDetailPage() {
                     </CardContent>
                   </Card>
 
-                  {/* New Feature: Task Dependencies Visualization */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-md flex items-center gap-2">
-                        <BarChart4 className="h-4 w-4 text-primary" />
-                        Task Dependencies
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col items-center">
-                        <div className="w-full max-w-md">
-                          <div className="flex justify-between items-center mb-8">
-                            {/* Dependency visualization */}
-                            <div className="flex flex-col items-center">
-                              <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center">
-                                <span className="text-xs font-medium">T-101</span>
-                              </div>
-                              <span className="text-xs mt-1">Sample Prep</span>
-                            </div>
-                            <div className="flex-1 h-0.5 bg-primary/30 relative mx-2">
-                              <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
-                                Depends on
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
-                                <span className="text-xs font-medium">{task.id}</span>
-                              </div>
-                              <span className="text-xs mt-1">Current Task</span>
-                            </div>
-                            <div className="flex-1 h-0.5 bg-primary/30 relative mx-2">
-                              <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
-                                Required for
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <div className="w-16 h-16 rounded-full bg-muted border-2 border-muted-foreground flex items-center justify-center">
-                                <span className="text-xs font-medium">T-103</span>
-                              </div>
-                              <span className="text-xs mt-1">Data Analysis</span>
-                            </div>
-                          </div>
-                        </div>
-                        <Button variant="outline" size="sm" className="mt-2">
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Dependency
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  
                 </TabsContent>
 
                 <TabsContent value="subtasks" className="space-y-6">

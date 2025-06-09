@@ -6,11 +6,11 @@ import { ChevronLeft } from "lucide-react";
 
 export function BackButton() {
   const router = useRouter();
-  
+
   return (
-    <Button 
-      variant="ghost" 
-      size="sm" 
+    <Button
+      variant="ghost"
+      size="sm"
       className="gap-1 h-9 w-9 p-0 rounded-full"
       onClick={() => router.back()}
     >
