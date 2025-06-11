@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import "./task-assignee.css";
 
 export function TaskAssignee({ task, teamMembers }) {
   const [assignee, setAssignee] = useState(task.assignee);

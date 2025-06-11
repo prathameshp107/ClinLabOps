@@ -55,10 +55,9 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-export function ModernSidebar({ className, onToggle }) {
+export function ModernSidebar({ className, onToggle, isCollapsed }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [isCollapsed, setIsCollapsed] = useState(false);
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const [userData, setUserData] = useState(null);
     const [expandedGroups, setExpandedGroups] = useState({
@@ -243,13 +242,7 @@ export function ModernSidebar({ className, onToggle }) {
         localStorage.removeItem('userData');
         router.push('/login');
     };
-    const handleToggle = () => {
-        const newCollapsedState = !isCollapsed;
-        setIsCollapsed(newCollapsedState);
-        if (onToggle) onToggle(newCollapsedState);
-    };
     const isActive = (path) => pathname === path;
-
 
     const toggleGroup = (key) => {
         setExpandedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -264,38 +257,21 @@ export function ModernSidebar({ className, onToggle }) {
         <aside
             className={cn(
                 "fixed top-0 left-0 z-40 h-screen flex flex-col justify-between font-sans",
-                isCollapsed ? "w-[72px]" : "w-[240px]",
+                isCollapsed ? "w-0 opacity-0" : "w-[240px] opacity-100",
                 "transition-all duration-300 bg-[#f4f5f7] border-r border-[#e5e7eb]"
             )}
         >
-            {/* Collapse/Expand Button (unchanged position) */}
-            <div className="absolute -right-4 top-6 z-50">
-                <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={handleToggle}
-                    className="rounded-full border border-[#e5e7eb] bg-white hover:bg-[#e5e7eb]"
-                    aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                >
-                    {isCollapsed ? (
-                        <ChevronRight className="h-6 w-6 text-[#2563eb]" />
-                    ) : (
-                        <ChevronLeft className="h-6 w-6 text-[#2563eb]" />
-                    )}
-                </Button>
-            </div>
-
             {/* Compact Profile */}
-            <div className="flex items-center gap-2 pt-5 pb-2 px-4 min-h-[48px]">
-                <div className="relative">
-                    <Avatar className="h-8 w-8 border border-[#e5e7eb]">
-                        <AvatarImage src="/avatars/user.jpg" alt="User" />
-                        <AvatarFallback>{userData?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
-                    </Avatar>
-                    {/* Status dot */}
-                    <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-white" />
-                </div>
-                {!isCollapsed && (
+            {!isCollapsed && (
+                <div className="flex items-center gap-2 pt-5 pb-2 px-4 min-h-[48px]">
+                    <div className="relative">
+                        <Avatar className="h-8 w-8 border border-[#e5e7eb]">
+                            <AvatarImage src="/avatars/user.jpg" alt="User" />
+                            <AvatarFallback>{userData?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
+                        </Avatar>
+                        {/* Status dot */}
+                        <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-white" />
+                    </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="flex items-center gap-1 px-1 py-0 h-8 min-w-0">
@@ -314,11 +290,11 @@ export function ModernSidebar({ className, onToggle }) {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Navigation with Groups */}
-            <ScrollArea className="flex-1 px-1 overflow-y-auto">
+            <ScrollArea className={cn("flex-1 overflow-y-auto", isCollapsed ? "px-0" : "px-1")}>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleGroupDragEnd}>
                     <SortableContext items={orderedGroups.map(g => g.key)} strategy={verticalListSortingStrategy}>
                         <nav className="space-y-2 mt-2">
@@ -420,37 +396,39 @@ export function ModernSidebar({ className, onToggle }) {
             </ScrollArea>
 
             {/* Footer */}
-            <div className={cn(
-                "p-4 border-t border-[#e5e7eb] bg-[#f4f5f7] flex items-center justify-between gap-2",
-                isCollapsed && "flex-col gap-3"
-            )}>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#2563eb] relative" onClick={() => router.push('/settings')}>
-                                <Settings className="h-5 w-5" />
-                                {hasSettingsNotification && (
-                                    <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500" />
-                                )}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Settings</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#ef4444]"
-                                onClick={handleLogout}
-                            >
-                                <LogOut className="h-5 w-5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Logout</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </div>
+            {!isCollapsed && (
+                <div className={cn(
+                    "p-4 border-t border-[#e5e7eb] bg-[#f4f5f7] flex items-center justify-between gap-2",
+                    isCollapsed && "flex-col gap-3"
+                )}>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#2563eb] relative" onClick={() => router.push('/settings')}>
+                                    <Settings className="h-5 w-5" />
+                                    {hasSettingsNotification && (
+                                        <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500" />
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Settings</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#ef4444]"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOut className="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Logout</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            )}
 
             {/* Logout Confirmation Dialog */}
             <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
