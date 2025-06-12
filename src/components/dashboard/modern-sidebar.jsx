@@ -58,8 +58,6 @@ import { CSS } from '@dnd-kit/utilities';
 export function ModernSidebar({ className, onToggle, isCollapsed }) {
     const pathname = usePathname();
     const router = useRouter();
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const [userData, setUserData] = useState(null);
     const [expandedGroups, setExpandedGroups] = useState({
         main: true,
         lab: true,
@@ -223,25 +221,6 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
         );
     }
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const storedUserData = localStorage.getItem('userData');
-            if (storedUserData) {
-                try {
-                    setUserData(JSON.parse(storedUserData));
-                } catch (error) {
-                    console.error('Error parsing user data:', error);
-                }
-            }
-        }
-    }, []);
-
-    const handleLogout = () => setShowLogoutDialog(true);
-    const confirmLogout = () => {
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        router.push('/login');
-    };
     const isActive = (path) => pathname === path;
 
     const toggleGroup = (key) => {
@@ -261,37 +240,17 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                 "transition-all duration-300 bg-[#f4f5f7] border-r border-[#e5e7eb]"
             )}
         >
-            {/* Compact Profile */}
-            {!isCollapsed && (
-                <div className="flex items-center gap-2 pt-5 pb-2 px-4 min-h-[48px]">
-                    <div className="relative">
-                        <Avatar className="h-8 w-8 border border-[#e5e7eb]">
-                            <AvatarImage src="/avatars/user.jpg" alt="User" />
-                            <AvatarFallback>{userData?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</AvatarFallback>
-                        </Avatar>
-                        {/* Status dot */}
-                        <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-white" />
-                    </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="flex items-center gap-1 px-1 py-0 h-8 min-w-0">
-                                <span className="font-semibold text-[14px] text-[#1e293b] truncate max-w-[90px]">{userData?.fullName || 'User'}</span>
-                                <ChevronDown className="h-4 w-4 text-[#64748b]" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-40">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push('/profile')}>
-                                <User className="mr-2 h-4 w-4" /> Profile
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                                <LogOut className="mr-2 h-4 w-4" /> Log out
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+            {/* New: Top Logo/Title Area */}
+            <div className="flex items-center gap-2 pt-5 pb-2 px-4 min-h-[48px] justify-center">
+                <div className="bg-primary/10 p-2.5 rounded-lg">
+                    <Microscope className="h-6 w-6 text-primary" />
                 </div>
-            )}
+                {!isCollapsed && (
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-primary/70">
+                        LabTasker
+                    </h1>
+                )}
+            </div>
 
             {/* Navigation with Groups */}
             <ScrollArea className={cn("flex-1 overflow-y-auto", isCollapsed ? "px-0" : "px-1")}>
@@ -419,7 +378,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                     variant="ghost"
                                     size="icon"
                                     className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#ef4444]"
-                                    onClick={handleLogout}
+                                    onClick={() => router.push('/login')}
                                 >
                                     <LogOut className="h-5 w-5" />
                                 </Button>
@@ -429,27 +388,6 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                     </TooltipProvider>
                 </div>
             )}
-
-            {/* Logout Confirmation Dialog */}
-            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-                <AlertDialogContent className="max-w-md">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Log out of LabTasker?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            You will be logged out of your account. You will need to log in again to access your data.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={confirmLogout}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                            Log out
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </aside>
     );
 }
