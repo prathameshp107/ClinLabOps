@@ -55,7 +55,7 @@ import { SparklesCore } from "@/components/ui/aceternity/sparkles"
 import { Checkbox } from "@/components/ui/checkbox" // Add this import for the Checkbox component
 
 import { TaskTable } from "./task-table"
-import { TaskBoard } from "./task-board"
+import { TaskBoard } from "./task-board.jsx"
 import { TaskDetailsDialog } from "./task-details-dialog"
 import { TaskFormDialog } from "./task-form-dialog"
 import { TaskDeleteDialog } from "./task-delete-dialog"

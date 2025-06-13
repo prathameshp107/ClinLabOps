@@ -1,195 +1,361 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { format } from "date-fns";
-import { Send, Smile, Paperclip, Image as ImageIcon, Video } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Paperclip, Send, UserCircle, AlertCircle, Clock, Download, X } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { TextRevealCard } from "@/components/ui/aceternity/text-reveal-card";
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 
-export function TaskComments({ task }) {
-  const [comments, setComments] = useState(task.comments);
-  const [newComment, setNewComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const commentEndRef = useRef(null);
+// Mock users for @mentions
+const mockUsers = [
+  { id: "1", name: "John Doe", email: "john@example.com", avatarUrl: "" },
+  { id: "2", name: "Jane Smith", email: "jane@example.com", avatarUrl: "" },
+  { id: "3", name: "Robert Johnson", email: "robert@example.com", avatarUrl: "" },
+  { id: "4", name: "Emily Brown", email: "emily@example.com", avatarUrl: "" },
+  { id: "5", name: "Michael Wilson", email: "michael@example.com", avatarUrl: "" },
+];
 
-  // Auto-scroll to the latest comment
+export const TaskComments = ({ taskId, initialComments = [] }) => {
+  const [comments, setComments] = useState(initialComments);
+  const [commentText, setCommentText] = useState("");
+  const [files, setFiles] = useState([]);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
+  const commentContainerRef = useRef(null);
+  
+  // Monitor for @mentions
   useEffect(() => {
-    commentEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (commentText.includes("@")) {
+      const lastAtSymbol = commentText.lastIndexOf("@");
+      if (lastAtSymbol !== -1 && cursorPosition > lastAtSymbol) {
+        const query = commentText.substring(lastAtSymbol + 1, cursorPosition).toLowerCase();
+        setMentionQuery(query);
+        
+        // Filter users based on query
+        const filtered = mockUsers.filter(user => 
+          user.name.toLowerCase().includes(query) || 
+          user.email.toLowerCase().includes(query)
+        );
+        
+        setMentionSuggestions(filtered);
+        setShowMentionSuggestions(filtered.length > 0);
+      } else {
+        setShowMentionSuggestions(false);
+      }
+    } else {
+      setShowMentionSuggestions(false);
+    }
+  }, [commentText, cursorPosition]);
+  
+  // Scroll to bottom of comments when new ones are added
+  useEffect(() => {
+    if (commentContainerRef.current) {
+      commentContainerRef.current.scrollTop = commentContainerRef.current.scrollHeight;
+    }
   }, [comments]);
-
-  const handleAddComment = () => {
-    if (newComment.trim() === "") return;
-
-    setIsSubmitting(true);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      const newCommentObj = {
-        id: `c${Date.now()}`,
-        text: newComment,
-        createdAt: new Date().toISOString(),
-        user: {
-          id: "current-user",
-          name: "Current User",
-          avatar: "/avatars/current-user.png"
-        }
-      };
-
-      setComments([...comments, newCommentObj]);
-      setNewComment("");
-      setIsSubmitting(false);
-    }, 500);
+  
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles(prev => [...prev, ...selectedFiles]);
   };
-
-  const addEmoji = (emoji) => {
-    setNewComment(prev => prev + emoji.native);
-    setShowEmojiPicker(false);
+  
+  // Remove a file from the list
+  const handleRemoveFile = (index) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
-
+  
+  // Handle textarea input to track cursor position
+  const handleTextareaChange = (e) => {
+    setCommentText(e.target.value);
+    setCursorPosition(e.target.selectionStart);
+  };
+  
+  // Insert mention into comment text
+  const handleSelectMention = (user) => {
+    const beforeMention = commentText.substring(0, commentText.lastIndexOf("@"));
+    const afterMention = commentText.substring(cursorPosition);
+    const newText = `${beforeMention}@${user.name} ${afterMention}`;
+    
+    setCommentText(newText);
+    setShowMentionSuggestions(false);
+    
+    // Set focus back to textarea after selecting mention
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      const newCursorPos = beforeMention.length + user.name.length + 2; // +2 for @ and space
+      setTimeout(() => {
+        textareaRef.current.selectionStart = newCursorPos;
+        textareaRef.current.selectionEnd = newCursorPos;
+        setCursorPosition(newCursorPos);
+      }, 0);
+    }
+  };
+  
+  // Submit a new comment
+  const handleSubmitComment = () => {
+    if (commentText.trim() === "" && files.length === 0) return;
+    
+    // Find and process @mentions
+    const mentionRegex = /@([a-zA-Z0-9 ]+)/g;
+    const mentions = [];
+    let match;
+    
+    while ((match = mentionRegex.exec(commentText)) !== null) {
+      const mentionedName = match[1].trim();
+      const mentionedUser = mockUsers.find(user => 
+        user.name.toLowerCase() === mentionedName.toLowerCase()
+      );
+      
+      if (mentionedUser) {
+        mentions.push(mentionedUser.id);
+      }
+    }
+    
+    // Process file attachments
+    const attachments = files.map(file => ({
+      id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file) // In a real app, you'd upload to a server
+    }));
+    
+    // Create the new comment
+    const newComment = {
+      id: `comment-${Date.now()}`,
+      text: commentText,
+      author: {
+        id: "current-user", // In a real app, this would be the logged-in user
+        name: "You",
+        avatarUrl: ""
+      },
+      createdAt: new Date(),
+      mentions,
+      attachments,
+      isNew: true // Flag for animation
+    };
+    
+    // Add to comments and reset input
+    setComments([...comments, newComment]);
+    setCommentText("");
+    setFiles([]);
+    setShowMentionSuggestions(false);
+    
+    // In a real app, you would send notifications to mentioned users here
+    if (mentions.length > 0) {
+      console.log("Sending notifications to:", mentions);
+    }
+  };
+  
+  // Format the comment text with highlighted mentions
+  const formatCommentText = (text) => {
+    if (!text) return "";
+    
+    const mentionRegex = /@([a-zA-Z0-9 ]+)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = mentionRegex.exec(text)) !== null) {
+      // Add text before the mention
+      if (match.index > lastIndex) {
+        parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex, match.index)}</span>);
+      }
+      
+      // Add the mention with different styling
+      const mentionedName = match[1].trim();
+      const mentionedUser = mockUsers.find(user => 
+        user.name.toLowerCase() === mentionedName.toLowerCase()
+      );
+      
+      if (mentionedUser) {
+        parts.push(
+          <Badge variant="secondary" className="mx-1 bg-primary/10" key={`mention-${match.index}`}>
+            @{mentionedName}
+          </Badge>
+        );
+      } else {
+        parts.push(<span key={`mention-${match.index}`}>@{mentionedName}</span>);
+      }
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add the remaining text
+    if (lastIndex < text.length) {
+      parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex)}</span>);
+    }
+    
+    return parts;
+  };
+  
   return (
-    <Card className="flex flex-col h-[600px] bg-background/60 backdrop-blur-xl border-border/40 shadow-xl">
-      <CardHeader className="pb-3 border-b border-border/40">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <Smile className="h-5 w-5 text-primary" />
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium">Comments ({comments.length})</h3>
+      
+      <div 
+        className="space-y-4 max-h-[400px] overflow-y-auto p-2 -mx-2" 
+        ref={commentContainerRef}
+      >
+        {comments.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No comments yet. Be the first to add a comment!
           </div>
-          Comments
-          <span className="text-sm font-normal text-muted-foreground ml-2">
-            {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-4">
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4">
-            {comments.length === 0 ? (
-              <TextRevealCard
-                text="Be the first to comment on this task"
-                revealText="Add your thoughts, questions, or updates"
-                className="h-40 w-full"
-              />
-            ) : (
-              <AnimatePresence>
-                {comments.map((comment) => (
-                  <motion.div
-                    key={comment.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    className="flex gap-3 group"
-                  >
-                    <Avatar className="h-9 w-9 ring-2 ring-background">
-                      <AvatarImage src={comment.user.avatar} alt={comment.user.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {comment.user.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{comment.user.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(comment.createdAt), 'MMM d, yyyy • h:mm a')}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-sm bg-muted/30 p-3 rounded-xl border border-border/40 shadow-sm">
-                        {comment.text}
+        ) : (
+          <AnimatePresence>
+            {comments.map((comment) => (
+              <motion.div
+                key={comment.id}
+                initial={comment.isNew ? { opacity: 0, y: 20 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={comment.author.avatarUrl} />
+                        <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between items-center">
+                          <div className="font-medium text-sm">
+                            {comment.author.name}
+                          </div>
+                          <div className="text-xs text-gray-500 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {formatDistanceToNow(new Date(comment.createdAt), { 
+                              addSuffix: true 
+                            })}
+                          </div>
+                        </div>
+                        
+                        <div className="text-sm whitespace-pre-wrap">
+                          {formatCommentText(comment.text)}
+                        </div>
+                        
+                        {comment.attachments && comment.attachments.length > 0 && (
+                          <div className="mt-2 space-y-2">
+                            {comment.attachments.map((attachment) => (
+                              <div 
+                                key={attachment.id} 
+                                className="bg-slate-50 dark:bg-slate-800 rounded p-2 text-xs flex items-center justify-between"
+                              >
+                                <div className="flex items-center">
+                                  <Paperclip className="h-3 w-3 mr-2" />
+                                  <span className="truncate max-w-[180px]">{attachment.name}</span>
+                                </div>
+                                <Button size="icon" variant="ghost" className="h-5 w-5 p-0">
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </motion.div>
-                ))}
-                <div ref={commentEndRef} />
-              </AnimatePresence>
-            )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+      </div>
+      
+      <div className="border rounded-md p-3 space-y-3">
+        <Textarea
+          ref={textareaRef}
+          placeholder="Add a comment... (Use @ to mention teammates)"
+          value={commentText}
+          onChange={handleTextareaChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmitComment();
+            }
+          }}
+          className="min-h-[80px] resize-none"
+        />
+        
+        {/* Mention suggestions */}
+        {showMentionSuggestions && (
+          <div className="absolute z-10 bg-background border rounded-md shadow-md p-1 max-h-[150px] overflow-y-auto">
+            {mentionSuggestions.map((user) => (
+              <div
+                key={user.id}
+                className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer"
+                onClick={() => handleSelectMention(user)}
+              >
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={user.avatarUrl} />
+                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <span className="text-sm">{user.name}</span>
+              </div>
+            ))}
           </div>
-        </ScrollArea>
-
-        <Separator className="my-4" />
-
-        <div className="space-y-3">
-          <div className="flex gap-3">
-            <Avatar className="h-9 w-9 ring-2 ring-background">
-              <AvatarImage src="/avatars/current-user.png" alt="You" />
-              <AvatarFallback className="bg-primary/10 text-primary">Y</AvatarFallback>
-            </Avatar>
-
-            <div className="flex-1 space-y-2">
-              <Textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
-                className="min-h-[80px] resize-none bg-background/50 backdrop-blur-sm border-border/40 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.ctrlKey) {
-                    handleAddComment();
-                  }
-                }}
-              />
-
-              <div className="flex justify-between items-center">
-                <div className="flex gap-1">
-                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-                        <Smile className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Picker
-                        data={data}
-                        onEmojiSelect={addEmoji}
-                        theme="light"
-                        previewPosition="none"
-                        skinTonePosition="none"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-                    <Video className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-                    <Paperclip className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <Button
-                  onClick={handleAddComment}
-                  disabled={newComment.trim() === "" || isSubmitting}
-                  className={cn(
-                    "bg-primary hover:bg-primary/90 text-primary-foreground",
-                    isSubmitting && "opacity-70"
-                  )}
+        )}
+        
+        {/* File attachments preview */}
+        {files.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {files.map((file, index) => (
+              <div 
+                key={index} 
+                className="bg-slate-50 dark:bg-slate-800 rounded-md py-1 px-2 text-xs flex items-center gap-1"
+              >
+                <Paperclip className="h-3 w-3" />
+                <span className="truncate max-w-[100px]">{file.name}</span>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-4 w-4 p-0 ml-1 text-gray-500 hover:text-gray-700"
+                  onClick={() => handleRemoveFile(index)}
                 >
-                  <Send className="h-4 w-4 mr-1" />
-                  {isSubmitting ? "Sending..." : "Send"}
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
-
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-medium bg-muted rounded">⌘</span>
-                <span>+</span>
-                <span className="inline-flex items-center justify-center w-4 h-4 text-[10px] font-medium bg-muted rounded">↵</span>
-                <span>to send</span>
-              </p>
-            </div>
+            ))}
           </div>
+        )}
+        
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Paperclip className="h-4 w-4 mr-2" />
+            Attach Files
+          </Button>
+          
+          <Button 
+            onClick={handleSubmitComment}
+            disabled={commentText.trim() === "" && files.length === 0}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Send
+          </Button>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            className="hidden"
+          />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
-}
+};

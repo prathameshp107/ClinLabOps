@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { TaskManagement } from "@/components/dashboard/tasks/task-management"
+import { TaskManagement } from "@/components/tasks/task-management"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -56,7 +56,7 @@ export default function TasksPage() {
       <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-background via-background/95 to-background/90">
         <BackgroundBeams className="opacity-30" />
         {/* Floating Action Button for quick task creation */}
-        
+
         <div className="p-8 w-full relative z-10">
           {/* Sticky header/toolbar */}
           <motion.div
@@ -268,7 +268,7 @@ export default function TasksPage() {
                 </CardContent>
               </Card>
 
-              
+
             </motion.div>
           </div>
         </div>
