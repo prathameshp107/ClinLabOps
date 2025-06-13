@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { ProfileHeader } from "@/components/dashboard/profile/profile-header"
-import { ProfileTabs } from "@/components/dashboard/profile/profile-tabs"
+import { ProfileHeader } from "@/components/profile/profile-header"
+import { ProfileTabs } from "@/components/profile/profile-tabs"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { profileData } from "@/data/profile-data"

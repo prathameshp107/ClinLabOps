@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"; // Add router import
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 import { TasksOverview } from "@/components/dashboard/tasks-overview";
 import { PendingApprovals } from "@/components/dashboard/shared/pending-approvals";
-import { UserActivity } from "@/components/dashboard/users/user-activity";
+import { UserActivity } from "@/components/user-management/user-activity";
 import { ExperimentProgress } from "@/components/dashboard/experiments/experiment-progress";
 import { ComplianceAlerts } from "@/components/dashboard/inventory/compliance-alerts";
 import { SystemLogs } from "@/components/dashboard/equipment/system-logs";
