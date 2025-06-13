@@ -1,7 +1,7 @@
 "use client"
 
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { ProjectManagement } from "@/components/dashboard/projects/project-management"
+import { ProjectManagement } from "@/components/projects/project-management"
 import { Button } from "@/components/ui/button"
 import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
 import { useState } from "react"
