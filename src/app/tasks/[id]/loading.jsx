@@ -1,4 +1,4 @@
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TaskLoading() {

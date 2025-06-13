@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ExperimentManagement } from "@/components/dashboard/experiment-management"
 import { BackgroundBeams } from "@/components/ui/aceternity/background-beams"
 import { motion } from "framer-motion"

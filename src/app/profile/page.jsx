@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProfileHeader } from "@/components/dashboard/profile/profile-header"
 import { ProfileTabs } from "@/components/dashboard/profile/profile-tabs"
 import { cn } from "@/lib/utils"

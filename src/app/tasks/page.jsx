@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { TaskManagement } from "@/components/dashboard/task-management"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { TaskManagement } from "@/components/dashboard/tasks/task-management"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

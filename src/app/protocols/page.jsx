@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProtocolList } from "@/components/dashboard/protocol-management/protocol-list"
 import { ProtocolFormDialog } from "@/components/dashboard/protocol-management/protocol-form-dialog"
 import { ProtocolDetailDialog } from "@/components/dashboard/protocol-management/protocol-detail-dialog"

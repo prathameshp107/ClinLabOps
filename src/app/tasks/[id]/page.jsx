@@ -58,7 +58,7 @@ import { SparklesCore } from "@/components/ui/aceternity/sparkles";
 import { TextGenerateEffect } from "@/components/ui/aceternity/text-generate-effect";
 import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gradient";
 import { StickyScroll } from "@/components/ui/aceternity/sticky-scroll";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 
 export default function TaskDetailPage() {
   const { id } = useParams();

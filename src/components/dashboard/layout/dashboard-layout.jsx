@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ModernSidebar } from "@/components/dashboard/modern-sidebar"
+import { ModernSidebar } from "@/components/dashboard/layout/modern-sidebar"
 // Remove the import for ModernHeader since it doesn't exist yet
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

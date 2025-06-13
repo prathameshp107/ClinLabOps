@@ -27,17 +27,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ProjectTable } from "./project-management/project-table"
-import { ProjectCardView } from "./project-management/project-card-view"
-import { AddProjectDialog } from "./project-management/add-project-dialog"
-import { EditProjectDialog } from "./project-management/edit-project-dialog"
-import { DeleteProjectDialog } from "./project-management/delete-project-dialog"
-import { ProjectDetailsDialog } from "./project-management/project-details-dialog"
-import { ProjectShareDialog } from "./project-management/project-share-dialog"
-import { ActivityLogDialog } from "./project-management/activity-log-dialog"
-import { ProjectDependencies } from "./project-management/project-dependencies"
-import { ProjectStatusTracking } from "./project-management/project-status-tracking"
-import { ProjectGanttChart } from "./project-management/project-gantt-chart"
+import { ProjectTable } from "./project-table"
+import { ProjectCardView } from "./project-card-view"
+import { AddProjectDialog } from "./add-project-dialog"
+import { EditProjectDialog } from "./edit-project-dialog"
+import { DeleteProjectDialog } from "./delete-project-dialog"
+import { ProjectDetailsDialog } from "./project-details-dialog"
+import { ProjectShareDialog } from "./project-share-dialog"
+import { ActivityLogDialog } from "./activity-log-dialog"
+import { ProjectDependencies } from "./project-dependencies"
+import { ProjectStatusTracking } from "./project-status-tracking"
+import { ProjectGanttChart } from "./project-gantt-chart"
 
 // Mock user data for activity logs
 const mockUsers = {

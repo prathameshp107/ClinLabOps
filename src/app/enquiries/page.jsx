@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { format, parseISO } from "date-fns"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import {
   Dialog,
   DialogContent,

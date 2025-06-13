@@ -17,8 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { mockProjects } from "@/components/dashboard/project-management" // We'll need to export this
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { mockProjects } from "@/components/dashboard/projects/project-management" // We'll need to export this
 
 // Remove the generateStaticParams function from here
 // Keep all your other imports and component code

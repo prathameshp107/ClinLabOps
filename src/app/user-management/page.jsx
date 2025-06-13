@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { UserManagement } from "@/components/dashboard/user-management"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { UserManagement } from "@/components/dashboard/users/user-management"
 import { BackgroundBeams } from "@/components/ui/aceternity/background-beams"
 
 export default function UserManagementPage() {
