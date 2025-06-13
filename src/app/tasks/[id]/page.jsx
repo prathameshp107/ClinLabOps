@@ -59,6 +59,7 @@ import { TextGenerateEffect } from "@/components/ui/aceternity/text-generate-eff
 import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gradient";
 import { StickyScroll } from "@/components/ui/aceternity/sticky-scroll";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
+import { TaskNotFound } from "@/components/tasks/Task-Notfound";
 
 export default function TaskDetailPage() {
   const { id } = useParams();
@@ -333,12 +334,7 @@ export default function TaskDetailPage() {
 
   if (!task) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <AlertTriangle className="h-16 w-16 text-amber-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Task Not Found</h2>
-        <p className="text-muted-foreground mb-6">The task you're looking for doesn't exist or has been removed.</p>
-        <BackButton />
-      </div>
+      <TaskNotFound />
     );
   }
 

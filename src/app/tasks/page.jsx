@@ -268,47 +268,7 @@ export default function TasksPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden relative">
-                <div className="absolute inset-0 z-0">
-                  <SparklesCore
-                    id="tsparticles-stats"
-                    background="transparent"
-                    minSize={0.4}
-                    maxSize={0.8}
-                    particleDensity={40}
-                    className="w-full h-full"
-                    particleColor="#8B5CF6"
-                  />
-                </div>
-                <CardHeader className="relative z-10">
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <BarChart2 className="h-6 w-6 text-primary" />
-                    </div>
-                    Task Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">Completion Rate</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">78%</p>
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">On-time Rate</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">82%</p>
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">Total Tasks</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">24</p>
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">Avg. Duration</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">3.2d</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              
             </motion.div>
           </div>
         </div>
