@@ -22,23 +22,24 @@ import {
   Clock,
   CheckCircle2
 } from "lucide-react"
+import { TasksLoading } from "@/components/tasks/tasks-loading"
 
 export default function TasksPage() {
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
   // Simulate loading state
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false)
+      setLoading(false)
     }, 800)
     return () => clearTimeout(timer)
   }, [])
 
   const handleRefresh = () => {
-    setIsLoading(true)
+    setLoading(true)
     setTimeout(() => {
-      setIsLoading(false)
+      setLoading(false)
     }, 800)
   }
 
@@ -50,6 +51,10 @@ export default function TasksPage() {
     { label: "Overdue", value: 3, icon: <AlertCircle className="h-5 w-5 text-red-500" /> },
   ];
   const [showTaskModal, setShowTaskModal] = useState(false);
+
+  if (loading) {
+    return <TasksLoading />;
+  }
 
   return (
     <DashboardLayout>
@@ -96,7 +101,7 @@ export default function TasksPage() {
                 className="h-12 w-12 shadow-lg hover:shadow-xl transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 rounded-xl hover:bg-primary/5"
                 onClick={handleRefresh}
               >
-                <RefreshCw className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
               </Button>
             </div>
           </motion.div>
@@ -152,7 +157,7 @@ export default function TasksPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {isLoading ? (
+                  {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="flex items-center gap-4">
@@ -215,7 +220,7 @@ export default function TasksPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  {isLoading ? (
+                  {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="space-y-2">

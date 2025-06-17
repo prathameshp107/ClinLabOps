@@ -61,6 +61,7 @@ import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gra
 import { StickyScroll } from "@/components/ui/aceternity/sticky-scroll";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 import { TaskNotFound } from "@/components/tasks/Task-Notfound";
+import { TaskLoading } from "@/components/tasks/Task-Loading";
 
 export default function TaskDetailPage() {
   const { id } = useParams();
@@ -118,8 +119,6 @@ export default function TaskDetailPage() {
     const seconds = timeSpent % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
-
-
 
   // Rest of your existing code for fetching task data
   useEffect(() => {
@@ -344,23 +343,7 @@ export default function TaskDetailPage() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-full h-40">
-          <SparklesCore
-            background="transparent"
-            minSize={0.4}
-            maxSize={1}
-            particleDensity={70}
-            className="w-full h-full"
-            particleColor="#8b5cf6"
-          />
-          <div className="text-center mt-4">
-            <TextGenerateEffect words="Loading task details..." />
-          </div>
-        </div>
-      </div>
-    );
+    return <TaskLoading />;
   }
 
   if (!task) {

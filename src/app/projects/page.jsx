@@ -2,9 +2,10 @@
 
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProjectManagement } from "@/components/projects/project-management"
+import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { Button } from "@/components/ui/button"
 import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const statusChips = [
   { label: "All", value: "all" },
@@ -14,10 +15,21 @@ const statusChips = [
 ]
 
 export default function ProjectsPage() {
-  // Demo state for view toggle and status filter
+  const [loading, setLoading] = useState(true)
   const [view, setView] = useState("board")
   const [status, setStatus] = useState("all")
 
+  // Simulate loading state
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (loading) {
+    return <ProjectsLoading />
+  }
 
   return (
     <DashboardLayout>
