@@ -20,12 +20,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AddUserDialog } from "./user-management/add-user-dialog"
-import { EditUserDialog } from "./user-management/edit-user-dialog"
-import { ResetPasswordDialog } from "./user-management/reset-password-dialog"
-import { DeleteUserDialog } from "./user-management/delete-user-dialog"
-import { UserTable } from "./user-management/user-table"
-import { UserActivityLogs } from "./user-management/user-activity-logs"
+import { AddUserDialog } from "./add-user-dialog"
+import { EditUserDialog } from "./edit-user-dialog"
+import { ResetPasswordDialog } from "./reset-password-dialog"
+import { DeleteUserDialog } from "./delete-user-dialog"
+import { UserTable } from "./user-table"
+import { UserActivityLogs } from "./user-activity-logs"
 
 // Sample user data
 const mockUsers = [

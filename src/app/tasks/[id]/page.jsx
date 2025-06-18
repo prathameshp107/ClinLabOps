@@ -52,13 +52,16 @@ import { TaskComments } from "@/components/tasks/task-comments";
 import { TaskActivityLog } from "@/components/tasks/task-activity-log";
 import { TaskProgress } from "@/components/tasks/task-progress";
 import { BackButton } from "@/components/tasks/back-button";
+import { TaskTimeline } from "@/components/tasks/task-timeline";
 
 // Aceternity UI Components
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
 import { TextGenerateEffect } from "@/components/ui/aceternity/text-generate-effect";
 import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gradient";
 import { StickyScroll } from "@/components/ui/aceternity/sticky-scroll";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
+import { TaskNotFound } from "@/components/tasks/Task-Notfound";
+import { TaskLoading } from "@/components/tasks/Task-Loading";
 
 export default function TaskDetailPage() {
   const { id } = useParams();
@@ -116,8 +119,6 @@ export default function TaskDetailPage() {
     const seconds = timeSpent % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
-
-
 
   // Rest of your existing code for fetching task data
   useEffect(() => {
@@ -297,6 +298,36 @@ export default function TaskDetailPage() {
             { id: "u2", name: "John Smith", role: "Lab Technician", avatar: "/avatars/john-smith.png" },
             { id: "u3", name: "Emily Chen", role: "Research Assistant", avatar: "/avatars/emily-chen.png" },
             { id: "u4", name: "Michael Brown", role: "Data Analyst", avatar: "/avatars/michael-brown.png" }
+          ],
+          relatedTasks: [
+            {
+              id: "T10",
+              title: "Data Analysis for Group A",
+              status: "completed",
+              dueDate: "2023-10-25T23:59:59Z",
+              assignee: { id: "u4", name: "Michael Brown", avatar: "/avatars/michael-brown.png" }
+            },
+            {
+              id: "T11",
+              title: "Equipment Calibration",
+              status: "in_progress",
+              dueDate: "2023-11-10T23:59:59Z",
+              assignee: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+            },
+            {
+              id: "T12",
+              title: "Lab Inventory Check",
+              status: "not_started",
+              dueDate: "2023-11-15T23:59:59Z",
+              assignee: { id: "u3", name: "Emily Chen", avatar: "/avatars/emily-chen.png" }
+            },
+            {
+              id: "T13",
+              title: "Reagent Order",
+              status: "completed",
+              dueDate: "2023-10-30T23:59:59Z",
+              assignee: { id: "u1", name: "Dr. Jane Doe", avatar: "/avatars/jane-doe.png" }
+            }
           ]
         };
 
@@ -312,33 +343,12 @@ export default function TaskDetailPage() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-full h-40">
-          <SparklesCore
-            background="transparent"
-            minSize={0.4}
-            maxSize={1}
-            particleDensity={70}
-            className="w-full h-full"
-            particleColor="#8b5cf6"
-          />
-          <div className="text-center mt-4">
-            <TextGenerateEffect words="Loading task details..." />
-          </div>
-        </div>
-      </div>
-    );
+    return <TaskLoading />;
   }
 
   if (!task) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <AlertTriangle className="h-16 w-16 text-amber-500 mb-4" />
-        <h2 className="text-2xl font-bold mb-2">Task Not Found</h2>
-        <p className="text-muted-foreground mb-6">The task you're looking for doesn't exist or has been removed.</p>
-        <BackButton />
-      </div>
+      <TaskNotFound />
     );
   }
 
@@ -374,7 +384,7 @@ export default function TaskDetailPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              
+
 
               <TooltipProvider>
                 <Tooltip>
@@ -591,65 +601,8 @@ export default function TaskDetailPage() {
                   <TaskProgress task={task} />
 
                   {/* Enhanced Timeline Feature */}
-                  <Card>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-md flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-primary" />
-                        Task Timeline
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="relative">
-                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted"></div>
-                        {task.subtasks.map((subtask, index) => (
-                          <motion.div
-                            key={subtask.id}
-                            className="ml-10 mb-6 relative"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                          >
-                            <div className={`absolute -left-10 top-1 w-4 h-4 rounded-full bg-background border-2 ${subtask.status === 'completed'
-                              ? 'border-green-500'
-                              : subtask.status === 'in_progress'
-                                ? 'border-amber-500'
-                                : 'border-muted-foreground'
-                              }`}></div>
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{subtask.title}</span>
-                                <Badge variant={
-                                  subtask.status === 'completed' ? 'success' :
-                                    subtask.status === 'in_progress' ? 'warning' : 'outline'
-                                } className="text-xs">
-                                  {subtask.status.replace('_', ' ')}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                <Calendar className="h-3 w-3" />
-                                <span>
-                                  {format(new Date(subtask.startDate), 'MMM d')} - {format(new Date(subtask.endDate), 'MMM d, yyyy')}
-                                </span>
-                                <Users className="h-3 w-3 ml-2" />
-                                <span>{subtask.assignee.name}</span>
-                              </div>
-                              <div className="mt-2 flex items-center gap-2">
-                                <Progress value={subtask.progress} className="h-1.5 w-32" />
-                                <span className="text-xs">{subtask.progress}%</span>
-                              </div>
-                              {subtask.notes && (
-                                <div className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded-md">
-                                  {subtask.notes}
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <TaskTimeline subtasks={task.subtasks} />
 
-                  
                 </TabsContent>
 
                 <TabsContent value="subtasks" className="space-y-6">
@@ -670,107 +623,139 @@ export default function TaskDetailPage() {
             <div className="space-y-6">
               <TaskAssignee task={task} teamMembers={task.teamMembers} />
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-md flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    Due Date
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{format(new Date(task.dueDate), 'MMM d, yyyy')}</span>
+              <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
+                <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
+                      <Clock className="h-5 w-5 text-primary" />
                     </div>
-                    <Button variant="outline" size="sm">Change</Button>
+                    <CardTitle className="text-lg">Due Date</CardTitle>
                   </div>
-                  {new Date(task.dueDate) < new Date() ? (
-                    <Badge variant="destructive" className="mt-2">Overdue</Badge>
-                  ) : (
-                    <div className="mt-2">
-                      <Progress
-                        value={100 - (differenceInDays(new Date(task.dueDate), new Date()) / differenceInDays(new Date(task.dueDate), new Date(task.createdAt))) * 100}
-                        className="h-1.5 mb-1"
-                      />
-                      <div className="text-xs text-muted-foreground">
-                        {Math.ceil((new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24))} days remaining
+                  <Button variant="outline" size="sm" className="gap-2 shadow-sm hover:shadow-md transition-shadow">
+                    <Edit className="h-4 w-4" />
+                    Change
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-base font-medium text-foreground">{format(new Date(task.dueDate), 'MMM d, yyyy')}</span>
                       </div>
+                      {new Date(task.dueDate) < new Date() && (
+                        <Badge variant="destructive" className="text-sm px-3 py-1 animate-fade-in">Overdue</Badge>
+                      )}
                     </div>
-                  )}
+
+                    {new Date(task.dueDate) >= new Date() && (
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progress to Due Date</span>
+                          <span>{Math.ceil(100 - (differenceInDays(new Date(task.dueDate), new Date()) / differenceInDays(new Date(task.dueDate), new Date(task.createdAt))) * 100)}%</span>
+                        </div>
+                        <Progress
+                          value={100 - (differenceInDays(new Date(task.dueDate), new Date()) / differenceInDays(new Date(task.dueDate), new Date(task.createdAt))) * 100}
+                          className="h-2 mb-1"
+                          indicatorColor="bg-blue-500"
+                        />
+                        <div className="text-xs text-muted-foreground mt-1">
+                          <span className="font-semibold text-foreground">{Math.max(0, Math.ceil((new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24)))}</span> days remaining
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-md flex items-center gap-2">
-                    <Tag className="h-4 w-4 text-primary" />
-                    Tags
-                  </CardTitle>
+              <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
+                <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
+                      <Tag className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-lg">Tags</CardTitle>
+                  </div>
+                  <Button variant="outline" size="sm" className="gap-2 shadow-sm hover:shadow-md transition-shadow">
+                    <PlusCircle className="h-4 w-4" />
+                    Add Tag
+                  </Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-6">
                   <div className="flex flex-wrap gap-2">
                     {task.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors">
+                      <Badge key={index} variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors px-3 py-1 text-sm shadow-sm">
                         {tag}
                       </Badge>
                     ))}
-                    <Button variant="ghost" size="sm" className="h-6 px-2">
-                      + Add
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Enhanced Related Tasks Card */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-md flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary" />
-                    Related Tasks
-                  </CardTitle>
+              <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col">
+                <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <CardTitle className="text-lg">Related Tasks</CardTitle>
+                  </div>
+                  <Button variant="outline" size="sm" className="gap-2 shadow-sm hover:shadow-md transition-shadow">
+                    <PlusCircle className="h-4 w-4" />
+                    Link Task
+                  </Button>
                 </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[180px]">
-                    <div className="divide-y">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="p-3 hover:bg-muted/50 transition-colors cursor-pointer">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="bg-primary/5">T{i + 10}</Badge>
-                              <span className="text-sm font-medium truncate">Related PCR Analysis Task {i}</span>
+                <CardContent className="p-0 flex-1 flex flex-col">
+                  <ScrollArea className="h-[240px] custom-scrollbar">
+                    <div className="divide-y divide-border/50">
+                      {task.relatedTasks?.length > 0 ? (
+                        task.relatedTasks.map((relatedTask, i) => (
+                          <motion.div
+                            key={relatedTask.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                            className="p-4 hover:bg-muted/50 transition-colors cursor-pointer group flex flex-col sm:flex-row justify-between items-start gap-2"
+                          >
+                            <div className="flex items-start gap-2 min-w-0">
+                              <Badge variant="outline" className="bg-primary/5 text-xs px-2 py-0.5 flex-shrink-0">T{relatedTask.id}</Badge>
+                              <span className="text-sm font-medium flex-1 break-words">{relatedTask.title}</span>
                             </div>
-                            <Badge variant={i === 1 ? 'success' : i === 2 ? 'warning' : 'outline'}>
-                              {i === 1 ? 'Completed' : i === 2 ? 'In Progress' : 'Not Started'}
-                            </Badge>
-                          </div>
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Due {format(addDays(new Date(), i + 2), 'MMM d, yyyy')}
-                          </div>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground min-w-0">
+                              <Badge variant={
+                                relatedTask.status === 'completed' ? 'success' :
+                                  relatedTask.status === 'in_progress' ? 'warning' : 'outline'
+                              } className="capitalize">
+                                {relatedTask.status.replace('_', ' ')}
+                              </Badge>
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Calendar className="h-3 w-3" />
+                                {format(new Date(relatedTask.dueDate), 'MMM d')}
+                              </span>
+                              <span className="flex items-center gap-1 min-w-0">
+                                <Users className="h-3 w-3" />
+                                {relatedTask.assignee?.name || 'N/A'}
+                              </span>
+                            </div>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
+                          <Link2 className="h-12 w-12 mb-4 text-primary/50" />
+                          <p className="text-lg font-medium">No related tasks</p>
+                          <p className="text-sm mt-1">Link tasks to show dependencies or related work.</p>
+                          <Button variant="outline" className="mt-4 gap-2">
+                            <PlusCircle className="h-4 w-4" /> Link First Task
+                          </Button>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </ScrollArea>
                 </CardContent>
-                <CardFooter className="pt-2 pb-2">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Link Related Task
-                  </Button>
-                </CardFooter>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-md flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4 text-primary" />
-                    Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="max-h-[300px] overflow-y-auto pr-2">
-                  <TaskActivityLog activities={task.activityLog} />
-                </CardContent>
-              </Card>
+              <TaskActivityLog activities={task.activityLog} />
             </div>
           </div>
         </div>

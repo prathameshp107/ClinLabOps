@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { EquipmentList } from "@/components/dashboard/equipment-management/equipment-list"
-import { EquipmentFormDialog } from "@/components/dashboard/equipment-management/equipment-form-dialog"
-import { EquipmentDetailDialog } from "@/components/dashboard/equipment-management/equipment-detail-dialog"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { EquipmentList } from "@/components/equipment-management/equipment-list"
+import { EquipmentFormDialog } from "@/components/equipment-management/equipment-form-dialog"
+import { EquipmentDetailDialog } from "@/components/equipment-management/equipment-detail-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {

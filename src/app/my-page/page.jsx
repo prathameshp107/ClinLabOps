@@ -29,13 +29,13 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTheme } from "next-themes";
 
-import TaskList from "@/components/dashboard/my-page/task-list";
-import ProjectGrid from "@/components/dashboard/my-page/project-grid";
-import ActivityTimeline from "@/components/dashboard/my-page/activity-timeline";
-import PerformanceMetrics from "@/components/dashboard/my-page/performance-metrics";
-import NotificationsPanel from "@/components/dashboard/my-page/notifications-panel";
-import UpcomingDeadlines from "@/components/dashboard/my-page/upcoming-deadlines";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import TaskList from "@/components/my-page/task-list";
+import ProjectGrid from "@/components/my-page/project-grid";
+import ActivityTimeline from "@/components/my-page/activity-timeline";
+import PerformanceMetrics from "@/components/my-page/performance-metrics";
+import NotificationsPanel from "@/components/my-page/notifications-panel";
+import UpcomingDeadlines from "@/components/my-page/upcoming-deadlines";
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 // Mock data - would be fetched from API in real app
 import { 

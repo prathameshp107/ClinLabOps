@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
 

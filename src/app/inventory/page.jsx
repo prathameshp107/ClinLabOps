@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { InventoryList } from "@/components/dashboard/inventory-management/inventory-list"
-import { SuppliersList } from "@/components/dashboard/inventory-management/suppliers-list"
-import { LocationsList } from "@/components/dashboard/inventory-management/locations-list"
-import { ReportsList } from "@/components/dashboard/inventory-management/reports-list"
+import { InventoryList } from "@/components/inventory-management/inventory-list"
+import { SuppliersList } from "@/components/inventory-management/suppliers-list"
+import { LocationsList } from "@/components/inventory-management/locations-list"
+import { ReportsList } from "@/components/inventory-management/reports-list"
 import { inventoryData } from "@/data/inventory-data"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 import { Package, Users, MapPin, BarChart } from "lucide-react";
 

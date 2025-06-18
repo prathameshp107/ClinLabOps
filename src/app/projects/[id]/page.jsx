@@ -21,7 +21,7 @@ import { ProjectDocuments } from "@/components/projects/project-documents"
 import { ProjectTimeline } from "@/components/projects/project-timeline"
 import { AddTaskModal } from "@/components/projects/add-task-modal"
 import { AddMemberModal } from "@/components/projects/add-member-modal"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 
 export default function ProjectPage({ params }) {

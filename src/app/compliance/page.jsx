@@ -115,7 +115,7 @@ import { TracingBeam } from "@/components/ui/tracing-beam"
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid"
 import { StickyScroll } from "@/components/ui/sticky-scroll-reveal"
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 
 
 // Mock data for compliance overview

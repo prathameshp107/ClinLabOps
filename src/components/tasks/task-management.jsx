@@ -54,12 +54,12 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { SparklesCore } from "@/components/ui/aceternity/sparkles"
 import { Checkbox } from "@/components/ui/checkbox" // Add this import for the Checkbox component
 
-import { TaskTable } from "./task-management/task-table"
-import { TaskBoard } from "./task-management/task-board"
-import { TaskDetailsDialog } from "./task-management/task-details-dialog"
-import { TaskFormDialog } from "./task-management/task-form-dialog"
-import { TaskDeleteDialog } from "./task-management/task-delete-dialog"
-import { TaskComments } from "./task-management/task-comments"
+import { TaskTable } from "./task-table"
+import { TaskBoard } from "./task-board.jsx"
+import { TaskDetailsDialog } from "./task-details-dialog"
+import { TaskFormDialog } from "./task-form-dialog"
+import { TaskDeleteDialog } from "./task-delete-dialog"
+import { TaskComments } from "./task-comments"
 import {
   DropdownMenu,
   DropdownMenuContent,

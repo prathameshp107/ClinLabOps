@@ -2,75 +2,190 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Users, AlertCircle, CheckCircle2, Clock, MoreVertical, Activity } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 
 const teamWorkloadData = [
-  { name: "Unassigned", value: 64, avatarFallback: "UA", color: "#6b7280" },
-  { name: "Divyesh Bohra", value: 15, avatarFallback: "DB", color: "#3b82f6" },
-  { name: "chaitail.sanap", value: 10, avatarFallback: "CS", color: "#f97316" },
-  { name: "Mandar Deshpande", value: 5, avatarFallback: "MD", color: "#ef4444" },
-  { name: "Pooja Misal", value: 6, avatarFallback: "PM", color: "#8b5cf6" },
+  {
+    name: "Unassigned",
+    value: 64,
+    avatarFallback: "UA",
+    color: "#6b7280",
+    status: "warning",
+    tasks: 12,
+    lastActive: "2 days ago",
+    role: "Unassigned Tasks"
+  },
+  {
+    name: "Divyesh Bohra",
+    value: 15,
+    avatarFallback: "DB",
+    color: "#3b82f6",
+    status: "active",
+    tasks: 5,
+    lastActive: "Active now",
+    role: "Senior Developer"
+  },
+  {
+    name: "chaitail.sanap",
+    value: 10,
+    avatarFallback: "CS",
+    color: "#f97316",
+    status: "busy",
+    tasks: 3,
+    lastActive: "1 hour ago",
+    role: "Project Manager"
+  },
+  {
+    name: "Mandar Deshpande",
+    value: 5,
+    avatarFallback: "MD",
+    color: "#ef4444",
+    status: "away",
+    tasks: 2,
+    lastActive: "3 hours ago",
+    role: "Developer"
+  },
+  {
+    name: "Pooja Misal",
+    value: 6,
+    avatarFallback: "PM",
+    color: "#8b5cf6",
+    status: "active",
+    tasks: 4,
+    lastActive: "Active now",
+    role: "Designer"
+  },
 ];
 
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'active':
+      return 'bg-green-500';
+    case 'busy':
+      return 'bg-red-500';
+    case 'away':
+      return 'bg-yellow-500';
+    case 'warning':
+      return 'bg-orange-500';
+    default:
+      return 'bg-gray-500';
+  }
+};
+
+const getWorkloadStatus = (value) => {
+  if (value >= 80) return { label: 'High', color: 'text-red-600 bg-red-50' };
+  if (value >= 60) return { label: 'Medium', color: 'text-amber-600 bg-amber-50' };
+  return { label: 'Low', color: 'text-green-600 bg-green-50' };
+};
+
 export function TeamWorkload() {
+  const totalTasks = teamWorkloadData.reduce((sum, member) => sum + member.tasks, 0);
+  const averageWorkload = teamWorkloadData.reduce((sum, member) => sum + member.value, 0) / teamWorkloadData.length;
+
   return (
-    <Card className="bg-white border border-gray-200 hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="px-4 py-3 border-b border-gray-100">
-        <CardTitle className="text-base font-medium text-gray-900">
-          Team workload
-        </CardTitle>
-        <p className="text-sm text-gray-600 mt-0.5">
-          Monitor the capacity of your team.{" "}
-          <a href="#" className="text-blue-600 hover:underline">
-            Reassign work items to get the right balance
-          </a>
-        </p>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-[120px_1fr] gap-x-4 items-center mb-2 text-sm font-semibold text-gray-700">
-          <div>Assignee</div>
-          <div>Work distribution</div>
-        </div>
-        <div className="space-y-4">
-          {teamWorkloadData.map((member, index) => (
-            <div key={index} className="grid grid-cols-[120px_1fr] gap-x-4 items-center">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback style={{ backgroundColor: member.color }} className="text-white text-sm">
-                    {member.avatarFallback}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-gray-900 truncate">
-                  {member.name}
-                </span>
-              </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2 w-full">
-                      <span className="text-sm font-semibold text-gray-800 w-12 flex-shrink-0">
-                        {member.value}%
-                      </span>
-                      <div className="flex-1 h-4 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full"
-                          style={{ width: `${member.value}%`, backgroundColor: member.color }}
-                        />
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{member.name}: {member.value}% workload</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+      <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 border-b border-gray-100/50">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-xl">
+              <Users className="h-5 w-5 text-purple-600" />
             </div>
-          ))}
+            Team Workload
+          </CardTitle>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-sm text-gray-600">{teamWorkloadData.filter(m => m.status === 'active').length} Active</span>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <a href="#" className="text-sm text-purple-600 hover:text-purple-700 hover:underline transition-colors">
+                    Reassign work items
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Click to reassign work items and balance team workload</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
+            <div className="text-sm text-blue-600 font-medium mb-1">Total Tasks</div>
+            <div className="text-2xl font-bold text-blue-900">{totalTasks}</div>
+            <div className="text-xs text-blue-600 mt-1">Across all team members</div>
+          </div>
+          <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
+            <div className="text-sm text-purple-600 font-medium mb-1">Average Workload</div>
+            <div className="text-2xl font-bold text-purple-900">{Math.round(averageWorkload)}%</div>
+            <div className="text-xs text-purple-600 mt-1">Team capacity utilization</div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {teamWorkloadData.map((member, index) => {
+            const workloadStatus = getWorkloadStatus(member.value);
+            return (
+              <div key={index} className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/50 hover:shadow-md transition-all duration-200">
+                <div className="relative">
+                  <Avatar className="h-10 w-10 border-2 border-white shadow-md">
+                    <AvatarFallback style={{ backgroundColor: member.color }} className="text-white text-sm font-medium">
+                      {member.avatarFallback}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(member.status)}`}></div>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">
+                        {member.name}
+                      </span>
+                      <Badge variant="outline" className={`text-xs ${workloadStatus.color}`}>
+                        {workloadStatus.label} Workload
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <Activity className="h-3 w-3" />
+                        {member.lastActive}
+                      </span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500">{member.role}</span>
+                    <span className="text-xs text-gray-500">{member.tasks} tasks</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${member.value}%`,
+                        backgroundColor: member.color,
+                        backgroundImage: `linear-gradient(to right, ${member.color}, ${member.color}dd)`
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

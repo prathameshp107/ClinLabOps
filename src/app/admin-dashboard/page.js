@@ -3,17 +3,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation"; // Add router import
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 import { TasksOverview } from "@/components/dashboard/tasks-overview";
-import { PendingApprovals } from "@/components/dashboard/pending-approvals";
-import { UserActivity } from "@/components/dashboard/user-activity";
-import { ExperimentProgress } from "@/components/dashboard/experiment-progress";
-import { ComplianceAlerts } from "@/components/dashboard/compliance-alerts";
-import { SystemLogs } from "@/components/dashboard/system-logs";
-import { SmartInsights } from "@/components/dashboard/smart-insights";
-import { TaskHeatmap } from "@/components/dashboard/task-heatmap";
-import { QuickActions } from "@/components/dashboard/quick-actions";
-import { NotificationCenter } from "@/components/dashboard/notification-center";
+import { PendingApprovals } from "@/components/dashboard/shared/pending-approvals";
+import { UserActivity } from "@/components/user-management/user-activity";
+import { ExperimentProgress } from "@/components/experiments/experiment-progress";
+import { ComplianceAlerts } from "@/components/dashboard/inventory/compliance-alerts";
+import { SystemLogs } from "@/components/dashboard/equipment/system-logs";
+import { SmartInsights } from "@/components/dashboard/shared/smart-insights";
+import { TaskHeatmap } from "@/components/tasks/task-heatmap";
+import { QuickActions } from "@/components/dashboard/shared/quick-actions";
+import { NotificationCenter } from "@/components/dashboard/shared/notification-center";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { ProtocolList } from "@/components/dashboard/protocol-management/protocol-list"
-import { ProtocolFormDialog } from "@/components/dashboard/protocol-management/protocol-form-dialog"
-import { ProtocolDetailDialog } from "@/components/dashboard/protocol-management/protocol-detail-dialog"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { ProtocolList } from "@/components/protocol-management/protocol-list"
+import { ProtocolFormDialog } from "@/components/protocol-management/protocol-form-dialog"
+import { ProtocolDetailDialog } from "@/components/protocol-management/protocol-detail-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PlusCircle, Search, Filter, SlidersHorizontal, BookOpen, LayoutGrid, Table as TableIcon } from "lucide-react"
@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion" // Add framer-motion for
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { ProtocolCard } from "@/components/dashboard/protocol-management/protocol-card"
+import { ProtocolCard } from "@/components/protocol-management/protocol-card"
 
 export default function ProtocolsPage() {
   const [protocols, setProtocols] = useState(protocolsData)

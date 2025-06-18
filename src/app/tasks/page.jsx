@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
-import { TaskManagement } from "@/components/dashboard/task-management"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { TaskManagement } from "@/components/tasks/task-management"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,23 +22,24 @@ import {
   Clock,
   CheckCircle2
 } from "lucide-react"
+import { TasksLoading } from "@/components/tasks/tasks-loading"
 
 export default function TasksPage() {
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
   // Simulate loading state
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false)
+      setLoading(false)
     }, 800)
     return () => clearTimeout(timer)
   }, [])
 
   const handleRefresh = () => {
-    setIsLoading(true)
+    setLoading(true)
     setTimeout(() => {
-      setIsLoading(false)
+      setLoading(false)
     }, 800)
   }
 
@@ -51,12 +52,16 @@ export default function TasksPage() {
   ];
   const [showTaskModal, setShowTaskModal] = useState(false);
 
+  if (loading) {
+    return <TasksLoading />;
+  }
+
   return (
     <DashboardLayout>
       <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-background via-background/95 to-background/90">
         <BackgroundBeams className="opacity-30" />
         {/* Floating Action Button for quick task creation */}
-        
+
         <div className="p-8 w-full relative z-10">
           {/* Sticky header/toolbar */}
           <motion.div
@@ -96,7 +101,7 @@ export default function TasksPage() {
                 className="h-12 w-12 shadow-lg hover:shadow-xl transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 rounded-xl hover:bg-primary/5"
                 onClick={handleRefresh}
               >
-                <RefreshCw className={`h-5 w-5 ${isLoading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
               </Button>
             </div>
           </motion.div>
@@ -152,7 +157,7 @@ export default function TasksPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {isLoading ? (
+                  {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="flex items-center gap-4">
@@ -215,7 +220,7 @@ export default function TasksPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  {isLoading ? (
+                  {loading ? (
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
                         <div key={i} className="space-y-2">
@@ -268,47 +273,7 @@ export default function TasksPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden relative">
-                <div className="absolute inset-0 z-0">
-                  <SparklesCore
-                    id="tsparticles-stats"
-                    background="transparent"
-                    minSize={0.4}
-                    maxSize={0.8}
-                    particleDensity={40}
-                    className="w-full h-full"
-                    particleColor="#8B5CF6"
-                  />
-                </div>
-                <CardHeader className="relative z-10">
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <BarChart2 className="h-6 w-6 text-primary" />
-                    </div>
-                    Task Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">Completion Rate</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">78%</p>
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">On-time Rate</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">82%</p>
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">Total Tasks</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">24</p>
-                    </div>
-                    <div className="bg-background/90 backdrop-blur-sm p-4 rounded-xl border border-border/30 shadow-lg">
-                      <p className="text-sm text-muted-foreground">Avg. Duration</p>
-                      <p className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">3.2d</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+
             </motion.div>
           </div>
         </div>

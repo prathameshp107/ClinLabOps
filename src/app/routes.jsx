@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout";
 import Dashboard from "@/app/dashboard/page";
 import UserManagement from "@/app/user-management/page";
 import Experiments from "@/app/experiments/page";
