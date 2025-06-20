@@ -1,1 +1,218 @@
-'use client'import *'react'import Link from 'next/link'import { usePathname } from 'next/navigation'import { cn } from '@/lib/utils'import { Icons } from '@/components/icons'import { Button } from '@/components/ui/button'import {  Tooltip,  TooltipContent,  TooltipProvider,  TooltipTrigger,} from '@/components/ui/tooltip'import { ScrollArea } from '@/components/ui/scroll-area'import { Separator } from '@/components/ui/separator'  title: string  href: string  icon: keyof typeof Icons  disabled?: boolean  label?: string  variant?: 'default' | 'ghost'  separator?: boolean}const navItems: NavItem[] = [  {    title: 'Dashboard',    href: '/dashboard',    icon: 'layoutDashboard',  },  {    title: 'Projects',    href: '/projects',    icon: 'folder',  },  {    title: 'Tasks',    href: '/tasks',    icon: 'checkCircle',  },  {    title: 'Experiments',    href: '/experiments',    icon: 'flask',  },  {    title: 'Inventory',    href: '/inventory',    icon: 'database',  },  {    title: 'Calendar',    href: '/calendar',    icon: 'calendar',  },  {    separator,    title: 'Reports',    href: '#',    icon: 'file',  },  {    title: 'Analytics',    href: '/analytics',    icon: 'barChart',  },  {    title: 'Team',    href: '/team',    icon: 'users',  },  {    title: 'Settings',    href: '/settings',    icon: 'settings',  },]interface SidebarProps extends React.HTMLAttributes {  collapsed: boolean  setCollapsed: (collapsed) => void}export function Sidebar({ className, collapsed, setCollapsed }) {  const pathname = usePathname()  const [mounted, setMounted] = React.useState(false)  React.useEffect(() => {    setMounted(true)  }, [])  if (!mounted) {    return null  }  return (    <div      className={cn(        'relative hidden h-screen flex-col border-r bg-background transition-[width] duration-300 ease-in-out md:flex',        collapsed ? 'w-16' : 'w-64',        className      )}    >      <div className="flex h-14 items-center justify-between px-4">        {!collapsed && (          <Link href="/" className="flex items-center space-x-2">            <Icons.logo className="h-6 w-6" />            <span className="font-bold">LabTasker</span>          </Link>        )}        {collapsed && (          <div className="flex h-14 w-full items-center justify-center">            <Icons.logo className="h-6 w-6" />          </div>        )}        <TooltipProvider delayDuration={0}>          <Tooltip>            <TooltipTrigger asChild>              <Button                variant="ghost"                size="icon"                className="h-8 w-8"                onClick={() => setCollapsed(!collapsed)}              >                {collapsed ? (                  <Icons.chevronRight className="h-4 w-4" />                ) : (                  <Icons.chevronRight className="h-4 w-4 rotate-180" />                )}                <span className="sr-only">Toggle Sidebar</span>              </Button>            </TooltipTrigger>            <TooltipContent side="right">              {collapsed ? 'Expand' : 'Collapse'}            </TooltipContent>          </Tooltip>        </TooltipProvider>      </div>      <Separator />      <div className="flex-1 overflow-hidden">        <ScrollArea className="h-full">          <div className="space-y-1 p-2">            {navItems.map((item, index) => {              if (item.separator) {                return (                  <div key={`sep-${index}`} className="px-2 py-4">                    <h2 className="text-xs font-semibold uppercase text-muted-foreground">                      {item.title}                    </h2>                  </div>                )              }              const Icon = Icons[item.icon] || Icons.help              const isActive = pathname === item.href              return (                <TooltipProvider key={item.href} delayDuration={0}>                  <Tooltip>                    <TooltipTrigger asChild>                      <Link                        href={item.disabled ? '#' : item.href}                        className={cn(                          'group flex h-10 items-center justify-start rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground',                          isActive                            ? 'bg-accent text-accent-foreground'                            : 'text-muted-foreground',                          item.disabled && 'cursor-not-allowed opacity-60',                          collapsed ? 'w-10' : 'w-full'                        )}                      >                        <Icon className="h-5 w-5" />                        {!collapsed && (                          <span className="ml-3">{item.title}</span>                        )}                        {item.label && (                          <span                            className={cn(                              'ml-auto',                              isActive && 'text-background dark:text-white'                            )}                          >                            {item.label}                          </span>                        )}                      </Link>                    </TooltipTrigger>                    {collapsed && (                      <TooltipContent side="right">                        {item.title}                        {item.label && (                          <span className="ml-1 text-xs text-muted-foreground">                            {item.label}                          </span>                        )}                      </TooltipContent>                    )}                  </Tooltip>                </TooltipProvider>              )            })}          </div>        </ScrollArea>      </div>      <div className="p-2">        <div className="rounded-md bg-accent p-3">          <div className="flex items-center space-x-2">            <div className="h-8 w-8 rounded-full bg-primary/10 p-1.5 text-primary">              <Icons.user className="h-5 w-5" />            </div>            {!collapsed && (              <div className="flex-1 min-w-0">                <p className="truncate text-sm font-medium">John Doe</p>                <p className="truncate text-xs text-muted-foreground">                  john@example.com                </p>              </div>            )}          </div>        </div>      </div>    </div>  )}
+'use client'
+import * as React from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { Icons } from '@/components/icons'
+import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+
+
+const navItems = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: 'layoutDashboard',
+  },
+  {
+    title: 'Projects',
+    href: '/projects',
+    icon: 'folder',
+  },
+  {
+    title: 'Tasks',
+    href: '/tasks',
+    icon: 'checkCircle',
+  },
+  {
+    title: 'Experiments',
+    href: '/experiments',
+    icon: 'flask',
+  },
+  {
+    title: 'Inventory',
+    href: '/inventory',
+    icon: 'database',
+  },
+  {
+    title: 'Calendar',
+    href: '/calendar',
+    icon: 'calendar',
+  },
+  {
+    title: 'Reports',
+    href: '#',
+    icon: 'file',
+    separator: true,
+  },
+  {
+    title: 'Analytics',
+    href: '/analytics',
+    icon: 'barChart',
+  },
+  {
+    title: 'Team',
+    href: '/team',
+    icon: 'users',
+  },
+  {
+    title: 'Settings',
+    href: '/settings',
+    icon: 'settings',
+  },
+]
+
+/**
+ * @typedef {Object} SidebarProps
+ * @property {boolean} collapsed - Whether the sidebar is collapsed
+ * @property {Function} setCollapsed - Function to set the collapsed state
+ * @property {string} [className] - Additional CSS classes
+ */
+
+/**
+ * Sidebar component for navigation
+ * @param {SidebarProps} props - Component props
+ */
+export function Sidebar({ className, collapsed, setCollapsed }) {
+  const pathname = usePathname()
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+  if (!mounted) {
+    return null
+  }
+  return (
+    <div
+      className={cn(
+        'relative hidden h-screen flex-col border-r bg-background transition-[width] duration-300 ease-in-out md:flex',
+        collapsed ? 'w-16' : 'w-64',
+        className
+      )}
+    >
+      <div className="flex h-14 items-center justify-between px-4">
+        {!collapsed && (
+          <Link href="/" className="flex items-center space-x-2">
+            <Icons.logo className="h-6 w-6" />
+            <span className="font-bold">LabTasker</span>
+          </Link>
+        )}
+        {collapsed && (
+          <div className="flex h-14 w-full items-center justify-center">
+            <Icons.logo className="h-6 w-6" />
+          </div>
+        )}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCollapsed(!collapsed)}
+              >
+                {collapsed ? (
+                  <Icons.chevronRight className="h-4 w-4" />
+                ) : (
+                  <Icons.chevronRight className="h-4 w-4 rotate-180" />
+                )}
+                <span className="sr-only">Toggle Sidebar</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {collapsed ? 'Expand' : 'Collapse'}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <Separator />
+      <div className="flex-1 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-1 p-2">
+            {navItems.map((item, index) => {
+              if (item.separator) {
+                return (
+                  <div key={`sep-${index}`} className="px-2 py-4">
+                    <h2 className="text-xs font-semibold uppercase text-muted-foreground">
+                      {item.title}
+                    </h2>
+                  </div>
+                )
+              }
+              const Icon = Icons[item.icon] || Icons.help
+              const isActive = pathname === item.href
+              return (
+                <TooltipProvider key={item.href} delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={item.disabled ? '#' : item.href}
+                        className={cn(
+                          'group flex h-10 items-center justify-start rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground',
+                          isActive
+                            ? 'bg-accent text-accent-foreground'
+                            : 'text-muted-foreground',
+                          item.disabled && 'cursor-not-allowed opacity-60',
+                          collapsed ? 'w-10' : 'w-full'
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {!collapsed && (
+                          <span className="ml-3">{item.title}</span>
+                        )}
+                        {item.label && (
+                          <span
+                            className={cn(
+                              'ml-auto',
+                              isActive && 'text-background dark:text-white'
+                            )}
+                          >
+                            {item.label}
+                          </span>
+                        )}
+                      </Link>
+                    </TooltipTrigger>
+                    {collapsed && (
+                      <TooltipContent side="right">
+                        {item.title}
+                        {item.label && (
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            {item.label}
+                          </span>
+                        )}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              )
+            })}
+          </div>
+        </ScrollArea>
+      </div>
+      <div className="p-2">
+        <div className="rounded-md bg-accent p-3">
+          <div className="flex items-center space-x-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 p-1.5 text-primary">
+              <Icons.user className="h-5 w-5" />
+            </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-sm font-medium">John Doe</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  john@example.com
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
