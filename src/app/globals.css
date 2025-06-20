@@ -53,5 +53,48 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/40 transition-colors;
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(215.4 16.3% 46.9% / 0.3) transparent;
+  }
+
+  /* Custom scrollbar for containers */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(215.4 16.3% 46.9% / 0.3) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30 transition-colors;
+  }
+
+  /* Smooth scrolling for the whole app */
+  html {
+    scroll-behavior: smooth;
   }
 }
