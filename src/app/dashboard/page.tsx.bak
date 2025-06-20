@@ -1,0 +1,444 @@
+'use client'
+
+import * as React from 'react'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
+import { MainLayout } from '@/components/main-layout'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Icons } from '@/components/icons'
+import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done'
+
+interface Task {
+  id: string
+  title: string
+  status: TaskStatus
+  priority: 'low' | 'medium' | 'high'
+  dueDate: string
+  project: string
+  assignee: {
+    name: string
+    avatar: string
+  }
+}
+
+interface Project {
+  id: string
+  name: string
+  progress: number
+  status: 'on_track' | 'at_risk' | 'delayed' | 'completed'
+  tasks: {
+    total: number
+    completed: number
+  }
+  dueDate: string
+}
+
+// Define variant types
+const statusVariant = {
+  todo: 'outline' as const,
+  in_progress: 'default' as const,
+  review: 'secondary' as const,
+  done: 'success' as const,
+}
+
+const priorityVariant = {
+  low: 'outline' as const,
+  medium: 'secondary' as const,
+  high: 'destructive' as const,
+}
+
+const projectStatusVariant = {
+  on_track: 'default' as const,
+  at_risk: 'warning' as const,
+  delayed: 'destructive' as const,
+  completed: 'success' as const,
+}
+
+const recentTasks: Task[] = [
+  {
+    id: 'TASK-1',
+    title: 'Prepare experiment protocol for study X',
+    status: 'in_progress',
+    priority: 'high',
+    dueDate: '2023-06-15',
+    project: 'Study X - Phase 1',
+    assignee: {
+      name: 'Jane Smith',
+      avatar: '/avatars/01.png',
+    },
+  },
+  {
+    id: 'TASK-2',
+    title: 'Review lab results',
+    status: 'review',
+    priority: 'medium',
+    dueDate: '2023-06-20',
+    project: 'Study Y - Analysis',
+    assignee: {
+      name: 'John Doe',
+      avatar: '/avatars/02.png',
+    },
+  },
+  {
+    id: 'TASK-3',
+    title: 'Order new lab supplies',
+    status: 'todo',
+    priority: 'high',
+    dueDate: '2023-06-10',
+    project: 'Lab Operations',
+    assignee: {
+      name: 'Alex Johnson',
+      avatar: '/avatars/03.png',
+    },
+  },
+  {
+    id: 'TASK-4',
+    title: 'Update safety protocols',
+    status: 'done',
+    priority: 'medium',
+    dueDate: '2023-06-05',
+    project: 'Compliance',
+    assignee: {
+      name: 'Sarah Wilson',
+      avatar: '/avatars/04.png',
+    },
+  },
+]
+
+const projects: Project[] = [
+  {
+    id: 'PROJ-1',
+    name: 'Study X - Phase 1',
+    progress: 75,
+    status: 'on_track',
+    tasks: {
+      total: 24,
+      completed: 18,
+    },
+    dueDate: '2023-08-30',
+  },
+  {
+    id: 'PROJ-2',
+    name: 'Study Y - Analysis',
+    progress: 90,
+    status: 'on_track',
+    tasks: {
+      total: 15,
+      completed: 14,
+    },
+    dueDate: '2023-07-15',
+  },
+  {
+    id: 'PROJ-3',
+    name: 'New Drug Formulation',
+    progress: 30,
+    status: 'at_risk',
+    tasks: {
+      total: 45,
+      completed: 14,
+    },
+    dueDate: '2023-09-20',
+  },
+  {
+    id: 'PROJ-4',
+    name: 'Lab Equipment Upgrade',
+    progress: 10,
+    status: 'delayed',
+    tasks: {
+      total: 8,
+      completed: 2,
+    },
+    dueDate: '2023-07-01',
+  },
+]
+
+const stats = [
+  { name: 'Total Projects', value: '24', change: '+2', changeType: 'positive' },
+  { name: 'Active Tasks', value: '156', change: '+12', changeType: 'positive' },
+  { name: 'Overdue', value: '8', change: '+3', changeType: 'negative' },
+  { name: 'Team Members', value: '12', change: '+2', changeType: 'positive' },
+]
+
+// Remove duplicate declarations
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState('overview')
+  const [tasks, setTasks] = useState<Task[]>(recentTasks)
+  const [projectList, setProjectList] = useState<Project[]>(projects)
+
+  const handleTaskComplete = (taskId: string) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId 
+        ? { ...task, status: 'done' as TaskStatus }
+        : task
+    ))
+  }
+
+  return (
+    <MainLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's what's happening with your projects.
+            </p>
+          </div>
+          <Button>
+            <Icons.plus className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
+        </div>
+
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="reports" disabled>
+              Reports
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {stats.map((stat) => (
+                <Card key={stat.name}>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {stat.name}
+                    </CardTitle>
+                    <div className="h-4 w-4 text-muted-foreground">
+                      {stat.changeType === 'positive' ? (
+                        <Icons.trendingUp className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Icons.chevronDown className="h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {stat.change} from last month
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+              {/* Task List */}
+              <div className="lg:col-span-4 space-y-6">
+                <div className="space-y-4">
+                  {tasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-md border">
+                          <input
+                            type="checkbox"
+                            checked={task.status === 'done'}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-medium leading-none">
+                              {task.title}
+                            </p>
+                            <Badge variant={priorityVariant[task.priority]}>
+                              {task.priority}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {task.project}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={statusVariant[task.status]}>
+                          {task.status.replace('_', ' ')}
+                        </Badge>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={task.assignee.avatar} alt={task.assignee.name} />
+                          <AvatarFallback>
+                            {task.assignee.name
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Project Progress</h3>
+                  {projectList.map((project) => (
+                    <div key={project.id} className="space-y-2 p-4 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium">{project.name}</h4>
+                        <Badge variant={projectStatusVariant[project.status] as any}>
+                          {project.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {project.tasks.completed} of {project.tasks.total} tasks
+                          </span>
+                          <span className="font-medium">
+                            {project.progress}%
+                          </span>
+                        </div>
+                        <Progress value={project.progress} className="h-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Due {new Date(project.dueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Activity Feed */}
+              <div className="lg:col-span-3 space-y-4">
+                <h3 className="text-lg font-semibold">Recent Activity</h3>
+                <div className="space-y-4">
+                  {recentTasks.slice(0, 3).map((task) => (
+                    <div key={task.id} className="flex items-start space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={task.assignee.avatar} alt={task.assignee.name} />
+                        <AvatarFallback>
+                          {task.assignee.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm">
+                          <span className="font-medium">{task.assignee.name}</span> {task.status === 'done' ? 'completed' : 'updated'} "{task.title}"
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="analytics" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Analytics</CardTitle>
+                <CardDescription>
+                  Project and task analytics coming soon.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                  Analytics dashboard will be available soon
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        </div>
+
+        {/* Upcoming Deadlines */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Upcoming Deadlines</CardTitle>
+            <CardDescription>
+              Important deadlines for the next 30 days
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {projects
+                .sort(
+                  (a, b) =>
+                    new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+                )
+                .map((project) => (
+                  <div
+                    key={project.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="space-y-1">
+                      <p className="font-medium">{project.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(project.dueDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      View Project
+      </div>
+
+      {/* Upcoming Deadlines */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upcoming Deadlines</CardTitle>
+          <CardDescription>
+            Important deadlines for the next 30 days
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {projects
+              .sort(
+                (a, b) =>
+                  new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+              )
+              .map((project) => (
+                <div
+                  key={project.id}
+                  className="flex items-center justify-between"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">{project.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(project.dueDate)}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    View Project
+                  </Button>
+                </div>
+              ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </MainLayout>
+)
+
+// Utility function to format dates
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+}
