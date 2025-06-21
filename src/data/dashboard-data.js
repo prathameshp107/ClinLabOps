@@ -3,73 +3,179 @@
  * This file contains all the mock data used in the dashboard components
  */
 
-// Quick Actions data
-export const quickActionsData = [
-    {
-        id: 1,
-        title: "Create Task",
-        description: "Add a new task to the system",
-        icon: "Plus",
-        color: "bg-blue-500",
-        link: "/tasks/new"
-    },
-    {
-        id: 2,
-        title: "Start Experiment",
-        description: "Begin a new laboratory experiment",
-        icon: "Flask",
-        color: "bg-purple-500",
-        link: "/experiments/new"
-    },
-    {
-        id: 3,
-        title: "Inventory Check",
-        description: "Review current inventory status",
-        icon: "Package",
-        color: "bg-green-500",
-        link: "/inventory"
-    },
-    {
-        id: 4,
-        title: "Generate Report",
-        description: "Create a new report from templates",
-        icon: "FileText",
-        color: "bg-amber-500",
-        link: "/reports/new"
-    }
-];
-
 // Tasks Overview data
 export const tasksOverviewData = {
-    total: 24,
-    completed: 14,
-    inProgress: 7,
-    pending: 3,
-    overdue: 2,
+    total: 128,
+    completed: 84,
+    inProgress: 32,
+    pending: 12,
+    overdue: 12,
     recentTasks: [
         {
             id: 1,
-            title: "Sample preparation for PCR analysis",
+            title: "Update project documentation",
             status: "completed",
-            dueDate: "2023-03-28",
+            dueDate: "2023-06-20",
             priority: "high",
             assignee: "Alex Johnson"
         },
         {
             id: 2,
-            title: "Calibrate mass spectrometer",
-            status: "in-progress",
-            dueDate: "2023-03-30",
-            priority: "medium",
+            title: "Fix authentication bug",
+            status: "in progress",
+            dueDate: "2023-06-22",
+            priority: "high",
             assignee: "Maria Garcia"
         },
         {
             id: 3,
-            title: "Review quality control data",
-            status: "pending",
-            dueDate: "2023-04-01",
-            priority: "high",
+            title: "Design new dashboard layout",
+            status: "in progress",
+            dueDate: "2023-06-25",
+            priority: "medium",
             assignee: "David Kim"
+        },
+        {
+            id: 4,
+            title: "Write unit tests",
+            status: "pending",
+            dueDate: "2023-06-18",
+            priority: "high",
+            assignee: "Sarah Lee"
+        },
+        {
+            id: 5,
+            title: "Update dependencies",
+            status: "pending",
+            dueDate: "2023-06-30",
+            priority: "low",
+            assignee: "James Wilson"
+        }
+    ]
+};
+
+// Task distribution data for the pie chart
+export const taskDistributionData = [
+    { name: 'Completed', value: tasksOverviewData.completed, color: '#10B981' },
+    { name: 'In Progress', value: tasksOverviewData.inProgress, color: '#3B82F6' },
+    { name: 'Pending', value: tasksOverviewData.pending, color: '#F59E0B' },
+    { name: 'Overdue', value: tasksOverviewData.overdue, color: '#EF4444' },
+];
+
+// Stats data for the dashboard cards
+export const dashboardStats = [
+    {
+        title: "Total Tasks",
+        value: tasksOverviewData.total.toString(),
+        change: "+12% from last month",
+        icon: "FileText",
+        variant: "default"
+    },
+    {
+        title: "Completed",
+        value: tasksOverviewData.completed.toString(),
+        change: "+8% from last month",
+        icon: "CheckCircle2",
+        variant: "success"
+    },
+    {
+        title: "In Progress",
+        value: tasksOverviewData.inProgress.toString(),
+        change: "+5% from last month",
+        icon: "Clock",
+        variant: "warning"
+    },
+    {
+        title: "Overdue",
+        value: tasksOverviewData.overdue.toString(),
+        change: "-3% from last month",
+        icon: "AlertTriangle",
+        variant: "destructive"
+    }
+];
+
+// Recent activity data
+export const recentActivities = [
+    {
+        id: 1,
+        user: {
+            name: "Alex Johnson",
+            role: "Senior Researcher",
+            avatar: "/avatars/01.png"
+        },
+        action: "completed",
+        target: "Project Documentation Update",
+        timestamp: "2023-06-20T14:32:00Z"
+    },
+    {
+        id: 2,
+        user: {
+            name: "Maria Garcia",
+            role: "Lab Technician",
+            avatar: "/avatars/02.png"
+        },
+        action: "started",
+        target: "Authentication Bug Fix",
+        timestamp: "2023-06-20T12:15:00Z"
+    },
+    {
+        id: 3,
+        user: {
+            name: "David Kim",
+            role: "UI/UX Designer",
+            avatar: "/avatars/03.png"
+        },
+        action: "updated",
+        target: "Dashboard Layout Design",
+        timestamp: "2023-06-20T10:45:00Z"
+    },
+    {
+        id: 4,
+        user: {
+            name: "Sarah Lee",
+            role: "QA Engineer",
+            avatar: "/avatars/04.png"
+        },
+        action: "assigned",
+        target: "Unit Testing Task",
+        timestamp: "2023-06-20T09:20:00Z"
+    },
+    {
+        id: 5,
+        user: {
+            name: "James Wilson",
+            role: "DevOps Engineer",
+            avatar: "/avatars/05.png"
+        },
+        action: "updated",
+        target: "Dependencies",
+        timestamp: "2023-06-19T16:30:00Z"
+    }
+];
+
+// Team performance data
+export const teamPerformance = {
+    overall: 82,
+    trend: "up",
+    change: 5.2,
+    metrics: [
+        {
+            name: "On Track",
+            value: 68,
+            change: 3.5,
+            target: 70
+        },
+        {
+            name: "At Risk",
+            value: 22,
+            change: -2.1,
+            target: 20
+        },
+        {
+            name: "Behind",
+            value: 10,
+            change: -1.4,
+            target: 10
         }
     ]
 };

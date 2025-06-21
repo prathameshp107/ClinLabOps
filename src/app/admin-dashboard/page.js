@@ -36,7 +36,13 @@ import TeamPerformance from "@/components/dashboard/TeamPerformance";
 import { BarChart2, Activity, TrendingUp } from 'lucide-react';
 
 // Data
-import { tasksOverviewData } from "@/data/dashboard-data";
+import { 
+  tasksOverviewData, 
+  taskDistributionData, 
+  dashboardStats, 
+  recentActivities, 
+  teamPerformance 
+} from "@/data/dashboard-data";
 
 // Utility functions for task status
 const getStatusColor = (status) => {
@@ -101,50 +107,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-/**
- * Task distribution data for the pie chart
- * @type {Array<{name: string, value: number, color: string}>}
- */
-const taskDistributionData = [
-  { name: 'Completed', value: tasksOverviewData.completed, color: '#10b981' },
-  { name: 'In Progress', value: tasksOverviewData.inProgress, color: '#3b82f6' },
-  { name: 'Pending', value: tasksOverviewData.pending, color: '#f59e0b' },
-  { name: 'Overdue', value: tasksOverviewData.overdue, color: '#ef4444' },
-];
-
-/**
- * Stats data for the dashboard cards
- * @type {Array<{title: string, value: string|number, change: string, icon: React.ComponentType, variant?: string}>}
- */
-const stats = [
-  {
-    title: "Total Tasks",
-    value: tasksOverviewData.total.toString(),
-    change: "",
-    icon: FileText
-  },
-  {
-    title: "Completed",
-    value: tasksOverviewData.completed.toString(),
-    change: `${Math.round((tasksOverviewData.completed / tasksOverviewData.total) * 100)}% of total`,
-    icon: CheckCircle2,
-    variant: "success"
-  },
-  {
-    title: "In Progress",
-    value: tasksOverviewData.inProgress.toString(),
-    change: `${Math.round((tasksOverviewData.inProgress / tasksOverviewData.total) * 100)}% of total`,
-    icon: Clock,
-    variant: "warning"
-  },
-  {
-    title: "Overdue",
-    value: tasksOverviewData.overdue.toString(),
-    change: "Needs attention",
-    icon: AlertTriangle,
-    variant: "destructive"
-  },
-];
+// Imported from dashboard-data.js
 
 /**
  * Main dashboard page component
@@ -166,30 +129,8 @@ export default function DashboardPage() {
     }, 1000);
   };
 
-  // Stats data
-  const stats = [
-    { title: 'Total Tasks', value: '128', icon: FileText, change: '+12% from last month' },
-    { title: 'Completed', value: '84', icon: CheckCircle2, change: '+8% from last month', variant: 'green' },
-    { title: 'In Progress', value: '32', icon: Clock, change: '+5% from last month', variant: 'blue' },
-    { title: 'Overdue', value: '12', icon: AlertTriangle, change: '-3% from last month', variant: 'red' },
-  ];
-
-  // Chart data
-  const taskDistributionData = [
-    { name: 'Completed', value: 84, color: '#10B981' },
-    { name: 'In Progress', value: 32, color: '#3B82F6' },
-    { name: 'Pending', value: 12, color: '#F59E0B' },
-    { name: 'Overdue', value: 12, color: '#EF4444' },
-  ];
-
-  // Recent tasks data
-  const recentTasks = [
-    { id: 1, title: 'Update project documentation', status: 'completed', priority: 'high', dueDate: '2023-06-20' },
-    { id: 2, title: 'Fix authentication bug', status: 'in progress', priority: 'high', dueDate: '2023-06-22' },
-    { id: 3, title: 'Design new dashboard layout', status: 'in progress', priority: 'medium', dueDate: '2023-06-25' },
-    { id: 4, title: 'Write unit tests', status: 'pending', priority: 'high', dueDate: '2023-06-18' },
-    { id: 5, title: 'Update dependencies', status: 'pending', priority: 'low', dueDate: '2023-06-30' },
-  ];
+  // Use tasks from tasksOverviewData
+  const recentTasks = tasksOverviewData.recentTasks;
 
   return (
     <DashboardLayout>
@@ -251,8 +192,8 @@ export default function DashboardPage() {
             <TabsContent value="overview" className="space-y-6">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {stats.map((stat, i) => (
-                  <Card key={i} className="h-full transition-all hover:shadow-md">
+                {dashboardStats.map((stat, index) => (
+                  <Card key={index} className="h-full transition-all hover:shadow-md">
                     <CardHeader className="p-3 sm:p-4 space-y-1">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -374,8 +315,8 @@ export default function DashboardPage() {
 
                 {/* Right Column */}
                 <div className="space-y-6">
-                  <TeamPerformance />
-                  <RecentActivity />
+                  <TeamPerformance data={teamPerformance} />
+                  <RecentActivity data={recentActivities} />
 
                   {/* Upcoming Deadlines */}
                   <Card className="h-fit">
