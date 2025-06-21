@@ -180,6 +180,96 @@ export const teamPerformance = {
     ]
 };
 
+// Reports data
+export const reportsData = [
+    {
+        id: 'rep-001',
+        title: 'Q2 2023 Performance Report',
+        type: 'Performance',
+        format: 'PDF',
+        size: '2.4 MB',
+        created: '2023-07-15T09:30:00Z',
+        status: 'ready',
+        generatedBy: 'Alex Johnson',
+        tags: ['quarterly', 'performance', 'executive']
+    },
+    {
+        id: 'rep-002',
+        title: 'Task Completion Analysis - June 2023',
+        type: 'Analytics',
+        format: 'Excel',
+        size: '1.8 MB',
+        created: '2023-07-10T14:20:00Z',
+        status: 'ready',
+        generatedBy: 'Maria Garcia',
+        tags: ['monthly', 'tasks', 'analysis']
+    },
+    {
+        id: 'rep-003',
+        title: 'Team Performance Dashboard',
+        type: 'Dashboard',
+        format: 'PDF',
+        size: '3.2 MB',
+        created: '2023-07-05T11:15:00Z',
+        status: 'ready',
+        generatedBy: 'David Kim',
+        tags: ['team', 'performance', 'dashboard']
+    },
+    {
+        id: 'rep-004',
+        title: 'Project Health Status - Q2 2023',
+        type: 'Status',
+        format: 'PDF',
+        size: '2.1 MB',
+        created: '2023-06-28T16:45:00Z',
+        status: 'ready',
+        generatedBy: 'Sarah Lee',
+        tags: ['quarterly', 'projects', 'health']
+    },
+    {
+        id: 'rep-005',
+        title: 'Resource Utilization Report',
+        type: 'Resource',
+        format: 'Excel',
+        size: '1.5 MB',
+        created: '2023-06-25T10:10:00Z',
+        status: 'ready',
+        generatedBy: 'James Wilson',
+        tags: ['resources', 'utilization', 'monthly']
+    },
+    {
+        id: 'rep-006',
+        title: 'Budget vs. Actuals - H1 2023',
+        type: 'Financial',
+        format: 'PDF',
+        size: '2.8 MB',
+        created: '2023-06-20T13:25:00Z',
+        status: 'ready',
+        generatedBy: 'Emma Davis',
+        tags: ['financial', 'budget', 'half-yearly']
+    }
+];
+
+// Report types for filtering
+export const reportTypes = [
+    { value: 'all', label: 'All Reports' },
+    { value: 'Performance', label: 'Performance' },
+    { value: 'Analytics', label: 'Analytics' },
+    { value: 'Dashboard', label: 'Dashboard' },
+    { value: 'Status', label: 'Status' },
+    { value: 'Resource', label: 'Resource' },
+    { value: 'Financial', label: 'Financial' }
+];
+
+// Report formats
+export const reportFormats = [
+    { value: 'all', label: 'All Formats' },
+    { value: 'PDF', label: 'PDF' },
+    { value: 'Excel', label: 'Excel' },
+    { value: 'CSV', label: 'CSV' },
+    { value: 'Word', label: 'Word' }
+];
+
 // Pending Approvals data
 
 export const pendingApprovalsData = [

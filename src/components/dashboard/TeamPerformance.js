@@ -57,11 +57,18 @@ export default function TeamPerformance() {
                     )}
                   </div>
                 </div>
-                <Progress
-                  value={(metric.value / metric.target) * 100}
-                  className="h-2"
-                  indicatorClassName={metric.trend === 'up' ? 'bg-green-500' : 'bg-amber-500'}
-                />
+                <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full",
+                      metric.trend === 'up' ? 'bg-green-500' : 'bg-amber-500'
+                    )}
+                    style={{
+                      width: `${(metric.value / metric.target) * 100}%`,
+                      transition: 'width 0.5s ease-in-out'
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>

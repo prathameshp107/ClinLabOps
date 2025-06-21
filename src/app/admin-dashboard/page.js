@@ -13,17 +13,20 @@ import AnalyticsTabs from "@/components/dashboard/AnalyticsTabs";
 
 // Icons
 import {
-  FileText,
+  FileText as FileTextIcon,
   Plus,
-  RefreshCw,
-  Loader2,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  CircleCheck,
-  CirclePause,
-  CirclePlay,
-  CircleDot
+  RefreshCw as RefreshCwIcon,
+  Loader2 as Loader2Icon,
+  CheckCircle2 as CheckCircle2Icon,
+  Clock as ClockIcon,
+  AlertTriangle as AlertTriangleIcon,
+  CircleCheck as CircleCheckIcon,
+  CirclePause as CirclePauseIcon,
+  CirclePlay as CirclePlayIcon,
+  CircleDot as CircleDotIcon,
+  BarChart2 as BarChart2Icon,
+  Activity as ActivityIcon,
+  TrendingUp as TrendingUpIcon
 } from "lucide-react";
 
 // Charts
@@ -32,17 +35,20 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import TeamPerformance from "@/components/dashboard/TeamPerformance";
 
-// Icons
-import { BarChart2, Activity, TrendingUp } from 'lucide-react';
-
 // Data
-import { 
-  tasksOverviewData, 
-  taskDistributionData, 
-  dashboardStats, 
-  recentActivities, 
-  teamPerformance 
+import {
+  tasksOverviewData,
+  taskDistributionData,
+  dashboardStats,
+  recentActivities,
+  teamPerformance,
+  reportsData,
+  reportTypes,
+  reportFormats
 } from "@/data/dashboard-data";
+
+// Components
+import { ReportsTab } from "@/components/dashboard/ReportsTab";
 
 // Utility functions for task status
 const getStatusColor = (status) => {
@@ -62,11 +68,11 @@ const getStatusColor = (status) => {
 
 const getStatusIcon = (status, className = '') => {
   const statusLower = status.toLowerCase();
-  if (statusLower.includes('complete')) return <CircleCheck className={className} />;
-  if (statusLower.includes('progress')) return <CirclePlay className={className} />;
-  if (statusLower.includes('pending')) return <CirclePause className={className} />;
-  if (statusLower.includes('overdue')) return <AlertTriangle className={className} />;
-  return <CircleDot className={className} />;
+  if (statusLower.includes('complete')) return <CircleCheckIcon className={className} />;
+  if (statusLower.includes('progress')) return <CirclePlayIcon className={className} />;
+  if (statusLower.includes('pending')) return <CirclePauseIcon className={className} />;
+  if (statusLower.includes('overdue')) return <AlertTriangleIcon className={className} />;
+  return <CircleDotIcon className={className} />;
 };
 
 const getStatusVariant = (status) => {
@@ -159,7 +165,7 @@ export default function DashboardPage() {
                 </>
               ) : (
                 <>
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCwIcon className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only sm:inline">Refresh</span>
                 </>
               )}
@@ -176,15 +182,15 @@ export default function DashboardPage() {
           <Tabs defaultValue="overview" className="space-y-4">
             <TabsList>
               <TabsTrigger value="overview" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
+                <ActivityIcon className="h-4 w-4" />
                 <span>Overview</span>
               </TabsTrigger>
               <TabsTrigger value="analytics" className="flex items-center gap-2">
-                <BarChart2 className="h-4 w-4" />
+                <BarChart2Icon className="h-4 w-4" />
                 <span>Analytics</span>
               </TabsTrigger>
               <TabsTrigger value="reports" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
+                <TrendingUpIcon className="h-4 w-4" />
                 <span>Reports</span>
               </TabsTrigger>
             </TabsList>
@@ -192,26 +198,37 @@ export default function DashboardPage() {
             <TabsContent value="overview" className="space-y-6">
               {/* Stats Grid */}
               <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {dashboardStats.map((stat, index) => (
-                  <Card key={index} className="h-full transition-all hover:shadow-md">
-                    <CardHeader className="p-3 sm:p-4 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                          {stat.title}
-                        </CardTitle>
-                        <div className="bg-muted p-1.5 rounded-md">
-                          <stat.icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                {dashboardStats.map((stat, index) => {
+                  // Map icon names to their corresponding components
+                  const iconMap = {
+                    'FileText': FileTextIcon,
+                    'CheckCircle2': CheckCircle2Icon,
+                    'Clock': ClockIcon,
+                    'AlertTriangle': AlertTriangleIcon
+                  };
+                  const Icon = iconMap[stat.icon] || FileTextIcon;
+                  
+                  return (
+                    <Card key={index} className="h-full transition-all hover:shadow-md">
+                      <CardHeader className="p-3 sm:p-4 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                            {stat.title}
+                          </CardTitle>
+                          <div className="bg-muted p-1.5 rounded-md">
+                            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                          </div>
                         </div>
-                      </div>
-                      <CardContent className="p-0">
-                        <div className="text-xl sm:text-2xl font-bold mt-1">{stat.value}</div>
-                        <p className="text-xs text-muted-foreground">
-                          {stat.change}
-                        </p>
-                      </CardContent>
-                    </CardHeader>
-                  </Card>
-                ))}
+                        <CardContent className="p-0">
+                          <div className="text-xl sm:text-2xl font-bold mt-1">{stat.value}</div>
+                          <p className="text-xs text-muted-foreground">
+                            {stat.change}
+                          </p>
+                        </CardContent>
+                      </CardHeader>
+                    </Card>
+                  )
+                })}
               </div>
 
               {/* Main Grid Layout */}
@@ -364,15 +381,11 @@ export default function DashboardPage() {
             </TabsContent>
 
             <TabsContent value="reports" className="space-y-6">
-              <div className="flex items-center justify-center h-64 rounded-lg border border-dashed">
-                <div className="text-center space-y-2">
-                  <BarChart2 className="h-8 w-8 mx-auto text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Reports coming soon</p>
-                  <Button size="sm" variant="outline">
-                    Generate Report
-                  </Button>
-                </div>
-              </div>
+              <ReportsTab
+                reports={reportsData}
+                reportTypes={reportTypes}
+                reportFormats={reportFormats}
+              />
             </TabsContent>
           </Tabs>
         </div>
