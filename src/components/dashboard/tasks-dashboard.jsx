@@ -31,6 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import TaskAnalytics from "./TaskAnalytics";
 
 export function TasksDashboard() {
   const [tasks, setTasks] = useState([
@@ -244,252 +245,263 @@ export function TasksDashboard() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-3">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle>Task List</CardTitle>
-                <div className="relative w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search tasks..." 
-                    className="pl-8"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </div>
-              <CardDescription>View and manage your assigned tasks</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4">
-                  <TabsTrigger value="all">All Tasks</TabsTrigger>
-                  <TabsTrigger value="todo">To Do</TabsTrigger>
-                  <TabsTrigger value="in-progress">In Progress</TabsTrigger>
-                  <TabsTrigger value="completed">Completed</TabsTrigger>
-                </TabsList>
-                
-                <ScrollArea className="h-[500px] pr-4">
-                  <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-3"
-                  >
-                    {filteredTasks.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-10">
-                        <div className="bg-primary/10 p-3 rounded-full mb-3">
-                          <CheckCircle2 className="h-6 w-6 text-primary" />
-                        </div>
-                        <h3 className="text-lg font-medium">No tasks found</h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {searchQuery ? "Try a different search term" : "You're all caught up!"}
-                        </p>
-                      </div>
-                    ) : (
-                      filteredTasks.map((task) => (
-                        <motion.div key={task.id} variants={itemVariants}>
-                          <HoverGlowCard className="bg-card border rounded-lg overflow-hidden">
-                            <div className="p-4">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <h3 className="font-medium">{task.title}</h3>
-                                    <Badge variant="outline" className={getStatusColor(task.status)}>
-                                      {task.status === "in-progress" ? "In Progress" : 
-                                       task.status === "todo" ? "To Do" : "Completed"}
-                                    </Badge>
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList>
+          <TabsTrigger value="list">Task List</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="md:col-span-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Task List</CardTitle>
+                    <div className="relative w-64">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        placeholder="Search tasks..." 
+                        className="pl-8"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <CardDescription>View and manage your assigned tasks</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="all">All Tasks</TabsTrigger>
+                      <TabsTrigger value="todo">To Do</TabsTrigger>
+                      <TabsTrigger value="in-progress">In Progress</TabsTrigger>
+                      <TabsTrigger value="completed">Completed</TabsTrigger>
+                    </TabsList>
+                    
+                    <ScrollArea className="h-[500px] pr-4">
+                      <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="space-y-3"
+                      >
+                        {filteredTasks.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-10">
+                            <div className="bg-primary/10 p-3 rounded-full mb-3">
+                              <CheckCircle2 className="h-6 w-6 text-primary" />
+                            </div>
+                            <h3 className="text-lg font-medium">No tasks found</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {searchQuery ? "Try a different search term" : "You're all caught up!"}
+                            </p>
+                          </div>
+                        ) : (
+                          filteredTasks.map((task) => (
+                            <motion.div key={task.id} variants={itemVariants}>
+                              <HoverGlowCard className="bg-card border rounded-lg overflow-hidden">
+                                <div className="p-4">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <h3 className="font-medium">{task.title}</h3>
+                                        <Badge variant="outline" className={getStatusColor(task.status)}>
+                                          {task.status === "in-progress" ? "In Progress" : 
+                                           task.status === "todo" ? "To Do" : "Completed"}
+                                        </Badge>
+                                      </div>
+                                      <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                                    </div>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                                            <circle cx="12" cy="12" r="1" />
+                                            <circle cx="12" cy="5" r="1" />
+                                            <circle cx="12" cy="19" r="1" />
+                                          </svg>
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem>Edit Task</DropdownMenuItem>
+                                        <DropdownMenuItem>Change Status</DropdownMenuItem>
+                                        <DropdownMenuItem>Reassign</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive">Delete Task</DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
-                                  <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-                                </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                                        <circle cx="12" cy="12" r="1" />
-                                        <circle cx="12" cy="5" r="1" />
-                                        <circle cx="12" cy="19" r="1" />
-                                      </svg>
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem>Edit Task</DropdownMenuItem>
-                                    <DropdownMenuItem>Change Status</DropdownMenuItem>
-                                    <DropdownMenuItem>Reassign</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">Delete Task</DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                              
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3">
-                                <div className="flex flex-wrap gap-1">
-                                  {task.tags.map((tag, index) => (
-                                    <Badge key={index} variant="secondary" className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                </div>
-                                
-                                <div className="flex items-center gap-3 text-sm">
-                                  <div className="flex items-center gap-1">
-                                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                                    <div className="flex items-center gap-1">
-                                      <Avatar className="h-5 w-5">
-                                        <AvatarImage src={task.assignee.avatar} alt={task.assignee.name} />
-                                        <AvatarFallback className="text-[10px]">{task.assignee.initials}</AvatarFallback>
-                                      </Avatar>
-                                      <span className="text-xs">{task.assignee.name}</span>
+                                  
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3">
+                                    <div className="flex flex-wrap gap-1">
+                                      {task.tags.map((tag, index) => (
+                                        <Badge key={index} variant="secondary" className="text-xs">
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-3 text-sm">
+                                      <div className="flex items-center gap-1">
+                                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                                        <div className="flex items-center gap-1">
+                                          <Avatar className="h-5 w-5">
+                                            <AvatarImage src={task.assignee.avatar} alt={task.assignee.name} />
+                                            <AvatarFallback className="text-[10px]">{task.assignee.initials}</AvatarFallback>
+                                          </Avatar>
+                                          <span className="text-xs">{task.assignee.name}</span>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-1">
+                                        <span className={getPriorityColor(task.priority)}>
+                                          {getPriorityIcon(task.priority)}
+                                        </span>
+                                        <span className="text-xs capitalize">{task.priority}</span>
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-1">
+                                        <Clock className={`h-3.5 w-3.5 ${isOverdue(task.dueDate) ? "text-destructive" : "text-muted-foreground"}`} />
+                                        <span className={`text-xs ${isOverdue(task.dueDate) ? "text-destructive" : ""}`}>
+                                          {formatDate(task.dueDate)}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                   
-                                  <div className="flex items-center gap-1">
-                                    <span className={getPriorityColor(task.priority)}>
-                                      {getPriorityIcon(task.priority)}
-                                    </span>
-                                    <span className="text-xs capitalize">{task.priority}</span>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-1">
-                                    <Clock className={`h-3.5 w-3.5 ${isOverdue(task.dueDate) ? "text-destructive" : "text-muted-foreground"}`} />
-                                    <span className={`text-xs ${isOverdue(task.dueDate) ? "text-destructive" : ""}`}>
-                                      {formatDate(task.dueDate)}
-                                    </span>
-                                  </div>
+                                  {task.status !== "todo" && (
+                                    <div className="mt-3">
+                                      <div className="flex justify-between items-center text-xs mb-1">
+                                        <span className="text-muted-foreground">Progress</span>
+                                        <span>{task.progress}%</span>
+                                      </div>
+                                      <Progress value={task.progress} className="h-1.5" />
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                              
-                              {task.status !== "todo" && (
-                                <div className="mt-3">
-                                  <div className="flex justify-between items-center text-xs mb-1">
-                                    <span className="text-muted-foreground">Progress</span>
-                                    <span>{task.progress}%</span>
-                                  </div>
-                                  <Progress value={task.progress} className="h-1.5" />
-                                </div>
-                              )}
-                            </div>
-                          </HoverGlowCard>
-                        </motion.div>
-                      ))
-                    )}
-                  </motion.div>
-                </ScrollArea>
-              </Tabs>
-            </CardContent>
-            <CardFooter className="border-t pt-4 flex justify-between">
-              <div className="text-sm text-muted-foreground">
-                Showing {filteredTasks.length} of {tasks.length} tasks
-              </div>
-              <Button variant="outline" size="sm">
-                View All Tasks
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Task Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-slate-200 dark:bg-slate-800 p-1.5 rounded">
-                      <CheckCircle2 className="h-4 w-4" />
-                    </div>
-                    <span className="text-sm">Total Tasks</span>
+                              </HoverGlowCard>
+                            </motion.div>
+                          ))
+                        )}
+                      </motion.div>
+                    </ScrollArea>
+                  </Tabs>
+                </CardContent>
+                <CardFooter className="border-t pt-4 flex justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {filteredTasks.length} of {tasks.length} tasks
                   </div>
-                  <span className="font-medium">{tasks.length}</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded">
-                      <Clock className="h-4 w-4 text-blue-800 dark:text-blue-100" />
-                    </div>
-                    <span className="text-sm">In Progress</span>
-                  </div>
-                  <span className="font-medium">{tasks.filter(t => t.status === "in-progress").length}</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-amber-100 dark:bg-amber-900 p-1.5 rounded">
-                      <AlertCircle className="h-4 w-4 text-amber-800 dark:text-amber-100" />
-                    </div>
-                    <span className="text-sm">To Do</span>
-                  </div>
-                  <span className="font-medium">{tasks.filter(t => t.status === "todo").length}</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <div className="bg-green-100 dark:bg-green-900 p-1.5 rounded">
-                      <CheckCircle2 className="h-4 w-4 text-green-800 dark:text-green-100" />
-                    </div>
-                    <span className="text-sm">Completed</span>
-                  </div>
-                  <span className="font-medium">{tasks.filter(t => t.status === "completed").length}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Upcoming Deadlines</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {tasks
-                  .filter(task => task.status !== "completed")
-                  .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-                  .slice(0, 3)
-                  .map(task => (
-                    <div key={task.id} className="flex items-start gap-3">
-                      <div className={`p-1.5 rounded mt-0.5 ${isOverdue(task.dueDate) ? "bg-red-100 dark:bg-red-900" : "bg-slate-100 dark:bg-slate-800"}`}>
-                        <Calendar className={`h-4 w-4 ${isOverdue(task.dueDate) ? "text-red-800 dark:text-red-100" : ""}`} />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium line-clamp-1">{task.title}</div>
-                        <div className={`text-xs ${isOverdue(task.dueDate) ? "text-destructive" : "text-muted-foreground"}`}>
-                          {isOverdue(task.dueDate) ? "Overdue: " : "Due: "}
-                          {formatDate(task.dueDate)}
+                  <Button variant="outline" size="sm">
+                    View All Tasks
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+            
+            <div className="space-y-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Task Summary</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-slate-200 dark:bg-slate-800 p-1.5 rounded">
+                          <CheckCircle2 className="h-4 w-4" />
                         </div>
+                        <span className="text-sm">Total Tasks</span>
                       </div>
+                      <span className="font-medium">{tasks.length}</span>
                     </div>
-                  ))
-                }
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Task Tags</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {Array.from(new Set(tasks.flatMap(task => task.tags))).map((tag, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center gap-1">
-                    <Tag className="h-3 w-3" />
-                    <span>{tag}</span>
-                    <span className="ml-1 text-xs bg-primary/10 px-1.5 rounded-full">
-                      {tasks.filter(task => task.tags.includes(tag)).length}
-                    </span>
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded">
+                          <Clock className="h-4 w-4 text-blue-800 dark:text-blue-100" />
+                        </div>
+                        <span className="text-sm">In Progress</span>
+                      </div>
+                      <span className="font-medium">{tasks.filter(t => t.status === "in-progress").length}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-amber-100 dark:bg-amber-900 p-1.5 rounded">
+                          <AlertCircle className="h-4 w-4 text-amber-800 dark:text-amber-100" />
+                        </div>
+                        <span className="text-sm">To Do</span>
+                      </div>
+                      <span className="font-medium">{tasks.filter(t => t.status === "todo").length}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-green-100 dark:bg-green-900 p-1.5 rounded">
+                          <CheckCircle2 className="h-4 w-4 text-green-800 dark:text-green-100" />
+                        </div>
+                        <span className="text-sm">Completed</span>
+                      </div>
+                      <span className="font-medium">{tasks.filter(t => t.status === "completed").length}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Upcoming Deadlines</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {tasks
+                      .filter(task => task.status !== "completed")
+                      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+                      .slice(0, 3)
+                      .map(task => (
+                        <div key={task.id} className="flex items-start gap-3">
+                          <div className={`p-1.5 rounded mt-0.5 ${isOverdue(task.dueDate) ? "bg-red-100 dark:bg-red-900" : "bg-slate-100 dark:bg-slate-800"}`}>
+                            <Calendar className={`h-4 w-4 ${isOverdue(task.dueDate) ? "text-red-800 dark:text-red-100" : ""}`} />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium line-clamp-1">{task.title}</div>
+                            <div className={`text-xs ${isOverdue(task.dueDate) ? "text-destructive" : "text-muted-foreground"}`}>
+                              {isOverdue(task.dueDate) ? "Overdue: " : "Due: "}
+                              {formatDate(task.dueDate)}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Task Tags</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from(new Set(tasks.flatMap(task => task.tags))).map((tag, index) => (
+                      <Badge key={index} variant="outline" className="flex items-center gap-1">
+                        <Tag className="h-3 w-3" />
+                        <span>{tag}</span>
+                        <span className="ml-1 text-xs bg-primary/10 px-1.5 rounded-full">
+                          {tasks.filter(task => task.tags.includes(tag)).length}
+                        </span>
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="analytics">
+          <TaskAnalytics />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

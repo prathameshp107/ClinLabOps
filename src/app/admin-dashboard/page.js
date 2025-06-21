@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import AnalyticsTabs from "@/components/dashboard/AnalyticsTabs";
 
 // Icons
 import {
@@ -345,18 +346,8 @@ export default function DashboardPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="analytics">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analytics</CardTitle>
-                  <CardDescription>Detailed analytics and metrics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[400px] flex items-center justify-center">
-                    <p className="text-muted-foreground">Analytics dashboard will be displayed here</p>
-                  </div>
-                </CardContent>
-              </Card>
+            <TabsContent value="analytics" className="space-y-6">
+              <AnalyticsTabs />
             </TabsContent>
 
             <TabsContent value="reports">
