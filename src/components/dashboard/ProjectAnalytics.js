@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, BarChart3, PieChart as PieChartIcon, TrendingUp, DollarSign, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { RefreshCw, BarChart3, PieChart as PieChartIcon, TrendingUp, DollarSign, Clock, CheckCircle, AlertTriangle, ChevronRight, ArrowRight, PauseCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   BarChart,
@@ -35,6 +35,22 @@ const COLORS = {
   'budget': '#3B82F6',
   'spent': '#8B5CF6',
   'overbudget': '#EF4444'
+};
+
+const STATUS_ICONS = {
+  'on track': <CheckCircle className="h-4 w-4" />,
+  'at risk': <AlertTriangle className="h-4 w-4" />,
+  'delayed': <Clock className="h-4 w-4" />,
+  'on hold': <PauseCircle className="h-4 w-4" />,
+  'completed': <CheckCircle className="h-4 w-4" />
+};
+
+const STATUS_DESCRIPTIONS = {
+  'on track': 'Projects progressing as planned',
+  'at risk': 'Projects with potential delays or issues',
+  'delayed': 'Projects behind schedule',
+  'on hold': 'Projects currently paused',
+  'completed': 'Successfully completed projects'
 };
 
 // Mock data - in a real app, this would come from an API
@@ -159,7 +175,7 @@ const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) 
         ))}
         {data.status && (
           <div className="flex justify-between items-center gap-4 mt-1">
-             <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#A855F7' }} />
               <span className="text-muted-foreground">Status:</span>
             </div>
@@ -176,17 +192,36 @@ const ProjectAnalytics = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('month');
 
-  // Process data for charts - simplified to ensure proper pie chart rendering
+  // Process data for charts with enhanced status information
   const statusCounts = mockProjects.reduce((acc, project) => {
     const status = project.status;
-    acc[status] = (acc[status] || 0) + 1;
+    if (!acc[status]) {
+      acc[status] = {
+        count: 0,
+        projects: [],
+        totalTasks: 0,
+        completedTasks: 0
+      };
+    }
+    acc[status].count += 1;
+    acc[status].projects.push(project);
+    acc[status].totalTasks += project.tasks.total;
+    acc[status].completedTasks += project.tasks.completed;
     return acc;
   }, {});
 
-  const statusData = Object.entries(statusCounts).map(([status, count]) => ({
+  const statusData = Object.entries(statusCounts).map(([status, data]) => ({
     name: status.charAt(0).toUpperCase() + status.slice(1),
-    value: count,
-    color: COLORS[status] || '#8884d8'
+    value: data.count,
+    count: data.count,
+    projects: data.projects,
+    totalTasks: data.totalTasks,
+    completedTasks: data.completedTasks,
+    progress: data.totalTasks > 0 ? Math.round((data.completedTasks / data.totalTasks) * 100) : 0,
+    color: COLORS[status] || '#8884d8',
+    icon: STATUS_ICONS[status] || <FileText className="h-4 w-4" />,
+    description: STATUS_DESCRIPTIONS[status] || 'Project status',
+    status: status
   }));
 
   const progressData = mockProjects.map(project => ({
@@ -241,73 +276,185 @@ const ProjectAnalytics = () => {
       </div>
 
       <div className="grid gap-6">
-        {/* Status Distribution */}
+        {/* Enhanced Status Distribution */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <PieChartIcon className="h-5 w-5" />
+                  <PieChartIcon className="h-5 w-5 text-primary" />
                   Project Status Distribution
                 </CardTitle>
-                <CardDescription>Overview of projects by status</CardDescription>
+                <CardDescription>Overview of projects by status with detailed tooltips</CardDescription>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-full bg-green-500 mr-1"></div>
-                  On Track
-                </div>
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-full bg-amber-500 mr-1"></div>
-                  At Risk
-                </div>
-                <div className="flex items-center">
-                  <div className="h-3 w-3 rounded-full bg-red-500 mr-1"></div>
-                  Delayed
-                </div>
-              </div>
+              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
+                  <defs>
+                    {statusData.map((entry, index) => (
+                      <linearGradient 
+                        key={`gradient-${index}`} 
+                        id={`gradient-${index}`} 
+                        x1="0" 
+                        y1="0" 
+                        x2="0" 
+                        y2="1"
+                      >
+                        <stop offset="0%" stopColor={entry.color} stopOpacity={0.8} />
+                        <stop offset="100%" stopColor={entry.color} stopOpacity={0.4} />
+                      </linearGradient>
+                    ))}
+                  </defs>
                   <Pie
                     data={statusData}
                     cx="50%"
                     cy="50%"
-                    innerRadius="70%"
+                    innerRadius="60%"
                     outerRadius="90%"
-                    paddingAngle={5}
+                    paddingAngle={2}
                     dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    animationBegin={0}
+                    animationDuration={1000}
+                    animationEasing="ease-out"
                   >
                     {statusData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={entry.color}
-                        stroke="#fff"
+                        fill={`url(#gradient-${index})`}
+                        stroke="#ffffff"
                         strokeWidth={2}
+                        style={{
+                          filter: 'drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.1))',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.opacity = '0.8';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.opacity = '1';
+                        }}
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<EnhancedCustomTooltip />} />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    formatter={(value, entry, index) => {
-                      const data = statusData[index];
-                      return (
-                        <div className="flex items-center gap-1 text-xs">
-                          <div
-                            className="w-3 h-3 rounded-full mr-1"
-                            style={{ backgroundColor: data.color }}
-                          />
-                          {data.name}
-                        </div>
-                      );
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-popover/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-xl text-sm w-64">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div 
+                                className="h-8 w-8 rounded-full flex items-center justify-center"
+                                style={{ 
+                                  backgroundColor: `${data.color}20`, 
+                                  color: data.color 
+                                }}
+                              >
+                                {data.icon}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-base">{data.name}</h3>
+                                <p className="text-xs text-muted-foreground">{data.description}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <div>
+                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                  <span>Projects</span>
+                                  <span className="font-medium text-foreground">
+                                    {data.count} {data.count === 1 ? 'project' : 'projects'}
+                                  </span>
+                                </div>
+                                <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full rounded-full"
+                                    style={{ 
+                                      width: '100%',
+                                      backgroundColor: data.color,
+                                      opacity: 0.2
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                  <span>Task Completion</span>
+                                  <span className="font-medium text-foreground">
+                                    {data.completedTasks} of {data.totalTasks} tasks
+                                  </span>
+                                </div>
+                                <div className="h-1.5 bg-accent rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full rounded-full transition-all duration-500 ease-out"
+                                    style={{ 
+                                      width: `${data.progress}%`,
+                                      backgroundColor: data.color,
+                                      backgroundImage: `linear-gradient(90deg, ${data.color} 0%, ${data.color}99 100%)`
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex justify-between mt-1">
+                                  <span className="text-xs text-muted-foreground">Progress</span>
+                                  <span className="text-xs font-medium text-foreground">
+                                    {data.progress}% complete
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="pt-2 border-t border-border">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="w-full text-xs h-8 gap-1.5"
+                                >
+                                  View {data.name} Projects
+                                  <ArrowRight className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
+                  />
+                  <Legend 
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    content={({ payload }) => (
+                      <div className="flex flex-wrap justify-center gap-4 mt-4">
+                        {payload.map((entry, index) => {
+                          const data = statusData[index];
+                          return (
+                            <div 
+                              key={`legend-${index}`}
+                              className="flex items-center gap-1.5 text-xs"
+                            >
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: data.color }}
+                              />
+                              <span className="text-muted-foreground">
+                                {data.name} ({data.count})
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -471,7 +618,7 @@ const ProjectAnalytics = () => {
                       ))}
                     </ul>
                   </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>
