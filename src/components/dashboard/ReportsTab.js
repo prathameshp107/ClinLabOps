@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
-import { Search, Filter, Download, Eye, Trash2, FileText, FileSpreadsheet, Plus, FileArchive, FilePieChart, FileBarChart2, RefreshCw } from 'lucide-react';
+import { Search, Filter, Download, Eye, Trash2, FileText, FileSpreadsheet, Plus, FileArchive, FilePieChart, FileBarChart2, RefreshCw, Upload  } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PreviewReportDialog } from './PreviewReportDialog';
+import { UploadReportDialog } from './UploadReportDialog';
 import { ReportsPagination } from './ReportsPagination';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
@@ -22,7 +23,8 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [sortConfig, setSortConfig] = useState({ key: 'created', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(5);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [previewReport, setPreviewReport] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -90,6 +92,24 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
     }
   };
 
+  const handleUploadReport = (uploadedReport) => {
+    // In a real app, this would add the uploaded report to the backend
+    console.log('Report uploaded:', uploadedReport);
+    
+    // Show success message
+    alert(`Successfully uploaded report: ${uploadedReport.title}\n\n` +
+          `File: ${uploadedReport.file}\n` +
+          `Type: ${uploadedReport.type}\n` +
+          `Size: ${uploadedReport.size}`);
+    
+    // In a real app, you would update the reports list by either:
+    // 1. Adding the uploaded report to the reports array
+    // setReports(prev => [uploadedReport, ...prev]);
+    // 
+    // 2. Or refreshing the reports list from the server
+    // fetchReports();
+  };
+
   const getFileIcon = (format) => {
     switch (format) {
       case 'PDF':
@@ -118,6 +138,13 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
         onDownload={handleDownload}
+      />
+      
+      {/* Upload Report Dialog */}
+      <UploadReportDialog
+        open={isUploadDialogOpen}
+        onOpenChange={setIsUploadDialogOpen}
+        onUpload={handleUploadReport}
       />
 
       {/* Search and Filter Bar */}
@@ -168,9 +195,12 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
               })}
             </SelectContent>
           </Select>
-          <Button className="ml-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            New Report
+          <Button 
+            className="ml-auto"
+            onClick={() => setIsUploadDialogOpen(true)}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Report
           </Button>
         </div>
       </div>
