@@ -49,6 +49,8 @@ import {
 
 // Components
 import { ReportsTab } from "@/components/dashboard/ReportsTab";
+import { RecentSystemLogs } from "@/components/dashboard/RecentSystemLogs";
+import { PendingApprovals } from "@/components/dashboard/PendingApprovals";
 
 // Utility functions for task status
 const getStatusColor = (status) => {
@@ -138,6 +140,18 @@ export default function DashboardPage() {
   // Use tasks from tasksOverviewData
   const recentTasks = tasksOverviewData.recentTasks;
 
+  // Format time for system logs
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Format date for system logs
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
   return (
     <DashboardLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8 pt-6">
@@ -207,7 +221,7 @@ export default function DashboardPage() {
                     'AlertTriangle': AlertTriangleIcon
                   };
                   const Icon = iconMap[stat.icon] || FileTextIcon;
-                  
+
                   return (
                     <Card key={index} className="h-full transition-all hover:shadow-md">
                       <CardHeader className="p-3 sm:p-4 space-y-1">
@@ -328,13 +342,7 @@ export default function DashboardPage() {
                       </div>
                     </CardContent>
                   </Card>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <TeamPerformance data={teamPerformance} />
                   <RecentActivity data={recentActivities} />
-
                   {/* Upcoming Deadlines */}
                   <Card className="h-fit">
                     <CardHeader className="pb-2">
@@ -372,6 +380,19 @@ export default function DashboardPage() {
                       </div>
                     </CardContent>
                   </Card>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-6">
+                  <PendingApprovals />
+                  <TeamPerformance data={teamPerformance} />
+                </div>
+                {/* System Logs Section */}
+                <div className="lg:col-span-3">
+                  <RecentSystemLogs
+                    formatTime={formatTime}
+                    formatDate={formatDate}
+                  />
                 </div>
               </div>
             </TabsContent>
