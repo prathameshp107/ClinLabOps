@@ -1,37 +1,62 @@
 "use client"
 
 import * as React from "react"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2, Copy, CheckCircle, Clock, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
 
-export function DataTableRowActions({ row }) {
+export function DataTableRowActions({ row, onEdit, onDelete, onStatusChange }) {
   const { toast } = useToast()
+  const task = row.original
 
-  const handleEdit = () => {
-    // TODO: Implement edit functionality
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(task.id)
     toast({
-      title: "Edit task",
-      description: `Edit task with ID: ${row.getValue("id")}`,
+      title: "Copied!",
+      description: "Task ID copied to clipboard.",
     })
   }
 
+  const handleStatusChange = (status) => {
+    try {
+      onStatusChange?.(task.id, status)
+      toast({
+        title: "Status updated",
+        description: `Task marked as ${status}.`,
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update task status.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const handleDelete = () => {
-    // TODO: Implement delete functionality
-    toast({
-      title: "Delete task",
-      description: `Delete task with ID: ${row.getValue("id")}`,
-      variant: "destructive",
-    })
+    if (window.confirm("Are you sure you want to delete this task?")) {
+      try {
+        onDelete?.(task.id)
+        toast({
+          title: "Task deleted",
+          description: "The task has been deleted.",
+        })
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete task.",
+          variant: "destructive",
+        })
+      }
+    }
   }
 
   return (
@@ -46,15 +71,41 @@ export function DataTableRowActions({ row }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem onClick={handleEdit}>
+        <DropdownMenuItem onClick={() => onEdit?.(task)}>
           <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
           Edit
         </DropdownMenuItem>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleDelete}>
-          <Trash2 className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+
+        <DropdownMenuItem onClick={() => handleStatusChange("in-progress")}>
+          <Clock className="mr-2 h-3.5 w-3.5 text-blue-500" />
+          Mark In Progress
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleStatusChange("pending")}>
+          <AlertCircle className="mr-2 h-3.5 w-3.5 text-amber-500" />
+          Mark Pending
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleStatusChange("completed")}>
+          <CheckCircle className="mr-2 h-3.5 w-3.5 text-green-500" />
+          Mark Completed
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={handleCopyId}>
+          <Copy className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+          Copy ID
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="text-destructive focus:text-destructive"
+        >
+          <Trash2 className="mr-2 h-3.5 w-3.5" />
           Delete
-          <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

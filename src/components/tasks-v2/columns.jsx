@@ -1,12 +1,20 @@
 "use client"
 
-import { CheckCircle2, Clock, AlertCircle, XCircle } from "lucide-react"
+import { CheckCircle2, Clock, AlertCircle, XCircle, ArrowUpDown } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
-import { statuses } from "@/app/tasks/data/schema"
+import { statuses, priorities } from "@/app/tasks/data/schema"
+
+const statusIcons = {
+  pending: { icon: Clock, color: "text-amber-500" },
+  "in-progress": { icon: AlertCircle, color: "text-blue-500" },
+  completed: { icon: CheckCircle2, color: "text-green-500" },
+  cancelled: { icon: XCircle, color: "text-red-500" }
+}
 
 export const columns = [
   {
@@ -37,10 +45,12 @@ export const columns = [
   {
     accessorKey: "id",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Task" />
+      <DataTableColumnHeader column={column} title="Task ID" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("id")}</div>,
-    enableSorting: false,
+    cell: ({ row }) => (
+      <div className="w-[80px] font-mono text-sm">{row.getValue("id")}</div>
+    ),
+    enableSorting: true,
     enableHiding: false,
   },
   {
@@ -57,6 +67,20 @@ export const columns = [
         </div>
       )
     },
+    enableSorting: true,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "description",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Description" />
+    ),
+    cell: ({ row }) => (
+      <div className="max-w-[300px] truncate text-sm text-muted-foreground">
+        {row.getValue("description")}
+      </div>
+    ),
+    enableSorting: false,
   },
   {
     accessorKey: "status",
@@ -68,15 +92,14 @@ export const columns = [
         (status) => status.value === row.getValue("status")
       )
 
-      if (!status) {
-        return null
-      }
+      if (!status) return null
 
-      const Icon = status.icon
+      const StatusIcon = statusIcons[status.value]?.icon || AlertCircle
+      const statusColor = statusIcons[status.value]?.color || "text-muted-foreground"
 
       return (
-        <div className="flex w-[100px] items-center">
-          <Icon className={`mr-2 h-4 w-4 ${status.color}`} />
+        <div className="flex w-[120px] items-center">
+          <StatusIcon className={`mr-2 h-3.5 w-3.5 ${statusColor}`} />
           <span>{status.label}</span>
         </div>
       )
@@ -84,6 +107,7 @@ export const columns = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
+    enableSorting: true,
   },
   {
     accessorKey: "priority",
@@ -95,14 +119,12 @@ export const columns = [
         (priority) => priority.value === row.getValue("priority")
       )
 
-      if (!priority) {
-        return null
-      }
+      if (!priority) return null
 
       return (
         <div className="flex items-center">
           {priority.icon && (
-            <priority.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+            <priority.icon className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
           )}
           <span>{priority.label}</span>
         </div>
@@ -111,6 +133,33 @@ export const columns = [
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id))
     },
+    enableSorting: true,
+  },
+  {
+    accessorKey: "dueDate",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Due Date" />
+    ),
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("dueDate"))
+      const formattedDate = date.toLocaleDateString("en-US", {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+
+      const today = new Date()
+      const isOverdue = date < today && row.getValue("status") !== "completed"
+
+      return (
+        <div className="flex items-center">
+          <span className={isOverdue ? "text-destructive font-medium" : ""}>
+            {formattedDate}
+          </span>
+        </div>
+      )
+    },
+    enableSorting: true,
   },
   {
     accessorKey: "assignedTo",
@@ -121,47 +170,20 @@ export const columns = [
       const assignedTo = row.getValue("assignedTo")
       return (
         <div className="flex items-center">
-          <span className="whitespace-nowrap">
-            {assignedTo?.name || "Unassigned"}
-          </span>
+          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-2">
+            <span className="text-xs font-medium">
+              {assignedTo?.name?.charAt(0) || '?'}
+            </span>
+          </div>
+          <span>{assignedTo?.name || 'Unassigned'}</span>
         </div>
       )
     },
-  },
-  {
-    accessorKey: "dueDate",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Due Date" />
-    ),
-    cell: ({ row }) => {
-      const date = row.getValue("dueDate")
-      return (
-        <div className="whitespace-nowrap">
-          {date ? new Date(date).toLocaleDateString() : "No due date"}
-        </div>
-      )
-    },
+    enableSorting: true,
   },
   {
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
-  },
-]
-
-const priorities = [
-  {
-    label: "Low",
-    value: "low",
-    icon: Clock,
-  },
-  {
-    label: "Medium",
-    value: "medium",
-    icon: AlertCircle,
-  },
-  {
-    label: "High",
-    value: "high",
-    icon: CheckCircle2,
+    enableHiding: false,
   },
 ]
