@@ -1,282 +1,309 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import * as React from "react"
+import { motion } from "framer-motion"
+import { Plus, Filter, Calendar, BarChart2, Users, SlidersHorizontal, RefreshCw, AlertCircle, Clock, CheckCircle2, Search, AlertCircle as AlertIcon } from "lucide-react"
+
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { TaskManagement } from "@/components/tasks/task-management"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BackgroundBeams } from "@/components/ui/aceternity/background-beams"
-import { SparklesCore } from "@/components/ui/aceternity/sparkles"
-import {
-  Search,
-  Plus,
-  Filter,
-  Calendar,
-  BarChart2,
-  Users,
-  SlidersHorizontal,
-  RefreshCw,
-  AlertCircle,
-  Clock,
-  CheckCircle2
-} from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DataTable } from "@/components/tasks-v2/data-table"
+import { columns } from "@/components/tasks-v2/columns"
 import { TasksLoading } from "@/components/tasks/tasks-loading"
+import { fetchTasks } from "@/lib/api/tasks"
 
 export default function TasksPage() {
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [tasks, setTasks] = React.useState([])
+  const [isLoading, setIsLoading] = React.useState(true)
+  const [error, setError] = React.useState(null)
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [activeTab, setActiveTab] = React.useState("all")
+  const [selectedStatus, setSelectedStatus] = React.useState("all")
+  const [lastRefreshed, setLastRefreshed] = React.useState(new Date())
 
-  // Simulate loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
+  const fetchTasksData = React.useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      let statusFilter = selectedStatus
+      if (activeTab === "active") {
+        statusFilter = "in-progress,pending"
+      } else if (activeTab === "completed") {
+        statusFilter = "completed"
+      } else if (activeTab === "all") {
+        statusFilter = undefined
+      }
+
+      const tasksData = await fetchTasks({
+        status: statusFilter,
+        search: searchQuery || undefined,
+        sortBy: 'dueDate',
+        sortOrder: 'asc'
+      })
+
+      const transformedTasks = tasksData.map(task => ({
+        ...task,
+        assignedTo: {
+          id: task.assignedTo,
+          name: task.assignedToName,
+          avatar: "/avatars/01.png" // Default avatar
+        },
+        project: {
+          id: task.experiment,
+          name: task.experimentName
+        }
+      }))
+
+      setTasks(transformedTasks)
+      setLastRefreshed(new Date())
+    } catch (err) {
+      console.error("Error fetching tasks:", err)
+      setError("Failed to load tasks. Please try again later.")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [searchQuery, activeTab, selectedStatus])
+
+  React.useEffect(() => {
+    fetchTasksData()
+  }, [fetchTasksData])
 
   const handleRefresh = () => {
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-    }, 800)
+    fetchTasksData()
   }
 
-  // --- Stats mock data (replace with real data logic) ---
-  const stats = [
-    { label: "Total Tasks", value: 42, icon: <BarChart2 className="h-5 w-5 text-primary" /> },
-    { label: "Completed", value: 18, icon: <CheckCircle2 className="h-5 w-5 text-green-500" /> },
-    { label: "In Progress", value: 12, icon: <Clock className="h-5 w-5 text-yellow-500" /> },
-    { label: "Overdue", value: 3, icon: <AlertCircle className="h-5 w-5 text-red-500" /> },
-  ];
-  const [showTaskModal, setShowTaskModal] = useState(false);
+  const filteredTasks = React.useMemo(() => {
+    return [...tasks]
+  }, [tasks])
 
-  if (loading) {
-    return <TasksLoading />;
+  const taskStats = React.useMemo(() => {
+    const total = tasks.length
+    const completed = tasks.filter((t) => t.status === "completed").length
+    const inProgress = tasks.filter((t) => t.status === "in-progress").length
+    const pending = tasks.filter((t) => t.status === "pending").length
+
+    return { total, completed, inProgress, pending }
+  }, [tasks])
+
+  const formattedLastRefreshed = React.useMemo(() => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(lastRefreshed)
+  }, [lastRefreshed])
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)]">
+          <div className="bg-red-50 p-4 rounded-lg flex items-center max-w-md">
+            <AlertIcon className="h-5 w-5 text-red-500 mr-2" />
+            <p className="text-red-700">{error}</p>
+          </div>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Refreshing...' : 'Try Again'}
+          </Button>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (isLoading && tasks.length === 0) {
+    return (
+      <DashboardLayout>
+        <TasksLoading />
+      </DashboardLayout>
+    )
   }
 
   return (
     <DashboardLayout>
-      <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-background via-background/95 to-background/90">
-        <BackgroundBeams className="opacity-30" />
-        {/* Floating Action Button for quick task creation */}
+      <div className="min-h-screen w-full bg-background p-6">
+        {/* Welcome Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's what's happening with your tasks today.
+          </p>
+        </motion.div>
 
-        <div className="p-8 w-full relative z-10">
-          {/* Sticky header/toolbar */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 bg-background/60 backdrop-blur-xl rounded-2xl p-6 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sticky top-0 z-30"
-          >
-            <div>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary/60 drop-shadow-sm">
-                Task Management
-              </h1>
-              <p className="text-muted-foreground mt-2 text-lg">
-                Create, assign, and track laboratory tasks efficiently
-              </p>
+        {/* Sticky header/toolbar */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-background/60 backdrop-blur-sm rounded-xl p-4 border border-border/30 sticky top-0 z-30"
+        >
+          <div className="flex items-center gap-4 w-full">
+            <div className="relative flex-1 md:w-72">
+              <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+              <Input
+                placeholder="Search tasks..."
+                className="pl-11 h-12 bg-background/80 border-border/40 rounded-lg focus:ring-1 focus:ring-primary/20"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    fetchTasksData()
+                  }
+                }}
+              />
             </div>
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="relative flex-1 md:w-72">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search tasks..."
-                  className="pl-11 h-12 bg-background/80 border-border/50 shadow-lg rounded-xl focus:ring-2 focus:ring-primary/30"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 shadow-lg bg-background/80 border-border/50 rounded-xl hover:bg-primary/5 transition-colors"
-              >
-                <SlidersHorizontal className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 shadow-lg hover:shadow-xl transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 rounded-xl hover:bg-primary/5"
-                onClick={handleRefresh}
-              >
-                <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
-              </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={fetchTasksData}
+              disabled={isLoading}
+              className="h-12 w-12"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+            <div className="text-xs text-muted-foreground hidden md:block">
+              Last updated: {formattedLastRefreshed}
             </div>
-          </motion.div>
-
-          {/* Animated statistics cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="lg:col-span-3"
-            >
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                      Tasks Overview
-                    </CardTitle>
-                    <div className="flex items-center gap-3">
-                      <Button variant="outline" size="sm" className="h-9 gap-2 shadow-md rounded-xl hover:bg-primary/5 transition-colors">
-                        <Filter className="h-4 w-4" />
-                        <span>Filter</span>
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-9 gap-2 shadow-md rounded-xl hover:bg-primary/5 transition-colors">
-                        <SlidersHorizontal className="h-4 w-4" />
-                        <span>Sort</span>
-                      </Button>
-                    </div>
-                  </div>
-                  <CardDescription className="text-base mt-2">
-                    Manage and track all laboratory tasks in one place
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <TaskManagement view="all" searchQuery={searchQuery} />
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="space-y-8"
-            >
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <Calendar className="h-6 w-6 text-primary" />
-                    </div>
-                    Upcoming Deadlines
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-muted animate-pulse"></div>
-                          <div className="space-y-2 flex-1">
-                            <div className="h-4 bg-muted rounded-lg animate-pulse"></div>
-                            <div className="h-3 bg-muted rounded-lg animate-pulse w-2/3"></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-accent/50 transition-colors">
-                        <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
-                          <AlertCircle className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-base font-medium">PCR Analysis</p>
-                          <p className="text-sm text-muted-foreground">Due today</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-accent/50 transition-colors">
-                        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
-                          <Clock className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-base font-medium">Sample Preparation</p>
-                          <p className="text-sm text-muted-foreground">Due tomorrow</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-accent/50 transition-colors">
-                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-                          <Calendar className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-base font-medium">Data Analysis</p>
-                          <p className="text-sm text-muted-foreground">Due in 3 days</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-4 hover:bg-primary/5 transition-colors rounded-xl"
-                  >
-                    View all deadlines
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <Users className="h-6 w-6 text-primary" />
-                    </div>
-                    Team Workload
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="space-y-2">
-                          <div className="flex justify-between">
-                            <div className="h-4 bg-muted rounded-lg animate-pulse w-1/3"></div>
-                            <div className="h-4 bg-muted rounded-lg animate-pulse w-1/6"></div>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full animate-pulse"></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-medium">Dr. Jane Smith</span>
-                          <span className="text-muted-foreground">8 tasks</span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-red-500 to-red-400 w-[80%] rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-medium">Dr. Mike Johnson</span>
-                          <span className="text-muted-foreground">5 tasks</span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 w-[50%] rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-medium">Sarah Williams</span>
-                          <span className="text-muted-foreground">3 tasks</span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-green-500 to-green-400 w-[30%] rounded-full"></div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-4 hover:bg-primary/5 transition-colors rounded-xl"
-                  >
-                    Manage team
-                  </Button>
-                </CardContent>
-              </Card>
-
-
-            </motion.div>
           </div>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="bg-background/80 backdrop-blur-sm border-border/30 hover:border-border/50 transition-all duration-300 h-full">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+                    <h3 className="text-2xl font-bold mt-1">{taskStats.total}</h3>
+                  </div>
+                  <div className="p-2 rounded-lg bg-primary/5">
+                    <BarChart2 className="h-5 w-5 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card className="bg-background/80 backdrop-blur-sm border-border/30 hover:border-border/50 transition-all duration-300 h-full">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                    <h3 className="text-2xl font-bold mt-1">{taskStats.completed}</h3>
+                  </div>
+                  <div className="p-2 rounded-lg bg-green-500/5">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="bg-background/80 backdrop-blur-sm border-border/30 hover:border-border/50 transition-all duration-300 h-full">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+                    <h3 className="text-2xl font-bold mt-1">{taskStats.inProgress}</h3>
+                  </div>
+                  <div className="p-2 rounded-lg bg-yellow-500/5">
+                    <Clock className="h-5 w-5 text-yellow-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card className="bg-background/80 backdrop-blur-sm border-border/30 hover:border-border/50 transition-all duration-300 h-full">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                    <h3 className="text-2xl font-bold mt-1">{taskStats.pending}</h3>
+                  </div>
+                  <div className="p-2 rounded-lg bg-blue-500/5">
+                    <AlertCircle className="h-5 w-5 text-blue-500" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
+
+        {/* Tasks Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+          className="mb-8"
+        >
+          <Card className="bg-background/80 backdrop-blur-sm border-border/30 hover:border-border/50 transition-all duration-300 rounded-xl overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold tracking-tight">Tasks</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {taskStats.total} tasks • {taskStats.completed} completed • {taskStats.inProgress} in progress • {taskStats.pending} pending
+                  </p>
+                </div>
+                <Button className="h-10">
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Task
+                </Button>
+              </div>
+
+              <Tabs
+                defaultValue="all"
+                className="mt-4"
+                onValueChange={(value) => {
+                  setActiveTab(value)
+                }}
+              >
+                <TabsList className="bg-background/50 backdrop-blur-sm border border-border/30">
+                  <TabsTrigger value="all" className="data-[state=active]:bg-primary/5">All Tasks</TabsTrigger>
+                  <TabsTrigger value="active" className="data-[state=active]:bg-primary/5">Active</TabsTrigger>
+                  <TabsTrigger value="completed" className="data-[state=active]:bg-primary/5">Completed</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardHeader>
+            <CardContent className="p-4">
+              <DataTable
+                columns={columns}
+                data={filteredTasks}
+                className="border-0"
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </DashboardLayout>
   )
