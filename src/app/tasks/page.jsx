@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "framer-motion"
-import { Plus, Filter, Calendar, BarChart2, Users, SlidersHorizontal, RefreshCw, AlertCircle, Clock, CheckCircle2, Search, OctagonAlert } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Plus, Filter, Calendar, BarChart2, Users, SlidersHorizontal, RefreshCw, AlertCircle, Clock, CheckCircle2, Search, OctagonAlert, List, Grid, PlusCircle, Loader2 } from "lucide-react"
 
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
@@ -10,113 +10,193 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTable } from "@/components/tasks-v2/data-table"
+import { TaskGrid } from "@/components/tasks-v2/task-grid"
 import { columns } from "@/components/tasks-v2/columns"
-import { TasksLoading } from "@/components/tasks/tasks-loading"
-import { fetchTasks } from "@/lib/api/tasks"
 import { DataTableRowActions } from "@/components/tasks-v2/data-table-row-actions"
 import { toast } from "@/components/ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+
+// Mock data for tasks
+const mockTasks = [
+  {
+    _id: '1',
+    title: 'Prepare lab equipment',
+    status: 'pending',
+    priority: 'high',
+    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user1',
+    assignedToName: 'John Doe',
+    experiment: 'exp1',
+    experimentName: 'Cell Culture',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '2',
+    title: 'Analyze test results',
+    status: 'in-progress',
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user2',
+    assignedToName: 'Jane Smith',
+    experiment: 'exp2',
+    experimentName: 'DNA Sequencing',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '3',
+    title: 'Order new supplies',
+    status: 'completed',
+    priority: 'low',
+    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user3',
+    assignedToName: 'Alex Johnson',
+    experiment: 'exp3',
+    experimentName: 'Chemical Analysis',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '4',
+    title: 'Calibrate instruments',
+    status: 'pending',
+    priority: 'high',
+    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user1',
+    assignedToName: 'John Doe',
+    experiment: 'exp1',
+    experimentName: 'Cell Culture',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '5',
+    title: 'Document procedures',
+    status: 'in-progress',
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user2',
+    assignedToName: 'Jane Smith',
+    experiment: 'exp2',
+    experimentName: 'DNA Sequencing',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];
 
 export default function TasksPage() {
-  const [tasks, setTasks] = React.useState([])
-  const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState(null)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("all")
   const [selectedStatus, setSelectedStatus] = React.useState("all")
+  const [viewMode, setViewMode] = React.useState("table") // 'table' or 'grid'
   const [lastRefreshed, setLastRefreshed] = React.useState(new Date())
+  const [isRefreshing, setIsRefreshing] = React.useState(false)
+  const [selectedTasks, setSelectedTasks] = React.useState([])
+  const [tasks, setTasks] = React.useState(() => {
+    // Transform mockTasks to processedTasks shape
+    return mockTasks.map(task => ({
+      id: task._id,
+      title: task.title,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.dueDate,
+      assignedTo: {
+        id: task.assignedTo,
+        name: task.assignedToName,
+        avatar: "/avatars/01.png"
+      },
+      project: {
+        id: task.experiment,
+        name: task.experimentName
+      },
+      createdAt: task.createdAt
+    }));
+  });
 
   const fetchTasksData = React.useCallback(async () => {
     try {
-      setIsLoading(true)
       setError(null)
 
-      let statusFilter = selectedStatus
-      if (activeTab === "active") {
-        statusFilter = "in-progress,pending"
-      } else if (activeTab === "completed") {
-        statusFilter = "completed"
-      } else if (activeTab === "all") {
-        statusFilter = undefined
+      // Use mock data instead of API call
+      let filteredTasks = [...mockTasks];
+
+      // Apply search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredTasks = filteredTasks.filter(task =>
+          task.title.toLowerCase().includes(query) ||
+          task.experimentName.toLowerCase().includes(query)
+        );
       }
 
-      const tasksData = await fetchTasks({
-        status: statusFilter,
-        search: searchQuery || undefined,
-        sortBy: 'dueDate',
-        sortOrder: 'asc'
-      })
+      // Apply status filter
+      if (selectedStatus !== 'all') {
+        filteredTasks = filteredTasks.filter(task => task.status === selectedStatus);
+      }
 
-      const transformedTasks = tasksData.map(task => ({
-        ...task,
+      // Transform to match expected format
+      const processedTasks = filteredTasks.map(task => ({
+        id: task._id,
+        title: task.title,
+        status: task.status,
+        priority: task.priority,
+        dueDate: task.dueDate,
         assignedTo: {
           id: task.assignedTo,
           name: task.assignedToName,
-          avatar: "/avatars/01.png" // Default avatar
+          avatar: "/avatars/01.png"
         },
         project: {
           id: task.experiment,
           name: task.experimentName
-        }
-      }))
+        },
+        createdAt: task.createdAt
+      }));
 
-      setTasks(transformedTasks)
-      setLastRefreshed(new Date())
+      setTasks(processedTasks);
+      setLastRefreshed(new Date());
     } catch (err) {
-      console.error("Error fetching tasks:", err)
-      setError("Failed to load tasks. Please try again later.")
+      console.error("Error processing tasks:", err);
+      setError("Failed to load tasks. Please try again later.");
     } finally {
-      setIsLoading(false)
+      setIsRefreshing(false);
     }
-  }, [searchQuery, activeTab, selectedStatus])
+  }, [searchQuery, selectedStatus]);
 
   React.useEffect(() => {
     fetchTasksData()
   }, [fetchTasksData])
 
   const handleRefresh = () => {
+    setIsRefreshing(true)
     fetchTasksData()
   }
-
-  const filteredTasks = React.useMemo(() => {
-    return [...tasks]
-  }, [tasks])
 
   const taskStats = React.useMemo(() => {
     const total = tasks.length
     const completed = tasks.filter((t) => t.status === "completed").length
     const inProgress = tasks.filter((t) => t.status === "in-progress").length
     const pending = tasks.filter((t) => t.status === "pending").length
+    const overdue = tasks.filter(t =>
+      new Date(t.dueDate) < new Date() && t.status !== 'completed'
+    ).length
 
-    return { total, completed, inProgress, pending }
+    return { total, completed, inProgress, pending, overdue }
   }, [tasks])
-
-  const formattedLastRefreshed = React.useMemo(() => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    }).format(lastRefreshed)
-  }, [lastRefreshed])
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      // Optimistic update
       setTasks(prevTasks =>
         prevTasks.map(task =>
           task.id === taskId ? { ...task, status: newStatus } : task
         )
       )
 
-      // TODO: Call API to update task status
-      // await updateTaskStatus(taskId, newStatus);
-
       toast({
         title: "Status updated",
-        description: `Task status has been updated.`,
+        description: `Task marked as ${newStatus}.`,
       })
     } catch (error) {
-      // Revert on error
       fetchTasksData()
       toast({
         title: "Error updating status",
@@ -127,7 +207,6 @@ export default function TasksPage() {
   }
 
   const handleEditTask = (task) => {
-    // TODO: Implement edit task modal/dialog
     toast({
       title: "Edit task",
       description: `Editing task: ${task.title}`,
@@ -136,18 +215,12 @@ export default function TasksPage() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      // Optimistic update
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId))
-
-      // TODO: Call API to delete task
-      // await deleteTask(taskId);
-
       toast({
         title: "Task deleted",
         description: "The task has been removed.",
       })
     } catch (error) {
-      // Revert on error
       fetchTasksData()
       toast({
         title: "Error deleting task",
@@ -157,7 +230,56 @@ export default function TasksPage() {
     }
   }
 
-  // Memoize the columns to prevent unnecessary re-renders
+  const handleBulkDelete = () => {
+    if (selectedTasks.length === 0) return
+
+    if (window.confirm(`Are you sure you want to delete ${selectedTasks.length} selected tasks?`)) {
+      setTasks(prev => prev.filter(task => !selectedTasks.includes(task.id)))
+      setSelectedTasks([])
+      toast({
+        title: "Tasks deleted",
+        description: `${selectedTasks.length} tasks have been removed.`,
+      })
+    }
+  }
+
+  const handleBulkStatusChange = (status) => {
+    if (selectedTasks.length === 0) return
+
+    setTasks(prev =>
+      prev.map(task =>
+        selectedTasks.includes(task.id) ? { ...task, status } : task
+      )
+    )
+    setSelectedTasks([])
+    toast({
+      title: "Status updated",
+      description: `${selectedTasks.length} tasks marked as ${status}.`,
+    })
+  }
+
+  const handleTaskSelect = (taskId, checked) => {
+    setSelectedTasks(prev =>
+      checked
+        ? [...prev, taskId]
+        : prev.filter(id => id !== taskId)
+    )
+  }
+
+  const getFilteredTasks = () => {
+    let filtered = [...tasks]
+
+    if (activeTab === 'active') {
+      filtered = filtered.filter(task => ['pending', 'in-progress'].includes(task.status))
+    } else if (activeTab === 'completed') {
+      filtered = filtered.filter(task => task.status === 'completed')
+    }
+
+    return filtered
+  }
+
+  const filteredTasks = getFilteredTasks()
+
   const tableColumns = React.useMemo(
     () => columns.map(col => ({
       ...col,
@@ -187,99 +309,173 @@ export default function TasksPage() {
             variant="outline"
             className="mt-4"
             onClick={handleRefresh}
-            disabled={isLoading}
+            disabled={isRefreshing}
           >
-            {isLoading ? 'Refreshing...' : 'Try Again'}
+            {isRefreshing ? 'Refreshing...' : 'Try Again'}
           </Button>
         </div>
       </DashboardLayout>
     )
   }
 
-  if (isLoading && tasks.length === 0) {
-    return (
-      <DashboardLayout>
-        <TasksLoading />
-      </DashboardLayout>
-    )
-  }
-
   return (
     <DashboardLayout>
-      <div className="min-h-screen w-full bg-background p-6">
-        {/* Welcome Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-6"
-        >
-          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your tasks today.
-          </p>
-        </motion.div>
+      <div className="flex flex-col min-h-screen w-full bg-background">
+        {/* Header with Stats */}
+        <div className="w-full border-b">
+          <div className="w-full px-6 py-6">
+            <div className="max-w-[2000px] mx-auto">
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+                    <p className="text-muted-foreground">
+                      Manage and track your laboratory tasks
+                    </p>
+                  </div>
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Task
+                  </Button>
+                </div>
 
-        {/* Sticky header/toolbar */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 bg-background/60 backdrop-blur-sm rounded-xl p-4 border border-border/30 sticky top-0 z-30"
-        >
-          <div className="flex items-center gap-4 w-full">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-full md:w-[300px]"
-              />
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <StatCard
+                    title="Total"
+                    value={taskStats.total}
+                    icon={<List className="h-4 w-4" />}
+                    variant="default"
+                  />
+                  <StatCard
+                    title="Pending"
+                    value={taskStats.pending}
+                    icon={<Clock className="h-4 w-4 text-amber-500" />}
+                    variant="pending"
+                  />
+                  <StatCard
+                    title="In Progress"
+                    value={taskStats.inProgress}
+                    icon={<Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
+                    variant="inProgress"
+                  />
+                  <StatCard
+                    title="Completed"
+                    value={taskStats.completed}
+                    icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
+                    variant="completed"
+                  />
+                  <StatCard
+                    title="Overdue"
+                    value={taskStats.overdue}
+                    icon={<AlertCircle className="h-4 w-4 text-red-500" />}
+                    variant="overdue"
+                  />
+                </div>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchTasksData}
-              disabled={isLoading}
-              className="h-10"
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""
-                  }`}
-              />
-              Refresh
-            </Button>
-            <Button size="sm" className="h-10">
-              <Plus className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Main content */}
-        <div className="space-y-4">
-          {isLoading ? (
-            <TasksLoading />
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-              <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-              <h3 className="text-lg font-medium">Error loading tasks</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {error.message}
-              </p>
-              <Button variant="outline" onClick={fetchTasksData}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Try again
-              </Button>
+        {/* Main Content */}
+        <div className="flex-1 w-full px-6 py-6">
+          <div className="max-w-[2000px] mx-auto">
+            {/* Toolbar */}
+            <div className="flex flex-col space-y-4 mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="relative w-full md:max-w-md">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search tasks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 w-full"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  <div className="inline-flex items-center justify-center rounded-md border p-1 bg-muted/50">
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'table' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                    >
+                      <List className="mr-2 h-4 w-4" />
+                      Table
+                    </button>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'grid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                    >
+                      <Grid className="mr-2 h-4 w-4" />
+                      Grid
+                    </button>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="h-10"
+                  >
+                    <RefreshCw
+                      className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+
+              {/* Bulk Actions */}
+              {selectedTasks.length > 0 && (
+                <div className="flex items-center justify-between p-3 bg-accent/30 rounded-md border">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">{selectedTasks.length} selected</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTasks([])}
+                      className="h-8"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => handleBulkStatusChange('in-progress')}
+                    >
+                      <Loader2 className="mr-2 h-3.5 w-3.5" />
+                      Mark In Progress
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => handleBulkStatusChange('completed')}
+                    >
+                      <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+                      Mark Completed
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-8"
+                      onClick={handleBulkDelete}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            <>
-              <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="space-y-4"
-              >
+
+            {/* Content */}
+            <div className="w-full overflow-x-auto">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
                 <div className="flex justify-between items-center">
                   <TabsList className="bg-background/50 backdrop-blur-sm">
                     <TabsTrigger value="all">All Tasks</TabsTrigger>
@@ -287,32 +483,111 @@ export default function TasksPage() {
                     <TabsTrigger value="completed">Completed</TabsTrigger>
                   </TabsList>
                   <div className="text-sm text-muted-foreground">
-                    {tasks.length} {tasks.length === 1 ? "task" : "tasks"} found
+                    {filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} found
                   </div>
                 </div>
 
-                <TabsContent value="all" className="space-y-4">
-                  <DataTable columns={tableColumns} data={tasks} />
+                <TabsContent value="all">
+                  {viewMode === 'table' ? (
+                    <DataTable
+                      columns={tableColumns}
+                      data={filteredTasks}
+                      onRowSelectionChange={setSelectedTasks}
+                      selectedRows={selectedTasks}
+                    />
+                  ) : (
+                    <TaskGrid
+                      tasks={filteredTasks}
+                      selectedTasks={selectedTasks}
+                      onTaskSelect={handleTaskSelect}
+                    />
+                  )}
                 </TabsContent>
-                <TabsContent value="active" className="space-y-4">
-                  <DataTable
-                    columns={tableColumns}
-                    data={tasks.filter(task =>
-                      ['pending', 'in-progress'].includes(task.status)
-                    )}
-                  />
+
+                <TabsContent value="active">
+                  {viewMode === 'table' ? (
+                    <DataTable
+                      columns={tableColumns}
+                      data={filteredTasks}
+                      onRowSelectionChange={setSelectedTasks}
+                      selectedRows={selectedTasks}
+                    />
+                  ) : (
+                    <TaskGrid
+                      tasks={filteredTasks}
+                      selectedTasks={selectedTasks}
+                      onTaskSelect={handleTaskSelect}
+                    />
+                  )}
                 </TabsContent>
-                <TabsContent value="completed" className="space-y-4">
-                  <DataTable
-                    columns={tableColumns}
-                    data={tasks.filter(task => task.status === 'completed')}
-                  />
+
+                <TabsContent value="completed">
+                  {viewMode === 'table' ? (
+                    <DataTable
+                      columns={tableColumns}
+                      data={filteredTasks}
+                      onRowSelectionChange={setSelectedTasks}
+                      selectedRows={selectedTasks}
+                    />
+                  ) : (
+                    <TaskGrid
+                      tasks={filteredTasks}
+                      selectedTasks={selectedTasks}
+                      onTaskSelect={handleTaskSelect}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>
+  )
+}
+
+function StatCard({ title, value, icon, variant = 'default' }) {
+  const variantClasses = {
+    default: 'bg-background',
+    pending: 'bg-amber-50 dark:bg-amber-900/20',
+    inProgress: 'bg-blue-50 dark:bg-blue-900/20',
+    completed: 'bg-green-50 dark:bg-green-900/20',
+    overdue: 'bg-red-50 dark:bg-red-900/20',
+  }
+
+  return (
+    <div className={`flex items-center p-4 rounded-lg border ${variantClasses[variant]}`}>
+      <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
+        {icon}
+      </div>
+      <div className="ml-4">
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <p className="text-2xl font-bold">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+// Add missing icon component
+function Trash2(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      <line x1="10" x2="10" y1="11" y2="17" />
+      <line x1="14" x2="14" y1="11" y2="17" />
+    </svg>
   )
 }
