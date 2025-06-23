@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 
 // Mock data for tasks
 const mockTasks = [
@@ -96,6 +97,9 @@ export default function TasksPage() {
   const [lastRefreshed, setLastRefreshed] = React.useState(new Date())
   const [isRefreshing, setIsRefreshing] = React.useState(false)
   const [selectedTasks, setSelectedTasks] = React.useState([])
+  const [selectedTask, setSelectedTask] = React.useState(null)
+  const [showTaskDetails, setShowTaskDetails] = React.useState(false)
+  
   const [tasks, setTasks] = React.useState(() => {
     // Transform mockTasks to processedTasks shape
     return mockTasks.map(task => ({
@@ -255,12 +259,42 @@ export default function TasksPage() {
     })
   }
 
-  const handleTaskSelect = (taskId, checked) => {
-    setSelectedTasks(prev =>
-      checked
-        ? [...prev, taskId]
-        : prev.filter(id => id !== taskId)
-    )
+  const handleTaskSelect = (taskId) => {
+    setSelectedTasks(prev => {
+      if (prev.includes(taskId)) {
+        return prev.filter(id => id !== taskId)
+      } else {
+        return [...prev, taskId]
+      }
+    })
+  }
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task)
+    setShowTaskDetails(true)
+  }
+
+  const handleTaskAction = (task, action) => {
+    if (action === 'delete') {
+      if (window.confirm('Are you sure you want to delete this task?')) {
+        setTasks(prev => prev.filter(t => t.id !== task.id))
+        setShowTaskDetails(false)
+        toast({
+          title: "Task deleted",
+          description: "The task has been successfully deleted.",
+        })
+      }
+    } else if (action === 'edit') {
+      // Handle edit action if needed
+      console.log('Edit task:', task.id)
+    } else if (action === 'statusChange') {
+      // Handle status change
+      setTasks(prev => 
+        prev.map(t => 
+          t.id === task.id ? { ...t, status: task.status } : t
+        )
+      )
+    }
   }
 
   const getFilteredTasks = () => {
@@ -277,22 +311,46 @@ export default function TasksPage() {
 
   const filteredTasks = getFilteredTasks()
 
-  const tableColumns = React.useMemo(
-    () => columns.map(col => ({
-      ...col,
-      cell: col.id === "actions"
-        ? (props) => (
-          <DataTableRowActions
-            row={props.row}
-            onEdit={handleEditTask}
-            onDelete={handleDeleteTask}
-            onStatusChange={handleStatusChange}
-          />
-        )
-        : col.cell,
-    })),
-    []
-  )
+  const tableColumns = React.useMemo(() => {
+    return columns.map(col => {
+      if (col.id === 'actions') {
+        return {
+          ...col,
+          cell: ({ row }) => (
+            <DataTableRowActions 
+              row={row} 
+              onView={handleTaskClick}
+              onEdit={(task) => {
+                // Handle edit action
+                console.log('Edit task:', task.id)
+              }}
+              onDelete={(taskId) => {
+                if (window.confirm('Are you sure you want to delete this task?')) {
+                  setTasks(prev => prev.filter(t => t.id !== taskId))
+                  toast({
+                    title: "Task deleted",
+                    description: "The task has been successfully deleted.",
+                  })
+                }
+              }}
+              onStatusChange={(taskId, status) => {
+                setTasks(prev => 
+                  prev.map(t => 
+                    t.id === taskId ? { ...t, status } : t
+                  )
+                )
+                toast({
+                  title: "Status updated",
+                  description: `Task marked as ${status}.`,
+                })
+              }}
+            />
+          )
+        }
+      }
+      return col
+    })
+  }, [])
 
   if (error) {
     return (
@@ -471,23 +529,47 @@ export default function TasksPage() {
               </div>
 
               {viewMode === 'table' ? (
-                <DataTable
-                  columns={tableColumns}
-                  data={filteredTasks}
-                  onRowSelectionChange={setSelectedTasks}
-                  selectedRows={selectedTasks}
-                />
+                <div className="cursor-pointer">
+                  <DataTable
+                    columns={tableColumns}
+                    data={filteredTasks}
+                    onRowSelectionChange={setSelectedTasks}
+                    selectedRows={selectedTasks}
+                    onRowClick={handleTaskClick}
+                  />
+                </div>
               ) : (
                 <TaskGrid
                   tasks={filteredTasks}
                   selectedTasks={selectedTasks}
                   onTaskSelect={handleTaskSelect}
+                  onTaskClick={handleTaskClick}
                 />
               )}
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Task Details Dialog */}
+      {selectedTask && (
+        <TaskDetailsDialog
+          open={showTaskDetails}
+          onOpenChange={setShowTaskDetails}
+          task={selectedTask}
+          onAction={handleTaskAction}
+          users={[
+            { id: 'user1', name: 'John Doe', avatar: '/avatars/01.png' },
+            { id: 'user2', name: 'Jane Smith', avatar: '/avatars/02.png' },
+            { id: 'user3', name: 'Robert Johnson', avatar: '/avatars/03.png' },
+          ]}
+          experiments={[
+            { id: 'exp1', name: 'Cell Culture' },
+            { id: 'exp2', name: 'DNA Sequencing' },
+            { id: 'exp3', name: 'Protein Analysis' },
+          ]}
+        />
+      )}
     </DashboardLayout>
   )
 }

@@ -27,6 +27,7 @@ import { DataTableToolbar } from "./data-table-toolbar"
 export function DataTable({
   columns,
   data,
+  onRowClick,
 }) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState({})
@@ -82,11 +83,13 @@ export function DataTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick && onRowClick(row.original)}
                   className={
                     (idx % 2 === 0
                       ? "bg-white dark:bg-gray-950"
                       : "bg-gray-50 dark:bg-gray-900/40") +
-                    " transition-colors hover:bg-primary/5 dark:hover:bg-primary/10"
+                    " transition-colors hover:bg-primary/5 dark:hover:bg-primary/10" + 
+                    (onRowClick ? " cursor-pointer" : "")
                   }
                 >
                   {row.getVisibleCells().map((cell, cidx) => (

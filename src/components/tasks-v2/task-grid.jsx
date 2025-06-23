@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Calendar, Clock, Flag, User, Folder, MoreVertical, CheckCircle, Clock as ClockIcon, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect }) {
+export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskClick }) {
     const [hoveredTask, setHoveredTask] = React.useState(null)
 
     const getPriorityColor = (priority) => {
@@ -69,12 +69,21 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect }) {
                             "relative border rounded-2xl p-5 transition-all duration-200 bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 hover:shadow-2xl group h-full flex flex-col overflow-hidden",
                             "dark:border-gray-700 hover:border-primary/40 dark:hover:border-primary/50",
                             selectedTasks.includes(task.id) && "ring-2 ring-primary/60 border-primary/40 scale-[1.02]",
-                            hoveredTask === task.id && "shadow-xl scale-[1.01] border-primary/30"
+                            hoveredTask === task.id && "shadow-xl scale-[1.01] border-primary/30",
+                            onTaskClick && "cursor-pointer"
                         )}
                         onMouseEnter={() => setHoveredTask(task.id)}
                         onMouseLeave={() => setHoveredTask(null)}
-                        tabIndex={0}
-                        aria-label={`Task card: ${task.title || 'Untitled Task'}`}
+                        onClick={() => onTaskClick?.(task)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onTaskClick?.(task);
+                            }
+                        }}
+                        tabIndex={onTaskClick ? 0 : -1}
+                        role={onTaskClick ? 'button' : 'article'}
+                        aria-label={`Task: ${task.title || 'Untitled Task'}. Click to view details.`}
                     >
                         {/* Status Badge - now top right, floating */}
                         <div className="absolute top-4 right-4 z-10">

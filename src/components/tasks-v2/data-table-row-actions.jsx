@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MoreHorizontal, Pencil, Trash2, Copy, CheckCircle, Clock, AlertCircle } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2, Copy, CheckCircle, Clock, AlertCircle, Eye } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
 
-export function DataTableRowActions({ row, onEdit, onDelete, onStatusChange }) {
+export function DataTableRowActions({ row, onEdit, onDelete, onStatusChange, onView }) {
   const { toast } = useToast()
   const task = row.original
 
@@ -70,8 +70,22 @@ export function DataTableRowActions({ row, onEdit, onDelete, onStatusChange }) {
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem onClick={() => onEdit?.(task)}>
+      <DropdownMenuContent align="end" className="w-[180px]">
+        <DropdownMenuItem 
+          onClick={(e) => {
+            e.stopPropagation();
+            onView?.(task);
+          }}
+        >
+          <Eye className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
+          View Details
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit?.(task);
+          }}
+        >
           <Pencil className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
           Edit
         </DropdownMenuItem>

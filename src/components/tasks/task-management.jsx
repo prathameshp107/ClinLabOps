@@ -459,8 +459,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
 
     switch (action) {
       case "view":
-        // Navigate to the task detail page instead of showing dialog
-        router.push(`/tasks/${task.id}`);
+        // Show task details in a modal dialog
+        setShowTaskDetailsDialog(true);
         break;
       case "edit":
         setFormMode("edit");
