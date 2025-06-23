@@ -24,6 +24,7 @@ const mockTasks = [
   {
     _id: '1',
     title: 'Prepare lab equipment',
+    description: 'Ensure all lab equipment is clean and ready for use.',
     status: 'pending',
     priority: 'high',
     dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -36,6 +37,7 @@ const mockTasks = [
   {
     _id: '2',
     title: 'Analyze test results',
+    description: 'Review and interpret the latest test results from the experiment.',
     status: 'in-progress',
     priority: 'medium',
     dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -48,6 +50,7 @@ const mockTasks = [
   {
     _id: '3',
     title: 'Order new supplies',
+    description: 'Place an order for new chemicals and lab supplies.',
     status: 'completed',
     priority: 'low',
     dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -60,6 +63,7 @@ const mockTasks = [
   {
     _id: '4',
     title: 'Calibrate instruments',
+    description: 'Calibrate all measurement instruments for accuracy.',
     status: 'pending',
     priority: 'high',
     dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
@@ -72,6 +76,7 @@ const mockTasks = [
   {
     _id: '5',
     title: 'Document procedures',
+    description: 'Update the documentation for all lab procedures performed this week.',
     status: 'in-progress',
     priority: 'medium',
     dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -85,7 +90,6 @@ const mockTasks = [
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
-  const [searchQuery, setSearchQuery] = React.useState("")
   const [activeTab, setActiveTab] = React.useState("all")
   const [selectedStatus, setSelectedStatus] = React.useState("all")
   const [viewMode, setViewMode] = React.useState("table") // 'table' or 'grid'
@@ -97,6 +101,7 @@ export default function TasksPage() {
     return mockTasks.map(task => ({
       id: task._id,
       title: task.title,
+      description: task.description,
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
@@ -120,15 +125,6 @@ export default function TasksPage() {
       // Use mock data instead of API call
       let filteredTasks = [...mockTasks];
 
-      // Apply search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filteredTasks = filteredTasks.filter(task =>
-          task.title.toLowerCase().includes(query) ||
-          task.experimentName.toLowerCase().includes(query)
-        );
-      }
-
       // Apply status filter
       if (selectedStatus !== 'all') {
         filteredTasks = filteredTasks.filter(task => task.status === selectedStatus);
@@ -138,6 +134,7 @@ export default function TasksPage() {
       const processedTasks = filteredTasks.map(task => ({
         id: task._id,
         title: task.title,
+        description: task.description,
         status: task.status,
         priority: task.priority,
         dueDate: task.dueDate,
@@ -161,7 +158,7 @@ export default function TasksPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [searchQuery, selectedStatus]);
+  }, [selectedStatus]);
 
   React.useEffect(() => {
     fetchTasksData()
@@ -383,40 +380,32 @@ export default function TasksPage() {
             {/* Toolbar */}
             <div className="flex flex-col space-y-4 mb-6">
               <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                <div className="relative w-full md:max-w-md">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-full"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <div className="inline-flex items-center justify-center rounded-md border p-1 bg-muted/50">
+                <div className="flex-1"></div> {/* Spacer for left alignment */}
+                <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                  <div className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 shadow-sm overflow-hidden">
                     <button
                       onClick={() => setViewMode('table')}
-                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'table' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                      className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'table' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'} border-r border-gray-200 dark:border-gray-800`}
+                      style={{ borderTopLeftRadius: '9999px', borderBottomLeftRadius: '9999px' }}
                     >
                       <List className="mr-2 h-4 w-4" />
                       Table
                     </button>
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'grid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                      className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'grid' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'}`}
+                      style={{ borderTopRightRadius: '9999px', borderBottomRightRadius: '9999px' }}
                     >
                       <Grid className="mr-2 h-4 w-4" />
                       Grid
                     </button>
                   </div>
-
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="h-10"
+                    className="h-10 ml-2 shadow-sm border border-gray-200 dark:border-gray-800"
                   >
                     <RefreshCw
                       className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -475,69 +464,26 @@ export default function TasksPage() {
 
             {/* Content */}
             <div className="w-full overflow-x-auto">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <TabsList className="bg-background/50 backdrop-blur-sm">
-                    <TabsTrigger value="all">All Tasks</TabsTrigger>
-                    <TabsTrigger value="active">Active</TabsTrigger>
-                    <TabsTrigger value="completed">Completed</TabsTrigger>
-                  </TabsList>
-                  <div className="text-sm text-muted-foreground">
-                    {filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} found
-                  </div>
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  {filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} found
                 </div>
+              </div>
 
-                <TabsContent value="all">
-                  {viewMode === 'table' ? (
-                    <DataTable
-                      columns={tableColumns}
-                      data={filteredTasks}
-                      onRowSelectionChange={setSelectedTasks}
-                      selectedRows={selectedTasks}
-                    />
-                  ) : (
-                    <TaskGrid
-                      tasks={filteredTasks}
-                      selectedTasks={selectedTasks}
-                      onTaskSelect={handleTaskSelect}
-                    />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="active">
-                  {viewMode === 'table' ? (
-                    <DataTable
-                      columns={tableColumns}
-                      data={filteredTasks}
-                      onRowSelectionChange={setSelectedTasks}
-                      selectedRows={selectedTasks}
-                    />
-                  ) : (
-                    <TaskGrid
-                      tasks={filteredTasks}
-                      selectedTasks={selectedTasks}
-                      onTaskSelect={handleTaskSelect}
-                    />
-                  )}
-                </TabsContent>
-
-                <TabsContent value="completed">
-                  {viewMode === 'table' ? (
-                    <DataTable
-                      columns={tableColumns}
-                      data={filteredTasks}
-                      onRowSelectionChange={setSelectedTasks}
-                      selectedRows={selectedTasks}
-                    />
-                  ) : (
-                    <TaskGrid
-                      tasks={filteredTasks}
-                      selectedTasks={selectedTasks}
-                      onTaskSelect={handleTaskSelect}
-                    />
-                  )}
-                </TabsContent>
-              </Tabs>
+              {viewMode === 'table' ? (
+                <DataTable
+                  columns={tableColumns}
+                  data={filteredTasks}
+                  onRowSelectionChange={setSelectedTasks}
+                  selectedRows={selectedTasks}
+                />
+              ) : (
+                <TaskGrid
+                  tasks={filteredTasks}
+                  selectedTasks={selectedTasks}
+                  onTaskSelect={handleTaskSelect}
+                />
+              )}
             </div>
           </div>
         </div>

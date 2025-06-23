@@ -182,6 +182,20 @@ export const columns = [
     enableSorting: true,
   },
   {
+    accessorKey: "project",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Project" />
+    ),
+    cell: ({ row }) => (
+      <span>{row.getValue("project")?.name || '-'}</span>
+    ),
+    filterFn: (row, id, value) => {
+      return row.getValue(id)?.name === value
+    },
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
     enableHiding: false,

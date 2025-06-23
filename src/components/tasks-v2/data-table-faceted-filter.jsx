@@ -71,12 +71,14 @@ export function DataTableFacetedFilter({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder={title} />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
+      <PopoverContent className="w-[240px] p-0 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950" align="start">
+        <Command className="bg-transparent">
+          <div className="px-4 pt-4 pb-2">
+            <CommandInput placeholder={`Search ${title}...`} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 mb-2 w-full" />
+          </div>
+          <CommandList className="px-2 pb-2">
+            <CommandEmpty className="px-3 py-2 text-muted-foreground text-sm">No results found.</CommandEmpty>
+            <CommandGroup className="space-y-1">
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value)
                 return (
@@ -93,23 +95,25 @@ export function DataTableFacetedFilter({
                         filterValues.length ? filterValues : undefined
                       )
                     }}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors",
+                      isSelected ? "bg-primary/10 text-primary font-semibold" : "hover:bg-primary/5 focus:bg-primary/10"
+                    )}
                   >
                     <div
                       className={cn(
-                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                        isSelected
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50 [&_svg]:invisible"
+                        "flex h-5 w-5 items-center justify-center rounded border-2 border-primary transition-all mr-2",
+                        isSelected ? "bg-primary text-primary-foreground border-primary" : "bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700"
                       )}
                     >
-                      <CheckIcon className={cn("h-4 w-4")} />
+                      {isSelected && <CheckIcon className="h-4 w-4" />}
                     </div>
                     {option.icon && (
                       <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs text-muted-foreground">
                         {facets.get(option.value)}
                       </span>
                     )}
@@ -119,11 +123,11 @@ export function DataTableFacetedFilter({
             </CommandGroup>
             {selectedValues.size > 0 && (
               <>
-                <CommandSeparator />
+                <CommandSeparator className="my-2" />
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => column?.setFilterValue(undefined)}
-                    className="justify-center text-center"
+                    className="justify-center text-center text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
                   >
                     Clear filters
                   </CommandItem>
