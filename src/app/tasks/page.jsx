@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 // Mock data for tasks
 const mockTasks = [
@@ -270,9 +271,17 @@ export default function TasksPage() {
   }
 
   const handleTaskClick = (task) => {
-    setSelectedTask(task)
-    setShowTaskDetails(true)
-  }
+    setSelectedTask(task);
+    setShowTaskDetails(true);
+  };
+
+  const handleOpenChange = (isOpen) => {
+    setShowTaskDetails(isOpen);
+    if (!isOpen) {
+      // Optional: Clear the selected task when dialog is closed
+      setSelectedTask(null);
+    }
+  };
 
   const handleTaskAction = (task, action) => {
     if (action === 'delete') {
@@ -319,18 +328,23 @@ export default function TasksPage() {
           cell: ({ row }) => (
             <DataTableRowActions 
               row={row} 
-              onView={handleTaskClick}
+              onView={(task) => {
+                setSelectedTask(task);
+                setShowTaskDetails(true);
+              }}
               onEdit={(task) => {
                 // Handle edit action
-                console.log('Edit task:', task.id)
+                console.log('Edit task:', task.id);
+                // You can implement edit functionality here
+                // For example: setEditingTask(task); setShowTaskForm(true);
               }}
               onDelete={(taskId) => {
                 if (window.confirm('Are you sure you want to delete this task?')) {
-                  setTasks(prev => prev.filter(t => t.id !== taskId))
+                  setTasks(prev => prev.filter(t => t.id !== taskId));
                   toast({
                     title: "Task deleted",
                     description: "The task has been successfully deleted.",
-                  })
+                  });
                 }
               }}
               onStatusChange={(taskId, status) => {
@@ -338,19 +352,19 @@ export default function TasksPage() {
                   prev.map(t => 
                     t.id === taskId ? { ...t, status } : t
                   )
-                )
+                );
                 toast({
                   title: "Status updated",
                   description: `Task marked as ${status}.`,
-                })
+                });
               }}
             />
           )
-        }
+        };
       }
-      return col
-    })
-  }, [])
+      return col;
+    });
+  }, [setTasks, setSelectedTask, setShowTaskDetails])
 
   if (error) {
     return (
@@ -553,22 +567,24 @@ export default function TasksPage() {
       
       {/* Task Details Dialog */}
       {selectedTask && (
-        <TaskDetailsDialog
-          open={showTaskDetails}
-          onOpenChange={setShowTaskDetails}
-          task={selectedTask}
-          onAction={handleTaskAction}
-          users={[
-            { id: 'user1', name: 'John Doe', avatar: '/avatars/01.png' },
-            { id: 'user2', name: 'Jane Smith', avatar: '/avatars/02.png' },
-            { id: 'user3', name: 'Robert Johnson', avatar: '/avatars/03.png' },
-          ]}
-          experiments={[
-            { id: 'exp1', name: 'Cell Culture' },
-            { id: 'exp2', name: 'DNA Sequencing' },
-            { id: 'exp3', name: 'Protein Analysis' },
-          ]}
-        />
+        <TooltipProvider>
+          <TaskDetailsDialog
+            open={showTaskDetails}
+            onOpenChange={handleOpenChange}
+            task={selectedTask}
+            onAction={handleTaskAction}
+            users={[
+              { id: 'user1', name: 'John Doe', avatar: '/avatars/01.png' },
+              { id: 'user2', name: 'Jane Smith', avatar: '/avatars/02.png' },
+              { id: 'user3', name: 'Robert Johnson', avatar: '/avatars/03.png' },
+            ]}
+            experiments={[
+              { id: 'exp1', name: 'Cell Culture' },
+              { id: 'exp2', name: 'DNA Sequencing' },
+              { id: 'exp3', name: 'Protein Analysis' },
+            ]}
+          />
+        </TooltipProvider>
       )}
     </DashboardLayout>
   )
