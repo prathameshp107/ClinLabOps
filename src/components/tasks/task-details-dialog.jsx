@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import {
   Dialog,
   DialogContent,
@@ -59,7 +59,43 @@ import {
   Clock as ClockIcon,
   List as ListIcon,
   Edit2,
-  ListChecks
+  ListChecks,
+  Eye,
+  ArrowDown,
+  ArrowUp,
+  ArrowRight,
+  CircleDashed,
+  Square,
+  Play,
+  Save,
+  Copy,
+  Keyboard,
+  Loader2,
+  CheckSquare,
+  Square as SquareIcon,
+  PlusCircle,
+  Minus,
+  Maximize2,
+  Minimize2,
+  Clock3,
+  Timer,
+  TimerOff,
+  TimerReset,
+  Calendar as CalendarIcon,
+  CalendarDays,
+  CalendarPlus,
+  CalendarMinus,
+  CalendarCheck,
+  CalendarX,
+  CalendarClock as CalendarClockIcon,
+  CalendarRange,
+  CalendarSearch,
+  CalendarHeart,
+  Bug,
+  Sparkles,
+  Zap,
+  EyeOff,
+  MoreVertical,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -72,9 +108,12 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format, isToday, isTomorrow, isYesterday, isPast, isAfter, addDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Progress } from "@/components/ui/progress"
 
 // Helper function to format date
 const formatDate = (dateString) => {
@@ -110,20 +149,6 @@ const isPastDue = (dateString) => {
   return dueDate < now;
 };
 
-// Helper to get priority options
-const priorityOptions = [
-  { value: 'low', label: 'Low', color: 'bg-green-100 text-green-800 border-green-200' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-  { value: 'high', label: 'High', color: 'bg-red-100 text-red-800 border-red-200' },
-];
-
-// Helper to get status options
-const statusOptions = [
-  { value: 'pending', label: 'To Do', color: 'bg-gray-100 text-gray-800 border-gray-200' },
-  { value: 'in-progress', label: 'In Progress', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  { value: 'completed', label: 'Completed', color: 'bg-green-100 text-green-800 border-green-200' },
-];
-
 // Helper component for avatar with tooltip
 const UserAvatar = ({ user, className = '' }) => (
   <Tooltip>
@@ -141,7 +166,117 @@ const UserAvatar = ({ user, className = '' }) => (
   </Tooltip>
 );
 
+// Enhanced status and priority options with icons and colors
+const statusOptions = [
+  {
+    value: 'backlog',
+    label: 'Backlog',
+    icon: CircleDashed,
+    color: 'text-muted-foreground bg-muted hover:bg-muted/80',
+    bgColor: 'bg-muted',
+    textColor: 'text-muted-foreground',
+    borderColor: 'border-muted-foreground/20'
+  },
+  {
+    value: 'todo',
+    label: 'To Do',
+    icon: Circle,
+    color: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-200'
+  },
+  {
+    value: 'in_progress',
+    label: 'In Progress',
+    icon: Clock,
+    color: 'text-amber-600 bg-amber-50 hover:bg-amber-100',
+    bgColor: 'bg-amber-50',
+    textColor: 'text-amber-700',
+    borderColor: 'border-amber-200'
+  },
+  {
+    value: 'in_review',
+    label: 'In Review',
+    icon: Eye,
+    color: 'text-purple-600 bg-purple-50 hover:bg-purple-100',
+    bgColor: 'bg-purple-50',
+    textColor: 'text-purple-700',
+    borderColor: 'border-purple-200'
+  },
+  {
+    value: 'done',
+    label: 'Done',
+    icon: CheckCircle,
+    color: 'text-green-600 bg-green-50 hover:bg-green-100',
+    bgColor: 'bg-green-50',
+    textColor: 'text-green-700',
+    borderColor: 'border-green-200'
+  },
+];
+
+const priorityOptions = [
+  {
+    value: 'none',
+    label: 'None',
+    icon: CircleDashed,
+    color: 'text-muted-foreground bg-muted hover:bg-muted/80',
+    bgColor: 'bg-muted',
+    textColor: 'text-muted-foreground',
+    borderColor: 'border-muted-foreground/20'
+  },
+  {
+    value: 'low',
+    label: 'Low',
+    icon: ArrowDown,
+    color: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-700',
+    borderColor: 'border-blue-200'
+  },
+  {
+    value: 'medium',
+    label: 'Medium',
+    icon: ArrowRight,
+    color: 'text-amber-600 bg-amber-50 hover:bg-amber-100',
+    bgColor: 'bg-amber-50',
+    textColor: 'text-amber-700',
+    borderColor: 'border-amber-200'
+  },
+  {
+    value: 'high',
+    label: 'High',
+    icon: ArrowUp,
+    color: 'text-orange-600 bg-orange-50 hover:bg-orange-100',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-700',
+    borderColor: 'border-orange-200'
+  },
+  {
+    value: 'urgent',
+    label: 'Urgent',
+    icon: AlertTriangle,
+    color: 'text-red-600 bg-red-50 hover:bg-red-100',
+    bgColor: 'bg-red-50',
+    textColor: 'text-red-700',
+    borderColor: 'border-red-200'
+  },
+];
+
+// Format time for display (HH:MM:SS)
+const formatTime = (seconds) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return [
+    hours.toString().padStart(2, '0'),
+    minutes.toString().padStart(2, '0'),
+    secs.toString().padStart(2, '0')
+  ].join(':');
+};
+
 export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = [], experiments = [] }) => {
+  // State for task details
   const [activeTab, setActiveTab] = useState("details");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -151,8 +286,8 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [date, setDate] = useState(task?.dueDate ? new Date(task.dueDate) : null);
   const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [selectedPriority, setSelectedPriority] = useState(task?.priority || 'medium');
-  const [selectedStatus, setSelectedStatus] = useState(task?.status || 'pending');
+  const [selectedPriority, setSelectedPriority] = useState(task?.priority || 'none');
+  const [selectedStatus, setSelectedStatus] = useState(task?.status || 'backlog');
   const [selectedAssignees, setSelectedAssignees] = useState(task?.assignedTo ? [task.assignedTo] : []);
   const [newTag, setNewTag] = useState('');
   const [tags, setTags] = useState(task?.tags || []);
@@ -161,11 +296,125 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const [attachments, setAttachments] = useState(task?.attachments || []);
   const [isDragging, setIsDragging] = useState(false);
 
-  const { toast } = useToast();
+  // Time tracking state
+  const [timeSpent, setTimeSpent] = useState(task?.timeSpent || 0);
+  const [isTracking, setIsTracking] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+
+  // Other enhanced features state
+  const [customFields, setCustomFields] = useState(task?.customFields || []);
+  const [dependencies, setDependencies] = useState(task?.dependencies || []);
+  const [showDependencyPicker, setShowDependencyPicker] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isAddingCustomField, setIsAddingCustomField] = useState(false);
+  const [newCustomField, setNewCustomField] = useState({ name: '', type: 'text', value: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Refs
   const fileInputRef = useRef(null);
   const titleInputRef = useRef(null);
   const descriptionInputRef = useRef(null);
   const newSubtaskInputRef = useRef(null);
+  const commentInputRef = useRef(null);
+  const fileUploadRef = useRef(null);
+
+  // Toast notifications
+  const { toast } = useToast();
+
+  // Animation variants
+  const fadeIn = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+    exit: { opacity: 0, y: -10, transition: { duration: 0.1 } }
+  };
+
+  const slideIn = {
+    hidden: { x: '100%', opacity: 0 },
+    visible: { x: 0, opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+    exit: { x: '100%', opacity: 0, transition: { duration: 0.2, ease: 'easeIn' } }
+  };
+
+  // Time tracking effect
+  useEffect(() => {
+    let interval;
+    if (isTracking) {
+      interval = setInterval(() => {
+        setTimeSpent(prev => {
+          const newTime = prev + 1;
+          // Auto-save every 30 seconds
+          if (newTime % 30 === 0) {
+            handleSaveChanges();
+          }
+          return newTime;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isTracking]);
+
+  // Toggle time tracking
+  const toggleTimeTracking = () => {
+    if (isTracking) {
+      setIsTracking(false);
+      // Save the updated time when stopping
+      handleSaveChanges();
+    } else {
+      setStartTime(new Date());
+      setIsTracking(true);
+      toast({
+        title: "Time tracking started",
+        description: "Your time is now being tracked for this task.",
+      });
+    }
+  };
+
+  // Handle save changes
+  const handleSaveChanges = useCallback(() => {
+    try {
+      if (!task) return;
+
+      const updatedTask = {
+        ...task,
+        title: editedTitle,
+        description: editedDescription,
+        status: selectedStatus,
+        priority: selectedPriority,
+        assignedTo: selectedAssignees[0] || null,
+        tags,
+        subtasks,
+        attachments,
+        dueDate: date ? date.toISOString() : null,
+        timeSpent,
+        updatedAt: new Date().toISOString()
+      };
+
+      onAction('update', updatedTask);
+
+      toast({
+        title: "Task updated",
+        description: "Your changes have been saved.",
+      });
+
+      return updatedTask;
+    } catch (error) {
+      console.error('Error saving task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes. Please try again.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  }, [task, editedTitle, editedDescription, selectedStatus, selectedPriority, selectedAssignees, tags, subtasks, attachments, date, timeSpent, onAction, toast]);
+
+  // Handle delete task
+  const handleDeleteTask = () => {
+    if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      onAction('delete', task);
+    }
+  };
 
   // Reset form when task changes
   useEffect(() => {
@@ -179,6 +428,7 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
       setSubtasks(task.subtasks || []);
       setAttachments(task.attachments || []);
       setDate(task.dueDate ? new Date(task.dueDate) : null);
+      setTimeSpent(task.timeSpent || 0);
     }
   }, [task]);
 
@@ -188,51 +438,9 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
 
   if (!task) return null;
 
-  // Handle save changes
-  const handleSaveChanges = () => {
-    try {
-      setIsSubmitting(true);
-      const updatedTask = {
-        ...task,
-        title: editedTitle,
-        description: editedDescription,
-        status: selectedStatus,
-        priority: selectedPriority,
-        assignedTo: selectedAssignees[0] || null,
-        tags,
-        subtasks,
-        attachments,
-        dueDate: date ? date.toISOString() : null,
-      };
-
-      onAction('update', updatedTask);
-      toast({
-        title: "Task updated",
-        description: "Your changes have been saved.",
-      });
-    } catch (error) {
-      console.error('Error saving task:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save changes. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle delete task
-  const handleDeleteTask = () => {
-    if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-      onAction('delete', task);
-    }
-  };
-
   // Handle title edit
   const handleTitleEdit = () => {
     if (isEditingTitle) {
-      // Save changes
       handleSaveChanges();
     }
     setIsEditingTitle(!isEditingTitle);
@@ -241,105 +449,390 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   // Handle description edit
   const handleDescriptionEdit = () => {
     if (isEditingDescription) {
-      // Save changes
       handleSaveChanges();
     }
     setIsEditingDescription(!isEditingDescription);
   };
 
+  // Using the formatTime function from the top of the file
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Close modal on Escape
+      if (e.key === 'Escape' && !isEditingTitle && !isEditingDescription) {
+        onOpenChange(false);
+      }
+      // Save on Ctrl+S or Cmd+S
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveChanges();
+      }
+      // Toggle time tracking on Ctrl+Space
+      if (e.ctrlKey && e.code === 'Space') {
+        e.preventDefault();
+        toggleTimeTracking();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isEditingTitle, isEditingDescription]);
+
+  // Calculate task progress based on subtasks
+  const completedSubtasks = subtasks.filter(subtask => subtask.completed).length;
+  const progress = subtasks.length > 0 ? Math.round((completedSubtasks / subtasks.length) * 100) : 0;
+
+  // Format due date with relative time and detailed information
+  const getDueDateInfo = () => {
+    if (!date) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDate = new Date(date);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const formattedDate = format(dueDate, 'MMM d, yyyy');
+    const isOverdue = diffDays < 0;
+
+    let status = '';
+    let statusClass = '';
+    let icon = null;
+
+    if (isOverdue) {
+      status = `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''}`;
+      statusClass = 'bg-red-50 border-red-200 text-red-700';
+      icon = <AlertTriangle className="h-3.5 w-3.5 mr-1 -mt-0.5" />;
+    } else if (diffDays === 0) {
+      status = `Today • ${formattedDate}`;
+      statusClass = 'bg-amber-50 border-amber-200 text-amber-700';
+      icon = <Clock3 className="h-3.5 w-3.5 mr-1 -mt-0.5" />;
+    } else if (diffDays === 1) {
+      status = `Tomorrow • ${formattedDate}`;
+      statusClass = 'bg-blue-50 border-blue-200 text-blue-700';
+      icon = <CalendarDays className="h-3.5 w-3.5 mr-1 -mt-0.5" />;
+    } else if (diffDays <= 7) {
+      status = `In ${diffDays} days • ${formattedDate}`;
+      statusClass = 'bg-green-50 border-green-200 text-green-700';
+      icon = <CalendarClockIcon className="h-3.5 w-3.5 mr-1 -mt-0.5" />;
+    } else {
+      status = formattedDate;
+      statusClass = 'bg-muted border-border text-muted-foreground';
+      icon = <CalendarIcon className="h-3.5 w-3.5 mr-1 -mt-0.5" />;
+    }
+
+    return { status, statusClass, icon, isOverdue };
+  };
+
+  // Task type options
+  const taskTypes = [
+    { id: 'task', label: 'Task', icon: <FileText className="h-3.5 w-3.5" />, color: 'bg-blue-100 text-blue-700' },
+    { id: 'bug', label: 'Bug', icon: <Bug className="h-3.5 w-3.5" />, color: 'bg-red-100 text-red-700' },
+    { id: 'feature', label: 'Feature', icon: <Sparkles className="h-3.5 w-3.5" />, color: 'bg-purple-100 text-purple-700' },
+    { id: 'improvement', label: 'Improvement', icon: <Zap className="h-3.5 w-3.5" />, color: 'bg-amber-100 text-amber-700' },
+  ];
+
+  const [taskType, setTaskType] = useState(task?.type || 'task');
+  const [isWatching, setIsWatching] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+
+  const dueDateInfo = getDueDateInfo();
+
+  // Toggle watch status
+  const toggleWatch = () => {
+    const newWatchStatus = !isWatching;
+    setIsWatching(newWatchStatus);
+    toast({
+      title: newWatchStatus ? 'Watching task' : 'Stopped watching',
+      description: newWatchStatus
+        ? 'You will be notified of updates to this task.'
+        : 'You will no longer receive updates about this task.',
+    });
+  };
+
+  // Toggle fullscreen mode
+  const toggleFullscreen = () => {
+    const newFullscreenStatus = !isMaximized;
+    setIsMaximized(newFullscreenStatus);
+    // Additional fullscreen toggle logic can be added here
+  };
+
+  // Copy task link to clipboard
+  const copyTaskLink = () => {
+    const taskLink = `${window.location.origin}/tasks/${task?.id || '123'}`;
+    navigator.clipboard.writeText(taskLink);
+    toast({
+      title: 'Link copied to clipboard',
+      description: 'Task link has been copied to your clipboard.',
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className={cn(
+        "sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-background",
+        isMaximized && "max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh]"
+      )}>
+        <DialogHeader className="sr-only">
+          <DialogTitle>Task Details</DialogTitle>
+        </DialogHeader>
+
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+        <div className="sticky top-0 z-20 bg-background border-b px-6 py-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            {/* Left side: Back button and task type */}
+            <div className="flex items-center gap-3">
               <DialogClose asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 -ml-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  title="Close (Esc)"
+                >
                   <X className="h-4 w-4" />
                   <span className="sr-only">Close</span>
                 </Button>
               </DialogClose>
-              <div className="flex items-center gap-2">
-                <Badge
-                  className={cn(
-                    'text-xs font-medium',
-                    currentStatus.color,
-                    'px-2 py-0.5 rounded-md'
-                  )}
-                >
-                  {currentStatus.label}
-                </Badge>
-                <Badge
-                  className={cn(
-                    'text-xs font-medium',
-                    currentPriority.color,
-                    'px-2 py-0.5 rounded-md'
-                  )}
-                >
-                  {currentPriority.label}
-                </Badge>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveChanges}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </Button>
+
+              <div className="h-5 w-px bg-border" />
+
+              {/* Task Type Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MoreHorizontal className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'h-8 px-3 text-sm font-medium rounded-md',
+                      'flex items-center gap-2',
+                      taskTypes.find(t => t.id === taskType)?.color,
+                      'hover:bg-opacity-80 transition-colors'
+                    )}
+                  >
+                    {taskTypes.find(t => t.id === taskType)?.icon}
+                    {taskTypes.find(t => t.id === taskType)?.label}
+                    <ChevronDown className="h-3.5 w-3.5 opacity-70" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={handleDeleteTask}
+                <DropdownMenuContent align="start" className="w-48 p-1">
+                  {taskTypes.map((type) => (
+                    <DropdownMenuItem
+                      key={type.id}
+                      className={cn(
+                        'text-sm px-2 py-1.5 rounded-md',
+                        taskType === type.id && 'bg-accent',
+                        'flex items-center gap-2 cursor-pointer'
+                      )}
+                      onClick={() => setTaskType(type.id)}
+                    >
+                      <span className={cn('h-3.5 w-3.5', type.color.split(' ')[0])}>
+                        {type.icon}
+                      </span>
+                      <span>{type.label}</span>
+                      {taskType === type.id && <Check className="h-3.5 w-3.5 ml-auto" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Task ID */}
+              <div className="text-sm text-muted-foreground font-mono">
+                {task?.id || 'TASK-123'}
+              </div>
+            </div>
+
+            {/* Right side: Action buttons */}
+            <div className="flex items-center gap-1.5">
+              {/* Watch button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={toggleWatch}
                   >
+                    {isWatching ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">{isWatching ? 'Unwatch' : 'Watch'}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isWatching ? 'Stop watching' : 'Watch task'}
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Copy link button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={copyTaskLink}
+                  >
+                    <Link2 className="h-4 w-4" />
+                    <span className="sr-only">Copy link</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Copy task link</TooltipContent>
+              </Tooltip>
+
+              {/* Time tracking button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isTracking ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className={cn(
+                      'h-8 gap-1.5',
+                      isTracking ? 'bg-red-50 text-red-700 hover:bg-red-100' : ''
+                    )}
+                    onClick={toggleTimeTracking}
+                  >
+                    {isTracking ? (
+                      <>
+                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="text-xs">{formatTime(timeSpent)}</span>
+                      </>
+                    ) : (
+                      <Play className="h-3.5 w-3.5" />
+                    )}
+                    <span className="sr-only">{isTracking ? 'Stop tracking' : 'Start tracking'}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isTracking ? 'Stop time tracking' : 'Start time tracking'}
+                </TooltipContent>
+              </Tooltip>
+
+              <Separator orientation="vertical" className="h-5 mx-1" />
+
+              {/* Fullscreen toggle */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={toggleFullscreen}
+                  >
+                    {isMaximized ? (
+                      <Minimize2 className="h-4 w-4" />
+                    ) : (
+                      <Maximize2 className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">{isMaximized ? 'Minimize' : 'Maximize'}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isMaximized ? 'Minimize' : 'Maximize'}
+                </TooltipContent>
+              </Tooltip>
+
+              {/* More options */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleSaveChanges}>
+                    <Save className="mr-2 h-4 w-4" />
+                    <span>Save changes</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘S</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={copyTaskLink}>
+                    <Link2 className="mr-2 h-4 w-4" />
+                    <span>Copy link</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘L</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleWatch}>
+                    {isWatching ? (
+                      <EyeOff className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Eye className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{isWatching ? 'Unwatch' : 'Watch'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleFullscreen}>
+                    {isMaximized ? (
+                      <Minimize2 className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Maximize2 className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{isMaximized ? 'Minimize' : 'Maximize'}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘⇧F</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={handleDeleteTask}>
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Task
+                    <span>Delete task</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘⌫</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
 
-          {/* Task Title */}
-          <div className="mt-4 flex items-start gap-2">
-            {isEditingTitle ? (
-              <div className="flex-1 flex gap-2">
-                <Input
-                  ref={titleInputRef}
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                  onBlur={handleTitleEdit}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleTitleEdit();
-                    } else if (e.key === 'Escape') {
-                      setEditedTitle(task.title || '');
-                      setIsEditingTitle(false);
-                    }
-                  }}
-                  className="text-xl font-semibold px-0 border-0 shadow-none focus-visible:ring-1"
-                  autoFocus
+          {/* Progress bar */}
+          {subtasks.length > 0 && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                <span>Progress</span>
+                <span>{progress}% ({completedSubtasks} of {subtasks.length} tasks)</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300 ease-out"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
-            ) : (
-              <h2
-                className="text-xl font-semibold leading-none tracking-tight cursor-text hover:bg-accent/50 px-2 py-1 rounded -ml-2"
-                onClick={() => setIsEditingTitle(true)}
-              >
-                {editedTitle || 'Untitled Task'}
-              </h2>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        {/* Task Title */}
+        <div className="mt-4 flex items-start gap-2">
+          {isEditingTitle ? (
+            <div className="flex-1 flex gap-2">
+              <Input
+                ref={titleInputRef}
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={handleTitleEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleTitleEdit();
+                  } else if (e.key === 'Escape') {
+                    setEditedTitle(task.title || '');
+                    setIsEditingTitle(false);
+                  }
+                }}
+                className="text-xl font-semibold px-0 border-0 shadow-none focus-visible:ring-1"
+                autoFocus
+              />
+            </div>
+          ) : (
+            <h2
+              className="text-xl font-semibold leading-none tracking-tight cursor-text hover:bg-accent/50 px-2 py-1 rounded -ml-2"
+              onClick={() => setIsEditingTitle(true)}
+            >
+              {editedTitle || 'Untitled Task'}
+            </h2>
+          )}
         </div>
 
         {/* Main Content */}
@@ -865,358 +1358,6 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
             </div>
           </Tabs>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-
-  // Function to get the status badge
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-yellow-100 hover:bg-yellow-200 border-yellow-200 text-yellow-700">Pending</Badge>;
-      case "in-progress":
-        return <Badge variant="outline" className="bg-blue-100 hover:bg-blue-200 border-blue-200 text-blue-700">In Progress</Badge>;
-      case "completed":
-        return <Badge variant="outline" className="bg-green-100 hover:bg-green-200 border-green-200 text-green-700">Completed</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  // Function to get priority badge
-  const getPriorityBadge = (priority) => {
-    switch (priority) {
-      case "high":
-        return <Badge variant="outline" className="bg-red-100 hover:bg-red-200 border-red-200 text-red-700">High</Badge>;
-      case "medium":
-        return <Badge variant="outline" className="bg-orange-100 hover:bg-orange-200 border-orange-200 text-orange-700">Medium</Badge>;
-      case "low":
-        return <Badge variant="outline" className="bg-green-100 hover:bg-green-200 border-green-200 text-green-700">Low</Badge>;
-      default:
-        return <Badge variant="outline">{priority}</Badge>;
-    }
-  };
-
-  // Format action for the activity log
-  const formatAction = (action) => {
-    switch (action) {
-      case "created":
-        return "Created task";
-      case "updated":
-        return "Updated task";
-      case "status_change":
-        return "Changed status";
-      default:
-        return action;
-    }
-  };
-
-  // Get action icon for the activity log
-  const getActionIcon = (action) => {
-    switch (action) {
-      case "created":
-        return <FileText className="h-4 w-4" />;
-      case "updated":
-        return <ClipboardEdit className="h-4 w-4" />;
-      case "status_change":
-        return <CheckCircle2 className="h-4 w-4" />;
-      default:
-        return <Clock className="h-4 w-4" />;
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {task.name}
-            {getStatusBadge(task.status)}
-          </DialogTitle>
-          <DialogDescription>
-            Task ID: {task.id} • Created {formatDate(task.createdAt)}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="details" className="flex items-center gap-1">
-              <FileText className="h-4 w-4" />
-              <span>Details</span>
-            </TabsTrigger>
-            <TabsTrigger value="attachments" className="flex items-center gap-1">
-              <Paperclip className="h-4 w-4" />
-              <span>Attachments</span>
-              {task.attachments?.length > 0 && (
-                <Badge variant="secondary" className="ml-1 px-1 h-5 min-w-5 flex items-center justify-center">
-                  {task.attachments.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="dependencies" className="flex items-center gap-1">
-              <Link2 className="h-4 w-4" />
-              <span>Dependencies</span>
-              {task.dependencies?.length > 0 && (
-                <Badge variant="secondary" className="ml-1 px-1 h-5 min-w-5 flex items-center justify-center">
-                  {task.dependencies.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>Activity</span>
-              {task.activityLog?.length > 0 && (
-                <Badge variant="secondary" className="ml-1 px-1 h-5 min-w-5 flex items-center justify-center">
-                  {task.activityLog.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-
-          <ScrollArea className="flex-1 pr-4">
-            <TabsContent value="details" className="space-y-4 mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Experiment
-                    </h3>
-                    <p>{task.experimentName}</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Priority
-                    </h3>
-                    <div>{getPriorityBadge(task.priority)}</div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Status
-                    </h3>
-                    <div>{getStatusBadge(task.status)}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Assigned To
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>{task.assignedTo.avatar}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{task.assignedTo.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {users[task.assignedTo.id]?.role || "Unknown Role"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Due Date
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                      <span className={isPastDue(task.dueDate) && task.status !== "completed" ? "text-red-500 font-medium" : ""}>
-                        {formatDate(task.dueDate)}
-                      </span>
-                      {isPastDue(task.dueDate) && task.status !== "completed" && (
-                        <Badge variant="destructive" className="ml-1">Past Due</Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                      Created
-                    </h3>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{formatDate(task.createdAt)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                  Description
-                </h3>
-                <div className="p-3 rounded-md border bg-muted/30">
-                  <p className="text-sm">
-                    {task.description || "No description provided."}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Task Actions
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {task.status !== "completed" && (
-                    <>
-                      {task.status === "pending" && (
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => {
-                          onAction("statusChange", { ...task, status: "in-progress" });
-                        }}>
-                          <Clock className="h-4 w-4" />
-                          Mark as In Progress
-                        </Button>
-                      )}
-                      {task.status === "in-progress" && (
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => {
-                          onAction("statusChange", { ...task, status: "completed" });
-                        }}>
-                          <CheckCircle2 className="h-4 w-4" />
-                          Mark as Completed
-                        </Button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="attachments" className="space-y-4 mt-0">
-              {task.attachments?.length > 0 ? (
-                <div className="space-y-2">
-                  {task.attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="flex items-center justify-between p-3 rounded-md border hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        {getAttachmentIcon(attachment.type)}
-                        <span>{attachment.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{attachment.size}</Badge>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg">
-                  <Paperclip className="h-10 w-10 text-muted-foreground mb-3" />
-                  <h3 className="text-lg font-medium">No attachments</h3>
-                  <p className="text-sm text-muted-foreground mt-1 text-center">
-                    This task doesn't have any attachments yet
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="dependencies" className="space-y-4 mt-0">
-              {task.dependencies?.length > 0 ? (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium">
-                    This task depends on:
-                  </h3>
-                  {task.dependencies.map((depId) => {
-                    // In a real app, you would fetch the actual dependent task by ID
-                    // Here we'll just show the ID for demo purposes
-                    return (
-                      <div
-                        key={depId}
-                        className="flex items-center justify-between p-3 rounded-md border hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Link2 className="h-4 w-4 text-muted-foreground" />
-                          <span>Task {depId}</span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8"
-                          onClick={() => {
-                            // In a real app, this would navigate to the dependent task
-                            // or show it in a dialog
-                            console.log(`View dependent task ${depId}`);
-                          }}
-                        >
-                          View
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg">
-                  <Link2 className="h-10 w-10 text-muted-foreground mb-3" />
-                  <h3 className="text-lg font-medium">No dependencies</h3>
-                  <p className="text-sm text-muted-foreground mt-1 text-center">
-                    This task doesn't depend on any other tasks
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="activity" className="space-y-4 mt-0">
-              {task.activityLog?.length > 0 ? (
-                <div className="space-y-3">
-                  {task.activityLog
-                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                    .map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-start gap-3 p-3 rounded-md border"
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>{users[log.userId]?.avatar || '?'}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <p className="text-sm font-medium">{users[log.userId]?.name || 'Unknown User'}</p>
-                            <span className="text-xs text-muted-foreground">{formatDate(log.timestamp)}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-1">
-                            {getActionIcon(log.action)}
-                            <span className="text-sm">{formatAction(log.action)}</span>
-                          </div>
-                          {log.details && (
-                            <p className="text-xs text-muted-foreground mt-1">{log.details}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  }
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg">
-                  <Clock className="h-10 w-10 text-muted-foreground mb-3" />
-                  <h3 className="text-lg font-medium">No activity logs</h3>
-                  <p className="text-sm text-muted-foreground mt-1 text-center">
-                    This task doesn't have any activity logs yet
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
-
-        <DialogFooter className="flex gap-2 items-center justify-between sm:justify-between flex-row pt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={() => onAction("edit", task)}>
-              <ClipboardEdit className="h-4 w-4" /> Edit
-            </Button>
-            <Button variant="destructive" className="gap-2" onClick={() => onAction("delete", task)}>
-              <Trash2 className="h-4 w-4" /> Delete
-            </Button>
-          </div>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
