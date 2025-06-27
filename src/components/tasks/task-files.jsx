@@ -2,14 +2,14 @@
 
 import { useState, useRef } from "react";
 import { format } from "date-fns";
-import { 
-  FileText, 
-  FileSpreadsheet, 
-  FilePlus, 
-  Download, 
-  Trash, 
-  Eye, 
-  Upload 
+import {
+  FileText,
+  FileSpreadsheet,
+  FilePlus,
+  Download,
+  Trash,
+  Eye,
+  Upload
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,10 +18,10 @@ import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 
 export function TaskFiles({ task }) {
-  const [files, setFiles] = useState(task.files);
+  const [files, setFiles] = useState(task.files || []);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
-  
+
   const onDrop = (acceptedFiles) => {
     // In a real app, you would upload these files to the backend
     const newFiles = acceptedFiles.map(file => ({
@@ -31,25 +31,25 @@ export function TaskFiles({ task }) {
       uploadedAt: new Date().toISOString(),
       uploadedBy: "Current User" // In a real app, this would be the current user
     }));
-    
+
     setFiles([...files, ...newFiles]);
     setIsDragging(false);
   };
-  
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     onDragEnter: () => setIsDragging(true),
     onDragLeave: () => setIsDragging(false)
   });
-  
+
   const handleDeleteFile = (id) => {
     // In a real app, you would delete the file from the backend
     setFiles(files.filter(file => file.id !== id));
   };
-  
+
   const getFileIcon = (fileName) => {
     const extension = fileName.split('.').pop().toLowerCase();
-    
+
     switch (extension) {
       case 'pdf':
         return <FileText className="h-10 w-10 text-red-500" />;
@@ -64,7 +64,7 @@ export function TaskFiles({ task }) {
         return <FileText className="h-10 w-10 text-gray-500" />;
     }
   };
-  
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -96,7 +96,7 @@ export function TaskFiles({ task }) {
             </p>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           <AnimatePresence>
             {files.map((file) => (
@@ -108,7 +108,7 @@ export function TaskFiles({ task }) {
                 className="flex items-center gap-3 p-3 rounded-lg border border-border/50 hover:bg-muted/30"
               >
                 {getFileIcon(file.name)}
-                
+
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{file.name}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
@@ -119,7 +119,7 @@ export function TaskFiles({ task }) {
                     <span>{format(new Date(file.uploadedAt), 'MMM d, yyyy')}</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <Eye className="h-4 w-4" />
@@ -127,9 +127,9 @@ export function TaskFiles({ task }) {
                   <Button variant="ghost" size="icon" className="h-8 w-8">
                     <Download className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-8 w-8 text-destructive"
                     onClick={() => handleDeleteFile(file.id)}
                   >
@@ -139,7 +139,7 @@ export function TaskFiles({ task }) {
               </motion.div>
             ))}
           </AnimatePresence>
-          
+
           {files.length === 0 && (
             <div className="text-center py-6 text-muted-foreground">
               <p>No files attached to this task yet.</p>

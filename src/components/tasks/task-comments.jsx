@@ -19,7 +19,14 @@ const mockUsers = [
   { id: "5", name: "Michael Wilson", email: "michael@example.com", avatarUrl: "" },
 ];
 
-export const TaskComments = ({ taskId, initialComments = [] }) => {
+export const TaskComments = ({
+  taskId,
+  initialComments = [],
+  currentUser = { id: "current-user", name: "You", avatarUrl: "" },
+  onCommentsChange,
+  maxHeight = 400,
+  className = ""
+}) => {
   const [comments, setComments] = useState(initialComments);
   const [commentText, setCommentText] = useState("");
   const [files, setFiles] = useState([]);
@@ -30,7 +37,7 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   const commentContainerRef = useRef(null);
-  
+
   // Monitor for @mentions
   useEffect(() => {
     if (commentText.includes("@")) {
@@ -38,13 +45,13 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
       if (lastAtSymbol !== -1 && cursorPosition > lastAtSymbol) {
         const query = commentText.substring(lastAtSymbol + 1, cursorPosition).toLowerCase();
         setMentionQuery(query);
-        
+
         // Filter users based on query
-        const filtered = mockUsers.filter(user => 
-          user.name.toLowerCase().includes(query) || 
+        const filtered = mockUsers.filter(user =>
+          user.name.toLowerCase().includes(query) ||
           user.email.toLowerCase().includes(query)
         );
-        
+
         setMentionSuggestions(filtered);
         setShowMentionSuggestions(filtered.length > 0);
       } else {
@@ -54,40 +61,45 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
       setShowMentionSuggestions(false);
     }
   }, [commentText, cursorPosition]);
-  
+
   // Scroll to bottom of comments when new ones are added
   useEffect(() => {
     if (commentContainerRef.current) {
       commentContainerRef.current.scrollTop = commentContainerRef.current.scrollHeight;
     }
   }, [comments]);
-  
+
+  // Call onCommentsChange if provided
+  useEffect(() => {
+    if (onCommentsChange) onCommentsChange(comments);
+  }, [comments, onCommentsChange]);
+
   // Handle file selection
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
     setFiles(prev => [...prev, ...selectedFiles]);
   };
-  
+
   // Remove a file from the list
   const handleRemoveFile = (index) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
-  
+
   // Handle textarea input to track cursor position
   const handleTextareaChange = (e) => {
     setCommentText(e.target.value);
     setCursorPosition(e.target.selectionStart);
   };
-  
+
   // Insert mention into comment text
   const handleSelectMention = (user) => {
     const beforeMention = commentText.substring(0, commentText.lastIndexOf("@"));
     const afterMention = commentText.substring(cursorPosition);
     const newText = `${beforeMention}@${user.name} ${afterMention}`;
-    
+
     setCommentText(newText);
     setShowMentionSuggestions(false);
-    
+
     // Set focus back to textarea after selecting mention
     if (textareaRef.current) {
       textareaRef.current.focus();
@@ -99,27 +111,27 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
       }, 0);
     }
   };
-  
+
   // Submit a new comment
   const handleSubmitComment = () => {
     if (commentText.trim() === "" && files.length === 0) return;
-    
+
     // Find and process @mentions
     const mentionRegex = /@([a-zA-Z0-9 ]+)/g;
     const mentions = [];
     let match;
-    
+
     while ((match = mentionRegex.exec(commentText)) !== null) {
       const mentionedName = match[1].trim();
-      const mentionedUser = mockUsers.find(user => 
+      const mentionedUser = mockUsers.find(user =>
         user.name.toLowerCase() === mentionedName.toLowerCase()
       );
-      
+
       if (mentionedUser) {
         mentions.push(mentionedUser.id);
       }
     }
-    
+
     // Process file attachments
     const attachments = files.map(file => ({
       id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
@@ -128,7 +140,7 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
       type: file.type,
       url: URL.createObjectURL(file) // In a real app, you'd upload to a server
     }));
-    
+
     // Create the new comment
     const newComment = {
       id: `comment-${Date.now()}`,
@@ -143,40 +155,40 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
       attachments,
       isNew: true // Flag for animation
     };
-    
+
     // Add to comments and reset input
     setComments([...comments, newComment]);
     setCommentText("");
     setFiles([]);
     setShowMentionSuggestions(false);
-    
+
     // In a real app, you would send notifications to mentioned users here
     if (mentions.length > 0) {
       console.log("Sending notifications to:", mentions);
     }
   };
-  
+
   // Format the comment text with highlighted mentions
   const formatCommentText = (text) => {
     if (!text) return "";
-    
+
     const mentionRegex = /@([a-zA-Z0-9 ]+)/g;
     const parts = [];
     let lastIndex = 0;
     let match;
-    
+
     while ((match = mentionRegex.exec(text)) !== null) {
       // Add text before the mention
       if (match.index > lastIndex) {
         parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex, match.index)}</span>);
       }
-      
+
       // Add the mention with different styling
       const mentionedName = match[1].trim();
-      const mentionedUser = mockUsers.find(user => 
+      const mentionedUser = mockUsers.find(user =>
         user.name.toLowerCase() === mentionedName.toLowerCase()
       );
-      
+
       if (mentionedUser) {
         parts.push(
           <Badge variant="secondary" className="mx-1 bg-primary/10" key={`mention-${match.index}`}>
@@ -186,25 +198,25 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
       } else {
         parts.push(<span key={`mention-${match.index}`}>@{mentionedName}</span>);
       }
-      
+
       lastIndex = match.index + match[0].length;
     }
-    
+
     // Add the remaining text
     if (lastIndex < text.length) {
       parts.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex)}</span>);
     }
-    
+
     return parts;
   };
-  
+
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Comments ({comments.length})</h3>
-      
-      <div 
-        className="space-y-4 max-h-[400px] overflow-y-auto p-2 -mx-2" 
+    <div className={`flex flex-col w-full ${className}`.trim()}>
+      <h3 className="text-lg font-medium px-2 pt-2 pb-1">Comments ({comments.length})</h3>
+      <div
+        className="flex-1 space-y-4 overflow-y-auto px-2"
         ref={commentContainerRef}
+        style={{ maxHeight: maxHeight ? maxHeight : undefined }}
       >
         {comments.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -226,7 +238,7 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
                         <AvatarImage src={comment.author.avatarUrl} />
                         <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1 space-y-1">
                         <div className="flex justify-between items-center">
                           <div className="font-medium text-sm">
@@ -234,21 +246,21 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
                           </div>
                           <div className="text-xs text-gray-500 flex items-center">
                             <Clock className="h-3 w-3 mr-1" />
-                            {formatDistanceToNow(new Date(comment.createdAt), { 
-                              addSuffix: true 
+                            {formatDistanceToNow(new Date(comment.createdAt), {
+                              addSuffix: true
                             })}
                           </div>
                         </div>
-                        
+
                         <div className="text-sm whitespace-pre-wrap">
                           {formatCommentText(comment.text)}
                         </div>
-                        
+
                         {comment.attachments && comment.attachments.length > 0 && (
                           <div className="mt-2 space-y-2">
                             {comment.attachments.map((attachment) => (
-                              <div 
-                                key={attachment.id} 
+                              <div
+                                key={attachment.id}
                                 className="bg-slate-50 dark:bg-slate-800 rounded p-2 text-xs flex items-center justify-between"
                               >
                                 <div className="flex items-center">
@@ -271,8 +283,8 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
           </AnimatePresence>
         )}
       </div>
-      
-      <div className="border rounded-md p-3 space-y-3">
+
+      <div className={`border-t bg-background p-3 space-y-3 ${maxHeight ? 'sticky bottom-0 z-10' : ''}`.trim()}>
         <Textarea
           ref={textareaRef}
           placeholder="Add a comment... (Use @ to mention teammates)"
@@ -284,17 +296,23 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
               handleSubmitComment();
             }
           }}
-          className="min-h-[80px] resize-none"
+          className="min-h-[80px] resize-none w-full"
+          aria-label="Add a comment"
         />
-        
-        {/* Mention suggestions */}
+
         {showMentionSuggestions && (
-          <div className="absolute z-10 bg-background border rounded-md shadow-md p-1 max-h-[150px] overflow-y-auto">
-            {mentionSuggestions.map((user) => (
+          <div className="absolute left-4 right-4 bottom-24 sm:bottom-20 z-20 bg-background border rounded-md shadow-md p-1 max-h-[150px] overflow-y-auto focus:outline-none" role="listbox">
+            {mentionSuggestions.map((user, idx) => (
               <div
                 key={user.id}
-                className="flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer"
+                className={`flex items-center gap-2 p-2 hover:bg-muted rounded cursor-pointer ${idx === 0 ? 'focus:bg-accent' : ''}`}
                 onClick={() => handleSelectMention(user)}
+                tabIndex={0}
+                role="option"
+                aria-selected={idx === 0}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') handleSelectMention(user);
+                }}
               >
                 <Avatar className="h-5 w-5">
                   <AvatarImage src={user.avatarUrl} />
@@ -305,20 +323,19 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
             ))}
           </div>
         )}
-        
-        {/* File attachments preview */}
+
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {files.map((file, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="bg-slate-50 dark:bg-slate-800 rounded-md py-1 px-2 text-xs flex items-center gap-1"
               >
                 <Paperclip className="h-3 w-3" />
                 <span className="truncate max-w-[100px]">{file.name}</span>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
+                <Button
+                  size="icon"
+                  variant="ghost"
                   className="h-4 w-4 p-0 ml-1 text-gray-500 hover:text-gray-700"
                   onClick={() => handleRemoveFile(index)}
                 >
@@ -328,25 +345,23 @@ export const TaskComments = ({ taskId, initialComments = [] }) => {
             ))}
           </div>
         )}
-        
-        <div className="flex justify-between items-center">
+
+        <div className="flex justify-between items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
+            aria-label="Attach files"
           >
-            <Paperclip className="h-4 w-4 mr-2" />
-            Attach Files
+            <Paperclip className="h-4 w-4 mr-2" /> Attach Files
           </Button>
-          
-          <Button 
+          <Button
             onClick={handleSubmitComment}
             disabled={commentText.trim() === "" && files.length === 0}
+            aria-label="Send comment"
           >
-            <Send className="h-4 w-4 mr-2" />
-            Send
+            <Send className="h-4 w-4 mr-2" /> Send
           </Button>
-          
           <input
             type="file"
             ref={fileInputRef}

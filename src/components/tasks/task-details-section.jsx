@@ -4,13 +4,20 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import UserAvatar from "./user-avatar";
 import { Check, ChevronDown, X, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 
 const commonTags = [
     "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience",
@@ -153,26 +160,30 @@ export default function TaskDetailsSection({
                             <currentStatus.icon className="h-5 w-5" />
                             {currentStatus.label}
                         </span>
-                        <Select
-                            value={selectedStatus}
-                            onValueChange={(value) => {
-                                setSelectedStatus(value);
-                                handleSaveChanges();
-                            }}
-                        >
-                            <SelectTrigger className="w-56 min-w-[16rem] h-10 flex-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-base font-medium min-w-0 shadow-sm hover:border-primary focus:ring-2 focus:ring-primary/30">
-                                <currentStatus.icon className="h-5 w-5 flex-shrink-0" />
-                                <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{currentStatus.label}</span>
-                            </SelectTrigger>
-                            <SelectContent className="w-56 min-w-[16rem] p-1 rounded-lg shadow-xl bg-background border">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-56 min-w-[16rem] h-10 flex-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-base font-medium min-w-0 shadow-sm hover:border-primary focus:ring-2 focus:ring-primary/30">
+                                    <currentStatus.icon className="h-5 w-5 flex-shrink-0" />
+                                    <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{currentStatus.label}</span>
+                                    <ChevronDown className="h-5 w-5 ml-2 flex-shrink-0" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56 min-w-[16rem] p-1 rounded-lg shadow-xl bg-background border">
                                 {statusOptions.map((status) => (
-                                    <SelectItem key={status.value} value={status.value} className="flex-nowrap flex items-center min-w-0 gap-2 px-4 py-2 rounded-lg hover:bg-accent/60 cursor-pointer text-base font-medium">
+                                    <DropdownMenuItem
+                                        key={status.value}
+                                        onSelect={() => {
+                                            setSelectedStatus(status.value);
+                                            handleSaveChanges();
+                                        }}
+                                        className="flex-nowrap flex items-center min-w-0 gap-2 px-4 py-2 rounded-lg hover:bg-accent/60 cursor-pointer text-base font-medium"
+                                    >
                                         <status.icon className="h-5 w-5 flex-shrink-0" />
                                         <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{status.label}</span>
-                                    </SelectItem>
+                                    </DropdownMenuItem>
                                 ))}
-                            </SelectContent>
-                        </Select>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
                 {/* Priority */}
@@ -193,26 +204,30 @@ export default function TaskDetailsSection({
                             <currentPriority.icon className="h-5 w-5" />
                             {currentPriority.label}
                         </span>
-                        <Select
-                            value={selectedPriority}
-                            onValueChange={(value) => {
-                                setSelectedPriority(value);
-                                handleSaveChanges();
-                            }}
-                        >
-                            <SelectTrigger className="w-56 min-w-[16rem] h-10 flex-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-base font-medium min-w-0 shadow-sm hover:border-primary focus:ring-2 focus:ring-primary/30">
-                                <currentPriority.icon className="h-5 w-5 flex-shrink-0" />
-                                <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{currentPriority.label}</span>
-                            </SelectTrigger>
-                            <SelectContent className="w-56 min-w-[16rem] p-1 rounded-lg shadow-xl bg-background border">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-56 min-w-[16rem] h-10 flex-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-base font-medium min-w-0 shadow-sm hover:border-primary focus:ring-2 focus:ring-primary/30">
+                                    <currentPriority.icon className="h-5 w-5 flex-shrink-0" />
+                                    <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{currentPriority.label}</span>
+                                    <ChevronDown className="h-5 w-5 ml-2 flex-shrink-0" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56 min-w-[16rem] p-1 rounded-lg shadow-xl bg-background border">
                                 {priorityOptions.map((priority) => (
-                                    <SelectItem key={priority.value} value={priority.value} className="flex-nowrap flex items-center min-w-0 gap-2 px-4 py-2 rounded-lg hover:bg-accent/60 cursor-pointer text-base font-medium">
+                                    <DropdownMenuItem
+                                        key={priority.value}
+                                        onSelect={() => {
+                                            setSelectedPriority(priority.value);
+                                            handleSaveChanges();
+                                        }}
+                                        className="flex-nowrap flex items-center min-w-0 gap-2 px-4 py-2 rounded-lg hover:bg-accent/60 cursor-pointer text-base font-medium"
+                                    >
                                         <priority.icon className="h-5 w-5 flex-shrink-0" />
                                         <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{priority.label}</span>
-                                    </SelectItem>
+                                    </DropdownMenuItem>
                                 ))}
-                            </SelectContent>
-                        </Select>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
                 {/* Assigned To */}
@@ -223,31 +238,35 @@ export default function TaskDetailsSection({
                         </TooltipTrigger>
                         <TooltipContent>Who is responsible for this task</TooltipContent>
                     </Tooltip>
-                    <Select
-                        value={selectedAssignees[0]?.id || ''}
-                        onValueChange={(userId) => {
-                            const user = users.find(u => u.id === userId);
-                            setSelectedAssignees(user ? [user] : []);
-                            handleSaveChanges();
-                        }}
-                    >
-                        <SelectTrigger className="w-56 min-w-[16rem] h-10 flex-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-base font-medium min-w-0 shadow-sm hover:border-primary focus:ring-2 focus:ring-primary/30">
-                            {selectedAssignees[0] ? (
-                                <>
-                                    <UserAvatar
-                                        user={selectedAssignees[0]}
-                                        variant="minimal"
-                                        size="sm"
-                                    />
-                                    <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{selectedAssignees[0].name}</span>
-                                </>
-                            ) : (
-                                <span className="text-muted-foreground">Unassigned</span>
-                            )}
-                        </SelectTrigger>
-                        <SelectContent className="w-56 min-w-[16rem] p-1 rounded-lg shadow-xl bg-background border max-h-60 overflow-y-auto">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="w-56 min-w-[16rem] h-10 flex-nowrap flex items-center gap-2 px-4 py-2 rounded-lg border bg-background text-base font-medium min-w-0 shadow-sm hover:border-primary focus:ring-2 focus:ring-primary/30">
+                                {selectedAssignees[0] ? (
+                                    <>
+                                        <UserAvatar
+                                            user={selectedAssignees[0]}
+                                            variant="minimal"
+                                            size="sm"
+                                        />
+                                        <span className="flex-1 truncate whitespace-nowrap min-w-0 max-w-[12rem]">{selectedAssignees[0].name}</span>
+                                    </>
+                                ) : (
+                                    <span className="text-muted-foreground">Unassigned</span>
+                                )}
+                                <ChevronDown className="h-5 w-5 ml-2 flex-shrink-0" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 min-w-[16rem] p-1 rounded-lg shadow-xl bg-background border max-h-60 overflow-y-auto">
                             {users.map((user) => (
-                                <SelectItem key={user.id} value={user.id} className="flex-nowrap flex items-center min-w-0 gap-2 px-4 py-2 rounded-lg hover:bg-accent/60 cursor-pointer text-base font-medium">
+                                <DropdownMenuItem
+                                    key={user.id}
+                                    onSelect={() => {
+                                        const newAssignees = selectedAssignees.some(u => u.id === user.id) ? selectedAssignees.filter(u => u.id !== user.id) : [...selectedAssignees, user];
+                                        setSelectedAssignees(newAssignees);
+                                        handleSaveChanges();
+                                    }}
+                                    className="flex-nowrap flex items-center min-w-0 gap-2 px-4 py-2 rounded-lg hover:bg-accent/60 cursor-pointer text-base font-medium"
+                                >
                                     <UserAvatar
                                         user={user}
                                         variant="minimal"
@@ -257,10 +276,10 @@ export default function TaskDetailsSection({
                                     {selectedAssignees.some(u => u.id === user.id) && (
                                         <Check className="ml-auto h-5 w-5 text-primary" />
                                     )}
-                                </SelectItem>
+                                </DropdownMenuItem>
                             ))}
-                        </SelectContent>
-                    </Select>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 {/* Tags */}
                 <div className="flex flex-col gap-2 p-2 border-b md:border-b-0 border-muted-foreground/10">
