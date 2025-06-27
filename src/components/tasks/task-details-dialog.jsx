@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CommentSection } from "@/components/common/comment-section"
 import {
@@ -116,7 +117,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -130,6 +130,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
+import TaskDetailsSection from "./task-details-section"
+import UserAvatar from "./user-avatar"
 
 // Helper function to format date
 const formatDate = (dateString) => {
@@ -164,23 +166,6 @@ const isPastDue = (dateString) => {
   const now = new Date();
   return dueDate < now;
 };
-
-// Helper component for avatar with tooltip
-const UserAvatar = ({ user, className = '' }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <Avatar className={cn('h-8 w-8 cursor-pointer', className)}>
-        <AvatarImage src={user?.avatar} alt={user?.name} />
-        <AvatarFallback className="text-xs">
-          {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-    </TooltipTrigger>
-    <TooltipContent>
-      <p>{user?.name}</p>
-    </TooltipContent>
-  </Tooltip>
-);
 
 // Enhanced status and priority options with icons and colors
 const statusOptions = [
@@ -300,6 +285,7 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const emojiPickerRef = useRef(null);
   const newSubtaskInputRef = useRef(null);
   const titleInputRef = useRef(null);
+  const descriptionInputRef = useRef(null);
   // State for task details
   const [activeTab, setActiveTab] = useState("details");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -973,10 +959,26 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
 
 
 
-  // Handle save changes
-  const handleSaveChanges = useCallback(() => {
+  // Check for unsaved changes
+  const hasUnsavedChanges = task && (
+    editedTitle !== task.title ||
+    editedDescription !== task.description ||
+    selectedStatus !== task.status ||
+    selectedPriority !== task.priority ||
+    JSON.stringify(selectedAssignees) !== JSON.stringify(task.assignedTo ? [task.assignedTo] : []) ||
+    JSON.stringify(tags) !== JSON.stringify(task.tags || []) ||
+    JSON.stringify(subtasks) !== JSON.stringify(task.subtasks || []) ||
+    JSON.stringify(attachments) !== JSON.stringify(task.attachments || []) ||
+    (date ? date.toISOString() : null) !== task.dueDate ||
+    timeSpent !== (task.timeSpent || 0)
+  );
+
+  // Enhanced save function with better feedback
+  const handleSaveChanges = useCallback(async () => {
     try {
       if (!task) return;
+
+      setIsSubmitting(true);
 
       const updatedTask = {
         ...task,
@@ -994,11 +996,11 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
         updatedAt: new Date().toISOString()
       };
 
-      onAction('update', updatedTask);
+      await onAction('update', updatedTask);
 
       toast({
         title: "Task updated",
-        description: "Your changes have been saved.",
+        description: "Your changes have been saved successfully.",
       });
 
       return updatedTask;
@@ -1010,8 +1012,10 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [task, editedTitle, editedDescription, selectedStatus, selectedPriority, selectedAssignees, tags, subtasks, attachments, date, timeSpent, onAction, toast]);
+  }, [task, editedTitle, editedDescription, selectedStatus, selectedPriority, selectedAssignees, tags, subtasks, attachments, date, timeSpent, comments, onAction, toast]);
 
   // Handle delete task
   const handleDeleteTask = () => {
@@ -1077,11 +1081,70 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
         e.preventDefault();
         toggleTimeTracking();
       }
+      // Edit title on Ctrl+E or Cmd+E
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        if (!isEditingTitle) {
+          setIsEditingTitle(true);
+        }
+      }
+      // Copy link on Ctrl+L or Cmd+L
+      if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+        e.preventDefault();
+        copyTaskLink();
+      }
+      // Toggle fullscreen on Ctrl+Shift+F or Cmd+Shift+F
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+      // Toggle watch on Ctrl+W or Cmd+W
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+        e.preventDefault();
+        toggleWatch();
+      }
+      // Delete task on Ctrl+Delete or Cmd+Delete
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Delete') {
+        e.preventDefault();
+        handleDeleteTask();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isEditingTitle, isEditingDescription]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (task && (editedTitle !== task.title || editedDescription !== task.description)) {
+        handleSaveChanges();
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [editedTitle, editedDescription, task]);
+
+  // Unsaved changes warning
+  useEffect(() => {
+    const hasUnsavedChanges = task && (
+      editedTitle !== task.title ||
+      editedDescription !== task.description ||
+      selectedStatus !== task.status ||
+      selectedPriority !== task.priority
+    );
+
+    if (hasUnsavedChanges) {
+      const handleBeforeUnload = (e) => {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      };
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }
+  }, [editedTitle, editedDescription, selectedStatus, selectedPriority, task]);
 
   // Calculate task progress based on subtasks
   const completedSubtasks = subtasks.filter(subtask => subtask.completed).length;
@@ -1141,8 +1204,127 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const [taskType, setTaskType] = useState(task?.type || 'task');
   const [isWatching, setIsWatching] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
 
   const dueDateInfo = getDueDateInfo();
+
+  // Task templates for quick setup
+  const taskTemplates = [
+    {
+      id: 'bug-report',
+      name: 'Bug Report',
+      icon: <Bug className="h-4 w-4" />,
+      template: {
+        title: 'Bug: [Brief description]',
+        description: '## Bug Description\n\n### Steps to Reproduce\n1. \n2. \n3. \n\n### Expected Behavior\n\n### Actual Behavior\n\n### Environment\n- OS: \n- Browser: \n- Version: \n\n### Additional Information\n',
+        type: 'bug',
+        priority: 'high'
+      }
+    },
+    {
+      id: 'feature-request',
+      name: 'Feature Request',
+      icon: <Sparkles className="h-4 w-4" />,
+      template: {
+        title: 'Feature: [Feature name]',
+        description: '## Feature Description\n\n### Problem Statement\n\n### Proposed Solution\n\n### Benefits\n\n### Implementation Notes\n\n### Acceptance Criteria\n- [ ] \n- [ ] \n- [ ] ',
+        type: 'feature',
+        priority: 'medium'
+      }
+    },
+    {
+      id: 'task-template',
+      name: 'General Task',
+      icon: <FileText className="h-4 w-4" />,
+      template: {
+        title: 'Task: [Task description]',
+        description: '## Task Overview\n\n### Objectives\n\n### Requirements\n\n### Deliverables\n\n### Timeline\n\n### Notes\n',
+        type: 'task',
+        priority: 'medium'
+      }
+    },
+    {
+      id: 'improvement',
+      name: 'Improvement',
+      icon: <Zap className="h-4 w-4" />,
+      template: {
+        title: 'Improve: [Area to improve]',
+        description: '## Current State\n\n### Issues\n\n### Proposed Improvements\n\n### Benefits\n\n### Implementation Plan\n',
+        type: 'improvement',
+        priority: 'low'
+      }
+    }
+  ];
+
+  // Apply template
+  const applyTemplate = (template) => {
+    setEditedTitle(template.template.title);
+    setEditedDescription(template.template.description);
+    setTaskType(template.template.type);
+    setSelectedPriority(template.template.priority);
+    setShowTemplates(false);
+
+    toast({
+      title: 'Template applied',
+      description: `${template.name} template has been applied to your task.`,
+    });
+  };
+
+  // Quick actions
+  const quickActions = [
+    {
+      id: 'duplicate',
+      label: 'Duplicate Task',
+      icon: <Copy className="h-4 w-4" />,
+      action: () => {
+        const newTask = {
+          ...task,
+          id: `task-${Date.now()}`,
+          title: `${task.title} (Copy)`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          status: 'backlog'
+        };
+        onAction('duplicate', newTask);
+        toast({
+          title: 'Task duplicated',
+          description: 'A copy of this task has been created.',
+        });
+      }
+    },
+    {
+      id: 'archive',
+      label: 'Archive Task',
+      icon: <FileArchive className="h-4 w-4" />,
+      action: () => {
+        onAction('archive', task);
+        toast({
+          title: 'Task archived',
+          description: 'This task has been moved to archive.',
+        });
+      }
+    },
+    {
+      id: 'export',
+      label: 'Export Task',
+      icon: <Download className="h-4 w-4" />,
+      action: () => {
+        const taskData = JSON.stringify(task, null, 2);
+        const blob = new Blob([taskData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `task-${task.id}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast({
+          title: 'Task exported',
+          description: 'Task data has been downloaded as JSON.',
+        });
+      }
+    }
+  ];
 
   // Toggle watch status
   const toggleWatch = () => {
@@ -1176,8 +1358,9 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(
-        "sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-background",
-        isMaximized && "max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh]"
+        "sm:max-w-4xl max-h-[90vh] flex flex-col p-0 bg-background",
+        isMaximized && "max-w-[95vw] max-h-[95vh] w-[95vw] h-[95vh]",
+        "overflow-hidden"
       )}>
         <DialogHeader className="sr-only">
           <DialogTitle>Task Details</DialogTitle>
@@ -1185,9 +1368,9 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
 
         {/* Header */}
         <div className="sticky top-0 z-20 bg-background border-b px-6 py-3 shadow-sm">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-4 md:gap-0">
             {/* Left side: Back button and task type */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <DialogClose asChild>
                 <Button
                   variant="ghost"
@@ -1199,10 +1382,13 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                   <span className="sr-only">Close</span>
                 </Button>
               </DialogClose>
-
               <div className="h-5 w-px bg-border" />
-
-              {/* Task Type Selector */}
+              {hasUnsavedChanges && (
+                <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-yellow-50 border border-yellow-200">
+                  <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
+                  <span className="text-xs text-yellow-700 font-medium">Unsaved changes</span>
+                </div>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -1240,15 +1426,12 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              {/* Task ID */}
-              <div className="text-sm text-muted-foreground font-mono">
+              <div className="text-sm text-muted-foreground font-mono truncate max-w-[100px] md:max-w-[200px]">
                 {task?.id || 'TASK-123'}
               </div>
             </div>
-
             {/* Right side: Action buttons */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               {/* Watch button */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -1389,58 +1572,249 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
               </DropdownMenu>
             </div>
           </div>
-
-          {/* Progress bar */}
-          {subtasks.length > 0 && (
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                <span>Progress</span>
-                <span>{progress}% ({completedSubtasks} of {subtasks.length} tasks)</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-300 ease-out"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Task Title */}
-        <div className="mt-4 flex items-start gap-2">
-          {isEditingTitle ? (
-            <div className="flex-1 flex gap-2">
-              <Input
-                ref={titleInputRef}
-                value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
-                onBlur={handleTitleEdit}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleTitleEdit();
-                  } else if (e.key === 'Escape') {
-                    setEditedTitle(task.title || '');
-                    setIsEditingTitle(false);
-                  }
-                }}
-                className="text-xl font-semibold px-0 border-0 shadow-none focus-visible:ring-1"
-                autoFocus
-              />
+        {/* Task Title Section - Enhanced */}
+        <div className="px-6 py-4 border-b bg-gradient-to-r from-background to-muted/20">
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+            <span className="hover:text-foreground cursor-pointer transition-colors">Projects</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="hover:text-foreground cursor-pointer transition-colors">Lab Tasker</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-foreground font-medium">Task Details</span>
+          </div>
+
+          {/* Task Header */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              {/* Title Section */}
+              <div className="space-y-2">
+                {isEditingTitle ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="flex items-center gap-3"
+                  >
+                    <Input
+                      ref={titleInputRef}
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                      onFocus={() => setIsTitleFocused(true)}
+                      onBlur={() => {
+                        setIsTitleFocused(false);
+                        handleTitleEdit();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleTitleEdit();
+                        } else if (e.key === 'Escape') {
+                          setEditedTitle(task.title || '');
+                          setIsEditingTitle(false);
+                        }
+                      }}
+                      className={cn(
+                        "text-2xl font-bold px-3 py-2 border-2 shadow-sm transition-all duration-200",
+                        isTitleFocused
+                          ? "border-primary ring-2 ring-primary/20"
+                          : "border-border hover:border-primary/50"
+                      )}
+                      placeholder="Enter task title..."
+                      autoFocus
+                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        onClick={handleTitleEdit}
+                        className="h-8 px-3"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditedTitle(task.title || '');
+                          setIsEditingTitle(false);
+                        }}
+                        className="h-8 px-3"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="group relative"
+                  >
+                    <h1
+                      className="text-2xl font-bold leading-tight tracking-tight cursor-pointer group-hover:bg-accent/50 px-3 py-2 rounded-lg transition-all duration-200 -ml-3 hover:shadow-sm"
+                      onClick={() => setIsEditingTitle(true)}
+                    >
+                      {editedTitle || 'Untitled Task'}
+                    </h1>
+                    {/* Edit indicator */}
+                    <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="bg-primary text-primary-foreground rounded-full p-1 shadow-lg">
+                        <Edit2 className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Task Meta Information */}
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-4 w-4" />
+                    <span>Created by {task?.createdBy?.name || 'Unknown'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CalendarIcon className="h-4 w-4" />
+                    <span>Created {task?.createdAt ? formatDistanceToNow(new Date(task.createdAt), { addSuffix: true }) : 'recently'}</span>
+                  </div>
+                  {task?.updatedAt && task.updatedAt !== task.createdAt && (
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4" />
+                      <span>Updated {formatDistanceToNow(new Date(task.updatedAt), { addSuffix: true })}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          ) : (
-            <h2
-              className="text-xl font-semibold leading-none tracking-tight cursor-text hover:bg-accent/50 px-2 py-1 rounded -ml-2"
-              onClick={() => setIsEditingTitle(true)}
-            >
-              {editedTitle || 'Untitled Task'}
-            </h2>
-          )}
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              {/* Time Tracking with Enhanced UI */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isTracking ? 'secondary' : 'outline'}
+                    size="sm"
+                    className={cn(
+                      'h-10 gap-2 px-4 transition-all duration-200',
+                      isTracking
+                        ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 shadow-lg'
+                        : 'hover:shadow-md'
+                    )}
+                    onClick={toggleTimeTracking}
+                  >
+                    {isTracking ? (
+                      <>
+                        <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="font-mono text-sm">{formatTime(timeSpent)}</span>
+                        <Timer className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4" />
+                        <span>Start Timer</span>
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isTracking ? 'Stop time tracking' : 'Start time tracking'}
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Save Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={hasUnsavedChanges ? "default" : "outline"}
+                    size="sm"
+                    className={cn(
+                      "h-10 px-4 gap-2 transition-all duration-200",
+                      hasUnsavedChanges
+                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
+                        : "hover:shadow-md"
+                    )}
+                    onClick={handleSaveChanges}
+                    disabled={isSubmitting || !hasUnsavedChanges}
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    <span>{isSubmitting ? 'Saving...' : 'Save'}</span>
+                    {hasUnsavedChanges && !isSubmitting && (
+                      <div className="h-2 w-2 rounded-full bg-yellow-400 animate-pulse" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {hasUnsavedChanges ? 'Save changes (⌘S)' : 'All changes saved'}
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Quick Actions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 w-10 p-0 hover:shadow-md transition-all duration-200"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => setIsEditingTitle(true)}>
+                    <Edit2 className="mr-2 h-4 w-4" />
+                    <span>Edit title</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘E</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={copyTaskLink}>
+                    <Link2 className="mr-2 h-4 w-4" />
+                    <span>Copy link</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘L</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleWatch}>
+                    {isWatching ? (
+                      <EyeOff className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Eye className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{isWatching ? 'Unwatch' : 'Watch'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleFullscreen}>
+                    {isMaximized ? (
+                      <Minimize2 className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Maximize2 className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{isMaximized ? 'Minimize' : 'Maximize'}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘⇧F</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {quickActions.map((action) => (
+                    <DropdownMenuItem key={action.id} onClick={action.action}>
+                      {action.icon}
+                      <span className="ml-2">{action.label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600"
+                    onClick={handleDeleteTask}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Delete task</span>
+                    <span className="ml-auto text-xs text-muted-foreground">⌘⌫</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-hidden flex flex-col">
+        {/* Main Content with Scrollbar */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -1483,282 +1857,37 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
             <div className="flex-1 overflow-hidden">
               <div className="h-full overflow-y-auto p-6">
                 <TabsContent value="details" className="m-0 p-0">
-                  <div className="space-y-6">
-                    {/* Description Section */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
-                        {!isEditingDescription && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 text-xs text-muted-foreground"
-                            onClick={() => setIsEditingDescription(true)}
-                          >
-                            <Edit2 className="h-3.5 w-3.5 mr-1" />
-                            Edit
-                          </Button>
-                        )}
-                      </div>
-                      {isEditingDescription ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            ref={descriptionInputRef}
-                            value={editedDescription}
-                            onChange={(e) => setEditedDescription(e.target.value)}
-                            className="min-h-[120px]"
-                            placeholder="Add a detailed description..."
-                            autoFocus
-                          />
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setEditedDescription(task.description || '');
-                                setIsEditingDescription(false);
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                handleDescriptionEdit();
-                                handleSaveChanges();
-                              }}
-                            >
-                              Save
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div
-                          className="prose prose-sm dark:prose-invert max-w-none p-3 rounded-md border bg-muted/20 min-h-[120px] cursor-text"
-                          onClick={() => setIsEditingDescription(true)}
-                        >
-                          {editedDescription ? (
-                            <div className="whitespace-pre-wrap">{editedDescription}</div>
-                          ) : (
-                            <p className="text-muted-foreground italic">Add a description...</p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Left Column */}
-                      <div className="space-y-4">
-                        {/* Status */}
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Status</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {statusOptions.map((status) => (
-                              <Button
-                                key={status.value}
-                                variant={selectedStatus === status.value ? 'secondary' : 'outline'}
-                                size="sm"
-                                className={`text-xs ${selectedStatus === status.value ? status.color : ''}`}
-                                onClick={() => {
-                                  setSelectedStatus(status.value);
-                                  handleSaveChanges();
-                                }}
-                              >
-                                {status.icon && <status.icon className="h-3.5 w-3.5 mr-1.5" />}
-                                {status.label}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Priority */}
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Priority</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {priorityOptions.map((priority) => (
-                              <Button
-                                key={priority.value}
-                                variant={selectedPriority === priority.value ? 'secondary' : 'outline'}
-                                size="sm"
-                                className={`text-xs ${selectedPriority === priority.value ? priority.color : ''}`}
-                                onClick={() => {
-                                  setSelectedPriority(priority.value);
-                                  handleSaveChanges();
-                                }}
-                              >
-                                {priority.icon && <priority.icon className="h-3.5 w-3.5 mr-1.5" />}
-                                {priority.label}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Due Date */}
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Due Date</h3>
-                          <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={`w-full justify-start text-left font-normal ${!date ? 'text-muted-foreground' : ''} ${date && isPast(new Date(date)) && !isToday(new Date(date)) ? 'border-red-300 bg-red-50 dark:bg-red-900/20' : ''
-                                  }`}
-                              >
-                                <Calendar className="mr-2 h-4 w-4" />
-                                {date ? (
-                                  <span>{format(date, 'PPP')}</span>
-                                ) : (
-                                  <span>Pick a due date</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={date}
-                                onSelect={(selectedDate) => {
-                                  setDate(selectedDate || null);
-                                  setOpenDatePicker(false);
-                                  handleSaveChanges();
-                                }}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </div>
-
-                      {/* Right Column */}
-                      <div className="space-y-4">
-                        {/* Assignee */}
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Assigned To</h3>
-                          <div className="flex items-center gap-2">
-                            {selectedAssignees.length > 0 ? (
-                              <div className="flex -space-x-2">
-                                {selectedAssignees.map((user) => (
-                                  <UserAvatar
-                                    key={user.id}
-                                    user={user}
-                                    className="ring-2 ring-background hover:ring-primary transition-all cursor-pointer"
-                                    onClick={() => {
-                                      setSelectedAssignees(selectedAssignees.filter(u => u.id !== user.id));
-                                      handleSaveChanges();
-                                    }}
-                                  />
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Unassigned</span>
-                            )}
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-[200px] p-0" align="start">
-                                <Command>
-                                  <CommandInput placeholder="Search team..." />
-                                  <CommandEmpty>No members found.</CommandEmpty>
-                                  <CommandGroup className="max-h-[200px] overflow-y-auto">
-                                    {users.map((user) => (
-                                      <CommandItem
-                                        key={user.id}
-                                        onSelect={() => {
-                                          if (!selectedAssignees.some(u => u.id === user.id)) {
-                                            setSelectedAssignees([...selectedAssignees, user]);
-                                            handleSaveChanges();
-                                          }
-                                        }}
-                                        className="flex items-center gap-2"
-                                      >
-                                        <UserAvatar user={user} className="h-6 w-6" />
-                                        <span>{user.name}</span>
-                                        {selectedAssignees.some(u => u.id === user.id) && (
-                                          <Check className="ml-auto h-4 w-4" />
-                                        )}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        </div>
-
-                        {/* Tags */}
-                        <div>
-                          <h3 className="text-sm font-medium text-muted-foreground mb-2">Tags</h3>
-                          <div className="flex flex-wrap items-center gap-2">
-                            {tags.map((tag, index) => (
-                              <Badge
-                                key={index}
-                                variant="secondary"
-                                className="px-2 py-1 text-xs font-medium flex items-center gap-1.5"
-                              >
-                                <span>{tag}</span>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-4 w-4 rounded-full hover:bg-background/50"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const newTags = [...tags];
-                                    newTags.splice(index, 1);
-                                    setTags(newTags);
-                                    handleSaveChanges();
-                                  }}
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
-                              </Badge>
-                            ))}
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-64 p-0" align="start">
-                                <Command>
-                                  <CommandInput
-                                    placeholder="Add a tag..."
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' && newTag.trim()) {
-                                        setTags([...tags, newTag.trim()]);
-                                        setNewTag('');
-                                        handleSaveChanges();
-                                      }
-                                    }}
-                                  />
-                                  <CommandEmpty>Type to create a new tag</CommandEmpty>
-                                  <CommandGroup>
-                                    <CommandItem
-                                      className="flex items-center gap-2"
-                                      onSelect={() => {
-                                        if (newTag.trim()) {
-                                          setTags([...tags, newTag.trim()]);
-                                          setNewTag('');
-                                          handleSaveChanges();
-                                        }
-                                      }}
-                                    >
-                                      <Plus className="h-4 w-4" />
-                                      <span>Add "{newTag}"</span>
-                                    </CommandItem>
-                                  </CommandGroup>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <TaskDetailsSection
+                    task={task}
+                    users={users}
+                    statusOptions={statusOptions}
+                    priorityOptions={priorityOptions}
+                    currentStatus={currentStatus}
+                    currentPriority={currentPriority}
+                    selectedStatus={selectedStatus}
+                    setSelectedStatus={setSelectedStatus}
+                    selectedPriority={selectedPriority}
+                    setSelectedPriority={setSelectedPriority}
+                    selectedAssignees={selectedAssignees}
+                    setSelectedAssignees={setSelectedAssignees}
+                    tags={tags}
+                    setTags={setTags}
+                    newTag={newTag}
+                    setNewTag={setNewTag}
+                    date={date}
+                    setDate={setDate}
+                    openDatePicker={openDatePicker}
+                    setOpenDatePicker={setOpenDatePicker}
+                    handleSaveChanges={handleSaveChanges}
+                    isPast={isPast}
+                    isToday={isToday}
+                    editedDescription={editedDescription}
+                    setEditedDescription={setEditedDescription}
+                    isEditingDescription={isEditingDescription}
+                    setIsEditingDescription={setIsEditingDescription}
+                    descriptionInputRef={descriptionInputRef}
+                    format={format}
+                  />
                 </TabsContent>
 
                 {/* Attachments Tab */}
