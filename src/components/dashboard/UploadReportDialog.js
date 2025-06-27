@@ -83,7 +83,7 @@ export function UploadReportDialog({ open, onOpenChange, onUpload }) {
 
     try {
       // Simulate file upload
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 150));
       
       // Create report object
       const newReport = {

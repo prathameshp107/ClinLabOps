@@ -203,8 +203,8 @@ export default function EditEnquiryPage({ params }) {
       // Redirect to enquiry details after a delay
       setTimeout(() => {
         router.push(`/enquiries/${id}`);
-      }, 1500);
-    }, 1000);
+      }, 100);
+    }, 100);
   };
   
   if (!enquiry) {

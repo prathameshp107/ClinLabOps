@@ -29,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { Timeline, TimelineItem } from "@/components/ui/timeline";
 
 export function TaskActivityLog({ activities }) {
   const [filter, setFilter] = useState('all');
@@ -119,7 +120,7 @@ export function TaskActivityLog({ activities }) {
       {/* Border Blur Effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-lg blur-xl -z-10" />
 
-      <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
+      <Card className="relative overflow-hidden border-none bg-white/80 dark:bg-background/80 backdrop-blur-lg shadow-2xl ring-1 ring-primary/10 hover:shadow-3xl transition-all duration-300 flex flex-col">
         <CardHeader className="pb-4 border-b border-border/50">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -169,111 +170,27 @@ export function TaskActivityLog({ activities }) {
           </div>
         </CardHeader>
         <CardContent className="p-6 max-h-[600px] overflow-y-auto custom-scrollbar">
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary/20 via-primary/10 to-primary/20" />
-
-            <div className="space-y-6">
-              <AnimatePresence mode="popLayout">
-                {filteredActivities.map((activity, index) => (
-                  <motion.div
-                    key={activity.id}
-                    layout
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{
-                      duration: 0.2,
-                      delay: index * 0.05,
-                      layout: { duration: 0.2 }
-                    }}
-                    className="group"
-                  >
-                    <div className="flex gap-4">
-                      <div className={cn(
-                        "h-10 w-10 rounded-full flex items-center justify-center shadow-sm",
-                        getActivityColor(activity.type)
-                      )}>
-                        {getActivityIcon(activity.type)}
-                      </div>
-
-                      <div className="flex-1 space-y-1.5">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm font-medium">{getActivityText(activity)}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {format(new Date(activity.timestamp), 'MMM d, yyyy • h:mm a')}
-                            </p>
-                          </div>
-                          {activity.details && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:shadow-md"
-                              onClick={() => setShowDetails(prev => ({
-                                ...prev,
-                                [activity.id]: !prev[activity.id]
-                              }))}
-                            >
-                              <ChevronDown className={cn(
-                                "h-4 w-4 transition-transform",
-                                showDetails[activity.id] && "rotate-180"
-                              )} />
-                            </Button>
-                          )}
-                        </div>
-
-                        <AnimatePresence>
-                          {showDetails[activity.id] && activity.details && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="overflow-hidden"
-                            >
-                              <Card className="mt-2 bg-muted/50 border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                                    <span>{activity.details}</span>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {activity.metadata && (
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            {activity.metadata.priority && (
-                              <Badge variant="outline" className="bg-primary/5 shadow-sm px-3 py-1">
-                                Priority: {activity.metadata.priority}
-                              </Badge>
-                            )}
-                            {activity.metadata.status && (
-                              <Badge variant="outline" className="bg-primary/5 shadow-sm px-3 py-1">
-                                Status: {activity.metadata.status}
-                              </Badge>
-                            )}
-                            {activity.metadata.labels?.map((label, i) => (
-                              <Badge
-                                key={i}
-                                variant="outline"
-                                className="bg-primary/5 shadow-sm px-3 py-1"
-                              >
-                                {label}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          </div>
+          <Timeline>
+            {filteredActivities.map((activity, index) => (
+              <TimelineItem key={activity.id} className="mb-4">
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "h-10 w-10 rounded-full flex items-center justify-center shadow-sm",
+                    getActivityColor(activity.type)
+                  )}>
+                    {getActivityIcon(activity.type)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{getActivityText(activity)}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{format(new Date(activity.timestamp), 'PPP p')}</div>
+                    {activity.details && filter !== 'comment_added' && (
+                      <div className="text-xs text-muted-foreground mt-1">{activity.details}</div>
+                    )}
+                  </div>
+                </div>
+              </TimelineItem>
+            ))}
+          </Timeline>
         </CardContent>
       </Card>
     </div>

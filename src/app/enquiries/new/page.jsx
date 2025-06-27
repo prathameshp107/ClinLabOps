@@ -98,8 +98,8 @@ export default function NewEnquiryPage() {
       // Redirect to enquiries list after a delay
       setTimeout(() => {
         router.push("/enquiries");
-      }, 1500);
-    }, 1000);
+      }, 100);
+    }, 100);
   };
   
   return (
