@@ -15,6 +15,7 @@ const UserAvatar = ({
 }) => {
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [showFallback, setShowFallback] = useState(false);
 
     // Size variants
     const sizeClasses = {
@@ -72,71 +73,24 @@ const UserAvatar = ({
         return colors[Math.abs(hash) % colors.length];
     };
 
+    const initials = user?.name ? user.name.split(" ").map(n => n[0]).join("") : "U";
+    const avatarUrl = user?.avatar && !showFallback ? user.avatar : null;
+
     const AvatarContent = () => {
-        if (variant === 'gradient') {
+        if (avatarUrl) {
             return (
-                <div className={cn(
-                    'rounded-full overflow-hidden',
-                    sizeClasses[size],
-                    variantClasses[variant]
-                )}>
-                    <div className="h-full w-full bg-background rounded-full flex items-center justify-center">
-                        <Avatar className="h-full w-full border-0">
-                            <AvatarImage
-                                src={user?.avatar}
-                                alt={user?.name}
-                                onLoad={() => setImageLoaded(true)}
-                                onError={() => setImageError(true)}
-                                className="object-cover"
-                            />
-                            <AvatarFallback
-                                className={cn(
-                                    "text-white font-semibold border-0",
-                                    getAvatarColor(user?.name),
-                                    size === 'xs' && 'text-xs',
-                                    size === 'sm' && 'text-xs',
-                                    size === 'md' && 'text-sm',
-                                    size === 'lg' && 'text-base',
-                                    size === 'xl' && 'text-lg',
-                                    size === '2xl' && 'text-xl'
-                                )}
-                            >
-                                {getInitials(user?.name)}
-                            </AvatarFallback>
-                        </Avatar>
-                    </div>
-                </div>
+                <img
+                    src={avatarUrl}
+                    alt={user?.name || "User"}
+                    className={cn("object-cover w-full h-full rounded-full", sizeClasses[size])}
+                    onError={() => setShowFallback(true)}
+                />
             );
         }
-
         return (
-            <Avatar className={cn(
-                sizeClasses[size],
-                variantClasses[variant],
-                'overflow-hidden'
-            )}>
-                <AvatarImage
-                    src={user?.avatar}
-                    alt={user?.name}
-                    onLoad={() => setImageLoaded(true)}
-                    onError={() => setImageError(true)}
-                    className="object-cover transition-transform duration-300 hover:scale-110"
-                />
-                <AvatarFallback
-                    className={cn(
-                        "text-white font-semibold transition-colors duration-200",
-                        getAvatarColor(user?.name),
-                        size === 'xs' && 'text-xs',
-                        size === 'sm' && 'text-xs',
-                        size === 'md' && 'text-sm',
-                        size === 'lg' && 'text-base',
-                        size === 'xl' && 'text-lg',
-                        size === '2xl' && 'text-xl'
-                    )}
-                >
-                    {getInitials(user?.name)}
-                </AvatarFallback>
-            </Avatar>
+            <span className={cn("flex items-center justify-center w-full h-full font-semibold text-white bg-primary rounded-full", sizeClasses[size])}>
+                {initials}
+            </span>
         );
     };
 

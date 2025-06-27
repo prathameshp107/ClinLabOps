@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Calendar, Clock, Flag, User, Folder, MoreVertical, CheckCircle, Clock as ClockIcon, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import UserAvatar from "@/components/tasks/user-avatar"
 
 export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskClick }) {
     const [hoveredTask, setHoveredTask] = React.useState(null)
@@ -166,16 +167,7 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
                                     <span>Assigned</span>
                                 </div>
                                 <div className="flex items-center justify-end font-semibold text-gray-800 dark:text-gray-100">
-                                    <Avatar className="h-6 w-6 mr-2 border-2 border-white dark:border-gray-900 shadow-sm">
-                                        <AvatarImage src={task.assignedTo?.avatar} alt={task.assignedTo?.name} />
-                                        <AvatarFallback className="text-xs bg-gray-200 dark:bg-gray-700">
-                                            {task.assignedTo?.name
-                                                ?.split(' ')
-                                                .map((n) => n[0])
-                                                .join('')}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <span className="truncate">{task.assignedTo?.name || 'Unassigned'}</span>
+                                    <UserAvatar user={task.assignedTo} size="sm" />
                                 </div>
                                 {/* Project */}
                                 <div className="flex items-center text-muted-foreground">
@@ -191,15 +183,7 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
                         {/* Task Footer */}
                         <div className="mt-auto pt-4 border-t flex items-center justify-between gap-2">
                             <div className="flex -space-x-2">
-                                <Avatar className="h-8 w-8 border-2 border-background shadow-md">
-                                    <AvatarImage src={task.assignedTo?.avatar} alt={task.assignedTo?.name} />
-                                    <AvatarFallback className="text-xs bg-gray-200 dark:bg-gray-700">
-                                        {task.assignedTo?.name
-                                            ?.split(' ')
-                                            .map((n) => n[0])
-                                            .join('')}
-                                    </AvatarFallback>
-                                </Avatar>
+                                <UserAvatar user={task.assignedTo} size="sm" />
                             </div>
                             <div className="text-xs text-muted-foreground font-medium">
                                 {task.createdAt && `Created ${format(new Date(task.createdAt), 'MMM d, yyyy')}`}

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import UserAvatar from "@/components/tasks/user-avatar";
 
 const statusColor = (status) => {
     switch (status) {
@@ -110,12 +111,7 @@ export function RelatedTasksCard({ relatedTasks = [] }) {
                                     tabIndex={0}
                                 >
                                     <div className="flex items-center gap-4 min-w-0 flex-1 w-full">
-                                        <Avatar className="h-12 w-12 border-2 border-indigo-500/20 shadow-lg">
-                                            <AvatarImage src={relatedTask.assignee?.avatar} alt={relatedTask.assignee?.name} />
-                                            <AvatarFallback className="bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400">
-                                                {relatedTask.assignee?.name?.[0]}
-                                            </AvatarFallback>
-                                        </Avatar>
+                                        <UserAvatar user={relatedTask.assignee} size="lg" />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <span className={`inline-block h-3 w-3 rounded-full ${statusColor(relatedTask.status)}`} aria-label={relatedTask.status} />

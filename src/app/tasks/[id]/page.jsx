@@ -53,6 +53,7 @@ import { TaskActivityLog } from "@/components/tasks/task-activity-log";
 import { BackButton } from "@/components/tasks/back-button";
 import { TaskTimeline } from "@/components/tasks/task-timeline";
 import { RelatedTasksCard } from "@/components/tasks/related-tasks-card";
+import UserAvatar from "@/components/tasks/user-avatar";
 
 // Aceternity UI Components
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
@@ -162,13 +163,13 @@ export default function TaskDetailPage() {
           createdBy: {
             id: "u1",
             name: "Dr. Jane Doe",
-            avatar: "/avatars/jane-doe.png"
+            avatar: "JD"
           },
           dueDate: "2023-11-05T23:59:59Z",
           assignee: {
             id: "u2",
             name: "John Smith",
-            avatar: "/avatars/john-smith.png"
+            avatar: "JS"
           },
           project: {
             id: "p1",
@@ -186,7 +187,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u2",
                 name: "John Smith",
-                avatar: "/avatars/john-smith.png"
+                avatar: "JS"
               },
               startDate: "2023-10-16T09:00:00Z",
               endDate: "2023-10-16T14:00:00Z",
@@ -202,7 +203,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u2",
                 name: "John Smith",
-                avatar: "/avatars/john-smith.png"
+                avatar: "JS"
               },
               startDate: "2023-10-17T09:00:00Z",
               endDate: "2023-10-17T11:00:00Z",
@@ -218,7 +219,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u2",
                 name: "John Smith",
-                avatar: "/avatars/john-smith.png"
+                avatar: "JS"
               },
               startDate: "2023-10-18T09:00:00Z",
               endDate: "2023-10-18T16:00:00Z",
@@ -234,7 +235,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u3",
                 name: "Emily Chen",
-                avatar: "/avatars/emily-chen.png"
+                avatar: "EC"
               },
               startDate: "2023-10-21T09:00:00Z",
               endDate: "2023-10-21T16:00:00Z",
@@ -250,7 +251,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u4",
                 name: "Michael Brown",
-                avatar: "/avatars/michael-brown.png"
+                avatar: "MB"
               },
               startDate: "2023-10-22T09:00:00Z",
               endDate: "2023-10-22T16:00:00Z",
@@ -267,19 +268,19 @@ export default function TaskDetailPage() {
               id: "c1",
               text: "I've started the PCR analysis. The first batch of samples is running now.",
               createdAt: "2023-10-17T11:20:00Z",
-              user: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+              user: { id: "u2", name: "John Smith", avatar: "JS" }
             },
             {
               id: "c2",
               text: "Great! Make sure to follow the updated protocol we discussed in the meeting.",
               createdAt: "2023-10-17T13:45:00Z",
-              user: { id: "u1", name: "Dr. Jane Doe", avatar: "/avatars/jane-doe.png" }
+              user: { id: "u1", name: "Dr. Jane Doe", avatar: "JD" }
             },
             {
               id: "c3",
               text: "I've completed the first 5 samples. Results look promising. Will continue with the rest tomorrow.",
               createdAt: "2023-10-19T17:30:00Z",
-              user: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+              user: { id: "u2", name: "John Smith", avatar: "JS" }
             }
           ],
           activityLog: [
@@ -294,10 +295,10 @@ export default function TaskDetailPage() {
             { id: "a9", type: "file_uploaded", timestamp: "2023-10-20T16:30:00Z", user: "John Smith", details: "PCR_Results_Partial.docx" }
           ],
           teamMembers: [
-            { id: "u1", name: "Dr. Jane Doe", role: "Principal Investigator", avatar: "/avatars/jane-doe.png" },
-            { id: "u2", name: "John Smith", role: "Lab Technician", avatar: "/avatars/john-smith.png" },
-            { id: "u3", name: "Emily Chen", role: "Research Assistant", avatar: "/avatars/emily-chen.png" },
-            { id: "u4", name: "Michael Brown", role: "Data Analyst", avatar: "/avatars/michael-brown.png" }
+            { id: "u1", name: "Dr. Jane Doe", role: "Principal Investigator", avatar: "JD" },
+            { id: "u2", name: "John Smith", role: "Lab Technician", avatar: "JS" },
+            { id: "u3", name: "Emily Chen", role: "Research Assistant", avatar: "EC" },
+            { id: "u4", name: "Michael Brown", role: "Data Analyst", avatar: "MB" }
           ],
           relatedTasks: [
             {
@@ -305,28 +306,28 @@ export default function TaskDetailPage() {
               title: "Data Analysis for Group A",
               status: "completed",
               dueDate: "2023-10-25T23:59:59Z",
-              assignee: { id: "u4", name: "Michael Brown", avatar: "/avatars/michael-brown.png" }
+              assignee: { id: "u4", name: "Michael Brown", avatar: "MB" }
             },
             {
               id: "T11",
               title: "Equipment Calibration",
               status: "in_progress",
               dueDate: "2023-11-10T23:59:59Z",
-              assignee: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+              assignee: { id: "u2", name: "John Smith", avatar: "JS" }
             },
             {
               id: "T12",
               title: "Lab Inventory Check",
               status: "not_started",
               dueDate: "2023-11-15T23:59:59Z",
-              assignee: { id: "u3", name: "Emily Chen", avatar: "/avatars/emily-chen.png" }
+              assignee: { id: "u3", name: "Emily Chen", avatar: "EC" }
             },
             {
               id: "T13",
               title: "Reagent Order",
               status: "completed",
               dueDate: "2023-10-30T23:59:59Z",
-              assignee: { id: "u1", name: "Dr. Jane Doe", avatar: "/avatars/jane-doe.png" }
+              assignee: { id: "u1", name: "Dr. Jane Doe", avatar: "JD" }
             }
           ]
         };
@@ -488,41 +489,43 @@ export default function TaskDetailPage() {
         <div className="flex-1 overflow-auto p-4 sm:p-6">
           <div className="w-full max-w-[1600px] mx-auto px-4">
             <div className="space-y-6 w-full">
-              <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex justify-between items-center mb-4">
-                  <TabsList className="grid grid-cols-4 w-auto">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
-                    <TabsTrigger value="files">Files</TabsTrigger>
-                    <TabsTrigger value="comments">Comments</TabsTrigger>
-                  </TabsList>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={
-                      task.priority === 'high' ? 'destructive' :
-                        task.priority === 'medium' ? 'warning' : 'outline'
-                    } className="capitalize">
-                      {task.priority} Priority
-                    </Badge>
-                    <Badge variant="outline" className="bg-primary/5">
-                      {task.progress}% Complete
-                    </Badge>
+              <TooltipProvider>
+                <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <TabsList className="grid grid-cols-4 w-auto">
+                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                      <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
+                      <TabsTrigger value="files">Files</TabsTrigger>
+                      <TabsTrigger value="comments">Comments</TabsTrigger>
+                    </TabsList>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={
+                        task.priority === 'high' ? 'destructive' :
+                          task.priority === 'medium' ? 'warning' : 'outline'
+                      } className="capitalize">
+                        {task.priority} Priority
+                      </Badge>
+                      <Badge variant="outline" className="bg-primary/5">
+                        {task.progress}% Complete
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-                <TabsContent value="overview" className="space-y-6 w-full">
-                  <TaskOverview task={task} className="w-full" />
-                  <RelatedTasksCard relatedTasks={task.relatedTasks} className="w-full" />
-                  <TaskActivityLog activities={task.activityLog} className="w-full" />
-                </TabsContent>
-                <TabsContent value="subtasks" className="space-y-6 w-full">
-                  <SubtasksList task={task} setTask={setTask} className="w-full" />
-                </TabsContent>
-                <TabsContent value="files" className="space-y-6 w-full">
-                  <TaskFiles task={task} className="w-full" />
-                </TabsContent>
-                <TabsContent value="comments" className="space-y-6 w-full">
-                  <TaskComments task={task} className="w-full" />
-                </TabsContent>
-              </Tabs>
+                  <TabsContent value="overview" className="space-y-6 w-full">
+                    <TaskOverview task={task} className="w-full" />
+                    <RelatedTasksCard relatedTasks={task.relatedTasks} className="w-full" />
+                    <TaskActivityLog activities={task.activityLog} className="w-full" />
+                  </TabsContent>
+                  <TabsContent value="subtasks" className="space-y-6 w-full">
+                    <SubtasksList task={task} setTask={setTask} className="w-full" />
+                  </TabsContent>
+                  <TabsContent value="files" className="space-y-6 w-full">
+                    <TaskFiles task={task} className="w-full" />
+                  </TabsContent>
+                  <TabsContent value="comments" className="space-y-6 w-full">
+                    <TaskComments task={task} className="w-full" />
+                  </TabsContent>
+                </Tabs>
+              </TooltipProvider>
             </div>
           </div>
         </div>

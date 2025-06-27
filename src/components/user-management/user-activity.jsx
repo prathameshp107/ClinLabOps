@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import UserAvatar from "@/components/tasks/user-avatar"
 
 
 
@@ -255,10 +256,7 @@ export function UserActivity(activitesData) {
                     transition={{ delay: index * 0.05 }}
                     className="flex items-start gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/30 transition-colors"
                   >
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={activity.user.avatar} />
-                      <AvatarFallback>{activity.user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
+                    <UserAvatar user={activity.user} size="lg" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium truncate">{activity.user.name}</p>

@@ -130,7 +130,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
 import TaskDetailsSection from "./task-details-section"
-import UserAvatar from "./user-avatar"
+import UserAvatar from "@/components/tasks/user-avatar"
 import { TaskSubtasks } from "./task-subtasks"
 import { TaskComments } from "./task-comments"
 import { TaskFiles } from "./task-files"
@@ -1486,11 +1486,11 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                   >
                     {isTracking ? (
                       <>
-                        <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
-                        <span className="text-xs">{formatTime(timeSpent)}</span>
+                        <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                        <span className="font-mono text-sm">{formatTime(timeSpent)}</span>
                       </>
                     ) : (
-                      <Play className="h-3.5 w-3.5" />
+                      <Play className="h-4 w-4" />
                     )}
                     <span className="sr-only">{isTracking ? 'Stop tracking' : 'Start tracking'}</span>
                   </Button>
@@ -1677,7 +1677,7 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                 {/* Task Meta Information */}
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1.5">
-                    <User className="h-4 w-4" />
+                    <UserAvatar user={task?.createdBy} size="sm" />
                     <span>Created by {task?.createdBy?.name || 'Unknown'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -1942,10 +1942,7 @@ const CommentContent = ({ content, user, createdAt, updatedAt, className = '', u
   return (
     <div className={cn("space-y-1", className)}>
       <div className="flex items-center gap-2">
-        <Avatar className="h-6 w-6">
-          <AvatarImage src={user?.avatar} alt={user?.name} />
-          <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-        </Avatar>
+        <UserAvatar user={user} size="sm" />
         <span className="text-sm font-medium">{user?.name || 'Unknown User'}</span>
         <span className="text-xs text-muted-foreground">
           {createdAt ? formatDistanceToNow(new Date(createdAt), { addSuffix: true }) : ''}
