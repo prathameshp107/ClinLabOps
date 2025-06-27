@@ -1509,18 +1509,24 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={toggleFullscreen}
+                    onClick={() => {
+                      if (!isMaximized) {
+                        window.open(`/tasks/${task?.id || ''}`, '_blank');
+                      } else {
+                        toggleFullscreen();
+                      }
+                    }}
                   >
                     {isMaximized ? (
                       <Minimize2 className="h-4 w-4" />
                     ) : (
                       <Maximize2 className="h-4 w-4" />
                     )}
-                    <span className="sr-only">{isMaximized ? 'Minimize' : 'Maximize'}</span>
+                    <span className="sr-only">{isMaximized ? 'Minimize' : 'Open full page'}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  {isMaximized ? 'Minimize' : 'Maximize'}
+                  {isMaximized ? 'Minimize' : 'Open full page'}
                 </TooltipContent>
               </Tooltip>
 
