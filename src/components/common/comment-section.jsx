@@ -3,13 +3,13 @@
 import { useRef, useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { formatDistanceToNow } from "date-fns"
 import { useToast } from "@/components/ui/use-toast"
 import { Check, Paperclip, Smile, X, Image as ImageIcon, FileText, FileArchive, MessageSquare } from "lucide-react"
+import UserAvatar from "@/components/tasks/user-avatar"
 
 export const CommentSection = ({
   currentUser = { id: '1', name: 'Current User', avatar: '/avatars/01.png' },
@@ -235,10 +235,7 @@ export const CommentSection = ({
           ) : (
             comments.map((comment) => (
               <div key={comment.id} className="flex gap-3 group">
-                <Avatar className="h-8 w-8 mt-1">
-                  <AvatarImage src={comment.user?.avatar} alt={comment.user?.name} />
-                  <AvatarFallback>{comment.user?.name?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
+                <UserAvatar user={comment.user} size="sm" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm">{comment.user?.name || 'Unknown User'}</span>

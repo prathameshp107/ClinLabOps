@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import UserAvatar from "@/components/tasks/user-avatar";
 
 const getPriorityBadge = (priority) => {
   switch (priority) {
@@ -41,7 +42,7 @@ const mockComments = [
     user: {
       name: 'You',
       email: 'admin@labtasker.com',
-      avatar: '/avatars/admin.png'
+      avatar: 'SA'
     },
     comment: 'Please provide more details about the equipment specifications.',
     timestamp: '2025-06-22T10:30:00'
@@ -51,7 +52,7 @@ const mockComments = [
     user: {
       name: 'Sarah Johnson',
       email: 'sarah.johnson@lab.com',
-      avatar: '/avatars/sarah.png'
+      avatar: 'SJ'
     },
     comment: 'The equipment is for the new spectroscopy lab. Model: XYZ-2000, required for the upcoming research project.',
     timestamp: '2025-06-22T11:15:00'
@@ -65,19 +66,19 @@ const mockHistory = [
   { id: 4, action: 'Replied', by: 'Sarah Johnson', timestamp: '2025-06-20T11:15:00' },
 ];
 
-export function ApprovalDetailsModal({ 
-  isOpen, 
-  onClose, 
-  approval, 
-  onApprove, 
+export function ApprovalDetailsModal({
+  isOpen,
+  onClose,
+  approval,
+  onApprove,
   onReject,
   onComment,
-  isProcessing 
+  isProcessing
 }) {
   const [comment, setComment] = useState('');
   const [activeTab, setActiveTab] = useState('details');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   if (!isOpen || !approval) return null;
 
   const priority = getPriorityBadge(approval.priority);
@@ -86,7 +87,7 @@ export function ApprovalDetailsModal({
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    
+
     setIsSubmitting(true);
     try {
       await onComment(approval.id, comment);
@@ -111,7 +112,7 @@ export function ApprovalDetailsModal({
     const now = new Date();
     const date = new Date(dateString);
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       const diffInMinutes = Math.floor((now - date) / (1000 * 60));
       return `${diffInMinutes}m ago`;
@@ -131,7 +132,7 @@ export function ApprovalDetailsModal({
         </div>
 
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        
+
         <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
@@ -179,10 +180,7 @@ export function ApprovalDetailsModal({
                           <div className="space-y-2">
                             <h4 className="text-sm font-medium text-muted-foreground">Requested By</h4>
                             <div className="flex items-center gap-2">
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={`/avatars/${approval.requester.toLowerCase().split(' ')[0]}.png`} />
-                                <AvatarFallback>{approval.requester.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                              </Avatar>
+                              <UserAvatar user={approval.requester} size="sm" />
                               <div>
                                 <p className="text-sm font-medium">{approval.requester}</p>
                                 <p className="text-xs text-muted-foreground">{approval.requesterEmail || 'No email provided'}</p>
@@ -222,10 +220,7 @@ export function ApprovalDetailsModal({
                           <div className="space-y-4">
                             {mockComments.map((comment) => (
                               <div key={comment.id} className="flex gap-3">
-                                <Avatar className="h-8 w-8 mt-1">
-                                  <AvatarImage src={comment.user.avatar} />
-                                  <AvatarFallback>{comment.user.name[0]}</AvatarFallback>
-                                </Avatar>
+                                <UserAvatar user={comment.user} size="sm" />
                                 <div className="flex-1">
                                   <div className="bg-muted/50 rounded-lg p-3">
                                     <div className="flex justify-between items-center mb-1">
@@ -250,8 +245,8 @@ export function ApprovalDetailsModal({
                             disabled={isSubmitting}
                           />
                           <div className="flex justify-end">
-                            <Button 
-                              type="submit" 
+                            <Button
+                              type="submit"
                               size="sm"
                               disabled={!comment.trim() || isSubmitting}
                             >
@@ -314,8 +309,8 @@ export function ApprovalDetailsModal({
             <div className="space-x-2">
               {approval.status === 'pending' && (
                 <>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => onReject(approval.id)}
                     disabled={isProcessing}
                   >
@@ -326,7 +321,7 @@ export function ApprovalDetailsModal({
                     )}
                     Reject
                   </Button>
-                  <Button 
+                  <Button
                     onClick={() => onApprove(approval.id)}
                     disabled={isProcessing}
                   >
@@ -339,8 +334,8 @@ export function ApprovalDetailsModal({
                   </Button>
                 </>
               )}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onClose}
                 disabled={isProcessing}
               >

@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  CheckCircle2, 
-  Clock, 
-  Filter, 
-  Plus, 
-  Search, 
-  SortAsc, 
-  Tag, 
-  User, 
+import {
+  CheckCircle2,
+  Clock,
+  Filter,
+  Plus,
+  Search,
+  SortAsc,
+  Tag,
+  User,
   Calendar,
   AlertCircle
 } from "lucide-react";
@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HoverGlowCard } from "@/components/ui/aceternity/cards";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import TaskAnalytics from "./TaskAnalytics";
+import UserAvatar from "@/components/tasks/user-avatar";
 
 export function TasksDashboard() {
   const [tasks, setTasks] = useState([
@@ -44,8 +45,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-15",
       assignee: {
         name: "Alex Johnson",
-        avatar: "/avatars/alex.jpg",
-        initials: "AJ"
+        avatar: "AJ"
       },
       tags: ["PCR", "Analysis", "Sample A"],
       progress: 65
@@ -59,8 +59,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-30",
       assignee: {
         name: "Morgan Smith",
-        avatar: "/avatars/morgan.jpg",
-        initials: "MS"
+        avatar: "MS"
       },
       tags: ["Report", "Q2", "Documentation"],
       progress: 0
@@ -74,8 +73,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-05",
       assignee: {
         name: "Jamie Lee",
-        avatar: "/avatars/jamie.jpg",
-        initials: "JL"
+        avatar: "JL"
       },
       tags: ["Maintenance", "Equipment", "Calibration"],
       progress: 100
@@ -89,8 +87,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-10",
       assignee: {
         name: "Taylor Kim",
-        avatar: "/avatars/taylor.jpg",
-        initials: "TK"
+        avatar: "TK"
       },
       tags: ["Inventory", "Reagents", "Order"],
       progress: 0
@@ -104,8 +101,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-20",
       assignee: {
         name: "Alex Johnson",
-        avatar: "/avatars/alex.jpg",
-        initials: "AJ"
+        avatar: "AJ"
       },
       tags: ["Research", "Review", "Proposal"],
       progress: 30
@@ -119,8 +115,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-12",
       assignee: {
         name: "Jamie Lee",
-        avatar: "/avatars/jamie.jpg",
-        initials: "JL"
+        avatar: "JL"
       },
       tags: ["Maintenance", "Cleaning", "Cell Culture"],
       progress: 0
@@ -134,8 +129,7 @@ export function TasksDashboard() {
       dueDate: "2023-06-08",
       assignee: {
         name: "Morgan Smith",
-        avatar: "/avatars/morgan.jpg",
-        initials: "MS"
+        avatar: "MS"
       },
       tags: ["Analysis", "DNA", "Sequencing"],
       progress: 100
@@ -148,15 +142,15 @@ export function TasksDashboard() {
   const filteredTasks = tasks.filter(task => {
     // Filter by search query
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
     // Filter by tab
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "todo") return matchesSearch && task.status === "todo";
     if (activeTab === "in-progress") return matchesSearch && task.status === "in-progress";
     if (activeTab === "completed") return matchesSearch && task.status === "completed";
-    
+
     return matchesSearch;
   });
 
@@ -228,7 +222,7 @@ export function TasksDashboard() {
           <h1 className="text-2xl font-bold">Tasks Dashboard</h1>
           <p className="text-muted-foreground">Manage and track all your laboratory tasks</p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9">
             <Filter className="h-4 w-4 mr-2" />
@@ -244,7 +238,7 @@ export function TasksDashboard() {
           </Button>
         </div>
       </div>
-      
+
       <Tabs defaultValue="list" className="w-full">
         <TabsList>
           <TabsTrigger value="list">Task List</TabsTrigger>
@@ -259,8 +253,8 @@ export function TasksDashboard() {
                     <CardTitle>Task List</CardTitle>
                     <div className="relative w-64">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Search tasks..." 
+                      <Input
+                        placeholder="Search tasks..."
                         className="pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -277,7 +271,7 @@ export function TasksDashboard() {
                       <TabsTrigger value="in-progress">In Progress</TabsTrigger>
                       <TabsTrigger value="completed">Completed</TabsTrigger>
                     </TabsList>
-                    
+
                     <ScrollArea className="h-[500px] pr-4">
                       <motion.div
                         variants={containerVariants}
@@ -305,8 +299,8 @@ export function TasksDashboard() {
                                       <div className="flex items-center gap-2">
                                         <h3 className="font-medium">{task.title}</h3>
                                         <Badge variant="outline" className={getStatusColor(task.status)}>
-                                          {task.status === "in-progress" ? "In Progress" : 
-                                           task.status === "todo" ? "To Do" : "Completed"}
+                                          {task.status === "in-progress" ? "In Progress" :
+                                            task.status === "todo" ? "To Do" : "Completed"}
                                         </Badge>
                                       </div>
                                       <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
@@ -331,7 +325,7 @@ export function TasksDashboard() {
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   </div>
-                                  
+
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3">
                                     <div className="flex flex-wrap gap-1">
                                       {task.tags.map((tag, index) => (
@@ -340,26 +334,23 @@ export function TasksDashboard() {
                                         </Badge>
                                       ))}
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-3 text-sm">
                                       <div className="flex items-center gap-1">
                                         <User className="h-3.5 w-3.5 text-muted-foreground" />
                                         <div className="flex items-center gap-1">
-                                          <Avatar className="h-5 w-5">
-                                            <AvatarImage src={task.assignee.avatar} alt={task.assignee.name} />
-                                            <AvatarFallback className="text-[10px]">{task.assignee.initials}</AvatarFallback>
-                                          </Avatar>
+                                          <UserAvatar user={task.assignee} size="sm" />
                                           <span className="text-xs">{task.assignee.name}</span>
                                         </div>
                                       </div>
-                                      
+
                                       <div className="flex items-center gap-1">
                                         <span className={getPriorityColor(task.priority)}>
                                           {getPriorityIcon(task.priority)}
                                         </span>
                                         <span className="text-xs capitalize">{task.priority}</span>
                                       </div>
-                                      
+
                                       <div className="flex items-center gap-1">
                                         <Clock className={`h-3.5 w-3.5 ${isOverdue(task.dueDate) ? "text-destructive" : "text-muted-foreground"}`} />
                                         <span className={`text-xs ${isOverdue(task.dueDate) ? "text-destructive" : ""}`}>
@@ -368,7 +359,7 @@ export function TasksDashboard() {
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   {task.status !== "todo" && (
                                     <div className="mt-3">
                                       <div className="flex justify-between items-center text-xs mb-1">
@@ -397,7 +388,7 @@ export function TasksDashboard() {
                 </CardFooter>
               </Card>
             </div>
-            
+
             <div className="space-y-6">
               <Card>
                 <CardHeader className="pb-2">
@@ -414,7 +405,7 @@ export function TasksDashboard() {
                       </div>
                       <span className="font-medium">{tasks.length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded">
@@ -424,7 +415,7 @@ export function TasksDashboard() {
                       </div>
                       <span className="font-medium">{tasks.filter(t => t.status === "in-progress").length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-amber-100 dark:bg-amber-900 p-1.5 rounded">
@@ -434,7 +425,7 @@ export function TasksDashboard() {
                       </div>
                       <span className="font-medium">{tasks.filter(t => t.status === "todo").length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-green-100 dark:bg-green-900 p-1.5 rounded">
@@ -447,7 +438,7 @@ export function TasksDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Upcoming Deadlines</CardTitle>
@@ -476,7 +467,7 @@ export function TasksDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Task Tags</CardTitle>

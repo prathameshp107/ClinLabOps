@@ -34,9 +34,9 @@ const mockProjects = [
     assignedTo: "Dr. Sarah Chen",
     tags: ["Oncology", "Proteomics", "Diagnostics"],
     team: [
-      { id: "u1", name: "Sarah Chen", role: "Principal Investigator", avatar: "/avatars/sarah.png" },
-      { id: "u2", name: "David Park", role: "Research Associate", avatar: "/avatars/david.png" },
-      { id: "u3", name: "Maria Rodriguez", role: "Lab Technician", avatar: "/avatars/maria.png" }
+      { id: "u1", name: "Sarah Chen", role: "Principal Investigator", avatar: "SC" },
+      { id: "u2", name: "David Park", role: "Research Associate", avatar: "DP" },
+      { id: "u3", name: "Maria Rodriguez", role: "Lab Technician", avatar: "MR" }
     ],
     tasks: [
       { id: "t1", name: "Sample collection", status: "Completed", dueDate: "2024-12-15", assignee: "Maria Rodriguez" },
@@ -71,9 +71,9 @@ const mockProjects = [
     assignedTo: "Dr. James Wilson",
     tags: ["Microbiology", "Antibiotics", "Diagnostics"],
     team: [
-      { id: "u4", name: "James Wilson", role: "Principal Investigator", avatar: "/avatars/james.png" },
-      { id: "u5", name: "Emma Johnson", role: "Research Associate", avatar: "/avatars/emma.png" },
-      { id: "u6", name: "Michael Brown", role: "Lab Technician", avatar: "/avatars/michael.png" }
+      { id: "u4", name: "James Wilson", role: "Principal Investigator", avatar: "JW" },
+      { id: "u5", name: "Emma Johnson", role: "Research Associate", avatar: "EJ" },
+      { id: "u6", name: "Michael Brown", role: "Lab Technician", avatar: "MB" }
     ],
     tasks: [
       { id: "t5", name: "Strain collection", status: "Completed", dueDate: "2024-11-01", assignee: "Michael Brown" },
@@ -123,18 +123,18 @@ export function ProjectDetails({ projectId }) {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
   const [taskFilter, setTaskFilter] = useState("all")
-  
+
   // New state for adding items
   const [newSubproject, setNewSubproject] = useState({ name: "", status: "Not Started" })
   const [newTask, setNewTask] = useState({ name: "", status: "Not Started", dueDate: "", assignee: "" })
   const [newMember, setNewMember] = useState({ id: "", role: "" })
   const [newTag, setNewTag] = useState("")
   const [newComment, setNewComment] = useState("")
-  
+
   // Modal states
   const [showAddSubprojectModal, setShowAddSubprojectModal] = useState(false)
   const [showAddTaskModal, setShowAddTaskModal] = useState(false)
-  
+
   // Fetch project data
   useEffect(() => {
     // Simulate API call
@@ -146,37 +146,37 @@ export function ProjectDetails({ projectId }) {
         setLoading(false)
       }, 500)
     }
-    
+
     fetchProject()
   }, [projectId])
-  
+
   // Handle adding a new subproject
   const handleAddSubproject = () => {
     if (!newSubproject.name.trim()) return
-    
+
     const subprojectToAdd = {
       id: `sp-${Date.now()}`,
       name: newSubproject.name,
       status: newSubproject.status,
       completion: 0
     }
-    
+
     setProject(prev => ({
       ...prev,
       subprojects: [...prev.subprojects, subprojectToAdd]
     }))
-    
+
     setNewSubproject({ name: "", status: "Not Started" })
     setShowAddSubprojectModal(false)
-    
+
     // Add to activity log
     addActivityItem("subproject_add", `Added new subproject: "${subprojectToAdd.name}"`)
   }
-  
+
   // Handle adding a new task
   const handleAddTask = () => {
     if (!newTask.name.trim()) return
-    
+
     const taskToAdd = {
       id: `t-${Date.now()}`,
       name: newTask.name,
@@ -184,94 +184,94 @@ export function ProjectDetails({ projectId }) {
       dueDate: newTask.dueDate || new Date().toISOString().split('T')[0],
       assignee: newTask.assignee || "Unassigned"
     }
-    
+
     setProject(prev => ({
       ...prev,
       tasks: [...prev.tasks, taskToAdd]
     }))
-    
+
     setNewTask({ name: "", status: "Not Started", dueDate: "", assignee: "" })
     setShowAddTaskModal(false)
-    
+
     // Add to activity log
     addActivityItem("task_add", `Added new task: "${taskToAdd.name}"`)
   }
-  
+
   // Handle adding a new team member
   const handleAddTeamMember = () => {
     if (!newMember.id || !newMember.role) return
-    
+
     // Find the selected member (in a real app, this would be from a proper members list)
     const memberOptions = [
-      { id: "member1", name: "John Smith", avatar: "/avatars/john.png" },
-      { id: "member2", name: "Elizabeth Taylor", avatar: "/avatars/elizabeth.png" },
-      { id: "member3", name: "Michael Johnson", avatar: "/avatars/michael.png" }
+      { id: "member1", name: "John Smith", avatar: "JS" },
+      { id: "member2", name: "Elizabeth Taylor", avatar: "ET" },
+      { id: "member3", name: "Michael Johnson", avatar: "MJ" }
     ]
-    
+
     const selectedMember = memberOptions.find(m => m.id === newMember.id)
-    
+
     if (!selectedMember) return
-    
+
     const memberToAdd = {
       id: selectedMember.id,
       name: selectedMember.name,
       role: newMember.role,
       avatar: selectedMember.avatar
     }
-    
+
     // Check if member already exists
     if (project.team.some(m => m.id === memberToAdd.id)) {
       alert("This team member is already assigned to the project")
       return
     }
-    
+
     setProject(prev => ({
       ...prev,
       team: [...prev.team, memberToAdd]
     }))
-    
+
     setNewMember({ id: "", role: "" })
-    
+
     // Add to activity log
     addActivityItem("member_add", `Added ${memberToAdd.name} to the project as ${memberToAdd.role}`)
   }
-  
+
   // Handle adding a new tag
   const handleAddTag = () => {
     if (!newTag.trim()) return
-    
+
     // Check if tag already exists
     if (project.tags.includes(newTag)) {
       alert("This tag already exists")
       return
     }
-    
+
     setProject(prev => ({
       ...prev,
       tags: [...prev.tags, newTag]
     }))
-    
+
     setNewTag("")
-    
+
     // Add to activity log
     addActivityItem("tag_add", `Added tag: "${newTag}"`)
   }
-  
+
   // Handle removing a tag
   const handleRemoveTag = (tagToRemove) => {
     setProject(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
     }))
-    
+
     // Add to activity log
     addActivityItem("tag_remove", `Removed tag: "${tagToRemove}"`)
   }
-  
+
   // Handle adding a comment
   const handleAddComment = () => {
     if (!newComment.trim()) return
-    
+
     const commentToAdd = {
       id: `a-${Date.now()}`,
       type: "comment",
@@ -279,15 +279,15 @@ export function ProjectDetails({ projectId }) {
       timestamp: new Date().toISOString(),
       content: newComment
     }
-    
+
     setProject(prev => ({
       ...prev,
       activities: [commentToAdd, ...prev.activities]
     }))
-    
+
     setNewComment("")
   }
-  
+
   // Helper function to add activity items
   const addActivityItem = (type, content) => {
     const activityItem = {
@@ -297,18 +297,18 @@ export function ProjectDetails({ projectId }) {
       timestamp: new Date().toISOString(),
       content
     }
-    
+
     setProject(prev => ({
       ...prev,
       activities: [activityItem, ...prev.activities]
     }))
   }
-  
+
   // Handle back navigation
   const handleBack = () => {
     router.push("/projects")
   }
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
@@ -322,7 +322,7 @@ export function ProjectDetails({ projectId }) {
       </div>
     )
   }
-  
+
   if (!project) {
     return (
       <div className="flex flex-col items-center justify-center h-[50vh]">
@@ -336,15 +336,15 @@ export function ProjectDetails({ projectId }) {
       </div>
     )
   }
-  
+
   // Filter tasks based on selected filter
   const filteredTasks = project.tasks.filter(task => {
     if (taskFilter === "all") return true
     return task.status.toLowerCase() === taskFilter.toLowerCase()
   })
-  
+
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="visible"
       variants={fadeIn}
@@ -375,7 +375,7 @@ export function ProjectDetails({ projectId }) {
               <label htmlFor="subproject-status" className="text-sm font-medium">
                 Status
               </label>
-              <select 
+              <select
                 id="subproject-status"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={newSubproject.status}
@@ -394,7 +394,7 @@ export function ProjectDetails({ projectId }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Dialog for adding new task */}
       <Dialog open={showAddTaskModal} onOpenChange={setShowAddTaskModal}>
         <DialogContent className="sm:max-w-[500px]">
@@ -421,7 +421,7 @@ export function ProjectDetails({ projectId }) {
                 <label htmlFor="task-status" className="text-sm font-medium">
                   Status
                 </label>
-                <select 
+                <select
                   id="task-status"
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={newTask.status}
@@ -449,7 +449,7 @@ export function ProjectDetails({ projectId }) {
               <label htmlFor="task-assignee" className="text-sm font-medium">
                 Assigned To
               </label>
-              <select 
+              <select
                 id="task-assignee"
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={newTask.assignee}
@@ -521,7 +521,7 @@ export function ProjectDetails({ projectId }) {
           <p className="text-gray-500 dark:text-gray-400 mt-1">{project.description}</p>
         </div>
       </div>
-      
+
       {/* Project Progress */}
       <Card className="mb-6">
         <CardHeader className="pb-2">
@@ -548,7 +548,7 @@ export function ProjectDetails({ projectId }) {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid grid-cols-5 w-full max-w-4xl">
@@ -573,7 +573,7 @@ export function ProjectDetails({ projectId }) {
             Settings
           </TabsTrigger>
         </TabsList>
-        
+
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -597,7 +597,7 @@ export function ProjectDetails({ projectId }) {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Milestones */}
               <Card>
                 <CardHeader className="pb-2">
@@ -625,7 +625,7 @@ export function ProjectDetails({ projectId }) {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Right Column */}
             <div className="space-y-4">
               {/* Team Members */}
@@ -654,7 +654,7 @@ export function ProjectDetails({ projectId }) {
                   </Button>
                 </CardContent>
               </Card>
-              
+
               {/* Subprojects */}
               <Card>
                 <CardHeader className="pb-2">
@@ -677,9 +677,9 @@ export function ProjectDetails({ projectId }) {
                       </div>
                     ))}
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="w-full mt-4"
                     onClick={() => setShowAddSubprojectModal(true)}
                   >
@@ -691,7 +691,7 @@ export function ProjectDetails({ projectId }) {
             </div>
           </div>
         </TabsContent>
-        
+
         {/* Tasks Tab */}
         <TabsContent value="tasks">
           <Card>
@@ -704,29 +704,29 @@ export function ProjectDetails({ projectId }) {
                 </Button>
               </div>
               <div className="flex space-x-2 mt-2">
-                <Button 
-                  variant={taskFilter === "all" ? "default" : "outline"} 
+                <Button
+                  variant={taskFilter === "all" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setTaskFilter("all")}
                 >
                   All
                 </Button>
-                <Button 
-                  variant={taskFilter === "not started" ? "default" : "outline"} 
+                <Button
+                  variant={taskFilter === "not started" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setTaskFilter("not started")}
                 >
                   Not Started
                 </Button>
-                <Button 
-                  variant={taskFilter === "in progress" ? "default" : "outline"} 
+                <Button
+                  variant={taskFilter === "in progress" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setTaskFilter("in progress")}
                 >
                   In Progress
                 </Button>
-                <Button 
-                  variant={taskFilter === "completed" ? "default" : "outline"} 
+                <Button
+                  variant={taskFilter === "completed" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setTaskFilter("completed")}
                 >
@@ -739,7 +739,7 @@ export function ProjectDetails({ projectId }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[30px]">
-                      <Checkbox 
+                      <Checkbox
                         id="select-all-tasks"
                         onCheckedChange={(checked) => {
                           // Handle select all functionality here
@@ -758,7 +758,7 @@ export function ProjectDetails({ projectId }) {
                     <TableRow key={task.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
                       <TableCell className="p-2">
                         <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-center">
-                          <Checkbox 
+                          <Checkbox
                             id={`task-${task.id}`}
                             onCheckedChange={(checked) => {
                               // Handle task selection
@@ -797,7 +797,7 @@ export function ProjectDetails({ projectId }) {
                   )}
                 </TableBody>
               </Table>
-              
+
               {filteredTasks.length > 0 && (
                 <div className="flex justify-between items-center mt-4 text-sm text-gray-500">
                   <div>
@@ -813,7 +813,7 @@ export function ProjectDetails({ projectId }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Team Tab */}
         <TabsContent value="team">
           <Card>
@@ -850,7 +850,7 @@ export function ProjectDetails({ projectId }) {
                     </div>
                   </div>
                 ))}
-                
+
                 {/* Add Member Form */}
                 <Card className="border-dashed border-2">
                   <CardHeader className="pb-3">
@@ -860,7 +860,7 @@ export function ProjectDetails({ projectId }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Team Member</label>
-                        <select 
+                        <select
                           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                           value={newMember.id}
                           onChange={(e) => setNewMember(prev => ({ ...prev, id: e.target.value }))}
@@ -873,14 +873,14 @@ export function ProjectDetails({ projectId }) {
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Role in Project</label>
-                        <Input 
-                          placeholder="Researcher, Analyst, etc." 
+                        <Input
+                          placeholder="Researcher, Analyst, etc."
                           value={newMember.role}
                           onChange={(e) => setNewMember(prev => ({ ...prev, role: e.target.value }))}
                         />
                       </div>
                     </div>
-                    <Button 
+                    <Button
                       className="w-full"
                       onClick={handleAddTeamMember}
                       disabled={!newMember.id || !newMember.role}
@@ -894,7 +894,7 @@ export function ProjectDetails({ projectId }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Activity Tab */}
         <TabsContent value="activity">
           <Card>
@@ -908,8 +908,8 @@ export function ProjectDetails({ projectId }) {
               <ScrollArea className="h-[400px] pr-4">
                 <div className="space-y-6">
                   {project.activities.map((activity, index) => (
-                    <motion.div 
-                      key={activity.id} 
+                    <motion.div
+                      key={activity.id}
                       className="relative pl-6 pb-6"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -919,15 +919,15 @@ export function ProjectDetails({ projectId }) {
                       {index < project.activities.length - 1 && (
                         <div className="absolute left-2 top-3 bottom-0 w-0.5 bg-gradient-to-b from-primary to-primary/20 dark:from-primary dark:to-primary/10" />
                       )}
-                      
+
                       {/* Activity dot */}
-                      <motion.div 
+                      <motion.div
                         className="absolute left-0 top-1.5 h-4 w-4 rounded-full bg-primary"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: index * 0.05 + 0.1, duration: 0.2 }}
                       />
-                      
+
                       <div className="flex flex-col">
                         <div className="flex items-center text-sm font-medium">
                           <span>{activity.user}</span>
@@ -938,10 +938,10 @@ export function ProjectDetails({ projectId }) {
                         <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">
                           {activity.content}
                         </p>
-                        
+
                         {/* Render different activity types with different styles/icons */}
                         {activity.type === "status_change" && (
-                          <motion.div 
+                          <motion.div
                             className="mt-2 p-2 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/10 rounded-md text-sm"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -953,9 +953,9 @@ export function ProjectDetails({ projectId }) {
                             </span>
                           </motion.div>
                         )}
-                        
+
                         {activity.type === "task_complete" && (
-                          <motion.div 
+                          <motion.div
                             className="mt-2 p-2 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 rounded-md text-sm"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -967,9 +967,9 @@ export function ProjectDetails({ projectId }) {
                             </span>
                           </motion.div>
                         )}
-                        
+
                         {activity.type === "comment" && (
-                          <motion.div 
+                          <motion.div
                             className="mt-2 p-2 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 rounded-md text-sm"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -983,7 +983,7 @@ export function ProjectDetails({ projectId }) {
                         )}
 
                         {activity.type === "task_add" && (
-                          <motion.div 
+                          <motion.div
                             className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-md text-sm"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -997,7 +997,7 @@ export function ProjectDetails({ projectId }) {
                         )}
 
                         {activity.type === "member_add" && (
-                          <motion.div 
+                          <motion.div
                             className="mt-2 p-2 bg-gradient-to-r from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/10 rounded-md text-sm"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -1011,7 +1011,7 @@ export function ProjectDetails({ projectId }) {
                         )}
 
                         {activity.type === "subproject_add" && (
-                          <motion.div 
+                          <motion.div
                             className="mt-2 p-2 bg-gradient-to-r from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/10 rounded-md text-sm"
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -1028,14 +1028,14 @@ export function ProjectDetails({ projectId }) {
                   ))}
                 </div>
               </ScrollArea>
-              
+
               {/* Add Comment */}
               <div className="mt-6 pt-4 border-t">
                 <h4 className="text-sm font-medium mb-2">Add Comment</h4>
                 <div className="flex gap-2">
-                  <Input 
-                    placeholder="Type your comment here..." 
-                    className="flex-1" 
+                  <Input
+                    placeholder="Type your comment here..."
+                    className="flex-1"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     onKeyDown={(e) => {
@@ -1045,7 +1045,7 @@ export function ProjectDetails({ projectId }) {
                       }
                     }}
                   />
-                  <Button 
+                  <Button
                     onClick={handleAddComment}
                     disabled={!newComment.trim()}
                   >
@@ -1057,7 +1057,7 @@ export function ProjectDetails({ projectId }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         {/* Settings Tab */}
         <TabsContent value="settings">
           <Card>
@@ -1096,8 +1096,8 @@ export function ProjectDetails({ projectId }) {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-medium">Description</label>
-                    <textarea 
-                      className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm" 
+                    <textarea
+                      className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm"
                       defaultValue={project.description}
                     />
                   </div>
@@ -1107,9 +1107,9 @@ export function ProjectDetails({ projectId }) {
                   Save Changes
                 </Button>
               </div>
-              
+
               <Separator />
-              
+
               {/* Tags Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Tags</h3>
@@ -1117,9 +1117,9 @@ export function ProjectDetails({ projectId }) {
                   {project.tags.map(tag => (
                     <div key={tag} className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
                       <span className="text-sm">{tag}</span>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-5 w-5 rounded-full"
                         onClick={() => handleRemoveTag(tag)}
                       >
@@ -1129,8 +1129,8 @@ export function ProjectDetails({ projectId }) {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Input 
-                    placeholder="Add new tag..." 
+                  <Input
+                    placeholder="Add new tag..."
                     className="flex-1"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
@@ -1144,9 +1144,9 @@ export function ProjectDetails({ projectId }) {
                   <Button onClick={handleAddTag} disabled={!newTag.trim()}>Add</Button>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               {/* Notifications Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Notifications</h3>
@@ -1181,9 +1181,9 @@ export function ProjectDetails({ projectId }) {
                   </div>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               {/* Danger Zone */}
               <div className="space-y-4 rounded-md border border-red-200 dark:border-red-900 p-4">
                 <h3 className="text-lg font-medium text-red-600 dark:text-red-400">Danger Zone</h3>

@@ -101,7 +101,7 @@ export const recentActivities = [
         user: {
             name: "Alex Johnson",
             role: "Senior Researcher",
-            avatar: "/avatars/01.png"
+            avatar: "AP"
         },
         action: "completed",
         target: "Project Documentation Update",
@@ -112,7 +112,7 @@ export const recentActivities = [
         user: {
             name: "Maria Garcia",
             role: "Lab Technician",
-            avatar: "/avatars/02.png"
+            avatar: "MG"
         },
         action: "started",
         target: "Authentication Bug Fix",
@@ -123,7 +123,7 @@ export const recentActivities = [
         user: {
             name: "David Kim",
             role: "UI/UX Designer",
-            avatar: "/avatars/03.png"
+            avatar: "DK"
         },
         action: "updated",
         target: "Dashboard Layout Design",
@@ -134,7 +134,7 @@ export const recentActivities = [
         user: {
             name: "Sarah Lee",
             role: "QA Engineer",
-            avatar: "/avatars/04.png"
+            avatar: "SL"
         },
         action: "assigned",
         target: "Unit Testing Task",
@@ -145,7 +145,7 @@ export const recentActivities = [
         user: {
             name: "James Wilson",
             role: "DevOps Engineer",
-            avatar: "/avatars/05.png"
+            avatar: "JW"
         },
         action: "updated",
         target: "Dependencies",
@@ -279,7 +279,7 @@ export const pendingApprovalsData = [
         submitter: {
             name: "Sarah Miller",
             email: "sarah.miller@labtasker.com",
-            avatar: "/avatars/sarah.png"
+            avatar: "SM"
         },
         submitted: "2025-03-22T14:32:45",
         priority: "high",
@@ -291,7 +291,7 @@ export const pendingApprovalsData = [
         submitter: {
             name: "David Chen",
             email: "david.chen@labtasker.com",
-            avatar: "/avatars/david.png"
+            avatar: "DC"
         },
         submitted: "2025-03-22T12:45:30",
         priority: "medium",
@@ -303,7 +303,7 @@ export const pendingApprovalsData = [
         submitter: {
             name: "Alex Johnson",
             email: "alex.johnson@labtasker.com",
-            avatar: "/avatars/alex.png"
+            avatar: "AP"
         },
         submitted: "2025-03-22T11:20:15",
         priority: "low",
@@ -315,7 +315,7 @@ export const pendingApprovalsData = [
         submitter: {
             name: "Emily Wong",
             email: "emily.wong@labtasker.com",
-            avatar: "/avatars/emily.png"
+            avatar: "EW"
         },
         submitted: "2025-03-21T17:10:22",
         priority: "medium",
@@ -327,7 +327,7 @@ export const pendingApprovalsData = [
         submitter: {
             name: "James Rivera",
             email: "james.rivera@labtasker.com",
-            avatar: "/avatars/james.png"
+            avatar: "JR"
         },
         submitted: "2025-03-21T16:05:40",
         priority: "high",
@@ -343,7 +343,7 @@ export const userActivityData =
             user: {
                 name: "Alex Johnson",
                 email: "alex.johnson@labtasker.com",
-                avatar: "/avatars/alex.png"
+                avatar: "AP"
             },
             action: "Started experiment",
             actionDetail: "Enzyme Stability Analysis (EXP-1023)",
@@ -355,7 +355,7 @@ export const userActivityData =
             user: {
                 name: "Sarah Miller",
                 email: "sarah.miller@labtasker.com",
-                avatar: "/avatars/sarah.png"
+                avatar: "SM"
             },
             action: "Updated protocol",
             actionDetail: "PCR Amplification Protocol v2.3",
@@ -367,7 +367,7 @@ export const userActivityData =
             user: {
                 name: "David Chen",
                 email: "david.chen@labtasker.com",
-                avatar: "/avatars/david.png"
+                avatar: "DC"
             },
             action: "Uploaded results",
             actionDetail: "Substrate Specificity Results (EXP-1025)",
@@ -379,7 +379,7 @@ export const userActivityData =
             user: {
                 name: "Emily Wong",
                 email: "emily.wong@labtasker.com",
-                avatar: "/avatars/emily.png"
+                avatar: "EW"
             },
             action: "Created task",
             actionDetail: "Prepare samples for next week's run",
@@ -391,7 +391,7 @@ export const userActivityData =
             user: {
                 name: "James Rivera",
                 email: "james.rivera@labtasker.com",
-                avatar: "/avatars/james.png"
+                avatar: "JR"
             },
             action: "Generated report",
             actionDetail: "Monthly Equipment Usage Summary",

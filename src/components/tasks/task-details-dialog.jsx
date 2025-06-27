@@ -501,15 +501,15 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const currentUser = {
     id: 'current-user',
     name: 'Current User',
-    avatar: '/avatars/current-user.jpg',
+    avatar: 'JD',
     email: 'current@example.com'
   };
 
   // Mock users for mentions (replace with actual users from props)
   const mentionableUsers = [
-    { id: 'user1', name: 'John Doe', avatar: '/avatars/john.jpg', email: 'john@example.com' },
-    { id: 'user2', name: 'Jane Smith', avatar: '/avatars/jane.jpg', email: 'jane@example.com' },
-    { id: 'user3', name: 'Alex Johnson', avatar: '/avatars/alex.jpg', email: 'alex@example.com' },
+    { id: 'user1', name: 'John Doe', avatar: 'JD', email: 'john@example.com' },
+    { id: 'user2', name: 'Jane Smith', avatar: 'JS', email: 'jane@example.com' },
+    { id: 'user3', name: 'Alex Johnson', avatar: 'AJ', email: 'alex@example.com' },
   ];
 
   // Filter users based on mention query

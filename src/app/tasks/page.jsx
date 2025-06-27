@@ -574,9 +574,9 @@ export default function TasksPage() {
             task={selectedTask}
             onAction={handleTaskAction}
             users={[
-              { id: 'user1', name: 'John Doe', avatar: '/avatars/01.png' },
-              { id: 'user2', name: 'Jane Smith', avatar: '/avatars/02.png' },
-              { id: 'user3', name: 'Robert Johnson', avatar: '/avatars/03.png' },
+              { id: 'user1', name: 'John Doe', avatar: 'JD' },
+              { id: 'user2', name: 'Jane Smith', avatar: 'JS' },
+              { id: 'user3', name: 'Robert Johnson', avatar: 'RJ' },
             ]}
             experiments={[
               { id: 'exp1', name: 'Cell Culture' },

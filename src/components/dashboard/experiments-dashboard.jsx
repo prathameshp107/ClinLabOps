@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  FlaskConical, 
-  Calendar, 
-  Users, 
-  Clock, 
-  Filter, 
-  Plus, 
-  Search, 
+import {
+  FlaskConical,
+  Calendar,
+  Users,
+  Clock,
+  Filter,
+  Plus,
+  Search,
   ArrowUpDown,
   CheckCircle2,
   AlertTriangle,
@@ -31,7 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HoverGlowCard, GlowingStarsBackgroundCard } from "@/components/ui/aceternity/cards";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -55,13 +55,13 @@ export function ExperimentsDashboard() {
       progress: 65,
       lead: {
         name: "Dr. Sarah Chen",
-        avatar: "/avatars/sarah.jpg",
+        avatar: "SC",
         initials: "SC"
       },
       team: [
-        { name: "Alex Johnson", avatar: "/avatars/alex.jpg", initials: "AJ" },
-        { name: "Morgan Smith", avatar: "/avatars/morgan.jpg", initials: "MS" },
-        { name: "Jamie Lee", avatar: "/avatars/jamie.jpg", initials: "JL" }
+        { name: "Alex Johnson", avatar: "AJ", initials: "AJ" },
+        { name: "Morgan Smith", avatar: "MS", initials: "MS" },
+        { name: "Jamie Lee", avatar: "JL", initials: "JL" }
       ],
       tags: ["PCR", "CRISPR", "Gene Editing"],
       phases: [
@@ -88,12 +88,12 @@ export function ExperimentsDashboard() {
       progress: 100,
       lead: {
         name: "Dr. Michael Wong",
-        avatar: "/avatars/michael.jpg",
+        avatar: "MW",
         initials: "MW"
       },
       team: [
-        { name: "Taylor Kim", avatar: "/avatars/taylor.jpg", initials: "TK" },
-        { name: "Jamie Lee", avatar: "/avatars/jamie.jpg", initials: "JL" }
+        { name: "Taylor Kim", avatar: "TK", initials: "TK" },
+        { name: "Jamie Lee", avatar: "JL", initials: "JL" }
       ],
       tags: ["Protein Expression", "E. coli", "Recombinant"],
       phases: [
@@ -120,12 +120,12 @@ export function ExperimentsDashboard() {
       progress: 0,
       lead: {
         name: "Dr. Emily Rodriguez",
-        avatar: "/avatars/emily.jpg",
+        avatar: "ER",
         initials: "ER"
       },
       team: [
-        { name: "Alex Johnson", avatar: "/avatars/alex.jpg", initials: "AJ" },
-        { name: "Morgan Smith", avatar: "/avatars/morgan.jpg", initials: "MS" }
+        { name: "Alex Johnson", avatar: "AJ", initials: "AJ" },
+        { name: "Morgan Smith", avatar: "MS", initials: "MS" }
       ],
       tags: ["Antibody", "Cancer", "Biomarkers", "Screening"],
       phases: [
@@ -152,12 +152,12 @@ export function ExperimentsDashboard() {
       progress: 35,
       lead: {
         name: "Dr. James Wilson",
-        avatar: "/avatars/james.jpg",
+        avatar: "JW",
         initials: "JW"
       },
       team: [
-        { name: "Taylor Kim", avatar: "/avatars/taylor.jpg", initials: "TK" },
-        { name: "Jamie Lee", avatar: "/avatars/jamie.jpg", initials: "JL" }
+        { name: "Taylor Kim", avatar: "TK", initials: "TK" },
+        { name: "Jamie Lee", avatar: "JL", initials: "JL" }
       ],
       tags: ["Cell Culture", "Neurons", "Optimization"],
       phases: [
@@ -184,12 +184,12 @@ export function ExperimentsDashboard() {
       progress: 75,
       lead: {
         name: "Dr. Sarah Chen",
-        avatar: "/avatars/sarah.jpg",
+        avatar: "SC",
         initials: "SC"
       },
       team: [
-        { name: "Alex Johnson", avatar: "/avatars/alex.jpg", initials: "AJ" },
-        { name: "Morgan Smith", avatar: "/avatars/morgan.jpg", initials: "MS" }
+        { name: "Alex Johnson", avatar: "AJ", initials: "AJ" },
+        { name: "Morgan Smith", avatar: "MS", initials: "MS" }
       ],
       tags: ["RNA-Seq", "Transcriptomics", "Stress Response"],
       phases: [
@@ -214,16 +214,16 @@ export function ExperimentsDashboard() {
   const filteredExperiments = experiments.filter(experiment => {
     // Filter by search query
     const matchesSearch = experiment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         experiment.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         experiment.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
+      experiment.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      experiment.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
     // Filter by tab
     if (activeTab === "all") return matchesSearch;
     if (activeTab === "in-progress") return matchesSearch && experiment.status === "in-progress";
     if (activeTab === "planned") return matchesSearch && experiment.status === "planned";
     if (activeTab === "completed") return matchesSearch && experiment.status === "completed";
     if (activeTab === "on-hold") return matchesSearch && experiment.status === "on-hold";
-    
+
     return matchesSearch;
   });
 
@@ -304,9 +304,9 @@ export function ExperimentsDashboard() {
   return (
     <div className="space-y-6">
       {selectedExperiment ? (
-        <ExperimentDetail 
-          experiment={selectedExperiment} 
-          onBack={() => setSelectedExperiment(null)} 
+        <ExperimentDetail
+          experiment={selectedExperiment}
+          onBack={() => setSelectedExperiment(null)}
         />
       ) : (
         <>
@@ -315,7 +315,7 @@ export function ExperimentsDashboard() {
               <h1 className="text-2xl font-bold">Experiments Dashboard</h1>
               <p className="text-muted-foreground">Manage and track all your laboratory experiments</p>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-9">
                 <Filter className="h-4 w-4 mr-2" />
@@ -331,7 +331,7 @@ export function ExperimentsDashboard() {
               </Button>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="md:col-span-3">
               <Card>
@@ -340,8 +340,8 @@ export function ExperimentsDashboard() {
                     <CardTitle>Experiment List</CardTitle>
                     <div className="relative w-64">
                       <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        placeholder="Search experiments..." 
+                      <Input
+                        placeholder="Search experiments..."
                         className="pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -359,7 +359,7 @@ export function ExperimentsDashboard() {
                       <TabsTrigger value="completed">Completed</TabsTrigger>
                       <TabsTrigger value="on-hold">On Hold</TabsTrigger>
                     </TabsList>
-                    
+
                     <ScrollArea className="h-[500px] pr-4">
                       <motion.div
                         variants={containerVariants}
@@ -380,7 +380,7 @@ export function ExperimentsDashboard() {
                         ) : (
                           filteredExperiments.map((experiment) => (
                             <motion.div key={experiment.id} variants={itemVariants}>
-                              <HoverGlowCard 
+                              <HoverGlowCard
                                 className="bg-card border rounded-lg overflow-hidden cursor-pointer"
                                 onClick={() => setSelectedExperiment(experiment)}
                               >
@@ -418,7 +418,7 @@ export function ExperimentsDashboard() {
                                       </DropdownMenuContent>
                                     </DropdownMenu>
                                   </div>
-                                  
+
                                   <div className="grid grid-cols-2 gap-4 mt-3">
                                     <div>
                                       <div className="text-xs text-muted-foreground mb-1">Timeline</div>
@@ -426,7 +426,7 @@ export function ExperimentsDashboard() {
                                         {formatDate(experiment.startDate)} - {formatDate(experiment.endDate)}
                                       </div>
                                     </div>
-                                    
+
                                     <div>
                                       <div className="text-xs text-muted-foreground mb-1">Lead Researcher</div>
                                       <div className="flex items-center gap-1">
@@ -438,7 +438,7 @@ export function ExperimentsDashboard() {
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3">
                                     <div className="flex flex-wrap gap-1">
                                       {experiment.tags.map((tag, index) => (
@@ -447,13 +447,13 @@ export function ExperimentsDashboard() {
                                         </Badge>
                                       ))}
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-3 text-sm">
                                       <div className="flex items-center gap-1">
                                         <Users className="h-3.5 w-3.5 text-muted-foreground" />
                                         <span className="text-xs">{experiment.team.length + 1}</span>
                                       </div>
-                                      
+
                                       <div className="flex items-center gap-1">
                                         <span className={getPriorityColor(experiment.priority)}>
                                           <AlertTriangle className="h-3.5 w-3.5" />
@@ -462,7 +462,7 @@ export function ExperimentsDashboard() {
                                       </div>
                                     </div>
                                   </div>
-                                  
+
                                   <div className="mt-3">
                                     <div className="flex justify-between items-center text-xs mb-1">
                                       <span className="text-muted-foreground">Progress</span>
@@ -489,7 +489,7 @@ export function ExperimentsDashboard() {
                 </CardFooter>
               </Card>
             </div>
-            
+
             <div className="space-y-6">
               <Card>
                 <CardHeader className="pb-2">
@@ -506,7 +506,7 @@ export function ExperimentsDashboard() {
                       </div>
                       <span className="font-medium">{experiments.length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-amber-100 dark:bg-amber-900 p-1.5 rounded">
@@ -516,7 +516,7 @@ export function ExperimentsDashboard() {
                       </div>
                       <span className="font-medium">{experiments.filter(e => e.status === "in-progress").length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded">
@@ -526,7 +526,7 @@ export function ExperimentsDashboard() {
                       </div>
                       <span className="font-medium">{experiments.filter(e => e.status === "planned").length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-green-100 dark:bg-green-900 p-1.5 rounded">
@@ -536,7 +536,7 @@ export function ExperimentsDashboard() {
                       </div>
                       <span className="font-medium">{experiments.filter(e => e.status === "completed").length}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded">
@@ -549,7 +549,7 @@ export function ExperimentsDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Upcoming Deadlines</CardTitle>
@@ -580,7 +580,7 @@ export function ExperimentsDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Research Areas</CardTitle>
@@ -609,7 +609,7 @@ export function ExperimentsDashboard() {
 
 function ExperimentDetail({ experiment, onBack }) {
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   const getStatusColor = (status) => {
     switch (status) {
       case "planned": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100";
@@ -667,7 +667,7 @@ function ExperimentDetail({ experiment, onBack }) {
             </div>
             <p className="text-muted-foreground">{experiment.description}</p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
               <FileText className="h-4 w-4 mr-2" />
@@ -683,18 +683,18 @@ function ExperimentDetail({ experiment, onBack }) {
             </Button>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">ID</div>
             <div className="font-medium">{experiment.id}</div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">Timeline</div>
             <div className="font-medium">{formatDate(experiment.startDate)} - {formatDate(experiment.endDate)}</div>
           </div>
-          
+
           <div className="space-y-2">
             <div className="text-sm text-muted-foreground">Lead Researcher</div>
             <div className="flex items-center gap-2 font-medium">
@@ -706,7 +706,7 @@ function ExperimentDetail({ experiment, onBack }) {
             </div>
           </div>
         </div>
-        
+
         <div className="mb-6">
           <div className="text-sm text-muted-foreground mb-2">Progress</div>
           <div className="flex items-center gap-2">
@@ -714,7 +714,7 @@ function ExperimentDetail({ experiment, onBack }) {
             <span className="text-sm font-medium">{experiment.progress}%</span>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2 mb-6">
           {experiment.tags.map((tag, index) => (
             <Badge key={index} variant="secondary">
@@ -723,7 +723,7 @@ function ExperimentDetail({ experiment, onBack }) {
           ))}
         </div>
       </GlowingStarsBackgroundCard>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -732,7 +732,7 @@ function ExperimentDetail({ experiment, onBack }) {
           <TabsTrigger value="results">Results</TabsTrigger>
           <TabsTrigger value="notes">Notes</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
@@ -765,7 +765,7 @@ function ExperimentDetail({ experiment, onBack }) {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Recent Activity</CardTitle>
@@ -792,7 +792,7 @@ function ExperimentDetail({ experiment, onBack }) {
               </CardContent>
             </Card>
           </div>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Team Members</CardTitle>
@@ -810,7 +810,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     <div className="text-xs text-muted-foreground">Lead Researcher</div>
                   </div>
                 </div>
-                
+
                 {experiment.team.map((member, index) => (
                   <div key={index} className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-background/50">
                     <Avatar className="h-10 w-10">
@@ -827,7 +827,7 @@ function ExperimentDetail({ experiment, onBack }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="team">
           <Card>
             <CardHeader>
@@ -853,9 +853,9 @@ function ExperimentDetail({ experiment, onBack }) {
                     </div>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-medium">Team Members</h3>
@@ -864,7 +864,7 @@ function ExperimentDetail({ experiment, onBack }) {
                       Add Member
                     </Button>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {experiment.team.map((member, index) => (
                       <div key={index} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-background/50">
@@ -891,7 +891,7 @@ function ExperimentDetail({ experiment, onBack }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="timeline">
           <Card>
             <CardHeader>
@@ -912,7 +912,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     Initial planning and protocol development completed. Team assignments finalized.
                   </div>
                 </div>
-                
+
                 <div className="relative">
                   <div className="absolute -left-[25px] p-1 rounded-full bg-green-100 dark:bg-green-900">
                     <CheckCircle2 className="h-4 w-4 text-green-800 dark:text-green-100" />
@@ -925,7 +925,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     All necessary equipment calibrated and prepared for experiment execution.
                   </div>
                 </div>
-                
+
                 <div className="relative">
                   <div className="absolute -left-[25px] p-1 rounded-full bg-amber-100 dark:bg-amber-900">
                     <Clock className="h-4 w-4 text-amber-800 dark:text-amber-100" />
@@ -938,7 +938,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     Currently collecting experimental data. Progress: 65% complete.
                   </div>
                 </div>
-                
+
                 <div className="relative">
                   <div className="absolute -left-[25px] p-1 rounded-full bg-slate-100 dark:bg-slate-800">
                     <div className="h-4 w-4 rounded-full border border-slate-400 dark:border-slate-500" />
@@ -951,7 +951,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     Statistical analysis and interpretation of experimental results.
                   </div>
                 </div>
-                
+
                 <div className="relative">
                   <div className="absolute -left-[25px] p-1 rounded-full bg-slate-100 dark:bg-slate-800">
                     <div className="h-4 w-4 rounded-full border border-slate-400 dark:border-slate-500" />
@@ -968,7 +968,7 @@ function ExperimentDetail({ experiment, onBack }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="results">
           <Card>
             <CardHeader>
@@ -983,18 +983,18 @@ function ExperimentDetail({ experiment, onBack }) {
                       <div className="text-sm text-muted-foreground mb-1">Success Rate</div>
                       <div className="text-2xl font-bold">92%</div>
                     </div>
-                    
+
                     <div className="p-4 rounded-lg border border-border/50 bg-background/50">
                       <div className="text-sm text-muted-foreground mb-1">Samples Processed</div>
                       <div className="text-2xl font-bold">48</div>
                     </div>
-                    
+
                     <div className="p-4 rounded-lg border border-border/50 bg-background/50">
                       <div className="text-sm text-muted-foreground mb-1">Data Points</div>
                       <div className="text-2xl font-bold">1,245</div>
                     </div>
                   </div>
-                  
+
                   <div className="p-4 rounded-lg border border-border/50 bg-background/50">
                     <h3 className="text-lg font-medium mb-3">Key Findings</h3>
                     <ul className="space-y-2 text-sm">
@@ -1018,7 +1018,7 @@ function ExperimentDetail({ experiment, onBack }) {
                       </li>
                     </ul>
                   </div>
-                  
+
                   <div className="flex justify-center">
                     <div className="p-8 text-center">
                       <BarChart3 className="h-16 w-16 mx-auto mb-4 text-primary opacity-50" />
@@ -1057,7 +1057,7 @@ function ExperimentDetail({ experiment, onBack }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="notes">
           <Card>
             <CardHeader>
@@ -1083,7 +1083,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     Initial protocol established. We'll be using a modified version of the standard PCR protocol with the following adjustments: increased primer concentration (0.5μM), extended annealing time (45s), and modified buffer composition.
                   </p>
                 </div>
-                
+
                 <div className="p-4 rounded-lg border border-border/50 bg-background/50">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -1101,7 +1101,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     First batch of samples processed. Observed some non-specific amplification in samples 3, 7, and 12. Might need to adjust annealing temperature in the next run. All other samples show good specificity and yield.
                   </p>
                 </div>
-                
+
                 <div className="p-4 rounded-lg border border-border/50 bg-background/50">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -1119,7 +1119,7 @@ function ExperimentDetail({ experiment, onBack }) {
                     Equipment calibration check performed. All instruments are functioning within expected parameters. Thermal cycler temperature verification shows ±0.3°C accuracy across all wells.
                   </p>
                 </div>
-                
+
                 <div className="flex justify-center">
                   <Button variant="outline">
                     <Plus className="h-4 w-4 mr-2" />

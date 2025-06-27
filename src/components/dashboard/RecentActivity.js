@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 const activities = [
   {
     id: 1,
-    user: { name: 'Alex Johnson', avatar: '/avatars/01.png', role: 'Team Lead' },
+    user: { name: 'Alex Johnson', avatar: 'AJ', role: 'Team Lead' },
     action: 'completed',
     target: 'Project Dashboard',
     type: 'task',
@@ -16,7 +16,7 @@ const activities = [
   },
   {
     id: 2,
-    user: { name: 'Maria Garcia', avatar: '/avatars/02.png', role: 'Frontend Dev' },
+    user: { name: 'Maria Garcia', avatar: 'MG', role: 'Frontend Dev' },
     action: 'updated',
     target: 'Task Analytics',
     type: 'task',
@@ -24,7 +24,7 @@ const activities = [
   },
   {
     id: 3,
-    user: { name: 'James Wilson', avatar: '/avatars/03.png', role: 'Backend Dev' },
+    user: { name: 'James Wilson', avatar: 'JW', role: 'Backend Dev' },
     action: 'commented',
     target: 'API Integration',
     type: 'discussion',
@@ -32,7 +32,7 @@ const activities = [
   },
   {
     id: 4,
-    user: { name: 'Sarah Kim', avatar: '/avatars/04.png', role: 'UI/UX Designer' },
+    user: { name: 'Sarah Kim', avatar: 'SK', role: 'UI/UX Designer' },
     action: 'uploaded',
     target: 'New Mockups',
     type: 'file',
@@ -40,7 +40,7 @@ const activities = [
   },
   {
     id: 5,
-    user: { name: 'David Lee', avatar: '/avatars/05.png', role: 'QA Engineer' },
+    user: { name: 'David Lee', avatar: 'DL', role: 'QA Engineer' },
     action: 'reported',
     target: 'Bug #123',
     type: 'bug',

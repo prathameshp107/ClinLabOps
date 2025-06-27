@@ -1,6 +1,6 @@
 export const profileData = {
   personal: {
-    profilePicture: "/avatars/researcher.jpg",
+    profilePicture: "RJ",
     fullName: "Dr. Sarah Johnson",
     email: "sarah.johnson@labtasker.com",
     phone: "+1 (555) 123-4567",
