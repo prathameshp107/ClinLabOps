@@ -1,4 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, Quote, Code, Minus } from 'lucide-react';
 
 // Import all necessary UI components and icons
 import { Button } from "@/components/ui/button";
@@ -18,6 +24,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import RichTextEditor from './modern-rich-text-editor';
 
 const commonTags = [
     "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience",
@@ -81,13 +88,9 @@ export default function TaskDetailsSection({
                     </div>
                     {isEditingDescription ? (
                         <div className="space-y-2">
-                            <Textarea
-                                ref={descriptionInputRef}
+                            <RichTextEditor
                                 value={editedDescription}
-                                onChange={(e) => setEditedDescription(e.target.value)}
-                                className="min-h-[120px]"
-                                placeholder="Add a detailed description..."
-                                autoFocus
+                                onChange={setEditedDescription}
                             />
                             <div className="flex justify-end gap-2">
                                 <Button
@@ -115,13 +118,8 @@ export default function TaskDetailsSection({
                         <div
                             className="prose prose-sm dark:prose-invert max-w-none p-3 rounded-md border bg-muted/20 min-h-[120px] cursor-text"
                             onClick={() => setIsEditingDescription(true)}
-                        >
-                            {editedDescription ? (
-                                <div className="whitespace-pre-wrap">{editedDescription}</div>
-                            ) : (
-                                <p className="text-muted-foreground italic">Add a description...</p>
-                            )}
-                        </div>
+                            dangerouslySetInnerHTML={{ __html: editedDescription || '<p class="text-muted-foreground italic">Add a description...</p>' }}
+                        />
                     )}
                 </div>
                 {/* Status */}
