@@ -277,38 +277,38 @@ export const TaskComments = ({
         <div className="absolute -left-5 top-8 bottom-0 w-0.5 bg-zinc-200 dark:bg-zinc-700" style={{ height: 'calc(100% - 2rem)' }} />
       )}
       <Avatar className="h-9 w-9 mt-1">
-        <AvatarImage src={comment.author.avatarUrl} />
-        <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
-      </Avatar>
+                        <AvatarImage src={comment.author.avatarUrl} />
+                        <AvatarFallback>{comment.author.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{comment.author.name}</span>
           <span className="text-xs text-zinc-500">{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
-        </div>
+                          </div>
         <div className="text-[15px] mt-1 text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: comment.text }} />
         {/* Attachments */}
-        {comment.attachments && comment.attachments.length > 0 && (
+                        {comment.attachments && comment.attachments.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {comment.attachments.map((attachment) => (
+                            {comment.attachments.map((attachment) => (
               <div key={attachment.id} className="bg-zinc-50 dark:bg-zinc-800 rounded px-2 py-1 text-xs flex items-center gap-2">
                 <Paperclip className="h-3 w-3" />
                 <span className="truncate max-w-[120px]">{attachment.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
         {/* Reactions, Reply, Menu */}
         <div className="flex items-center gap-4 mt-2 text-zinc-500 text-xs">
           <button className="flex items-center hover:text-orange-500 transition"><ThumbsUp className="h-4 w-4 mr-1" />25</button>
           <button className="flex items-center hover:text-orange-500 transition"><MessageCircle className="h-4 w-4 mr-1" />3</button>
           <button className="hover:underline">Reply</button>
           <button className="ml-auto"><MoreHorizontal className="h-4 w-4" /></button>
-        </div>
+                      </div>
         {/* Replies (joined visually) */}
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-3 space-y-2 relative">
             {comment.replies.map((reply, idx) => renderComment(reply, true, idx === comment.replies.length - 1))}
-          </div>
+                    </div>
         )}
       </div>
     </div>
@@ -324,7 +324,7 @@ export const TaskComments = ({
             onSubmit={e => {
               e.preventDefault();
               handleSubmitComment();
-            }}
+          }}
             className="flex-1 w-full"
           >
             <div className="bg-zinc-50 dark:bg-zinc-800 rounded-xl px-6 py-4 flex flex-col gap-3 w-full transition-shadow focus-within:shadow-lg hover:shadow-md">

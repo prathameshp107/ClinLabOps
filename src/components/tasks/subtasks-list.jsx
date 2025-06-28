@@ -2,85 +2,168 @@
 
 import { useState } from "react";
 import { format } from "date-fns";
-import { 
-  CheckSquare, 
-  Plus, 
-  Trash, 
-  GripVertical, 
-  Edit, 
-  Calendar, 
-  Clock, 
-  User, 
-  Flag, 
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  X,
+import {
+  Plus,
   Trash2,
-  Save
+  Save,
+  X,
+  Edit,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  User,
+  Calendar,
+  ArrowUpDown,
+  Filter
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gradient";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { DatePicker } from "@/components/ui/date-picker";
 
 const mockUsers = [
-  { id: "1", name: "Alice" },
-  { id: "2", name: "Bob" },
-  { id: "3", name: "Charlie" },
+  { id: "1", name: "Alice Johnson", avatar: "AJ" },
+  { id: "2", name: "Bob Smith", avatar: "BS" },
+  { id: "3", name: "Charlie Brown", avatar: "CB" },
+  { id: "4", name: "Diana Prince", avatar: "DP" },
 ];
 
 const priorities = ["high", "medium", "low"];
 const statuses = ["not_started", "in_progress", "completed"];
 
+// Helper function to generate unique task ID
+const generateTaskId = (existingSubtasks) => {
+  if (existingSubtasks.length === 0) {
+    return "ST-001";
+  }
+
+  // Extract all existing ID numbers
+  const existingNumbers = existingSubtasks
+    .map(st => st.id)
+    .filter(id => id && typeof id === 'string' && id.startsWith('ST-'))
+    .map(id => {
+      const match = id.match(/ST-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter(num => num > 0);
+
+  // Find the highest number and increment by 1
+  const maxNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
+  const nextNumber = maxNumber + 1;
+
+  return `ST-${nextNumber.toString().padStart(3, '0')}`;
+};
+
+// Helper functions
+const getPriorityColor = (priority) => {
+  switch (priority) {
+    case "high": return "bg-red-100 text-red-700 border-red-200";
+    case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    case "low": return "bg-green-100 text-green-700 border-green-200";
+    default: return "bg-gray-100 text-gray-700 border-gray-200";
+  }
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case "completed": return "bg-green-100 text-green-700 border-green-200";
+    case "in_progress": return "bg-blue-100 text-blue-700 border-blue-200";
+    case "not_started": return "bg-gray-100 text-gray-700 border-gray-200";
+    default: return "bg-gray-100 text-gray-700 border-gray-200";
+  }
+};
+
+const getStatusIcon = (status) => {
+  switch (status) {
+    case "completed": return <CheckCircle2 className="h-4 w-4" />;
+    case "in_progress": return <Clock className="h-4 w-4" />;
+    case "not_started": return <AlertCircle className="h-4 w-4" />;
+    default: return <AlertCircle className="h-4 w-4" />;
+  }
+};
+
 export function SubtasksList({ task, setTask }) {
-  const [subtasks, setSubtasks] = useState(task.subtasks || []);
+  const [subtasks, setSubtasks] = useState(() => {
+    // Ensure all existing subtasks have unique IDs
+    const existingSubtasks = task.subtasks || [];
+    return existingSubtasks.map((st, index) => ({
+      ...st,
+      id: st.id || generateTaskId(existingSubtasks.slice(0, index))
+    }));
+  });
   const [editingId, setEditingId] = useState(null);
   const [newSubtask, setNewSubtask] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" });
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  // Calculate progress
+  const completedSubtasks = subtasks.filter(st => st.status === "completed").length;
+  const progress = subtasks.length > 0 ? Math.round((completedSubtasks / subtasks.length) * 100) : 0;
+
+  // Sort and filter subtasks
+  const sortedAndFilteredSubtasks = subtasks
+    .filter(st => filterStatus === "all" || st.status === filterStatus)
+    .sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+
+      if (sortConfig.key === "assignee") {
+        aVal = mockUsers.find(u => u.id === a.assignee)?.name || "";
+        bVal = mockUsers.find(u => u.id === b.assignee)?.name || "";
+      }
+
+      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
 
   // Add new subtask row
   const handleAddSubtask = () => {
+    const newId = generateTaskId(subtasks);
     setNewSubtask({
-      id: `ST-${Date.now()}`,
+      id: newId,
       title: "",
       assignee: mockUsers[0].id,
       priority: "medium",
       status: "not_started",
-      dueDate: "",
+      dueDate: null,
     });
     setEditingId("new");
   };
 
   // Save new or edited subtask
   const handleSave = (subtask) => {
+    if (!subtask.title.trim()) {
+      alert("Subtask title is required");
+      return;
+    }
+
     if (editingId === "new") {
-      setSubtasks([...subtasks, subtask]);
+      setSubtasks([...subtasks, { ...subtask, title: subtask.title.trim() }]);
       setNewSubtask(null);
     } else {
-      setSubtasks(subtasks.map(st => st.id === subtask.id ? subtask : st));
+      setSubtasks(subtasks.map(st => st.id === subtask.id ? { ...subtask, title: subtask.title.trim() } : st));
     }
     setEditingId(null);
   };
 
   // Edit existing subtask
   const handleEdit = (id) => {
+    const subtask = subtasks.find(st => st.id === id);
+    setNewSubtask({ ...subtask });
     setEditingId(id);
-    setNewSubtask(null);
   };
 
   // Cancel editing
@@ -91,128 +174,350 @@ export function SubtasksList({ task, setTask }) {
 
   // Delete subtask
   const handleDelete = (id) => {
-    setSubtasks(subtasks.filter(st => st.id !== id));
-    if (editingId === id) handleCancel();
+    if (confirm("Are you sure you want to delete this subtask?")) {
+      setSubtasks(subtasks.filter(st => st.id !== id));
+      if (editingId === id) handleCancel();
+    }
+  };
+
+  // Handle sort
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
+    }));
+  };
+
+  // Handle date change
+  const handleDateChange = (date) => {
+    setNewSubtask(prev => ({ ...prev, dueDate: date }));
   };
 
   // Render a row (editable or static)
   const renderRow = (subtask, isEditing) => (
-    <TableRow key={subtask.id}>
-      <TableCell>
-                      {isEditing ? (
-                        <Input
+    <motion.tr
+      key={subtask.id}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className={cn(
+        "hover:bg-muted/50 transition-colors border-b border-border/50",
+        isEditing && "bg-muted/30"
+      )}
+    >
+      <TableCell className="font-mono text-sm">
+        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+          {subtask.id}
+        </Badge>
+      </TableCell>
+
+      <TableCell className="font-medium">
+        {isEditing ? (
+          <Input
             value={subtask.title}
             onChange={e => setNewSubtask({ ...subtask, title: e.target.value })}
-            placeholder="Subtask Name"
-                        />
-                      ) : (
-          subtask.title
+            placeholder="Enter subtask name..."
+            className="max-w-[200px]"
+            autoFocus
+          />
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              subtask.status === "completed" && "line-through text-muted-foreground"
+            )}>
+              {subtask.title}
+            </span>
+          </div>
         )}
       </TableCell>
+
       <TableCell>
-                      {isEditing ? (
+        {isEditing ? (
           <Select
             value={subtask.assignee}
             onValueChange={val => setNewSubtask({ ...subtask, assignee: val })}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {mockUsers.map(user => (
-                <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                <SelectItem key={user.id} value={user.id}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs">{user.avatar}</AvatarFallback>
+                    </Avatar>
+                    {user.name}
+                  </div>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          mockUsers.find(u => u.id === subtask.assignee)?.name || "-"
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-xs">
+                {mockUsers.find(u => u.id === subtask.assignee)?.avatar || "?"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm">
+              {mockUsers.find(u => u.id === subtask.assignee)?.name || "Unassigned"}
+            </span>
+          </div>
         )}
       </TableCell>
+
       <TableCell>
-                      {isEditing ? (
+        {isEditing ? (
           <Select
             value={subtask.priority}
             onValueChange={val => setNewSubtask({ ...subtask, priority: val })}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {priorities.map(p => (
-                <SelectItem key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>
+                <SelectItem key={p} value={p}>
+                  <Badge variant="outline" className={getPriorityColor(p)}>
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </Badge>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          subtask.priority.charAt(0).toUpperCase() + subtask.priority.slice(1)
+          <Badge variant="outline" className={getPriorityColor(subtask.priority)}>
+            {subtask.priority.charAt(0).toUpperCase() + subtask.priority.slice(1)}
+          </Badge>
         )}
       </TableCell>
+
       <TableCell>
-                    {isEditing ? (
+        {isEditing ? (
           <Select
             value={subtask.status}
             onValueChange={val => setNewSubtask({ ...subtask, status: val })}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {statuses.map(s => (
-                <SelectItem key={s} value={s}>{s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(s)}
+                    {s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </div>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          subtask.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+          <Badge variant="outline" className={getStatusColor(subtask.status)}>
+            <div className="flex items-center gap-1">
+              {getStatusIcon(subtask.status)}
+              {subtask.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </div>
+          </Badge>
         )}
       </TableCell>
-      <TableCell>
-                    {isEditing ? (
-                        <Input
-                          type="date"
-            value={subtask.dueDate ? format(new Date(subtask.dueDate), 'yyyy-MM-dd') : ''}
-            onChange={e => setNewSubtask({ ...subtask, dueDate: e.target.value })}
-                        />
-                      ) : (
-          subtask.dueDate ? format(new Date(subtask.dueDate), 'MMM d, yyyy') : "-"
-        )}
-      </TableCell>
+
       <TableCell>
         {isEditing ? (
-          <div className="flex gap-2">
-            <Button size="icon" variant="success" onClick={() => handleSave(subtask)}><Save className="h-4 w-4" /></Button>
-            <Button size="icon" variant="ghost" onClick={handleCancel}><X className="h-4 w-4" /></Button>
-          </div>
+          <DatePicker
+            selectedDate={subtask.dueDate}
+            onDateChange={handleDateChange}
+            placeholder="Select due date"
+            className="w-[140px]"
+            showClearButton={true}
+            showTodayButton={true}
+          />
         ) : (
-          <div className="flex gap-2">
-            <Button size="icon" variant="ghost" onClick={() => handleEdit(subtask.id)}><Save className="h-4 w-4" /></Button>
-            <Button size="icon" variant="destructive" onClick={() => handleDelete(subtask.id)}><Trash2 className="h-4 w-4" /></Button>
+          <div className="flex items-center gap-1 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            {subtask.dueDate ? format(new Date(subtask.dueDate), 'MMM d, yyyy') : "No due date"}
           </div>
         )}
       </TableCell>
-    </TableRow>
+
+      <TableCell>
+        {isEditing ? (
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => handleSave(subtask)}
+              className="h-8 px-2"
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCancel}
+              className="h-8 px-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleEdit(subtask.id)}
+              className="h-8 px-2"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleDelete(subtask.id)}
+              className="h-8 px-2 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </TableCell>
+    </motion.tr>
   );
 
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Subtasks</h3>
-        <Button onClick={handleAddSubtask} variant="outline" size="sm"><Plus className="h-4 w-4 mr-1" /> Add Subtask</Button>
+    <div className="w-full space-y-4">
+      {/* Header with progress */}
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Subtasks</h3>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>{completedSubtasks} of {subtasks.length} completed</span>
+            <span>•</span>
+            <span>{progress}% complete</span>
+          </div>
+        </div>
+        <Button onClick={handleAddSubtask} variant="default" size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Subtask
+        </Button>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Subtask Name</TableHead>
-            <TableHead>Assigned To</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {subtasks.map(st =>
-            editingId === st.id
-              ? renderRow(newSubtask || st, true)
-              : renderRow(st, false)
-          )}
-          {editingId === "new" && newSubtask && renderRow(newSubtask, true)}
-        </TableBody>
-      </Table>
+
+      {/* Progress bar */}
+      {subtasks.length > 0 && (
+        <div className="space-y-2">
+          <Progress value={progress} className="h-2" />
+        </div>
+      )}
+
+      {/* Filters and sorting */}
+      <div className="flex justify-between items-center">
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[150px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="not_started">Not Started</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-border/50">
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("id")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Task ID
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("title")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Subtask Name
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("assignee")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Assigned To
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("priority")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Priority
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("status")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Status
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("dueDate")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Due Date
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence>
+              {sortedAndFilteredSubtasks.map(st =>
+                editingId === st.id
+                  ? renderRow(newSubtask || st, true)
+                  : renderRow(st, false)
+              )}
+              {editingId === "new" && newSubtask && renderRow(newSubtask, true)}
+            </AnimatePresence>
+
+            {sortedAndFilteredSubtasks.length === 0 && (
+              <TableRow className="border-b border-border/50">
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <AlertCircle className="h-8 w-8" />
+                    <p>No subtasks found</p>
+                    <p className="text-sm">Add a subtask to get started</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
