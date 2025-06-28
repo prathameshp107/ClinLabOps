@@ -1,23 +1,23 @@
+import { useState } from "react"
 import { format, parseISO } from "date-fns"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogClose
 } from "@/components/ui/dialog"
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
   FileText,
@@ -26,105 +26,160 @@ import {
   AlertCircle,
   User,
   Mail,
-  Info,
   Eye,
   Pencil,
   Phone,
   Building,
   Calendar,
   Clock,
+  X
 } from "lucide-react"
-
-// Timeline components for Activity log
-const Timeline = ({ className, children }) => {
-  return <div className={cn("space-y-6", className)}>{children}</div>;
-};
-
-const TimelineItem = ({ children }) => {
-  return <div className="flex gap-4 relative pb-6 last:pb-0 last:before:hidden before:absolute before:left-3.5 before:top-8 before:h-full before:w-[1px] before:bg-border/60">{children}</div>;
-};
-
-const TimelineIcon = ({ children, className }) => {
-  return (
-    <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-sm z-10", className)}>
-      {children}
-    </div>
-  );
-};
-
-const TimelineContent = ({ children }) => {
-  return <div className="flex-1 pt-0.5">{children}</div>;
-};
 
 export function EnquiryQuickView({ enquiry, onClose }) {
   const router = useRouter();
-  
+  const [activeTab, setActiveTab] = useState("details");
   if (!enquiry) return null;
   
+  // Status badge color
+  const statusBadge =
+    enquiry.status === "Pending" ? { color: "warning", label: "Pending" } :
+      enquiry.status === "In Progress" ? { color: "info", label: "In Progress" } :
+        enquiry.status === "Completed" ? { color: "success", label: "Completed" } :
+          enquiry.status === "Cancelled" ? { color: "destructive", label: "Cancelled" } :
+            enquiry.status === "On Hold" ? { color: "secondary", label: "On Hold" } :
+              { color: "secondary", label: enquiry.status };
+
+  // Priority badge color
+  const priorityBadge =
+    enquiry.priority === "High" ? { color: "destructive", label: "High" } :
+      enquiry.priority === "Medium" ? { color: "warning", label: "Medium" } :
+        { color: "outline", label: enquiry.priority };
+
   return (
     <Dialog open={!!enquiry} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] w-[95vw] max-h-[85vh] p-0 overflow-hidden rounded-xl border-none shadow-lg">
-        <div className="flex flex-col h-full">
-          {/* Header with gradient background */}
-          <div className="bg-gradient-to-r from-primary/15 to-primary/5 px-5 py-4 border-b sticky top-0 z-10">
-            <DialogHeader className="pb-0">
-              <div className="flex items-center gap-3">
-                <div className={`h-3 w-3 rounded-full ring-2 ring-white/20 ${
-                  enquiry.status === "Pending" ? "bg-yellow-500" :
-                  enquiry.status === "In Progress" ? "bg-blue-500" : "bg-green-500"
-                }`}></div>
-                <DialogTitle className="text-xl font-semibold tracking-tight">
-                  {enquiry.subject}
-                </DialogTitle>
-              </div>
-              <DialogDescription className="text-sm mt-1.5 flex items-center gap-3 text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <span className="text-primary/70">#</span>{enquiry.id}
-                </span>
-                <span className="text-muted-foreground/40">•</span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="h-3 w-3 text-primary/70" />
-                  {format(parseISO(enquiry.createdAt), "MMM d, yyyy")}
-                </span>
-              </DialogDescription>
-            </DialogHeader>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 bg-background overflow-hidden">
+        {/* Sticky Header */}
+        <div className="sticky top-0 z-20 bg-background border-b px-6 py-3 shadow-sm flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 -ml-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+                title="Close"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogClose>
+            <div className="h-5 w-px bg-border" />
+            <Badge variant={statusBadge.color} className="capitalize px-3 py-1 text-xs font-medium">
+              {statusBadge.label}
+            </Badge>
+            <span className="font-semibold text-lg truncate max-w-[200px] md:max-w-[350px]">{enquiry.subject}</span>
+            <span className="text-xs text-muted-foreground font-mono ml-2">#{enquiry.id}</span>
           </div>
-          
-          {/* Scrollable content area with visible scrollbar */}
-          <ScrollArea className="flex-1 h-[calc(85vh-80px)]" type="always">
-            <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {/* Left column - Enquiry details */}
-                <div className="md:col-span-3 space-y-4">
-                  {/* Rest of the content remains the same */}
-                  <Card className="shadow-sm border border-border/40 overflow-hidden">
-                    <CardHeader className="pb-2 bg-muted/20 border-b border-border/30">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-primary/80" />
-                        Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <p className="text-sm whitespace-pre-line leading-relaxed">{enquiry.details}</p>
-                    </CardContent>
-                  </Card>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              onClose();
+              router.push(`/enquiries/${enquiry.id}`);
+            }}>
+              <Eye className="h-4 w-4 mr-1" /> View Full
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              onClose();
+              router.push(`/enquiries/${enquiry.id}/edit`);
+            }}>
+              <Pencil className="h-4 w-4 mr-1" /> Edit
+            </Button>
+          </div>
+        </div>
 
-                  <Card className="shadow-sm border border-border/40 overflow-hidden">
-                    <CardHeader className="pb-2 bg-muted/20 border-b border-border/30">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <History className="h-4 w-4 text-primary/80" />
-                        Activity Timeline
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <Timeline className="px-4 py-4">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 px-6 pt-4 bg-background z-10">
+            <TabsTrigger value="details" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" /> Details
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="flex items-center gap-2">
+              <History className="h-4 w-4" /> Activity
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Details Tab */}
+          <TabsContent value="details" className="flex-1 overflow-y-auto p-6">
+            <div className="flex flex-col gap-8 md:flex-row">
+              {/* Left: Main details */}
+              <div className="flex-1 min-w-0 space-y-6">
+                <div className="bg-muted/40 rounded-xl p-6 shadow-sm border border-border/30">
+                  <h3 className="font-semibold text-base mb-2 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary/80" /> Enquiry Details
+                  </h3>
+                  <p className="text-[15px] whitespace-pre-line leading-relaxed text-foreground/90">{enquiry.details}</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-4 bg-background rounded-xl p-4 border border-border/20 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-[15px]">{enquiry.customerName}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[15px]">{enquiry.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[15px]">{enquiry.phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[15px]">{enquiry.companyName || 'N/A'}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-4 bg-background rounded-xl p-4 border border-border/20 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <Badge variant={priorityBadge.color} className="px-3 py-1 text-xs font-medium">
+                        {priorityBadge.label} Priority
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-[15px]">Created: {format(parseISO(enquiry.createdAt), "MMM d, yyyy")}</span>
+                    </div>
+                    {enquiry.updatedAt && (
+                      <div className="flex items-center gap-3">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-[15px]">Updated: {format(parseISO(enquiry.updatedAt), "MMM d, yyyy")}</span>
+                      </div>
+                    )}
+              <div className="flex items-center gap-3">
+                      <Avatar className="h-7 w-7 border border-primary/10">
+                        <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                          {enquiry.assignedTo.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-[15px] font-medium">{enquiry.assignedTo}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+          </TabsContent>
+
+          {/* Activity Tab */}
+          <TabsContent value="activity" className="flex-1 overflow-y-auto p-6">
+            <div className="flex flex-col gap-6">
+              <h3 className="font-semibold text-base mb-2 flex items-center gap-2">
+                <History className="h-4 w-4 text-primary/80" /> Activity Timeline
+              </h3>
+              <div className="space-y-6">
                         {[...enquiry.activities || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((activity, index) => (
-                          <TimelineItem key={index}>
-                            <TimelineIcon className={
+                  <div key={index} className="flex gap-4 relative pb-6 last:pb-0 last:before:hidden before:absolute before:left-3.5 before:top-8 before:h-full before:w-[1px] before:bg-border/60">
+                    <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-sm z-10",
                               activity.action === "comment" ? "bg-blue-50 text-blue-600 border-blue-200" :
                               activity.action === "status" ? "bg-amber-50 text-amber-600 border-amber-200" :
                               "bg-green-50 text-green-600 border-green-200"
-                            }>
+                    )}>
                               {activity.action === "comment" ? (
                                 <MessageSquare className="h-4 w-4" />
                               ) : activity.action === "status" ? (
@@ -132,8 +187,8 @@ export function EnquiryQuickView({ enquiry, onClose }) {
                               ) : (
                                 <FileText className="h-4 w-4" />
                               )}
-                            </TimelineIcon>
-                            <TimelineContent>
+                    </div>
+                    <div className="flex-1 pt-0.5">
                               <div className="flex justify-between items-start">
                                 <p className="font-medium capitalize">{activity.action}</p>
                                 <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
@@ -144,152 +199,13 @@ export function EnquiryQuickView({ enquiry, onClose }) {
                               {activity.details && (
                                 <p className="text-sm mt-2 bg-muted/30 p-3 rounded-md">{activity.details}</p>
                               )}
-                            </TimelineContent>
-                          </TimelineItem>
-                        ))}
-                      </Timeline>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Right column - Customer info and metadata */}
-                <div className="space-y-4">
-                  <Card className="shadow-sm border border-border/40 overflow-hidden">
-                    <CardHeader className="pb-2 bg-muted/20 border-b border-border/30">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <User className="h-4 w-4 text-primary/80" />
-                        Customer
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 space-y-4">
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-14 w-14 border-2 border-primary/10 shadow-sm">
-                          <AvatarImage src={`https://avatar.vercel.sh/${enquiry.customerName.replace(' ', '')}.png`} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                            {enquiry.customerName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-medium text-base">{enquiry.customerName}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                            <Mail className="h-3.5 w-3.5" />
-                            {enquiry.email}
-                          </p>
                         </div>
                       </div>
-                      <Separator className="my-1" />
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-sm">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/30">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Phone</p>
-                            <p className="font-medium">{enquiry.phone || 'N/A'}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/30">
-                            <Building className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Company</p>
-                            <p className="font-medium">{enquiry.companyName || 'N/A'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-sm border border-border/40 overflow-hidden">
-                    <CardHeader className="pb-2 bg-muted/20 border-b border-border/30">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Info className="h-4 w-4 text-primary/80" />
-                        Enquiry Info
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4 space-y-4">
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Status</span>
-                          <Badge variant={
-                            enquiry.status === "Pending" ? "warning" :
-                            enquiry.status === "In Progress" ? "info" : "success"
-                          } className="justify-center px-3">
-                            {enquiry.status}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Priority</span>
-                          <Badge variant={
-                            enquiry.priority === "High" ? "destructive" :
-                            enquiry.priority === "Medium" ? "warning" : "outline"
-                          } className="justify-center px-3">
-                            {enquiry.priority}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Assignee</span>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6 border border-primary/10">
-                              <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                {enquiry.assignedTo.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm font-medium">{enquiry.assignedTo}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <Separator className="my-1" />
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-sm">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/30">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground">Created</p>
-                            <p className="font-medium">{format(parseISO(enquiry.createdAt), "MMM d, yyyy")}</p>
-                          </div>
-                        </div>
-                        {enquiry.updatedAt && (
-                          <div className="flex items-center gap-3 text-sm">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/30">
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Updated</p>
-                              <p className="font-medium">{format(parseISO(enquiry.updatedAt), "MMM d, yyyy")}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="shadow-sm border border-border/40 overflow-hidden">
-                    <CardContent className="p-4 space-y-3">
-                      <Button className="w-full h-10 gap-2 shadow-sm" onClick={() => {
-                        onClose();
-                        router.push(`/enquiries/${enquiry.id}`);
-                      }}>
-                        <Eye className="h-4 w-4" />
-                        View Full Details
-                      </Button>
-                      <Button variant="outline" className="w-full h-10 gap-2" onClick={() => {
-                        onClose();
-                        router.push(`/enquiries/${enquiry.id}/edit`);
-                      }}>
-                        <Pencil className="h-4 w-4" />
-                        Edit Enquiry
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
+                ))}
               </div>
             </div>
-            <ScrollBar />
-          </ScrollArea>
-        </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

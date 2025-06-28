@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { format, parseISO, isValid } from "date-fns"
 import { motion } from "framer-motion"
-import {
+import { 
   ChevronUp, ChevronDown, MoreHorizontal, Pencil, Key, Trash, User, ShieldAlert, Shield, Clock,
   CheckCircle, AlertTriangle, UserX, HelpCircle,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
@@ -77,7 +77,7 @@ function UserTableToolbar({ table }) {
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" />
             Filters
-          </Button>
+                      </Button>
           {isFiltered && (
             <Button
               variant="ghost"
@@ -89,7 +89,7 @@ function UserTableToolbar({ table }) {
             >
               Reset
               <CrossIcon className="ml-2 h-4 w-4" />
-            </Button>
+              </Button>
           )}
         </div>
         <div className="flex items-center space-x-2">
