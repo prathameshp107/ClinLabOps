@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { EnquiriesSidebar } from "@/components/enquiries/enquiries-sidebar"
 import React from "react"
 
 export default function UploadReportPage({ params }) {
@@ -137,7 +136,6 @@ export default function UploadReportPage({ params }) {
 
   return (
     <div className="container mx-auto py-6 flex flex-col md:flex-row gap-6">
-      <EnquiriesSidebar className="hidden md:block w-64 shrink-0" />
       
       <div className="flex-1 space-y-6">
         <div className="flex items-center justify-between">

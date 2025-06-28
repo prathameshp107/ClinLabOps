@@ -33,7 +33,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
-import { EnquiriesSidebar } from "@/components/enquiries/enquiries-sidebar"
 import React from "react"
 
 // Mock data for a single enquiry
@@ -191,7 +190,6 @@ export default function EnquiryDetailsPage({ params }) {
 
   return (
     <div className="container mx-auto py-6 flex flex-col md:flex-row gap-6">
-      <EnquiriesSidebar className="hidden md:block w-64 shrink-0" />
       
       <div className="flex-1 space-y-6">
         <div className="flex items-center justify-between">

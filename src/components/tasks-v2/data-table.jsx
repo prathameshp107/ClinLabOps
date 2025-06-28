@@ -28,6 +28,7 @@ export function DataTable({
   columns,
   data,
   onRowClick,
+  Toolbar,
 }) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] = React.useState({})
@@ -56,9 +57,11 @@ export function DataTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  const ToolbarComponent = Toolbar || DataTableToolbar
+
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <ToolbarComponent table={table} />
       <div className="rounded-2xl border shadow-lg bg-white dark:bg-gray-950 overflow-hidden">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-white dark:bg-gray-950">
@@ -88,7 +91,7 @@ export function DataTable({
                     (idx % 2 === 0
                       ? "bg-white dark:bg-gray-950"
                       : "bg-gray-50 dark:bg-gray-900/40") +
-                    " transition-colors hover:bg-primary/5 dark:hover:bg-primary/10" + 
+                    " transition-colors hover:bg-primary/5 dark:hover:bg-primary/10" +
                     (onRowClick ? " cursor-pointer" : "")
                   }
                 >
