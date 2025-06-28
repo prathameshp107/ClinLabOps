@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Plus,
@@ -32,6 +32,7 @@ import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
+import { DataTablePagination } from "@/components/tasks-v2/data-table-pagination";
 
 const mockUsers = [
   { id: "1", name: "Alice Johnson", avatar: "AJ" },
@@ -94,6 +95,23 @@ const getStatusIcon = (status) => {
   }
 };
 
+// Mock table object for pagination
+const createMockTable = (data, pagination, setPagination) => ({
+  getFilteredRowModel: () => ({ rows: data }),
+  getFilteredSelectedRowModel: () => ({ rows: [] }),
+  getState: () => ({ pagination }),
+  setPageSize: (pageSize) => setPagination(prev => ({ ...prev, pageSize })),
+  setPageIndex: (pageIndex) => setPagination(prev => ({ ...prev, pageIndex })),
+  getPageCount: () => Math.ceil(data.length / pagination.pageSize),
+  getCanPreviousPage: () => pagination.pageIndex > 0,
+  getCanNextPage: () => pagination.pageIndex < Math.ceil(data.length / pagination.pageSize) - 1,
+  previousPage: () => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) })),
+  nextPage: () => setPagination(prev => ({
+    ...prev,
+    pageIndex: Math.min(Math.ceil(data.length / prev.pageSize) - 1, prev.pageIndex + 1)
+  })),
+});
+
 export function SubtasksList({ task, setTask }) {
   const [subtasks, setSubtasks] = useState(() => {
     // Ensure all existing subtasks have unique IDs
@@ -107,6 +125,10 @@ export function SubtasksList({ task, setTask }) {
   const [newSubtask, setNewSubtask] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" });
   const [filterStatus, setFilterStatus] = useState("all");
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   // Calculate progress
   const completedSubtasks = subtasks.filter(st => st.status === "completed").length;
@@ -128,6 +150,19 @@ export function SubtasksList({ task, setTask }) {
       if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
+
+  // Get current page data
+  const startIndex = pagination.pageIndex * pagination.pageSize;
+  const endIndex = startIndex + pagination.pageSize;
+  const currentPageSubtasks = sortedAndFilteredSubtasks.slice(startIndex, endIndex);
+
+  // Create mock table object for pagination component
+  const mockTable = createMockTable(sortedAndFilteredSubtasks, pagination, setPagination);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [filterStatus, sortConfig]);
 
   // Add new subtask row
   const handleAddSubtask = () => {
@@ -496,7 +531,7 @@ export function SubtasksList({ task, setTask }) {
           </TableHeader>
           <TableBody>
             <AnimatePresence>
-              {sortedAndFilteredSubtasks.map(st =>
+              {currentPageSubtasks.map(st =>
                 editingId === st.id
                   ? renderRow(newSubtask || st, true)
                   : renderRow(st, false)
@@ -518,6 +553,11 @@ export function SubtasksList({ task, setTask }) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {sortedAndFilteredSubtasks.length > 0 && (
+        <DataTablePagination table={mockTable} />
+      )}
     </div>
   );
 }
