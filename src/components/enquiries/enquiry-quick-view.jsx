@@ -39,7 +39,7 @@ export function EnquiryQuickView({ enquiry, onClose }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("details");
   if (!enquiry) return null;
-  
+
   // Status badge color
   const statusBadge =
     enquiry.status === "Pending" ? { color: "warning", label: "Pending" } :
@@ -54,10 +54,15 @@ export function EnquiryQuickView({ enquiry, onClose }) {
     enquiry.priority === "High" ? { color: "destructive", label: "High" } :
       enquiry.priority === "Medium" ? { color: "warning", label: "Medium" } :
         { color: "outline", label: enquiry.priority };
-  
+
   return (
     <Dialog open={!!enquiry} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 bg-background overflow-hidden">
+        {/* Hidden DialogTitle for accessibility */}
+        <DialogTitle className="sr-only">
+          Enquiry Details - {enquiry.subject}
+        </DialogTitle>
+
         {/* Sticky Header */}
         <div className="sticky top-0 z-20 bg-background border-b px-6 py-3 shadow-sm flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -152,7 +157,7 @@ export function EnquiryQuickView({ enquiry, onClose }) {
                         <span className="text-[15px]">Updated: {format(parseISO(enquiry.updatedAt), "MMM d, yyyy")}</span>
                       </div>
                     )}
-              <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
                       <Avatar className="h-7 w-7 border border-primary/10">
                         <AvatarFallback className="text-xs bg-primary/10 text-primary">
                           {enquiry.assignedTo.split(' ').map(n => n[0]).join('')}
@@ -163,7 +168,7 @@ export function EnquiryQuickView({ enquiry, onClose }) {
                   </div>
                 </div>
               </div>
-          </div>
+            </div>
           </TabsContent>
 
           {/* Activity Tab */}
@@ -173,34 +178,34 @@ export function EnquiryQuickView({ enquiry, onClose }) {
                 <History className="h-4 w-4 text-primary/80" /> Activity Timeline
               </h3>
               <div className="space-y-6">
-                        {[...enquiry.activities || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((activity, index) => (
+                {[...enquiry.activities || []].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).map((activity, index) => (
                   <div key={index} className="flex gap-4 relative pb-6 last:pb-0 last:before:hidden before:absolute before:left-3.5 before:top-8 before:h-full before:w-[1px] before:bg-border/60">
                     <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-full border shadow-sm z-10",
-                              activity.action === "comment" ? "bg-blue-50 text-blue-600 border-blue-200" :
-                              activity.action === "status" ? "bg-amber-50 text-amber-600 border-amber-200" :
-                              "bg-green-50 text-green-600 border-green-200"
+                      activity.action === "comment" ? "bg-blue-50 text-blue-600 border-blue-200" :
+                        activity.action === "status" ? "bg-amber-50 text-amber-600 border-amber-200" :
+                          "bg-green-50 text-green-600 border-green-200"
                     )}>
-                              {activity.action === "comment" ? (
-                                <MessageSquare className="h-4 w-4" />
-                              ) : activity.action === "status" ? (
-                                <AlertCircle className="h-4 w-4" />
-                              ) : (
-                                <FileText className="h-4 w-4" />
-                              )}
+                      {activity.action === "comment" ? (
+                        <MessageSquare className="h-4 w-4" />
+                      ) : activity.action === "status" ? (
+                        <AlertCircle className="h-4 w-4" />
+                      ) : (
+                        <FileText className="h-4 w-4" />
+                      )}
                     </div>
                     <div className="flex-1 pt-0.5">
-                              <div className="flex justify-between items-start">
-                                <p className="font-medium capitalize">{activity.action}</p>
-                                <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                                  {format(parseISO(activity.timestamp), "MMM d, yyyy")}
-                                </span>
-                              </div>
-                              <p className="text-sm text-muted-foreground mt-1">{activity.user}</p>
-                              {activity.details && (
-                                <p className="text-sm mt-2 bg-muted/30 p-3 rounded-md">{activity.details}</p>
-                              )}
-                        </div>
+                      <div className="flex justify-between items-start">
+                        <p className="font-medium capitalize">{activity.action}</p>
+                        <span className="text-xs text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+                          {format(parseISO(activity.timestamp), "MMM d, yyyy")}
+                        </span>
                       </div>
+                      <p className="text-sm text-muted-foreground mt-1">{activity.user}</p>
+                      {activity.details && (
+                        <p className="text-sm mt-2 bg-muted/30 p-3 rounded-md">{activity.details}</p>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

@@ -307,7 +307,7 @@ function EnquiriesPage() {
             onRowClick={handleRowClick}
             Toolbar={CustomToolbar}
           />
-        </motion.div>
+              </motion.div>
 
         <AnimatePresence>
           {showQuickView && selectedEnquiry && (
