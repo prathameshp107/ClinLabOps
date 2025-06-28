@@ -54,7 +54,7 @@ export function EnquiryQuickView({ enquiry, onClose }) {
     enquiry.priority === "High" ? { color: "destructive", label: "High" } :
       enquiry.priority === "Medium" ? { color: "warning", label: "Medium" } :
         { color: "outline", label: enquiry.priority };
-
+  
   return (
     <Dialog open={!!enquiry} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0 bg-background overflow-hidden">

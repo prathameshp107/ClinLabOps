@@ -62,7 +62,7 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg w-full p-0 overflow-hidden">
+            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden">
                 <form onSubmit={handleSubmit} className="space-y-6 p-6">
                     <DialogHeader>
                         <DialogTitle>Create New Enquiry</DialogTitle>

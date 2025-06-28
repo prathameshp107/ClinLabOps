@@ -21,14 +21,16 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
+import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
 
-export function EnquiryToolbar({ table, onAddEnquiry, onExport }) {
+export function EnquiryToolbar({ table, onExport }) {
     const [searchQuery, setSearchQuery] = useState("")
     const [activeFilters, setActiveFilters] = useState({
         status: { Pending: true, "In Progress": true, Completed: true, Cancelled: true, "On Hold": true },
         priority: { High: true, Medium: true, Low: true },
         assignedTo: { "Dr. Sarah Johnson": true, "Dr. Michael Rodriguez": true, "Dr. Lisa Wong": true, "Dr. James Peterson": true }
     })
+    const [showNewEnquiry, setShowNewEnquiry] = useState(false)
 
     // Count active filters
     const filterCounts = {
@@ -248,7 +250,7 @@ export function EnquiryToolbar({ table, onAddEnquiry, onExport }) {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button onClick={onAddEnquiry} className="gap-2">
+                    <Button onClick={() => setShowNewEnquiry(true)} className="gap-2">
                         <PlusCircle className="h-4 w-4" />
                         New Enquiry
                     </Button>
@@ -260,6 +262,15 @@ export function EnquiryToolbar({ table, onAddEnquiry, onExport }) {
                     {table.getFilteredRowModel().rows.length} of {table.getCoreRowModel().rows.length} enquiries
                 </span>
             </div>
+            <NewEnquiryDialog
+                open={showNewEnquiry}
+                onOpenChange={setShowNewEnquiry}
+                onSuccess={() => {
+                    toast({ title: "Enquiry Created", description: "New enquiry has been created." })
+                    setShowNewEnquiry(false)
+                    // Optionally refresh the table or add the new enquiry to state
+                }}
+            />
         </div>
     )
 } 

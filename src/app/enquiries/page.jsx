@@ -266,7 +266,6 @@ function EnquiriesPage() {
   const CustomToolbar = ({ table }) => (
     <EnquiryToolbar
       table={table}
-      onAddEnquiry={handleAddEnquiry}
       onExport={handleExport}
     />
   )
@@ -308,7 +307,7 @@ function EnquiriesPage() {
             onRowClick={handleRowClick}
             Toolbar={CustomToolbar}
           />
-              </motion.div>
+        </motion.div>
 
         <AnimatePresence>
           {showQuickView && selectedEnquiry && (
@@ -321,18 +320,7 @@ function EnquiriesPage() {
             />
           )}
         </AnimatePresence>
-
-        {/* New Enquiry Modal */}
-        <NewEnquiryDialog
-          open={showNewEnquiry}
-          onOpenChange={setShowNewEnquiry}
-          onSuccess={() => {
-            toast({ title: "Enquiry Created", description: "New enquiry has been created." })
-            setShowNewEnquiry(false)
-            // Optionally refresh the table or add the new enquiry to state
-          }}
-        />
-        </div>
+      </div>
     </DashboardLayout>
   )
 }
