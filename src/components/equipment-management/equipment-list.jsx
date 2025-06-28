@@ -43,10 +43,13 @@ import {
   Plus,
   Activity,
   Settings2,
-  Sparkles
+  Sparkles,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { EquipmentGrid } from "./equipment-grid"
 
 export function EquipmentList({
   equipment,
@@ -54,10 +57,12 @@ export function EquipmentList({
   onEdit,
   onDelete,
   onUpdateStatus,
-  onCreateEquipment
+  onCreateEquipment,
+  view // 'grid' or 'table', now controlled by parent
 }) {
-  const [view, setView] = useState("grid") // "grid" or "table"
-  const [hoveredCard, setHoveredCard] = useState(null)
+  // Sorting state for table view
+  const [sortBy, setSortBy] = useState("name")
+  const [sortOrder, setSortOrder] = useState("asc") // 'asc' or 'desc'
 
   // Enhanced status configurations with icons and colors
   const statusConfig = {
@@ -139,142 +144,219 @@ export function EquipmentList({
     </div>
   )
 
+  // Sorting logic
+  const getSortedEquipment = () => {
+    if (view !== "table") return equipment
+    const sorted = [...equipment]
+    sorted.sort((a, b) => {
+      let aValue, bValue
+      switch (sortBy) {
+        case "id":
+          aValue = a.id
+          bValue = b.id
+          break
+        case "name":
+          aValue = a.name
+          bValue = b.name
+          break
+        case "type":
+          aValue = a.type
+          bValue = b.type
+          break
+        case "location":
+          aValue = a.location
+          bValue = b.location
+          break
+        case "manufacturer":
+          aValue = a.manufacturer
+          bValue = b.manufacturer
+          break
+        case "purchaseDate":
+          aValue = a.purchaseDate
+          bValue = b.purchaseDate
+          break
+        case "lastMaintenanceDate":
+          aValue = a.lastMaintenanceDate
+          bValue = b.lastMaintenanceDate
+          break
+        case "status":
+          aValue = a.status
+          bValue = b.status
+          break
+        default:
+          aValue = a.name
+          bValue = b.name
+      }
+      if (!aValue) aValue = ""
+      if (!bValue) bValue = ""
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0
+      }
+    })
+    return sorted
+  }
+
+  const sortedEquipment = getSortedEquipment()
+
   return (
     <div className="space-y-6 p-6">
-      {/* Enhanced View Toggle */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Activity className="h-4 w-4" />
-            <span className="font-medium">
-              {equipment.length} {equipment.length === 1 ? 'Item' : 'Items'}
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-1 flex border border-slate-200/50 shadow-sm">
-          <Button
-            variant={view === "grid" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("grid")}
-            className={cn(
-              "rounded-lg transition-all duration-300",
-              view === "grid"
-                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md hover:shadow-lg"
-                : "hover:bg-slate-50"
-            )}
-          >
-            <Grid3x3 className="h-4 w-4 mr-2" />
-            Grid
-          </Button>
-          <Button
-            variant={view === "table" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("table")}
-            className={cn(
-              "rounded-lg transition-all duration-300",
-              view === "table"
-                ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md hover:shadow-lg"
-                : "hover:bg-slate-50"
-            )}
-          >
-            <List className="h-4 w-4 mr-2" />
-            Table
-          </Button>
+      {/* Removed Enhanced View Toggle */}
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Activity className="h-4 w-4" />
+          <span className="font-medium">
+            {equipment.length} {equipment.length === 1 ? 'Item' : 'Items'}
+          </span>
         </div>
       </div>
 
       {view === "grid" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {equipment.length > 0 ? (
-            equipment.map((item, index) => {
-              const statusConf = getStatusConfig(item.status)
-              const StatusIcon = statusConf.icon
+        <EquipmentGrid
+          equipment={equipment}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onUpdateStatus={onUpdateStatus}
+        />
+      ) : (
+        <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-200/50 bg-gradient-to-r from-slate-50/50 to-white/50">
+                  <TableHead
+                    className="font-bold text-slate-700 h-12 cursor-pointer select-none"
+                    onClick={() => {
+                      if (sortBy === "name") setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      else { setSortBy("name"); setSortOrder("asc") }
+                    }}
+                  >
+                    Equipment Details
+                    {sortBy === "name" && (sortOrder === "asc" ? <ArrowUp className="inline ml-1 w-4 h-4" /> : <ArrowDown className="inline ml-1 w-4 h-4" />)}
+                  </TableHead>
+                  <TableHead
+                    className="font-bold text-slate-700 cursor-pointer select-none"
+                    onClick={() => {
+                      if (sortBy === "type") setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      else { setSortBy("type"); setSortOrder("asc") }
+                    }}
+                  >
+                    Type & Location
+                    {sortBy === "type" && (sortOrder === "asc" ? <ArrowUp className="inline ml-1 w-4 h-4" /> : <ArrowDown className="inline ml-1 w-4 h-4" />)}
+                  </TableHead>
+                  <TableHead
+                    className="font-bold text-slate-700 cursor-pointer select-none"
+                    onClick={() => {
+                      if (sortBy === "purchaseDate") setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      else { setSortBy("purchaseDate"); setSortOrder("asc") }
+                    }}
+                  >
+                    Purchase Info
+                    {sortBy === "purchaseDate" && (sortOrder === "asc" ? <ArrowUp className="inline ml-1 w-4 h-4" /> : <ArrowDown className="inline ml-1 w-4 h-4" />)}
+                  </TableHead>
+                  <TableHead
+                    className="font-bold text-slate-700 cursor-pointer select-none"
+                    onClick={() => {
+                      if (sortBy === "lastMaintenanceDate") setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      else { setSortBy("lastMaintenanceDate"); setSortOrder("asc") }
+                    }}
+                  >
+                    Maintenance
+                    {sortBy === "lastMaintenanceDate" && (sortOrder === "asc" ? <ArrowUp className="inline ml-1 w-4 h-4" /> : <ArrowDown className="inline ml-1 w-4 h-4" />)}
+                  </TableHead>
+                  <TableHead
+                    className="font-bold text-slate-700 cursor-pointer select-none"
+                    onClick={() => {
+                      if (sortBy === "status") setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      else { setSortBy("status"); setSortOrder("asc") }
+                    }}
+                  >
+                    Status
+                    {sortBy === "status" && (sortOrder === "asc" ? <ArrowUp className="inline ml-1 w-4 h-4" /> : <ArrowDown className="inline ml-1 w-4 h-4" />)}
+                  </TableHead>
+                  <TableHead className="text-right font-bold text-slate-700">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedEquipment.length > 0 ? (
+                  sortedEquipment.map((item, index) => {
+                    const statusConf = getStatusConfig(item.status)
+                    const StatusIcon = statusConf.icon
 
-              return (
-                <div
-                  key={item.id}
-                  className="group relative"
-                  onMouseEnter={() => setHoveredCard(item.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  style={{
-                    animationDelay: `${index * 100}ms`,
-                    animation: 'fadeInUp 0.6s ease-out forwards'
-                  }}
-                >
-                  {/* Animated background glow */}
-                  <div className={cn(
-                    "absolute -inset-1 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500",
-                    hoveredCard === item.id && "opacity-100"
-                  )}></div>
-
-                  <Card className="relative overflow-hidden bg-white/80 backdrop-blur-sm border-t-2 border-slate-200 shadow-lg hover:shadow-2xl transition-all duration-500 transform group-hover:-translate-y-2 group-hover:scale-[1.02] flex flex-col h-full">
-                    {/* Status indicator strip */}
-                    <div className={cn("h-1.5 w-full", `bg-gradient-to-r ${statusConf.dot.replace('bg-', 'from-')} to-transparent`)}></div>
-
-                    <CardContent className="p-6 space-y-4 flex-grow flex flex-col">
-                      {/* Header with status */}
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-2 flex-1 min-w-0">
-                          <h3 className="font-bold text-lg leading-tight line-clamp-2 group-hover:text-blue-700 transition-colors duration-300">
-                            {item.name}
-                          </h3>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Tag className="h-4 w-4 mr-2 text-blue-500" />
-                            <span className="font-medium">{item.type}</span>
-                          </div>
-                        </div>
-                        <Badge className={cn(
-                          "ml-3 font-semibold px-3 py-1.5 shadow-sm border",
-                          statusConf.variant
-                        )}>
-                          <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
-                          {item.status}
-                        </Badge>
-                      </div>
-
-                      {/* Equipment details */}
-                      <div className="space-y-3">
-                        <div className="bg-gradient-to-r from-slate-50/50 to-transparent p-3 rounded-lg border border-slate-100">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground font-medium">Serial Number</span>
-                            <span className="font-bold text-slate-900 font-mono bg-white px-2 py-1 rounded border">
+                    return (
+                      <TableRow
+                        key={item.id}
+                        className="border-slate-200/30 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/30 transition-all duration-300 group"
+                        style={{
+                          animationDelay: `${index * 50}ms`,
+                          animation: 'fadeInUp 0.6s ease-out forwards'
+                        }}
+                      >
+                        <TableCell className="py-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs font-mono bg-primary/5 text-primary border-primary/20">
+                                {item.id}
+                              </Badge>
+                            </div>
+                            <h3 className="font-bold text-lg group-hover:text-blue-700 transition-colors duration-300">
+                              {item.name}
+                            </h3>
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Tag className="h-4 w-4 mr-2 text-blue-500" />
+                              <span className="font-medium">{item.type}</span>
+                            </div>
+                            <div className="text-sm font-mono bg-slate-50 p-2 rounded border">
                               {item.serialNumber}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-3">
-                          <div className="flex items-center text-sm group/item hover:bg-slate-50/50 p-2 rounded-lg transition-colors duration-200">
-                            <MapPin className="h-4 w-4 mr-3 text-emerald-500 group-hover/item:scale-110 transition-transform duration-200" />
-                            <div className="flex-1">
-                              <span className="text-muted-foreground">Location</span>
-                              <div className="font-semibold text-slate-900">{item.location}</div>
                             </div>
                           </div>
-
-                          <div className="flex items-center text-sm group/item hover:bg-slate-50/50 p-2 rounded-lg transition-colors duration-200">
-                            <Calendar className="h-4 w-4 mr-3 text-blue-500 group-hover/item:scale-110 transition-transform duration-200" />
-                            <div className="flex-1">
-                              <span className="text-muted-foreground">Purchased</span>
-                              <div className="font-semibold text-slate-900">{formatDate(item.purchaseDate)}</div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center text-sm">
+                              <MapPin className="h-4 w-4 mr-2 text-emerald-500" />
+                              <span className="font-semibold">{item.location}</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.manufacturer}
                             </div>
                           </div>
-
-                          <div className="flex items-center text-sm group/item hover:bg-slate-50/50 p-2 rounded-lg transition-colors duration-200">
-                            <Wrench className="h-4 w-4 mr-3 text-purple-500 group-hover/item:scale-110 transition-transform duration-200" />
-                            <div className="flex-1">
-                              <span className="text-muted-foreground">Last Service</span>
-                              <div className="font-semibold text-slate-900">{formatDate(item.lastMaintenanceDate)}</div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm">
+                              <Calendar className="h-4 w-4 mr-2 text-blue-500" />
+                              <span className="font-semibold">Purchased</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {formatDate(item.purchaseDate)}
                             </div>
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Action buttons */}
-                      <div className="pt-4 border-t border-slate-100">
-                        <div className="flex justify-between items-center">
-                          <div className="flex space-x-1">
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm">
+                              <Wrench className="h-4 w-4 mr-2 text-purple-500" />
+                              <span className="font-semibold">Last Service</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {formatDate(item.lastMaintenanceDate)}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Badge className={cn(
+                            "font-semibold px-3 py-1.5 shadow-sm border",
+                            statusConf.variant
+                          )}>
+                            <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-4 text-right">
+                          <div className="flex justify-end space-x-1">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -291,212 +373,63 @@ export function EquipmentList({
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onView(item)}
-                              className="h-9 w-9 p-0 rounded-xl hover:bg-purple-50 hover:text-purple-600 hover:scale-110 transition-all duration-200"
-                            >
-                              <QrCode className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 w-9 p-0 rounded-xl hover:bg-slate-100 hover:scale-110 transition-all duration-200"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl p-2 min-w-[200px]"
-                            >
-                              <DropdownMenuItem
-                                onClick={() => onView(item)}
-                                className="rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
-                              >
-                                <Eye className="h-4 w-4 mr-3" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => onEdit(item)}
-                                className="rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors duration-200"
-                              >
-                                <Edit className="h-4 w-4 mr-3" />
-                                Edit Equipment
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-slate-200/50" />
-                              <DropdownMenuItem
-                                onClick={() => onUpdateStatus(item.id, "Available")}
-                                className="rounded-lg hover:bg-green-50 hover:text-green-700 transition-colors duration-200"
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-3" />
-                                Mark Available
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => onUpdateStatus(item.id, "In Use")}
-                                className="rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
-                              >
-                                <Zap className="h-4 w-4 mr-3" />
-                                Mark In Use
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => onUpdateStatus(item.id, "Under Maintenance")}
-                                className="rounded-lg hover:bg-amber-50 hover:text-amber-700 transition-colors duration-200"
-                              >
-                                <Wrench className="h-4 w-4 mr-3" />
-                                Under Maintenance
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-slate-200/50" />
-                              <DropdownMenuItem
-                                onClick={() => onDelete(item.id)}
-                                className="rounded-lg hover:bg-red-50 hover:text-red-700 transition-colors duration-200 text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-3" />
-                                Delete Equipment
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )
-            })
-          ) : (
-            <EmptyState />
-          )}
-        </div>
-      ) : (
-        <Card className="overflow-hidden bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-200/50 bg-gradient-to-r from-slate-50/50 to-white/50">
-                  <TableHead className="font-bold text-slate-700 h-12">Equipment Details</TableHead>
-                  <TableHead className="font-bold text-slate-700">Type & Location</TableHead>
-                  <TableHead className="font-bold text-slate-700">Purchase Info</TableHead>
-                  <TableHead className="font-bold text-slate-700">Maintenance</TableHead>
-                  <TableHead className="font-bold text-slate-700">Status</TableHead>
-                  <TableHead className="text-right font-bold text-slate-700">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {equipment.length > 0 ? (
-                  equipment.map((item, index) => {
-                    const statusConf = getStatusConfig(item.status)
-                    const StatusIcon = statusConf.icon
-
-                    return (
-                      <TableRow
-                        key={item.id}
-                        className="border-slate-200/30 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-purple-50/30 transition-all duration-300 group"
-                        style={{
-                          animationDelay: `${index * 50}ms`,
-                          animation: 'fadeIn 0.5s ease-out forwards'
-                        }}
-                      >
-                        <TableCell className="font-medium py-4">
-                          <div className="flex flex-col space-y-1">
-                            <span className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors duration-200">
-                              {item.name}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs font-mono bg-slate-50">
-                                {item.serialNumber}
-                              </Badge>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <div className="flex items-center text-sm">
-                              <Tag className="h-3.5 w-3.5 mr-2 text-blue-500" />
-                              <span className="font-medium">{item.type}</span>
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <MapPin className="h-3.5 w-3.5 mr-2 text-emerald-500" />
-                              <span>{item.location}</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center text-sm">
-                            <Calendar className="h-3.5 w-3.5 mr-2 text-blue-500" />
-                            <span className="font-medium">{formatDate(item.purchaseDate)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center text-sm">
-                            <Wrench className="h-3.5 w-3.5 mr-2 text-purple-500" />
-                            <span className="font-medium">{formatDate(item.lastMaintenanceDate)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={cn(
-                            "font-semibold px-3 py-1.5 shadow-sm border",
-                            statusConf.variant
-                          )}>
-                            <StatusIcon className="h-3.5 w-3.5 mr-1.5" />
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onView(item)}
-                              className="h-8 w-8 p-0 rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:scale-110 transition-all duration-200"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onEdit(item)}
-                              className="h-8 w-8 p-0 rounded-lg hover:bg-emerald-50 hover:text-emerald-600 hover:scale-110 transition-all duration-200"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 hover:scale-110 transition-all duration-200"
+                                  className="h-9 w-9 p-0 rounded-xl hover:bg-slate-100 hover:scale-110 transition-all duration-200"
                                 >
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
                                 align="end"
-                                className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl p-2"
+                                className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl rounded-xl p-2 min-w-[200px]"
                               >
-                                <DropdownMenuItem onClick={() => onUpdateStatus(item.id, "Available")}>
-                                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-600" />
+                                <DropdownMenuItem
+                                  onClick={() => onView(item)}
+                                  className="rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
+                                >
+                                  <Eye className="h-4 w-4 mr-3" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => onEdit(item)}
+                                  className="rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition-colors duration-200"
+                                >
+                                  <Edit className="h-4 w-4 mr-3" />
+                                  Edit Equipment
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="bg-slate-200/50" />
+                                <DropdownMenuItem
+                                  onClick={() => onUpdateStatus(item.id, "Available")}
+                                  className="rounded-lg hover:bg-green-50 hover:text-green-700 transition-colors duration-200"
+                                >
+                                  <CheckCircle2 className="h-4 w-4 mr-3" />
                                   Mark Available
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onUpdateStatus(item.id, "In Use")}>
-                                  <Zap className="h-4 w-4 mr-2 text-blue-600" />
+                                <DropdownMenuItem
+                                  onClick={() => onUpdateStatus(item.id, "In Use")}
+                                  className="rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
+                                >
+                                  <Zap className="h-4 w-4 mr-3" />
                                   Mark In Use
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onUpdateStatus(item.id, "Under Maintenance")}>
-                                  <Wrench className="h-4 w-4 mr-2 text-amber-600" />
+                                <DropdownMenuItem
+                                  onClick={() => onUpdateStatus(item.id, "Under Maintenance")}
+                                  className="rounded-lg hover:bg-amber-50 hover:text-amber-700 transition-colors duration-200"
+                                >
+                                  <Wrench className="h-4 w-4 mr-3" />
                                   Under Maintenance
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
+                                <DropdownMenuSeparator className="bg-slate-200/50" />
                                 <DropdownMenuItem
                                   onClick={() => onDelete(item.id)}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  className="rounded-lg hover:bg-red-50 hover:text-red-700 transition-colors duration-200 text-red-600"
                                 >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
+                                  <Trash2 className="h-4 w-4 mr-3" />
+                                  Delete Equipment
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -517,28 +450,6 @@ export function EquipmentList({
           </div>
         </Card>
       )}
-
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   )
 }
