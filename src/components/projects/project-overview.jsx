@@ -12,20 +12,10 @@ import { UpcomingMilestones } from "./upcoming-milestones"
 import { TaskStatusOverview } from "./task-status-overview"
 import { PriorityBreakdown } from "./priority-breakdown"
 import { TeamWorkload } from "./team-workload"
-import { mockActivities, mockMilestones } from "@/data/projects-data"
+import { mockActivities, mockMilestones, statProgressColors } from "@/data/projects-data"
 
 const StatProgress = ({ label, value, total, progress, color = "blue", icon: Icon, trend, description }) => {
-  const getColorClasses = (color) => {
-    const colors = {
-      blue: { bg: "from-blue-50 to-blue-100", progress: "bg-gradient-to-r from-blue-500 to-blue-600", text: "text-blue-700", icon: "text-blue-600" },
-      green: { bg: "from-green-50 to-green-100", progress: "bg-gradient-to-r from-green-500 to-green-600", text: "text-green-700", icon: "text-green-600" },
-      yellow: { bg: "from-amber-50 to-amber-100", progress: "bg-gradient-to-r from-amber-500 to-amber-600", text: "text-amber-700", icon: "text-amber-600" },
-      purple: { bg: "from-purple-50 to-purple-100", progress: "bg-gradient-to-r from-purple-500 to-purple-600", text: "text-purple-700", icon: "text-purple-600" }
-    };
-    return colors[color] || colors.blue;
-  };
-
-  const colorClasses = getColorClasses(color);
+  const colorClasses = statProgressColors[color] || statProgressColors.blue;
 
   return (
     <div className={`group p-4 rounded-2xl bg-gradient-to-br ${colorClasses.bg} hover:shadow-lg transition-all duration-300 mb-4 last:mb-0 border border-white/50`}>

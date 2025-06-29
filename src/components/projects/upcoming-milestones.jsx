@@ -3,27 +3,17 @@
 import { Flag, Calendar } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { milestoneStatusConfig } from "@/data/projects-data"
 
 const MilestoneStatus = ({ status }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'in_progress':
-        return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'upcoming':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
+  const config = milestoneStatusConfig[status] || milestoneStatusConfig.pending;
 
   return (
     <Badge 
       variant="outline" 
-      className={`text-xs font-medium px-2 py-0.5 rounded ${getStatusColor(status)}`}
+      className={`text-xs font-medium px-2 py-0.5 rounded ${config.color}`}
     >
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {config.label}
     </Badge>
   );
 };

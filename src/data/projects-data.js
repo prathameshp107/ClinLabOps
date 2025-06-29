@@ -461,3 +461,212 @@ export const statusColors = {
   "On Hold": "#f97316",
   "Cancelled": "#ef4444"
 };
+
+// Avatar colors for task assignees
+export const avatarColors = [
+  'bg-blue-500',
+  'bg-green-500',
+  'bg-purple-500',
+  'bg-pink-500',
+  'bg-indigo-500',
+  'bg-cyan-500',
+  'bg-amber-500',
+  'bg-emerald-500',
+  'bg-violet-500',
+  'bg-rose-500'
+];
+
+// Task status configurations
+export const taskStatusConfig = {
+  'completed': {
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    label: 'Completed'
+  },
+  'in_progress': {
+    color: 'bg-blue-100 text-blue-800 border-blue-200',
+    label: 'In Progress'
+  },
+  'review': {
+    color: 'bg-purple-100 text-purple-800 border-purple-200',
+    label: 'Review'
+  },
+  'pending': {
+    color: 'bg-amber-100 text-amber-800 border-amber-200',
+    label: 'Pending'
+  },
+  'on_hold': {
+    color: 'bg-gray-100 text-gray-800 border-gray-200',
+    label: 'On Hold'
+  }
+};
+
+// Task priority configurations
+export const taskPriorityConfig = {
+  'high': {
+    color: 'bg-red-100 text-red-800 border-red-200',
+    label: 'High'
+  },
+  'medium': {
+    color: 'bg-orange-100 text-orange-800 border-orange-200',
+    label: 'Medium'
+  },
+  'low': {
+    color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    label: 'Low'
+  }
+};
+
+// Member role configurations
+export const memberRoleConfig = {
+  'Project Lead': {
+    bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
+    text: 'text-white',
+    icon: 'Crown',
+    glow: 'shadow-blue-200'
+  },
+  'Data Scientist': {
+    bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
+    text: 'text-white',
+    icon: 'Zap',
+    glow: 'shadow-purple-200'
+  },
+  'Developer': {
+    bg: 'bg-gradient-to-r from-green-500 to-green-600',
+    text: 'text-white',
+    icon: 'Shield',
+    glow: 'shadow-green-200'
+  },
+  'Designer': {
+    bg: 'bg-gradient-to-r from-pink-500 to-pink-600',
+    text: 'text-white',
+    icon: 'Star',
+    glow: 'shadow-pink-200'
+  },
+  'QA Engineer': {
+    bg: 'bg-gradient-to-r from-amber-500 to-amber-600',
+    text: 'text-white',
+    icon: 'Award',
+    glow: 'shadow-amber-200'
+  },
+  'Lab Technician': {
+    bg: 'bg-gradient-to-r from-cyan-500 to-cyan-600',
+    text: 'text-white',
+    icon: 'Beaker',
+    glow: 'shadow-cyan-200'
+  },
+  'Research Assistant': {
+    bg: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+    text: 'text-white',
+    icon: 'Microscope',
+    glow: 'shadow-indigo-200'
+  },
+  'Principal Investigator': {
+    bg: 'bg-gradient-to-r from-red-500 to-red-600',
+    text: 'text-white',
+    icon: 'Crown',
+    glow: 'shadow-red-200'
+  }
+};
+
+// Status color configurations for team members
+export const memberStatusConfig = {
+  'online': {
+    color: 'bg-green-400 border-green-300',
+    label: 'Online'
+  },
+  'away': {
+    color: 'bg-yellow-400 border-yellow-300',
+    label: 'Away'
+  },
+  'busy': {
+    color: 'bg-red-400 border-red-300',
+    label: 'Busy'
+  },
+  'offline': {
+    color: 'bg-gray-300 border-gray-200',
+    label: 'Offline'
+  }
+};
+
+// Workload color configurations
+export const workloadConfig = {
+  high: {
+    color: 'text-red-600 bg-red-50',
+    threshold: 80
+  },
+  medium: {
+    color: 'text-amber-600 bg-amber-50',
+    threshold: 60
+  },
+  low: {
+    color: 'text-green-600 bg-green-50',
+    threshold: 0
+  }
+};
+
+// Stat progress color configurations
+export const statProgressColors = {
+  blue: { 
+    bg: "from-blue-50 to-blue-100", 
+    progress: "bg-gradient-to-r from-blue-500 to-blue-600", 
+    text: "text-blue-700", 
+    icon: "text-blue-600" 
+  },
+  green: { 
+    bg: "from-green-50 to-green-100", 
+    progress: "bg-gradient-to-r from-green-500 to-green-600", 
+    text: "text-green-700", 
+    icon: "text-green-600" 
+  },
+  yellow: { 
+    bg: "from-amber-50 to-amber-100", 
+    progress: "bg-gradient-to-r from-amber-500 to-amber-600", 
+    text: "text-amber-700", 
+    icon: "text-amber-600" 
+  },
+  purple: { 
+    bg: "from-purple-50 to-purple-100", 
+    progress: "bg-gradient-to-r from-purple-500 to-purple-600", 
+    text: "text-purple-700", 
+    icon: "text-purple-600" 
+  }
+};
+
+// Priority order for sorting
+export const priorityOrder = { 
+  high: 3, 
+  medium: 2, 
+  low: 1 
+};
+
+// Status order for sorting
+export const statusOrder = { 
+  completed: 3, 
+  in_progress: 2, 
+  pending: 1,
+  on_hold: 0
+};
+
+// Milestone status configurations
+export const milestoneStatusConfig = {
+  'completed': {
+    color: 'bg-green-100 text-green-700 border-green-200',
+    label: 'Completed'
+  },
+  'in_progress': {
+    color: 'bg-amber-100 text-amber-700 border-amber-200',
+    label: 'In Progress'
+  },
+  'upcoming': {
+    color: 'bg-blue-100 text-blue-700 border-blue-200',
+    label: 'Upcoming'
+  },
+  'overdue': {
+    color: 'bg-red-100 text-red-700 border-red-200',
+    label: 'Overdue'
+  },
+  'pending': {
+    color: 'bg-gray-100 text-gray-700 border-gray-200',
+    label: 'Pending'
+  }
+};

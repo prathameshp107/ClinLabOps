@@ -1,16 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import { 
-  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, 
+import {
+  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
-  Users, Clock
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { 
+  Users, Clock,
+  Card, CardContent, CardHeader, CardTitle,
+  Avatar, AvatarFallback, AvatarImage,
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+  Badge,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -18,15 +17,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
+  Tabs, TabsContent, TabsList, TabsTrigger,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+  ScrollArea
+} from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 import { ProjectTable } from "./project-table"
 import { ProjectCardView } from "./project-card-view"
 import { AddProjectDialog } from "./add-project-dialog"
@@ -38,18 +37,20 @@ import { ActivityLogDialog } from "./activity-log-dialog"
 import { ProjectDependencies } from "./project-dependencies"
 import { ProjectStatusTracking } from "./project-status-tracking"
 import { ProjectGanttChart } from "./project-gantt-chart"
-import { mockUsers, mockProjects } from "@/data/projects-data"
+import { mockProjects, mockUsers } from "@/data/projects-data"
 
 export function ProjectManagement() {
-  // Load projects from localStorage or use mockProjects as default
+  // Initialize projects state with data from localStorage or default mock data
   const [projects, setProjects] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedProjects = localStorage.getItem('projects');
-      return savedProjects ? JSON.parse(savedProjects) : mockProjects;
+      if (savedProjects) {
+        return JSON.parse(savedProjects);
+      }
     }
     return mockProjects;
   });
-  
+
   const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -59,7 +60,7 @@ export function ProjectManagement() {
   const [activeTab, setActiveTab] = useState("all"); // "all" or "favorites"
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
-  
+
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
@@ -67,7 +68,7 @@ export function ProjectManagement() {
   const [showShareProjectDialog, setShowShareProjectDialog] = useState(false);
   const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [currentUser, setCurrentUser] = useState({ id: "u1", name: "Dr. Sarah Johnson" }); // Mock current user
+  const [currentUser, setCurrentUser] = useState(mockUsers.u1); // Use centralized mock user
 
   // Save projects to localStorage whenever they change
   useEffect(() => {
@@ -79,33 +80,33 @@ export function ProjectManagement() {
   // Apply filters, search, and favorites tab when they change
   useEffect(() => {
     let filtered = [...projects];
-    
+
     // Apply favorites filter if on favorites tab
     if (activeTab === "favorites") {
       filtered = filtered.filter(project => project.isFavorite);
     }
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        project => 
-          project.name.toLowerCase().includes(query) || 
+        project =>
+          project.name.toLowerCase().includes(query) ||
           project.description.toLowerCase().includes(query) ||
           project.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
-    
+
     // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(project => project.status === statusFilter);
     }
-    
+
     // Apply priority filter
     if (priorityFilter !== "all") {
       filtered = filtered.filter(project => project.priority === priorityFilter);
     }
-    
+
     // Apply timeframe filter
     const now = new Date();
     if (timeframeFilter === "active") {
@@ -117,7 +118,7 @@ export function ProjectManagement() {
     } else if (timeframeFilter === "past") {
       filtered = filtered.filter(project => new Date(project.endDate) < now);
     }
-    
+
     setFilteredProjects(filtered);
   }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab]);
 
@@ -128,7 +129,7 @@ export function ProjectManagement() {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-    
+
     // Apply sorting
     const sortedProjects = [...filteredProjects].sort((a, b) => {
       if (a[key] < b[key]) {
@@ -139,13 +140,13 @@ export function ProjectManagement() {
       }
       return 0;
     });
-    
+
     setFilteredProjects(sortedProjects);
   };
 
   const handleProjectAction = (action, project) => {
     setSelectedProject(project);
-    
+
     switch (action) {
       case "view":
         // Navigate to the project details page instead of opening a modal
@@ -173,67 +174,67 @@ export function ProjectManagement() {
   }
 
   const toggleProjectFavorite = (projectId) => {
-    const updatedProjects = projects.map(project => 
-      project.id === projectId 
-        ? { 
-            ...project, 
-            isFavorite: !project.isFavorite,
-            activityLog: [
-              ...project.activityLog || [],
-              {
-                id: `a${Date.now()}`,
-                userId: currentUser.id,
-                action: !project.isFavorite ? "marked_favorite" : "unmarked_favorite",
-                timestamp: new Date().toISOString(),
-                details: !project.isFavorite ? "Marked as favorite" : "Removed from favorites"
-              }
-            ] 
-          } 
+    const updatedProjects = projects.map(project =>
+      project.id === projectId
+        ? {
+          ...project,
+          isFavorite: !project.isFavorite,
+          activityLog: [
+            ...project.activityLog || [],
+            {
+              id: `a${Date.now()}`,
+              userId: currentUser.id,
+              action: !project.isFavorite ? "marked_favorite" : "unmarked_favorite",
+              timestamp: new Date().toISOString(),
+              details: !project.isFavorite ? "Marked as favorite" : "Removed from favorites"
+            }
+          ]
+        }
         : project
     );
-    
+
     setProjects(updatedProjects);
   }
 
   const handleAddProject = (newProject) => {
-      // Clean up description if it contains HTML tags
-      const cleanedProject = {
-        ...newProject,
-        description: newProject.description?.replace(/<\/?[^>]+(>|$)/g, "") || ""
-      };
-      
-      // Add the new project to the projects array
-      const updatedProjects = [...projects, cleanedProject];
-      
-      // Update state with the new projects array
-      setProjects(updatedProjects);
-      
-      // Close the dialog
-      setShowAddProjectDialog(false);
-      
-      // Show a success message or notification (you can implement this later)
-      console.log("Project added successfully:", cleanedProject);
-    }
+    // Clean up description if it contains HTML tags
+    const cleanedProject = {
+      ...newProject,
+      description: newProject.description?.replace(/<\/?[^>]+(>|$)/g, "") || ""
+    };
+
+    // Add the new project to the projects array
+    const updatedProjects = [...projects, cleanedProject];
+
+    // Update state with the new projects array
+    setProjects(updatedProjects);
+
+    // Close the dialog
+    setShowAddProjectDialog(false);
+
+    // Show a success message or notification (you can implement this later)
+    console.log("Project added successfully:", cleanedProject);
+  }
 
   const handleEditProject = (editedProject) => {
-    const updatedProjects = projects.map(project => 
-      project.id === editedProject.id 
-        ? { 
-            ...editedProject,
-            activityLog: [
-              ...project.activityLog || [],
-              {
-                id: `a${Date.now()}`,
-                userId: currentUser.id,
-                action: "updated",
-                timestamp: new Date().toISOString(),
-                details: "Project updated"
-              }
-            ]
-          } 
+    const updatedProjects = projects.map(project =>
+      project.id === editedProject.id
+        ? {
+          ...editedProject,
+          activityLog: [
+            ...project.activityLog || [],
+            {
+              id: `a${Date.now()}`,
+              userId: currentUser.id,
+              action: "updated",
+              timestamp: new Date().toISOString(),
+              details: "Project updated"
+            }
+          ]
+        }
         : project
     );
-    
+
     setProjects(updatedProjects);
   }
 
@@ -250,7 +251,7 @@ export function ProjectManagement() {
           role: user.projectRole.charAt(0).toUpperCase() + user.projectRole.slice(1),
           email: user.email
         }));
-        
+
         // Add new activity log entries
         const newActivityLogs = invitedUsers.map(user => ({
           id: `a${Date.now()}-${user.id}`,
@@ -259,7 +260,7 @@ export function ProjectManagement() {
           timestamp: new Date().toISOString(),
           details: `Added ${user.name} as ${user.projectRole}`
         }));
-        
+
         return {
           ...project,
           team: [...(project.team || []), ...newTeamMembers],
@@ -268,7 +269,7 @@ export function ProjectManagement() {
       }
       return project;
     });
-    
+
     setProjects(updatedProjects);
   }
 
@@ -277,7 +278,7 @@ export function ProjectManagement() {
     // In a real app, you would update this via an API
     // For now, we'll just update the local state
     console.log("Updated dependencies:", dependencies);
-    
+
     // For demo purposes, we'll update the first project
     const updatedProjects = projects.map(p => {
       if (p.id === "p1") {
@@ -285,7 +286,7 @@ export function ProjectManagement() {
       }
       return p;
     });
-    
+
     setProjects(updatedProjects);
   };
 
@@ -304,9 +305,9 @@ export function ProjectManagement() {
             details: `Updated status from ${p.status} to ${newStatus}`
           }
         ];
-        
-        return { 
-          ...p, 
+
+        return {
+          ...p,
           status: newStatus,
           // If completed, set progress to 100%
           progress: newStatus === "Completed" ? 100 : p.progress,
@@ -315,7 +316,7 @@ export function ProjectManagement() {
       }
       return p;
     });
-    
+
     setProjects(updatedProjects);
   };
 
@@ -331,32 +332,32 @@ export function ProjectManagement() {
 
       {/* View Selector Tabs */}
       <div className="border-b">
-        <Tabs 
-          value={activeView} 
-          onValueChange={setActiveView} 
+        <Tabs
+          value={activeView}
+          onValueChange={setActiveView}
           className="w-full"
         >
           <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0">
-            <TabsTrigger 
-              value="projects" 
+            <TabsTrigger
+              value="projects"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Projects
             </TabsTrigger>
-            <TabsTrigger 
-              value="status" 
+            <TabsTrigger
+              value="status"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Status Tracking
             </TabsTrigger>
-            <TabsTrigger 
-              value="gantt" 
+            <TabsTrigger
+              value="gantt"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Gantt Chart
             </TabsTrigger>
-            <TabsTrigger 
-              value="dependencies" 
+            <TabsTrigger
+              value="dependencies"
               className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
             >
               Dependencies
@@ -379,7 +380,7 @@ export function ProjectManagement() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <div className="flex flex-1 flex-col sm:flex-row gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="flex-1">
@@ -393,7 +394,7 @@ export function ProjectManagement() {
                   <SelectItem value="Completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Filter by priority" />
@@ -405,7 +406,7 @@ export function ProjectManagement() {
                   <SelectItem value="High">High</SelectItem>
                 </SelectContent>
               </Select>
-              
+
               <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Filter by timeframe" />
@@ -419,7 +420,7 @@ export function ProjectManagement() {
               </Select>
             </div>
           </div>
-          
+
           {/* Projects Display */}
           <ProjectDisplay
             projects={filteredProjects}
@@ -432,14 +433,14 @@ export function ProjectManagement() {
       )}
 
       {activeView === "status" && (
-        <ProjectStatusTracking 
+        <ProjectStatusTracking
           projects={projects}
           onUpdateProjectStatus={handleUpdateProjectStatus}
         />
       )}
 
       {activeView === "gantt" && (
-        <ProjectGanttChart 
+        <ProjectGanttChart
           projects={projects}
           dependencies={projects.reduce((acc, project) => {
             if (project.dependencies) {
@@ -451,40 +452,40 @@ export function ProjectManagement() {
       )}
 
       {activeView === "dependencies" && (
-        <ProjectDependencies 
+        <ProjectDependencies
           projects={projects}
           onUpdateProjectDependencies={handleUpdateProjectDependencies}
         />
       )}
 
       {/* Dialogs */}
-      <AddProjectDialog 
-        open={showAddProjectDialog} 
+      <AddProjectDialog
+        open={showAddProjectDialog}
         onOpenChange={setShowAddProjectDialog}
         onSubmit={handleAddProject}
       />
-      
-      <DeleteProjectDialog 
-        open={showDeleteProjectDialog} 
+
+      <DeleteProjectDialog
+        open={showDeleteProjectDialog}
         onOpenChange={setShowDeleteProjectDialog}
         project={selectedProject}
         onDelete={handleDeleteProject}
       />
-      
-      <ProjectDetailsDialog 
-        open={showProjectDetailsDialog} 
+
+      <ProjectDetailsDialog
+        open={showProjectDetailsDialog}
         onOpenChange={setShowProjectDetailsDialog}
         project={selectedProject}
         onAction={handleProjectAction}
       />
-      
+
       <ProjectShareDialog
         open={showShareProjectDialog}
         onOpenChange={setShowShareProjectDialog}
         project={selectedProject}
         onShare={handleShareProject}
       />
-      
+
       <ActivityLogDialog
         open={showActivityLogDialog}
         onOpenChange={setShowActivityLogDialog}
@@ -510,15 +511,15 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
       </div>
     );
   }
-  
+
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={{
         hidden: { opacity: 0, y: 20 },
-        visible: { 
-          opacity: 1, 
+        visible: {
+          opacity: 1,
           y: 0,
           transition: { duration: 0.3, ease: "easeInOut" }
         }
@@ -526,14 +527,14 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
       key={viewMode} // This will trigger animation when view mode changes
     >
       {viewMode === "grid" ? (
-        <ProjectCardView 
-          projects={projects} 
-          onAction={handleProjectAction} 
+        <ProjectCardView
+          projects={projects}
+          onAction={handleProjectAction}
         />
       ) : (
-        <ProjectTable 
-          projects={projects} 
-          onAction={handleProjectAction} 
+        <ProjectTable
+          projects={projects}
+          onAction={handleProjectAction}
           sortConfig={sortConfig}
           requestSort={requestSort}
         />

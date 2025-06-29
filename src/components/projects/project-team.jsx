@@ -23,75 +23,42 @@ import {
 } from "@/components/ui/tooltip"
 import { defaultTeam } from "@/data/projects-data"
 import { Mail as LucideMail, MoreHorizontal, UserCog, UserMinus, UserPlus, Shield, Star, MessageSquare, Award, Activity, Crown, Zap } from "lucide-react"
+import { AddMemberModal } from "./add-member-modal"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
+import { 
+  memberRoleConfig, 
+  memberStatusConfig, 
+  workloadConfig 
+} from "@/data/projects-data"
 
 const MemberRoleBadge = ({ role, isLead = false }) => {
-  const getRoleConfig = (role) => {
-    const configs = {
-      'Project Lead': {
-        bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
-        text: 'text-white',
-        icon: Crown,
-        glow: 'shadow-blue-200'
-      },
-      'Data Scientist': {
-        bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
-        text: 'text-white',
-        icon: Zap,
-        glow: 'shadow-purple-200'
-      },
-      'Developer': {
-        bg: 'bg-gradient-to-r from-green-500 to-green-600',
-        text: 'text-white',
-        icon: Shield,
-        glow: 'shadow-green-200'
-      },
-      'Designer': {
-        bg: 'bg-gradient-to-r from-pink-500 to-pink-600',
-        text: 'text-white',
-        icon: Star,
-        glow: 'shadow-pink-200'
-      },
-      'QA Engineer': {
-        bg: 'bg-gradient-to-r from-amber-500 to-amber-600',
-        text: 'text-white',
-        icon: Award,
-        glow: 'shadow-amber-200'
-      }
-    };
-    return configs[role] || {
-      bg: 'bg-gradient-to-r from-gray-500 to-gray-600',
-      text: 'text-white',
-      icon: Users,
-      glow: 'shadow-gray-200'
-    };
-  };
-
-  const config = getRoleConfig(role);
-  const Icon = config.icon;
+  const config = memberRoleConfig[role] || memberRoleConfig['Lab Technician'];
+  const IconComponent = {
+    'Crown': Crown,
+    'Zap': Zap,
+    'Shield': Shield,
+    'Star': Star,
+    'Award': Award,
+    'Beaker': Beaker,
+    'Microscope': Microscope,
+    'Users': Users
+  }[config.icon] || Users;
 
   return (
     <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text} shadow-lg ${config.glow} hover:shadow-xl transition-all duration-200`}>
-      <Icon className="h-3 w-3" />
+      <IconComponent className="h-3 w-3" />
       {role}
     </div>
   );
 };
 
 const TeamMemberCard = ({ member, index, onAction }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'online': return 'bg-green-400 border-green-300';
-      case 'away': return 'bg-yellow-400 border-yellow-300';
-      case 'busy': return 'bg-red-400 border-red-300';
-      default: return 'bg-gray-300 border-gray-200';
-    }
-  };
-
-  const getWorkloadColor = (workload) => {
-    if (workload >= 80) return 'text-red-600 bg-red-50';
-    if (workload >= 60) return 'text-amber-600 bg-amber-50';
-    return 'text-green-600 bg-green-50';
-  };
+  const statusConfig = memberStatusConfig[member.status || 'online'];
+  const workloadLevel = member.workload >= workloadConfig.high.threshold ? 'high' : 
+                       member.workload >= workloadConfig.medium.threshold ? 'medium' : 'low';
+  const workloadColor = workloadConfig[workloadLevel].color;
 
   return (
     <div className="group relative p-4 hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/30 transition-all duration-300 rounded-xl mx-2 my-1 hover:shadow-md">
@@ -105,7 +72,7 @@ const TeamMemberCard = ({ member, index, onAction }) => {
                 {member.name.split(' ').map(n => n.charAt(0)).join('')}
               </AvatarFallback>
             </Avatar>
-            <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${getStatusColor(member.status || 'online')}`}></div>
+            <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white ${statusConfig.color}`}></div>
           </div>
 
           {/* Member Info */}
@@ -134,7 +101,7 @@ const TeamMemberCard = ({ member, index, onAction }) => {
               </div>
               <div className="flex items-center gap-1">
                 <Activity className="h-3 w-3" />
-                <span className={`px-2 py-0.5 rounded-full font-medium ${getWorkloadColor(member.workload || 65)}`}>
+                <span className={`px-2 py-0.5 rounded-full font-medium ${workloadColor}`}>
                   {member.workload || 65}% workload
                 </span>
               </div>
