@@ -76,10 +76,10 @@ export default function InventoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="mb-8 space-y-2">
+      <div className="w-full px-8 py-6 space-y-6">
+        <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight text-primary">
-            <Package className="inline-block mr-2 h-8 w-8" /> Inventory ManagementInventory Management
+            <Package className="inline-block mr-2 h-8 w-8" /> Inventory Management
           </h1>
           <p className="text-lg text-muted-foreground">Manage laboratory inventory, suppliers, and storage locations</p>
         </div>

@@ -63,15 +63,15 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 
-// Mock users for team selection
-const mockUsers = [
-  { id: "u1", name: "Dr. Sarah Johnson", role: "Admin", department: "Research & Development" },
-  { id: "u2", name: "Mark Williams", role: "Scientist", department: "Biochemistry" },
-  { id: "u3", name: "Dr. Emily Chen", role: "Reviewer", department: "Quality Control" },
-  { id: "u4", name: "James Rodriguez", role: "Technician", department: "Laboratory Operations" },
-  { id: "u5", name: "Olivia Taylor", role: "Scientist", department: "Microbiology" },
-  { id: "u6", name: "Robert Kim", role: "Technician", department: "Equipment Maintenance" }
-]
+import {
+  mockUsers,
+  projectStatuses,
+  projectPriorities,
+  researchAreas,
+  studyTypes,
+  dataCollectionFrequencies,
+  commonTags
+} from "@/data/projects-data"
 
 // Rich text editor toolbar component
 const EditorMenuBar = ({ editor }) => {
@@ -246,46 +246,6 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [equipmentInput, setEquipmentInput] = useState("")
   const [documentInput, setDocumentInput] = useState("")
   const [collaboratorInput, setCollaboratorInput] = useState("")
-
-  const projectStatuses = [
-    { value: "Not Started", label: "Not Started", color: "#9ca3af" }, // gray-400
-    { value: "In Progress", label: "In Progress", color: "#3b82f6" }, // blue-500
-    { value: "Completed", label: "Completed", color: "#22c55e" }, // green-500
-    { value: "On Hold", label: "On Hold", color: "#eab308" }, // yellow-500
-    { value: "Cancelled", label: "Cancelled", color: "#ef4444" }, // red-500
-  ];
-
-  const projectPriorities = [
-    { value: "Low", label: "Low", color: "#22c55e" }, // green-500
-    { value: "Medium", label: "Medium", color: "#eab308" }, // yellow-500
-    { value: "High", label: "High", color: "#f97316" }, // orange-500
-    { value: "Critical", label: "Critical", color: "#ef4444" }, // red-500
-  ];
-
-  const researchAreas = [
-    "Oncology", "Pharmacology", "Toxicology", "Immunology",
-    "Neuroscience", "Cardiology", "Microbiology", "Genetics",
-    "Biochemistry", "Cell Biology", "Virology", "Pathology",
-    "Bioinformatics", "Biostatistics", "Clinical Research"
-  ];
-
-  const studyTypes = [
-    "In vivo", "In vitro", "Ex vivo", "Clinical", "Computational",
-    "Observational", "Interventional", "Retrospective", "Prospective"
-  ];
-
-  const dataCollectionFrequencies = [
-    "Daily", "Twice Daily", "Weekly", "Bi-weekly", "Monthly", "Quarterly",
-    "Annually", "As Needed", "Custom"
-  ];
-
-  const commonTags = [
-    "Oncology", "Clinical Trial", "Drug Discovery", "Genomics", "Proteomics",
-    "Immunotherapy", "Neuroscience", "Cardiology", "Infectious Disease", "Bioinformatics",
-    "Data Analysis", "Machine Learning", "AI", "Biomarkers", "Diagnostics",
-    "Therapeutics", "Vaccine Development", "Public Health", "Epidemiology",
-    "Personalized Medicine", "Rare Disease", "Orphan Drug", "Pediatrics", "Geriatrics"
-  ];
 
   // Rich text editor setup
   const editor = useEditor({

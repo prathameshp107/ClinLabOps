@@ -16,7 +16,7 @@ import {
   FileText as FileTextIcon,
   Plus,
   RefreshCw as RefreshCwIcon,
-  Loader2 as Loader2Icon,
+  Loader2,
   CheckCircle2 as CheckCircle2Icon,
   Clock as ClockIcon,
   AlertTriangle as AlertTriangleIcon,

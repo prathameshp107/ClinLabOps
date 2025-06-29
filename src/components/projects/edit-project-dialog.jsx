@@ -2,39 +2,40 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Calendar, ClipboardEdit, CheckCircle2, X, Info } from "lucide-react"
+import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogOverlay
 } from "@/components/ui/dialog"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
 } from "@/components/ui/tabs"
-import { 
+import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -51,23 +52,18 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Switch } from "@/components/ui/switch"
+import { Slider } from "@/components/ui/slider"
+import { DatePicker } from "@/components/ui/date-picker"
 
-// Mock users for team selection
-const mockUsers = [
-  { id: "u1", name: "Dr. Sarah Johnson", role: "Admin", department: "Research & Development" },
-  { id: "u2", name: "Mark Williams", role: "Scientist", department: "Biochemistry" },
-  { id: "u3", name: "Dr. Emily Chen", role: "Reviewer", department: "Quality Control" },
-  { id: "u4", name: "James Rodriguez", role: "Technician", department: "Laboratory Operations" },
-  { id: "u5", name: "Olivia Taylor", role: "Scientist", department: "Microbiology" },
-  { id: "u6", name: "Robert Kim", role: "Technician", department: "Equipment Maintenance" }
-]
+// Rich text editor imports
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import Placeholder from '@tiptap/extension-placeholder'
 
-// Common project tags
-const commonTags = [
-  "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience", 
-  "Data Analysis", "Genetics", "Protocol", "Screening", "Equipment", "Validation", 
-  "Mass Spec", "Vaccines", "Stability", "mRNA", "Immunology", "Biomarkers"
-]
+import { mockUsers, commonTags } from "@/data/projects-data"
 
 export function EditProjectDialog({ project, open, onOpenChange }) {
   const [activeTab, setActiveTab] = useState("details")
@@ -255,7 +251,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ClipboardEdit className="h-5 w-5" />
+            <FolderPlus className="h-5 w-5" />
             Edit Project
           </DialogTitle>
           <DialogDescription>

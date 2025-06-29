@@ -17,86 +17,10 @@ import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Check, AlertCircle, Calendar, Clock, Users, Bookmark, Settings, Activity, List, Plus, Edit, Trash2, MoreVertical, ChevronLeft, Save, X, MessageCircle, FileText, UserPlus, Layers } from "lucide-react"
-import { format, parseISO } from "date-fns"
-
-// Mock project data - would be fetched from API in production
-const mockProjects = [
-  {
-    id: "p1",
-    name: "Cancer Biomarker Discovery",
-    description: "Research project focused on identifying novel biomarkers for early cancer detection using proteomics approaches.",
-    startDate: "2024-11-15",
-    endDate: "2025-03-30",
-    status: "In Progress",
-    priority: "High",
-    completion: 45,
-    assignedTo: "Dr. Sarah Chen",
-    tags: ["Oncology", "Proteomics", "Diagnostics"],
-    team: [
-      { id: "u1", name: "Sarah Chen", role: "Principal Investigator", avatar: "SC" },
-      { id: "u2", name: "David Park", role: "Research Associate", avatar: "DP" },
-      { id: "u3", name: "Maria Rodriguez", role: "Lab Technician", avatar: "MR" }
-    ],
-    tasks: [
-      { id: "t1", name: "Sample collection", status: "Completed", dueDate: "2024-12-15", assignee: "Maria Rodriguez" },
-      { id: "t2", name: "Protein extraction", status: "In Progress", dueDate: "2025-01-15", assignee: "David Park" },
-      { id: "t3", name: "Mass spectrometry analysis", status: "Not Started", dueDate: "2025-02-15", assignee: "Sarah Chen" },
-      { id: "t4", name: "Data analysis", status: "Not Started", dueDate: "2025-03-01", assignee: "David Park" }
-    ],
-    subprojects: [
-      { id: "sp1", name: "Blood Sample Analysis", completion: 80, status: "In Progress" },
-      { id: "sp2", name: "Tissue Sample Analysis", completion: 20, status: "In Progress" }
-    ],
-    activities: [
-      { id: "a1", type: "status_change", user: "Sarah Chen", timestamp: "2025-01-10T14:30:00Z", content: "Changed project status from 'Planning' to 'In Progress'" },
-      { id: "a2", type: "task_complete", user: "Maria Rodriguez", timestamp: "2024-12-15T11:25:00Z", content: "Completed task: 'Sample collection'" },
-      { id: "a3", type: "comment", user: "David Park", timestamp: "2024-12-20T09:15:00Z", content: "Started protein extraction protocol optimization" }
-    ],
-    milestones: [
-      { name: "Sample Collection Complete", date: "2024-12-15", completed: true },
-      { name: "Preliminary Results", date: "2025-02-01", completed: false },
-      { name: "Final Analysis", date: "2025-03-15", completed: false }
-    ]
-  },
-  {
-    id: "p2",
-    name: "Antibiotic Resistance Testing",
-    description: "Development and validation of new methods for rapid antibiotic resistance detection in clinical samples.",
-    startDate: "2024-10-01",
-    endDate: "2025-05-30",
-    status: "In Progress",
-    priority: "Medium",
-    completion: 35,
-    assignedTo: "Dr. James Wilson",
-    tags: ["Microbiology", "Antibiotics", "Diagnostics"],
-    team: [
-      { id: "u4", name: "James Wilson", role: "Principal Investigator", avatar: "JW" },
-      { id: "u5", name: "Emma Johnson", role: "Research Associate", avatar: "EJ" },
-      { id: "u6", name: "Michael Brown", role: "Lab Technician", avatar: "MB" }
-    ],
-    tasks: [
-      { id: "t5", name: "Strain collection", status: "Completed", dueDate: "2024-11-01", assignee: "Michael Brown" },
-      { id: "t6", name: "MIC determination", status: "In Progress", dueDate: "2025-01-30", assignee: "Emma Johnson" },
-      { id: "t7", name: "Rapid test development", status: "Not Started", dueDate: "2025-03-15", assignee: "James Wilson" },
-      { id: "t8", name: "Clinical validation", status: "Not Started", dueDate: "2025-05-01", assignee: "Emma Johnson" }
-    ],
-    subprojects: [
-      { id: "sp3", name: "Genetic Testing Methods", completion: 60, status: "In Progress" },
-      { id: "sp4", name: "Phenotypic Testing Methods", completion: 20, status: "In Progress" }
-    ],
-    activities: [
-      { id: "a4", type: "status_change", user: "James Wilson", timestamp: "2024-10-15T10:00:00Z", content: "Changed project status from 'Planning' to 'In Progress'" },
-      { id: "a5", type: "task_complete", user: "Michael Brown", timestamp: "2024-11-01T16:45:00Z", content: "Completed task: 'Strain collection'" },
-      { id: "a6", type: "comment", user: "Emma Johnson", timestamp: "2024-12-05T13:20:00Z", content: "Started MIC testing for the first batch of clinical isolates" }
-    ],
-    milestones: [
-      { name: "Strain Collection Complete", date: "2024-11-01", completed: true },
-      { name: "Method Development", date: "2025-03-15", completed: false },
-      { name: "Clinical Validation Complete", date: "2025-05-15", completed: false }
-    ]
-  }
-];
+import { Check, AlertCircle, Calendar, Clock, Users, Bookmark, Settings, Activity, List, Plus, Edit, Trash2, MoreVertical, ChevronLeft, Save, X, MessageCircle, FileText, UserPlus, Layers, Star, AlertTriangle, PauseCircle, MoreHorizontal, MessageSquare, BarChart2, ArrowUpRight, ArrowDownRight, CheckCircle2 } from "lucide-react"
+import { format, parseISO, differenceInDays, isAfter, isBefore } from "date-fns"
+import { cn } from "@/lib/utils"
+import { mockProjects, memberOptions } from "@/data/projects-data"
 
 // Animation variants for Framer Motion
 const fadeIn = {
@@ -202,12 +126,6 @@ export function ProjectDetails({ projectId }) {
     if (!newMember.id || !newMember.role) return
 
     // Find the selected member (in a real app, this would be from a proper members list)
-    const memberOptions = [
-      { id: "member1", name: "John Smith", avatar: "JS" },
-      { id: "member2", name: "Elizabeth Taylor", avatar: "ET" },
-      { id: "member3", name: "Michael Johnson", avatar: "MJ" }
-    ]
-
     const selectedMember = memberOptions.find(m => m.id === newMember.id)
 
     if (!selectedMember) return
@@ -866,9 +784,9 @@ export function ProjectDetails({ projectId }) {
                           onChange={(e) => setNewMember(prev => ({ ...prev, id: e.target.value }))}
                         >
                           <option value="">Select a member...</option>
-                          <option value="member1">John Smith - Research Assistant</option>
-                          <option value="member2">Elizabeth Taylor - Lab Technician</option>
-                          <option value="member3">Michael Johnson - Data Analyst</option>
+                          {memberOptions.map(member => (
+                            <option key={member.id} value={member.id}>{member.name} - {member.role}</option>
+                          ))}
                         </select>
                       </div>
                       <div className="space-y-2">

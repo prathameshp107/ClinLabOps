@@ -6,13 +6,7 @@ import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { Button } from "@/components/ui/button"
 import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
 import { useState, useEffect } from "react"
-
-const statusChips = [
-  { label: "All", value: "all" },
-  { label: "In Progress", value: "in-progress" },
-  { label: "On Hold", value: "on-hold" },
-  { label: "Completed", value: "completed" },
-]
+import { statusChips } from "@/data/projects-data"
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)

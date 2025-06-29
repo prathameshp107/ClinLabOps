@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, BarChart3, PieChart as PieChartIcon, TrendingUp, DollarSign, Clock, CheckCircle, AlertTriangle, ChevronRight, ArrowRight, PauseCircle } from 'lucide-react';
+import { RefreshCw, BarChart3, PieChart as PieChartIcon, TrendingUp, DollarSign, Clock, CheckCircle, AlertTriangle, ChevronRight, ArrowRight, PauseCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   BarChart,
@@ -299,12 +299,12 @@ const ProjectAnalytics = () => {
                 <PieChart>
                   <defs>
                     {statusData.map((entry, index) => (
-                      <linearGradient 
-                        key={`gradient-${index}`} 
-                        id={`gradient-${index}`} 
-                        x1="0" 
-                        y1="0" 
-                        x2="0" 
+                      <linearGradient
+                        key={`gradient-${index}`}
+                        id={`gradient-${index}`}
+                        x1="0"
+                        y1="0"
+                        x2="0"
                         y2="1"
                       >
                         <stop offset="0%" stopColor={entry.color} stopOpacity={0.8} />
@@ -346,18 +346,18 @@ const ProjectAnalytics = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const data = payload[0].payload;
                         return (
                           <div className="bg-popover/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-xl text-sm w-64">
                             <div className="flex items-center gap-3 mb-3">
-                              <div 
+                              <div
                                 className="h-8 w-8 rounded-full flex items-center justify-center"
-                                style={{ 
-                                  backgroundColor: `${data.color}20`, 
-                                  color: data.color 
+                                style={{
+                                  backgroundColor: `${data.color}20`,
+                                  color: data.color
                                 }}
                               >
                                 {data.icon}
@@ -367,7 +367,7 @@ const ProjectAnalytics = () => {
                                 <p className="text-xs text-muted-foreground">{data.description}</p>
                               </div>
                             </div>
-                            
+
                             <div className="space-y-3">
                               <div>
                                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
@@ -377,9 +377,9 @@ const ProjectAnalytics = () => {
                                   </span>
                                 </div>
                                 <div className="h-1.5 bg-accent rounded-full overflow-hidden">
-                                  <div 
+                                  <div
                                     className="h-full rounded-full"
-                                    style={{ 
+                                    style={{
                                       width: '100%',
                                       backgroundColor: data.color,
                                       opacity: 0.2
@@ -387,7 +387,7 @@ const ProjectAnalytics = () => {
                                   />
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                   <span>Task Completion</span>
@@ -396,9 +396,9 @@ const ProjectAnalytics = () => {
                                   </span>
                                 </div>
                                 <div className="h-1.5 bg-accent rounded-full overflow-hidden">
-                                  <div 
+                                  <div
                                     className="h-full rounded-full transition-all duration-500 ease-out"
-                                    style={{ 
+                                    style={{
                                       width: `${data.progress}%`,
                                       backgroundColor: data.color,
                                       backgroundImage: `linear-gradient(90deg, ${data.color} 0%, ${data.color}99 100%)`
@@ -412,11 +412,11 @@ const ProjectAnalytics = () => {
                                   </span>
                                 </div>
                               </div>
-                              
+
                               <div className="pt-2 border-t border-border">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="w-full text-xs h-8 gap-1.5"
                                 >
                                   View {data.name} Projects
@@ -430,7 +430,7 @@ const ProjectAnalytics = () => {
                       return null;
                     }}
                   />
-                  <Legend 
+                  <Legend
                     layout="horizontal"
                     verticalAlign="bottom"
                     align="center"
@@ -439,12 +439,12 @@ const ProjectAnalytics = () => {
                         {payload.map((entry, index) => {
                           const data = statusData[index];
                           return (
-                            <div 
+                            <div
                               key={`legend-${index}`}
                               className="flex items-center gap-1.5 text-xs"
                             >
-                              <div 
-                                className="w-3 h-3 rounded-full" 
+                              <div
+                                className="w-3 h-3 rounded-full"
                                 style={{ backgroundColor: data.color }}
                               />
                               <span className="text-muted-foreground">

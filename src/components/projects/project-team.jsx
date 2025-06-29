@@ -1,11 +1,28 @@
 "use client"
 
-import { Mail, MoreHorizontal, UserCog, UserMinus, UserPlus, Users, Shield, Star, MessageSquare, Calendar, Award, Activity, Crown, Zap } from "lucide-react"
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Users, Plus, MoreVertical, Mail, Phone, Calendar, MapPin, Building, UserCheck, UserX, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { defaultTeam } from "@/data/projects-data"
+import { Mail as LucideMail, MoreHorizontal, UserCog, UserMinus, UserPlus, Shield, Star, MessageSquare, Award, Activity, Crown, Zap } from "lucide-react"
 
 const MemberRoleBadge = ({ role, isLead = false }) => {
   const getRoleConfig = (role) => {
@@ -143,7 +160,7 @@ const TeamMemberCard = ({ member, index, onAction }) => {
               className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600 rounded-xl transition-all duration-200"
               onClick={() => onAction?.('email', member)}
             >
-              <Mail className="h-4 w-4" />
+              <LucideMail className="h-4 w-4" />
             </Button>
           </div>
 
@@ -173,7 +190,7 @@ const TeamMemberCard = ({ member, index, onAction }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-2xl p-2">
               <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-blue-50 transition-colors">
-                <Mail className="h-4 w-4 mr-3 text-blue-600" />
+                <LucideMail className="h-4 w-4 mr-3 text-blue-600" />
                 Send Message
               </DropdownMenuItem>
               <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-purple-50 transition-colors">
@@ -198,58 +215,7 @@ const TeamMemberCard = ({ member, index, onAction }) => {
 };
 
 export function ProjectTeam({ team, onAddMember }) {
-  const mockTeam = team || [
-    {
-      name: "Sarah Johnson",
-      role: "Project Lead",
-      department: "Engineering",
-      joinedAt: "Jan 2024",
-      status: "online",
-      workload: 85,
-      rating: 5,
-      avatar: ""
-    },
-    {
-      name: "Michael Chen",
-      role: "Data Scientist",
-      department: "Analytics",
-      joinedAt: "Feb 2024",
-      status: "online",
-      workload: 72,
-      rating: 4,
-      avatar: ""
-    },
-    {
-      name: "Emily Rodriguez",
-      role: "Developer",
-      department: "Engineering",
-      joinedAt: "Mar 2024",
-      status: "away",
-      workload: 68,
-      rating: 5,
-      avatar: ""
-    },
-    {
-      name: "David Kim",
-      role: "Designer",
-      department: "Design",
-      joinedAt: "Jan 2024",
-      status: "online",
-      workload: 55,
-      rating: 4,
-      avatar: ""
-    },
-    {
-      name: "Lisa Wang",
-      role: "QA Engineer",
-      department: "Quality",
-      joinedAt: "Apr 2024",
-      status: "busy",
-      workload: 78,
-      rating: 4,
-      avatar: ""
-    }
-  ];
+  const mockTeam = team || defaultTeam;
 
   const handleMemberAction = (action, member) => {
     console.log(`${action} action for`, member.name);

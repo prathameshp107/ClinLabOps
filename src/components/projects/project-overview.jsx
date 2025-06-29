@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+import { motion } from "framer-motion"
 import { BarChart3, FileText, Tag, TrendingUp, Calendar, Users, DollarSign, Clock, Target, Zap, CheckCircle2, AlertCircle, User, Activity } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,6 +12,7 @@ import { UpcomingMilestones } from "./upcoming-milestones"
 import { TaskStatusOverview } from "./task-status-overview"
 import { PriorityBreakdown } from "./priority-breakdown"
 import { TeamWorkload } from "./team-workload"
+import { mockActivities, mockMilestones } from "@/data/projects-data"
 
 const StatProgress = ({ label, value, total, progress, color = "blue", icon: Icon, trend, description }) => {
   const getColorClasses = (color) => {
@@ -130,20 +133,6 @@ const MilestoneItem = ({ milestone, index }) => {
 };
 
 export function ProjectOverview({ project }) {
-  const mockActivities = [
-    { user: "Alice Johnson", action: "Updated", description: "Modified task requirements for Lab Setup", timestamp: "2 hours ago", avatar: "" },
-    { user: "Bob Smith", action: "Completed", description: "Finished database schema design", timestamp: "4 hours ago", avatar: "" },
-    { user: "Carol Davis", action: "Created", description: "Added new milestone for testing phase", timestamp: "1 day ago", avatar: "" },
-    { user: "David Wilson", action: "Commented", description: "Left feedback on UI mockups", timestamp: "2 days ago", avatar: "" }
-  ];
-
-  const mockMilestones = [
-    { title: "Database Setup", description: "Complete database schema and initial setup", dueDate: "Dec 15, 2024", assignee: "Bob Smith", completed: true },
-    { title: "UI Development", description: "Implement main dashboard and core components", dueDate: "Dec 20, 2024", assignee: "Alice Johnson", completed: false },
-    { title: "Testing Phase", description: "Conduct comprehensive testing and bug fixes", dueDate: "Dec 25, 2024", assignee: "Carol Davis", completed: false },
-    { title: "Deployment", description: "Deploy to production environment", dueDate: "Jan 1, 2025", assignee: "David Wilson", completed: false }
-  ];
-
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
       {/* Left Column - Main Content */}

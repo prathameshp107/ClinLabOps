@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+import { motion } from "framer-motion"
 import { BarChart3, Info, TrendingUp, AlertTriangle, Clock, CheckCircle2, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, Tooltip } from "recharts"
@@ -11,54 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-
-const priorityData = [
-  { 
-    name: "Lowest", 
-    tasks: 50, 
-    color: "#10b981", 
-    gradient: "from-emerald-400 to-emerald-600",
-    icon: CheckCircle2,
-    percentage: 13.7,
-    trend: "+5%"
-  },
-  { 
-    name: "Low", 
-    tasks: 75, 
-    color: "#3b82f6", 
-    gradient: "from-blue-400 to-blue-600",
-    icon: Clock,
-    percentage: 20.5,
-    trend: "+2%"
-  },
-  { 
-    name: "Medium", 
-    tasks: 120, 
-    color: "#f59e0b", 
-    gradient: "from-amber-400 to-amber-600",
-    icon: AlertTriangle,
-    percentage: 32.9,
-    trend: "-3%"
-  },
-  { 
-    name: "High", 
-    tasks: 90, 
-    color: "#ef4444", 
-    gradient: "from-red-400 to-red-600",
-    icon: TrendingUp,
-    percentage: 24.7,
-    trend: "+8%"
-  },
-  { 
-    name: "Highest", 
-    tasks: 30, 
-    color: "#8b5cf6", 
-    gradient: "from-purple-400 to-purple-600",
-    icon: Zap,
-    percentage: 8.2,
-    trend: "+12%"
-  },
-]
+import { priorityData } from "@/data/projects-data"
 
 const totalTasks = priorityData.reduce((sum, item) => sum + item.tasks, 0)
 

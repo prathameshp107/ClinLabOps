@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Search, X } from "lucide-react"
+import { motion } from "framer-motion"
+import { Users, X, UserPlus, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { suggestedMembers } from "@/data/projects-data"
 
 export function AddMemberModal({ open, onOpenChange, onAddMember }) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -40,12 +42,6 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
   const removeNewMember = (userId) => {
     setNewMembers(prev => prev.filter(member => member.id !== userId))
   }
-
-  const suggestedMembers = [
-    { id: 'u1', name: 'Alex Johnson', role: 'Lab Technician', department: 'Laboratory' },
-    { id: 'u2', name: 'Jessica Williams', role: 'Data Scientist', department: 'Analytics' },
-    { id: 'u3', name: 'Robert Garcia', role: 'Research Assistant', department: 'Research' },
-  ]
 
   const filteredMembers = suggestedMembers.filter(member => 
     (member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -148,7 +144,7 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
                     size="sm"
                     onClick={() => handleMemberSelect(user)}
                   >
-                    <Plus className="h-4 w-4" />
+                    <UserPlus className="h-4 w-4" />
                   </Button>
                 </div>
               ))}

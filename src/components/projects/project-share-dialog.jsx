@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Users, X, UserPlus, Check } from "lucide-react"
+import { Share2, Users, Mail, Copy, Check, X, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { 
   Dialog,
@@ -27,20 +27,27 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { userSuggestions } from "@/data/projects-data"
 
 export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
   const [email, setEmail] = useState("")
   const [role, setRole] = useState("viewer")
   const [invitedUsers, setInvitedUsers] = useState([])
   const [error, setError] = useState("")
-
-  // Mock user suggestions
-  const userSuggestions = [
-    { id: "u7", name: "Jessica Lee", email: "j.lee@example.com", role: "Scientist" },
-    { id: "u8", name: "Thomas Miller", email: "t.miller@example.com", role: "Technician" },
-    { id: "u9", name: "Sophia Wilson", email: "s.wilson@example.com", role: "Scientist" },
-    { id: "u10", name: "Michael Brown", email: "m.brown@example.com", role: "Reviewer" },
-  ]
 
   const filteredSuggestions = userSuggestions.filter(user => 
     user.email.includes(email.toLowerCase()) && 

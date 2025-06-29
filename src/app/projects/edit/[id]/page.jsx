@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { mockProjects } from "@/components/dashboard/projects/project-management" // We'll need to export this
+import { mockProjects } from "@/components/projects/project-management" // We'll need to export this
 
 // Remove the generateStaticParams function from here
 // Keep all your other imports and component code
@@ -30,7 +30,7 @@ export default function EditProjectPage({ params }) {
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [newTag, setNewTag] = useState("")
-  
+
   // Form state
   const [form, setForm] = useState({
     name: "",
@@ -47,12 +47,12 @@ export default function EditProjectPage({ params }) {
     // In a real app, fetch from an API
     // For now, simulate loading from our mock data
     setIsLoading(true)
-    
+
     // Simulate API call
     setTimeout(() => {
       // Find the project by ID
       const foundProject = mockProjects.find(p => p.id === params.id)
-      
+
       if (foundProject) {
         setProject(foundProject)
         setForm({
@@ -66,7 +66,7 @@ export default function EditProjectPage({ params }) {
           tags: [...foundProject.tags] // Create a copy to avoid modifying the original
         })
       }
-      
+
       setIsLoading(false)
     }, 500)
   }, [params.id])
@@ -97,10 +97,10 @@ export default function EditProjectPage({ params }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+
     // In a real app, save to an API
     console.log("Saving project:", form)
-    
+
     // Redirect back to projects page
     router.push("/projects")
   }
@@ -123,7 +123,7 @@ export default function EditProjectPage({ params }) {
           <p className="text-muted-foreground mt-2">
             The project you're looking for doesn't exist or has been deleted.
           </p>
-          <Button 
+          <Button
             className="mt-6"
             onClick={() => router.push("/projects")}
           >
@@ -145,9 +145,9 @@ export default function EditProjectPage({ params }) {
       >
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => router.push("/projects")}
               className="mr-4"
             >
@@ -189,7 +189,7 @@ export default function EditProjectPage({ params }) {
                     placeholder="Enter project name"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium mb-1 block">
                     Description
@@ -233,23 +233,23 @@ export default function EditProjectPage({ params }) {
                   </div>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="space-y-4">
                 <label className="text-sm font-medium block">
                   Project Tags
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {form.tags.map(tag => (
-                    <Badge 
-                      key={tag} 
+                    <Badge
+                      key={tag}
                       variant="secondary"
                       className="gap-1.5"
                     >
                       {tag}
-                      <button 
-                        onClick={() => removeTag(tag)} 
+                      <button
+                        onClick={() => removeTag(tag)}
                         className="rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-muted-foreground/20 text-muted-foreground"
                       >
                         ×
@@ -275,7 +275,7 @@ export default function EditProjectPage({ params }) {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle>Status & Progress</CardTitle>
@@ -300,7 +300,7 @@ export default function EditProjectPage({ params }) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium mb-1 block">
                   Priority
@@ -319,7 +319,7 @@ export default function EditProjectPage({ params }) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium mb-1 block">
                   Progress (%)
@@ -332,9 +332,9 @@ export default function EditProjectPage({ params }) {
                   onChange={(e) => handleChange("progress", parseInt(e.target.value) || 0)}
                 />
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <label className="text-sm font-medium mb-3 block">
                   Project Team
@@ -361,8 +361,8 @@ export default function EditProjectPage({ params }) {
                 <Save className="h-4 w-4" />
                 Save Changes
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full gap-2"
                 onClick={() => router.push("/projects")}
               >

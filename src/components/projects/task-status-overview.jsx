@@ -24,65 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-const tasksData = [
-    {
-        name: "Completed",
-        value: 40,
-        color: "#22c55e",
-        description: "Tasks that have been successfully finished",
-        trend: "+5%",
-        trendDirection: "up",
-        count: 24,
-        total: 60,
-        icon: CheckCircle2,
-        assignees: [
-            { name: "Sarah Johnson", avatar: "", role: "Project Lead" },
-            { name: "Michael Chen", avatar: "", role: "Developer" }
-        ]
-    },
-    {
-        name: "In Progress",
-        value: 30,
-        color: "#3b82f6",
-        description: "Tasks currently being worked on",
-        trend: "-2%",
-        trendDirection: "down",
-        count: 18,
-        total: 60,
-        icon: Clock,
-        assignees: [
-            { name: "Emily Rodriguez", avatar: "", role: "Designer" },
-            { name: "David Kim", avatar: "", role: "QA Engineer" }
-        ]
-    },
-    {
-        name: "Failed",
-        value: 15,
-        color: "#ef4444",
-        description: "Tasks that couldn't be completed",
-        trend: "+3%",
-        trendDirection: "up",
-        count: 9,
-        total: 60,
-        icon: AlertCircle,
-        assignees: [
-            { name: "Lisa Wang", avatar: "", role: "Developer" }
-        ]
-    },
-    {
-        name: "Pending",
-        value: 15,
-        color: "#f59e0b",
-        description: "Tasks waiting to be started",
-        trend: "-1%",
-        trendDirection: "down",
-        count: 9,
-        total: 60,
-        icon: Clock,
-        assignees: []
-    },
-]
+import { tasksData } from "@/data/projects-data"
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {

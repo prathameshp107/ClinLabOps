@@ -1,8 +1,11 @@
 "use client"
 
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { BarChart3, Users, TrendingUp, TrendingDown } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Users, AlertCircle, CheckCircle2, Clock, MoreVertical, Activity } from "lucide-react"
+import { AlertCircle, CheckCircle2, Clock, MoreVertical, Activity } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
@@ -12,59 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-
-const teamWorkloadData = [
-  {
-    name: "Unassigned",
-    value: 64,
-    avatarFallback: "UA",
-    color: "#6b7280",
-    status: "warning",
-    tasks: 12,
-    lastActive: "2 days ago",
-    role: "Unassigned Tasks"
-  },
-  {
-    name: "Divyesh Bohra",
-    value: 15,
-    avatarFallback: "DB",
-    color: "#3b82f6",
-    status: "active",
-    tasks: 5,
-    lastActive: "Active now",
-    role: "Senior Developer"
-  },
-  {
-    name: "chaitail.sanap",
-    value: 10,
-    avatarFallback: "CS",
-    color: "#f97316",
-    status: "busy",
-    tasks: 3,
-    lastActive: "1 hour ago",
-    role: "Project Manager"
-  },
-  {
-    name: "Mandar Deshpande",
-    value: 5,
-    avatarFallback: "MD",
-    color: "#ef4444",
-    status: "away",
-    tasks: 2,
-    lastActive: "3 hours ago",
-    role: "Developer"
-  },
-  {
-    name: "Pooja Misal",
-    value: 6,
-    avatarFallback: "PM",
-    color: "#8b5cf6",
-    status: "active",
-    tasks: 4,
-    lastActive: "Active now",
-    role: "Designer"
-  },
-];
+import { teamWorkloadData } from "@/data/projects-data"
 
 const getStatusColor = (status) => {
   switch (status) {
