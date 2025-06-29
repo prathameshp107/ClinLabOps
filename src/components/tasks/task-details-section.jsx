@@ -25,6 +25,7 @@ import {
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import RichTextEditor from './modern-rich-text-editor';
+import { taskOrder } from "@/data/tasks-data";
 
 const commonTags = [
     "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience",
@@ -63,6 +64,8 @@ export default function TaskDetailsSection({
     descriptionInputRef,
     format,
 }) {
+    const order = taskOrder;
+
     return (
         <div className="w-full bg-muted/40 rounded-lg p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-0 gap-x-8">
@@ -138,7 +141,6 @@ export default function TaskDetailsSection({
                             className="ml-2 px-2 py-0.5 text-xs h-6 border-primary/40 hover:bg-primary/10"
                             onClick={() => {
                                 // Cycle through common statuses: Backlog -> In Progress -> Completed
-                                const order = ["backlog", "in_progress", "completed"];
                                 const idx = order.indexOf(selectedStatus);
                                 const next = order[(idx + 1) % order.length];
                                 setSelectedStatus(next);

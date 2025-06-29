@@ -1,282 +1,80 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import {
-  BriefcaseMedical,
-  Clock,
-  Search,
   Plus,
+  Search,
   Filter,
-  ListFilter,
-  LayoutGrid,
-  ListChecks,
+  Calendar,
+  BarChart2,
   Users,
-  Trash2,
-  CalendarClock,
-  AlertCircle,
-  Sparkles,
-  ArrowUpDown,
+  SlidersHorizontal,
   RefreshCw,
+  AlertCircle,
+  Clock,
   CheckCircle2,
-  XCircle,
+  OctagonAlert,
+  List,
+  Grid,
+  PlusCircle,
   Loader2,
-  Pencil,// Add Pencil icon import
-  EllipsisVertical
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  ArrowUpDown,
+  Star,
+  StarOff,
+  Share,
+  Activity
 } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { format, isAfter, isBefore, parseISO } from "date-fns"
-
-// Helper to safely get a Date object from string or Date
-const getDueDate = (dueDate) => {
-  if (typeof dueDate === 'string') {
-    return parseISO(dueDate);
-  }
-  if (dueDate instanceof Date) {
-    return dueDate;
-  }
-  return new Date(dueDate); // fallback for timestamps etc.
-};
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { SparklesCore } from "@/components/ui/aceternity/sparkles"
-import { Checkbox } from "@/components/ui/checkbox" // Add this import for the Checkbox component
-
-import { TaskTable } from "./task-table"
-import { TaskBoard } from "./task-board.jsx"
-import { TaskDetailsDialog } from "./task-details-dialog"
-import { TaskFormDialog } from "./task-form-dialog"
-import { TaskDeleteDialog } from "./task-delete-dialog"
-import { TaskComments } from "./task-comments"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// Mock data for tasks - in a real application this would come from an API
-const mockTasks = [
-  {
-    id: 't1',
-    name: 'Analyze blood samples for Project XYZ',
-    experimentName: 'Compound A Toxicity Study',
-    assignedTo: {
-      id: 'u1',
-      name: 'Dr. Sarah Johnson',
-      avatar: 'SJ'
-    },
-    priority: 'high',
-    status: 'pending',
-    dueDate: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-    createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    attachments: [
-      { id: 'a1', name: 'protocol.pdf', type: 'pdf', size: '2.4 MB' }
-    ],
-    dependencies: [],
-    activityLog: [
-      {
-        id: 'al1',
-        userId: 'u2',
-        action: 'created',
-        timestamp: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created'
-      }
-    ]
-  },
-  {
-    id: 't2',
-    name: 'Prepare cell cultures for experiment',
-    experimentName: 'Compound B Efficacy Test',
-    assignedTo: {
-      id: 'u3',
-      name: 'Alex Wong',
-      avatar: 'AW'
-    },
-    priority: 'medium',
-    status: 'in-progress',
-    dueDate: new Date(new Date().getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day from now
-    createdAt: new Date(new Date().getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    attachments: [],
-    dependencies: [],
-    activityLog: [
-      {
-        id: 'al2',
-        userId: 'u2',
-        action: 'created',
-        timestamp: new Date(new Date().getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created'
-      },
-      {
-        id: 'al3',
-        userId: 'u3',
-        action: 'updated',
-        timestamp: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Status changed from "pending" to "in-progress"'
-      }
-    ]
-  },
-  {
-    id: 't3',
-    name: 'Document experiment results',
-    experimentName: 'Compound A Toxicity Study',
-    assignedTo: {
-      id: 'u4',
-      name: 'Emily Chen',
-      avatar: 'EC'
-    },
-    priority: 'low',
-    status: 'completed',
-    dueDate: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago (past due)
-    createdAt: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-    attachments: [
-      { id: 'a2', name: 'results.xlsx', type: 'excel', size: '1.2 MB' },
-      { id: 'a3', name: 'images.zip', type: 'zip', size: '18.5 MB' }
-    ],
-    dependencies: ['t1'],
-    activityLog: [
-      {
-        id: 'al4',
-        userId: 'u2',
-        action: 'created',
-        timestamp: new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created'
-      },
-      {
-        id: 'al5',
-        userId: 'u4',
-        action: 'updated',
-        timestamp: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Status changed from "pending" to "in-progress"'
-      },
-      {
-        id: 'al6',
-        userId: 'u4',
-        action: 'updated',
-        timestamp: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Status changed from "in-progress" to "completed"'
-      }
-    ]
-  },
-  {
-    id: 't4',
-    name: 'Set up equipment for microscopy',
-    experimentName: 'Compound C Cellular Study',
-    assignedTo: {
-      id: 'u5',
-      name: 'James Wilson',
-      avatar: 'JW'
-    },
-    priority: 'high',
-    status: 'in-progress',
-    dueDate: new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days from now
-    createdAt: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    attachments: [
-      { id: 'a4', name: 'equipment_manual.pdf', type: 'pdf', size: '4.8 MB' }
-    ],
-    dependencies: [],
-    activityLog: [
-      {
-        id: 'al7',
-        userId: 'u1',
-        action: 'created',
-        timestamp: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created'
-      },
-      {
-        id: 'al8',
-        userId: 'u5',
-        action: 'updated',
-        timestamp: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Status changed from "pending" to "in-progress"'
-      }
-    ]
-  },
-  {
-    id: 't5',
-    name: 'Analyze data from previous experiment',
-    experimentName: 'Compound B Efficacy Test',
-    assignedTo: {
-      id: 'u1',
-      name: 'Dr. Sarah Johnson',
-      avatar: 'SJ'
-    },
-    priority: 'medium',
-    status: 'pending',
-    dueDate: new Date(new Date().getTime() + 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days from now
-    createdAt: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    attachments: [],
-    dependencies: ['t2'],
-    activityLog: [
-      {
-        id: 'al9',
-        userId: 'u2',
-        action: 'created',
-        timestamp: new Date(new Date().getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created'
-      }
-    ]
-  },
-  {
-    id: 't6',
-    name: 'Prepare equipment for next experiment',
-    experimentName: 'Compound C Cellular Study',
-    assignedTo: {
-      id: 'u3',
-      name: 'Alex Wong',
-      avatar: 'AW'
-    },
-    priority: 'high',
-    status: 'pending',
-    dueDate: new Date(new Date().getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-    createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    attachments: [],
-    dependencies: [],
-    activityLog: [
-      {
-        id: 'al10',
-        userId: 'u1',
-        action: 'created',
-        timestamp: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        details: 'Task created'
-      }
-    ]
-  }
-];
-
-// Mock data for users
-const mockUsers = {
-  'u1': { id: 'u1', name: 'Dr. Sarah Johnson', avatar: 'SJ', role: 'scientist' },
-  'u2': { id: 'u2', name: 'Dr. Michael Lee', avatar: 'ML', role: 'admin' },
-  'u3': { id: 'u3', name: 'Alex Wong', avatar: 'AW', role: 'technician' },
-  'u4': { id: 'u4', name: 'Emily Chen', avatar: 'EC', role: 'scientist' },
-  'u5': { id: 'u5', name: 'James Wilson', avatar: 'JW', role: 'technician' },
-};
-
-// Mock experiments data
-const mockExperiments = [
-  { id: 'e1', name: 'Compound A Toxicity Study' },
-  { id: 'e2', name: 'Compound B Efficacy Test' },
-  { id: 'e3', name: 'Compound C Cellular Study' },
-  { id: 'e4', name: 'Biomarker Analysis Project' },
-];
-
 // Add this import at the top with other imports
 import { useRouter } from "next/navigation"
+import {
+  mockTasks,
+  mockTaskUsers,
+  mockExperiments,
+  taskStatusConfig,
+  taskPriorityConfig
+} from "@/data/tasks-data"
+
+const getDueDate = (dueDate) => {
+  if (!dueDate) return "No due date";
+
+  const date = new Date(dueDate);
+  const now = new Date();
+  const diffTime = date.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) {
+    return `${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} overdue`;
+  } else if (diffDays === 0) {
+    return "Due today";
+  } else if (diffDays === 1) {
+    return "Due tomorrow";
+  } else if (diffDays <= 7) {
+    return `Due in ${diffDays} days`;
+  } else {
+    return date.toLocaleDateString();
+  }
+};
 
 export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   // Add router
@@ -298,46 +96,40 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskFormDialog, setShowTaskFormDialog] = useState(false);
   const [showTaskDetailsDialog, setShowTaskDetailsDialog] = useState(false);
-  const [showDeleteTaskDialog, setShowDeleteTaskDialog] = useState(false);
-  const [formMode, setFormMode] = useState("create"); // create or edit
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
 
   // State for filters
-  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [statusFilter, setStatusFilter] = useState(view !== "all" ? view : "all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [experimentFilter, setExperimentFilter] = useState("all");
   const [dueDateFilter, setDueDateFilter] = useState("all");
 
-  // Sort functionality
+  // State for sorting
   const [sortConfig, setSortConfig] = useState({
-    key: "dueDate",
-    direction: "asc"
+    key: 'dueDate',
+    direction: 'asc'
   });
 
-  // Task statistics
+  // State for task statistics
   const [taskStats, setTaskStats] = useState({
     total: 0,
     pending: 0,
     inProgress: 0,
     completed: 0,
-    overdue: 0,
-    highPriority: 0
+    overdue: 0
   });
 
-  // Simulate loading state
+  // Simulate loading
   useEffect(() => {
-    setIsLoading(true);
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [view]);
+    }, 1000);
 
-  // Update search query when prop changes
-  useEffect(() => {
-    setLocalSearchQuery(searchQuery);
-  }, [searchQuery]);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Calculate task statistics
   useEffect(() => {
@@ -347,194 +139,163 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       inProgress: tasks.filter(task => task.status === 'in-progress').length,
       completed: tasks.filter(task => task.status === 'completed').length,
       overdue: tasks.filter(task => {
-        const dueDate = getDueDate(task.dueDate);
-        return isBefore(dueDate, new Date()) && task.status !== 'completed';
-      }).length,
-      highPriority: tasks.filter(task => task.priority === 'high').length
+        const dueDate = new Date(task.dueDate);
+        const now = new Date();
+        return dueDate < now && task.status !== 'completed';
+      }).length
     };
     setTaskStats(stats);
   }, [tasks]);
 
-  // Apply filters to tasks
+  // Filter and sort tasks
   useEffect(() => {
-    let result = [...tasks];
-
-    // Apply view filter first (from parent component)
-    if (view === "active") {
-      result = result.filter(task => task.status === "pending" || task.status === "in-progress");
-    } else if (view === "completed") {
-      result = result.filter(task => task.status === "completed");
-    } else if (view === "overdue") {
-      result = result.filter(task => {
-        const dueDate = getDueDate(task.dueDate);
-        return isBefore(dueDate, new Date()) && task.status !== 'completed';
-      });
-    }
-
-    // Apply search query filter
-    if (localSearchQuery) {
-      const lowerCaseQuery = localSearchQuery.toLowerCase();
-      result = result.filter(task =>
-        task.name.toLowerCase().includes(lowerCaseQuery) ||
-        task.experimentName.toLowerCase().includes(lowerCaseQuery)
-      );
-    }
+    let filtered = [...tasks];
 
     // Apply status filter
     if (statusFilter !== "all") {
-      result = result.filter(task => task.status === statusFilter);
+      filtered = filtered.filter(task => task.status === statusFilter);
     }
 
     // Apply priority filter
     if (priorityFilter !== "all") {
-      result = result.filter(task => task.priority === priorityFilter);
+      filtered = filtered.filter(task => task.priority === priorityFilter);
     }
 
     // Apply assignee filter
     if (assigneeFilter !== "all") {
-      result = result.filter(task => task.assignedTo.id === assigneeFilter);
+      filtered = filtered.filter(task => task.assigneeId === assigneeFilter);
     }
 
     // Apply experiment filter
     if (experimentFilter !== "all") {
-      result = result.filter(task => task.experimentName === experimentFilter);
+      filtered = filtered.filter(task => task.experimentId === experimentFilter);
     }
 
     // Apply due date filter
     if (dueDateFilter !== "all") {
-      const today = new Date();
-      const tomorrow = new Date();
-      tomorrow.setDate(today.getDate() + 1);
-      const nextWeek = new Date();
-      nextWeek.setDate(today.getDate() + 7);
-
-      result = result.filter(task => {
-        const dueDate = getDueDate(task.dueDate);
-
-        switch (dueDateFilter) {
-          case "today":
-            return format(dueDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-          case "tomorrow":
-            return format(dueDate, 'yyyy-MM-dd') === format(tomorrow, 'yyyy-MM-dd');
-          case "week":
-            return isAfter(dueDate, today) && isBefore(dueDate, nextWeek);
-          case "overdue":
-            return isBefore(dueDate, today) && task.status !== 'completed';
-          default:
-            return true;
-        }
-      });
+      const now = new Date();
+      switch (dueDateFilter) {
+        case "overdue":
+          filtered = filtered.filter(task => {
+            const dueDate = new Date(task.dueDate);
+            return dueDate < now && task.status !== 'completed';
+          });
+          break;
+        case "today":
+          filtered = filtered.filter(task => {
+            const dueDate = new Date(task.dueDate);
+            const today = new Date();
+            return dueDate.toDateString() === today.toDateString();
+          });
+          break;
+        case "week":
+          const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+          filtered = filtered.filter(task => {
+            const dueDate = new Date(task.dueDate);
+            return dueDate <= weekFromNow && dueDate >= now;
+          });
+          break;
+      }
     }
 
     // Apply sorting
-    result.sort((a, b) => {
-      let comparison = 0;
+    filtered.sort((a, b) => {
       const valueA = a[sortConfig.key];
       const valueB = b[sortConfig.key];
 
-      if (valueA < valueB) {
-        comparison = -1;
-      } else if (valueA > valueB) {
-        comparison = 1;
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        return sortConfig.direction === 'asc'
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
       }
 
-      return sortConfig.direction === "asc" ? comparison : -comparison;
+      if (valueA instanceof Date && valueB instanceof Date) {
+        return sortConfig.direction === 'asc'
+          ? valueA.getTime() - valueB.getTime()
+          : valueB.getTime() - valueA.getTime();
+      }
+
+      return sortConfig.direction === 'asc'
+        ? (valueA > valueB ? 1 : -1)
+        : (valueA < valueB ? 1 : -1);
     });
 
-    setFilteredTasks(result);
-  }, [tasks, localSearchQuery, statusFilter, priorityFilter, assigneeFilter, experimentFilter, dueDateFilter, sortConfig, view]);
+    setFilteredTasks(filtered);
+  }, [tasks, statusFilter, priorityFilter, assigneeFilter, experimentFilter, dueDateFilter, sortConfig]);
 
-  // Function to request sorting
+  // Sorting function
   const requestSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+    setSortConfig(prevConfig => ({
+      key,
+      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+    }));
   };
 
-  // Handle task action (view, edit, delete, etc.)
+  // Handle task actions
   const handleTaskAction = (action, task) => {
     setSelectedTask(task);
 
     switch (action) {
       case "view":
-        // Show task details in a modal dialog
         setShowTaskDetailsDialog(true);
         break;
       case "edit":
-        setFormMode("edit");
         setShowTaskFormDialog(true);
         break;
       case "delete":
-        setShowDeleteTaskDialog(true);
+        setShowDeleteDialog(true);
         break;
-      case "statusChange":
-        updateTaskStatus(task.id, task.status);
+      case "share":
+        setShowShareDialog(true);
+        break;
+      case "activity":
+        setShowActivityLogDialog(true);
         break;
       default:
         break;
     }
   };
 
-  // Function to create a new task
+  // Create new task
   const createTask = (newTask) => {
-    // In a real app, you would send this to your API
+    const taskId = `t${Date.now()}`;
 
-    // Format the assignee data to match the expected structure
+    // Get assignee data
     const assigneeData = (() => {
-      // Check if we have an assignee from the form
-      if (newTask.assigneeId) {
-        // Try to find the user in the mockUsers object
-        const user = Object.values(mockUsers).find(u => u.id === newTask.assigneeId);
-
-        // If found in mockUsers, use that data
-        if (user) {
-          return {
-            id: user.id,
-            name: user.name,
-            avatar: user.avatar
-          };
-        }
-
-        // For hardcoded users in the form that aren't in mockUsers
-        const hardcodedUsers = {
-          'user1': { id: 'user1', name: 'John Doe', avatar: 'JD' },
-          'user2': { id: 'user2', name: 'Jane Smith', avatar: 'JS' },
-          'user3': { id: 'user3', name: 'Sarah Johnson', avatar: 'SJ' },
-          'user4': { id: 'user4', name: 'Jenny Parker', avatar: 'JP' },
-          'user5': { id: 'user5', name: 'Harry Potter', avatar: 'HP' }
-        };
-
-        if (hardcodedUsers[newTask.assigneeId]) {
-          return hardcodedUsers[newTask.assigneeId];
-        }
-
-        // Fallback if we can't find the user
-        return {
-          id: newTask.assigneeId,
-          name: newTask.assigneeName || "Unknown User",
-          avatar: newTask.assigneeId.substring(0, 2).toUpperCase()
-        };
-      }
-
-      // Default to unassigned
-      return {
-        id: 'unassigned',
-        name: 'Unassigned',
-        avatar: 'UN'
-      };
+      if (!newTask.assigneeId) return null;
+      const user = Object.values(mockTaskUsers).find(u => u.id === newTask.assigneeId);
+      return user ? {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar
+      } : null;
     })();
 
+    // Get experiment data
+    const experimentData = mockExperiments.find(e => e.id === newTask.experimentId);
+
     const taskWithMeta = {
-      ...newTask,
-      id: `t${tasks.length + 1}`,
+      id: taskId,
+      name: newTask.name,
+      title: newTask.name,
+      description: newTask.description,
+      experimentName: experimentData?.name || 'Unknown Experiment',
+      experimentId: newTask.experimentId,
+      experiment: newTask.experimentId,
+      assignedTo: assigneeData,
+      assignedToName: assigneeData?.name || 'Unassigned',
+      assigneeId: newTask.assigneeId,
+      priority: newTask.priority,
+      status: newTask.status,
+      dueDate: newTask.dueDate,
       createdAt: new Date().toISOString(),
-      assignedTo: assigneeData, // Use the properly formatted assignee data
+      updatedAt: new Date().toISOString(),
+      attachments: [],
+      dependencies: [],
       activityLog: [
         {
           id: `al${Date.now()}`,
-          userId: 'u2', // Current user ID would come from auth context
+          userId: 'u2', // Assuming current user is admin
           action: 'created',
           timestamp: new Date().toISOString(),
           details: 'Task created'
@@ -542,28 +303,9 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       ]
     };
 
-    // Add the new task to the tasks array
-    setTasks(prevTasks => [...prevTasks, taskWithMeta]);
+    setTasks(prev => [...prev, taskWithMeta]);
     setShowTaskFormDialog(false);
-
-    // Show success notification
-    setToastMessage({
-      title: "Task created successfully",
-      description: `Task "${newTask.name}" has been added to your task list.`,
-      variant: "success",
-      id: Date.now()
-    });
-
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
-  };
-
-  // Function to handle creating a new task
-  const handleCreateNewTask = () => {
-    setSelectedTask(null);
-    setFormMode("create");
-    setShowTaskFormDialog(true);
+    setToastMessage("Task created successfully!");
   };
 
   // Function to update an existing task
@@ -573,7 +315,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       // Check if we have an assignee from the form
       if (updatedTask.assigneeId) {
         // Try to find the user in the mockUsers object
-        const user = Object.values(mockUsers).find(u => u.id === updatedTask.assigneeId);
+        const user = Object.values(mockTaskUsers).find(u => u.id === updatedTask.assigneeId);
 
         // If found in mockUsers, use that data
         if (user) {
@@ -666,12 +408,11 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   const deleteTask = (taskId) => {
     // In a real app, you would send this to your API for soft delete
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    setShowDeleteTaskDialog(false);
+    setShowDeleteDialog(false);
   };
 
   // Reset all filters
   const resetFilters = () => {
-    setLocalSearchQuery("");
     setStatusFilter("all");
     setPriorityFilter("all");
     setAssigneeFilter("all");
@@ -794,7 +535,10 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
             </Button>
           </div>
           <Button
-            onClick={handleCreateNewTask}
+            onClick={() => {
+              setSelectedTask(null);
+              setShowTaskFormDialog(true);
+            }}
             className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-base px-8 py-2.5 rounded-xl font-medium"
           >
             <Plus className="h-5 w-5" /> New Task
@@ -809,8 +553,11 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                 <Input
                   placeholder="Search tasks..."
                   className="pl-12 bg-background/90 border-border/40 h-12 rounded-xl focus:ring-2 focus:ring-primary/30 text-base"
-                  value={localSearchQuery}
-                  onChange={(e) => setLocalSearchQuery(e.target.value)}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    resetFilters();
+                  }}
                 />
               </div>
               <div className="flex flex-wrap gap-3 md:gap-4 items-center">
@@ -842,7 +589,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Assignees</SelectItem>
-                    {Object.values(mockUsers).map(user => (
+                    {Object.values(mockTaskUsers).map(user => (
                       <SelectItem key={user.id} value={user.id}>
                         {user.name}
                       </SelectItem>
@@ -890,7 +637,10 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                 Try adjusting your filters or create a new task to get started
               </p>
               <Button
-                onClick={handleCreateNewTask}
+                onClick={() => {
+                  setSelectedTask(null);
+                  setShowTaskFormDialog(true);
+                }}
                 className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary px-6 py-2.5 rounded-xl font-medium"
               >
                 <Plus className="h-5 w-5" /> Create New Task
@@ -1002,7 +752,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                 </Badge>
                               </td>
                               <td className="px-6 py-4 text-sm">
-                                {format(getDueDate(task.dueDate), "MMM d, yyyy")}
+                                {getDueDate(task.dueDate)}
                               </td>
                               <td className="px-6 py-4">
                                 <DropdownMenu>
@@ -1047,7 +797,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                       tasks={filteredTasks}
                       onAction={handleTaskAction}
                       onStatusChange={updateTaskStatus}
-                      users={mockUsers}
+                      users={mockTaskUsers}
                     />
                   </div>
                 )}
@@ -1101,7 +851,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         onOpenChange={setShowTaskDetailsDialog}
         task={selectedTask}
         onAction={handleTaskAction}
-        users={mockUsers}
+        users={mockTaskUsers}
         experiments={mockExperiments}
       />
 
@@ -1110,17 +860,17 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         open={showTaskFormDialog}
         onOpenChange={setShowTaskFormDialog}
         task={selectedTask}
-        mode={formMode}
-        onSubmit={formMode === "create" ? createTask : updateTask}
-        users={mockUsers}
+        mode="create"
+        onSubmit={createTask}
+        users={mockTaskUsers}
         experiments={mockExperiments}
         tasks={tasks}
       />
 
       {/* Delete Task Dialog */}
       <TaskDeleteDialog
-        open={showDeleteTaskDialog}
-        onOpenChange={setShowDeleteTaskDialog}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
         task={selectedTask}
         onDelete={deleteTask}
       />

@@ -2,12 +2,18 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { 
+  avatarColors, 
+  userStatusColors, 
+  avatarSizeClasses, 
+  avatarVariantClasses 
+} from "@/data/tasks-data";
 
 const UserAvatar = ({
     user,
     size = 'md',
     showStatus = false,
-    status = 'offline',
+    status = 'online',
     variant = 'default',
     className = '',
     onClick,
@@ -17,60 +23,23 @@ const UserAvatar = ({
     const [imageError, setImageError] = useState(false);
     const [showFallback, setShowFallback] = useState(false);
 
-    // Size variants
-    const sizeClasses = {
-        xs: 'h-6 w-6',
-        sm: 'h-8 w-8',
-        md: 'h-10 w-10',
-        lg: 'h-12 w-12',
-        xl: 'h-16 w-16',
-        '2xl': 'h-20 w-20'
-    };
+    const sizeClasses = avatarSizeClasses;
+    const statusColors = userStatusColors;
+    const variantClasses = avatarVariantClasses;
 
-    // Status indicator styles
-    const statusColors = {
-        online: 'bg-green-500',
-        away: 'bg-yellow-500',
-        busy: 'bg-red-500',
-        offline: 'bg-gray-400'
-    };
-
-    // Variant styles
-    const variantClasses = {
-        default: 'ring-2 ring-background hover:ring-primary/20 transition-all duration-200',
-        gradient: 'ring-2 ring-transparent bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-0.5 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 transition-all duration-300',
-        minimal: 'hover:opacity-80 transition-opacity duration-200',
-        bordered: 'ring-2 ring-border hover:ring-primary/50 transition-colors duration-200'
-    };
-
-    // Generate initials with better logic
     const getInitials = (name) => {
-        if (!name) return '?';
-
+        if (!name) return "U";
         const words = name.trim().split(' ').filter(word => word.length > 0);
-        if (words.length === 1) {
-            return words[0].slice(0, 2).toUpperCase();
-        }
-        return words.slice(0, 2).map(word => word[0]).join('').toUpperCase();
+        if (words.length === 0) return "U";
+        if (words.length === 1) return words[0].charAt(0).toUpperCase();
+        return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
     };
 
-    // Generate consistent color based on name
     const getAvatarColor = (name) => {
-        if (!name) return 'bg-gray-500';
-
-        const colors = [
-            'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-            'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500',
-            'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500',
-            'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500'
-        ];
-
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-
-        return colors[Math.abs(hash) % colors.length];
+        if (!name) return avatarColors[0];
+        const colors = avatarColors;
+        const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        return colors[hash % colors.length];
     };
 
     const initials = user?.name ? user.name.split(" ").map(n => n[0]).join("") : "U";

@@ -42,6 +42,7 @@ import { TaskSubtasks } from "./task-subtasks"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // Add DatePicker import
 import { DatePicker } from "@/components/ui/date-picker"
+import { mockTaskUsers } from "@/data/tasks-data"
 
 // Define form schema with Zod
 const taskFormSchema = z.object({
@@ -176,13 +177,7 @@ export const TaskFormDialog = ({
     // Find the assignee user object based on the selected ID
     const assignee = userArray.find(user => user.id === data.assigneeId) ||
       // Fallback for hardcoded users
-      [
-        { id: 'user1', name: 'John Doe' },
-        { id: 'user2', name: 'Jane Smith' },
-        { id: 'user3', name: 'Sarah Johnson' },
-        { id: 'user4', name: 'Jenny Parker' },
-        { id: 'user5', name: 'Harry Potter' }
-      ].find(user => user.id === data.assigneeId);
+      Object.values(mockTaskUsers).find(user => user.id === data.assigneeId);
 
     // Map form fields to expected task fields
     const formattedTask = {
@@ -493,8 +488,8 @@ export const TaskFormDialog = ({
                                 minDate={new Date(new Date().setHours(0, 0, 0, 0))}
                                 showTodayButton={true}
                                 showClearButton={false}
-                                // Remove the disabled prop that's causing the error
-                                // disabled={disabled}
+                              // Remove the disabled prop that's causing the error
+                              // disabled={disabled}
                               />
                             </FormControl>
                             <FormMessage className="text-xs mt-1.5" />
@@ -576,7 +571,7 @@ export const TaskFormDialog = ({
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="experimentId"
@@ -602,7 +597,7 @@ export const TaskFormDialog = ({
                                     No experiment
                                   </div>
                                 </SelectItem>
-                                
+
                                 {/* Default experiment options */}
                                 <SelectItem value="exp1">
                                   <div className="flex items-center gap-2">
@@ -622,7 +617,7 @@ export const TaskFormDialog = ({
                                     Compound C Cellular Study
                                   </div>
                                 </SelectItem>
-                                
+
                                 {/* Dynamic experiment options from props */}
                                 {experimentsArray.map((experiment) => (
                                   <SelectItem key={experiment.id} value={experiment.id}>

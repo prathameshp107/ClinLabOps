@@ -3,24 +3,51 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
-  Copy, 
-  Edit, 
-  Filter, 
-  MoreVertical, 
   Plus, 
   Search, 
-  Trash, 
-  X 
+  Filter, 
+  Calendar, 
+  BarChart2, 
+  Users, 
+  SlidersHorizontal, 
+  RefreshCw, 
+  AlertCircle, 
+  Clock, 
+  CheckCircle2, 
+  OctagonAlert, 
+  List, 
+  Grid, 
+  PlusCircle, 
+  Loader2,
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  ArrowUpDown,
+  Star,
+  StarOff,
+  Share,
+  Activity,
+  Copy,
+  Tag
 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
+import { TaskTemplateDialog } from "./task-template-dialog"
+import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -30,75 +57,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
-import { TaskTemplateDialog } from "./task-template-dialog"
+import { taskTemplates } from "@/data/tasks-data"
 
 // Sample task templates data
-const sampleTemplates = [
-  {
-    id: "template1",
-    name: "Quality Control Check",
-    description: "Template for standard quality control tasks that occur weekly",
-    defaultPriority: "medium",
-    defaultStatus: "pending",
-    defaultAssigneeRole: "technician",
-    categoryTags: ["quality", "routine", "weekly"],
-    createdAt: "2025-02-15T08:30:00Z",
-    updatedAt: "2025-03-01T11:45:00Z",
-    createdBy: "u1"
-  },
-  {
-    id: "template2",
-    name: "Experiment Setup",
-    description: "Template for setting up new scientific experiments",
-    defaultPriority: "high",
-    defaultStatus: "pending",
-    defaultAssigneeRole: "scientist",
-    categoryTags: ["experiment", "setup", "preparation"],
-    createdAt: "2025-02-05T14:15:00Z",
-    updatedAt: "2025-02-20T09:30:00Z",
-    createdBy: "u3"
-  },
-  {
-    id: "template3",
-    name: "Lab Maintenance",
-    description: "Template for monthly lab equipment maintenance tasks",
-    defaultPriority: "low",
-    defaultStatus: "pending",
-    defaultAssigneeRole: "technician",
-    categoryTags: ["maintenance", "monthly", "equipment"],
-    createdAt: "2025-01-10T10:00:00Z",
-    updatedAt: "2025-03-05T15:20:00Z",
-    createdBy: "u2"
-  },
-  {
-    id: "template4",
-    name: "Regulatory Documentation",
-    description: "Template for regulatory compliance documentation tasks",
-    defaultPriority: "critical",
-    defaultStatus: "pending",
-    defaultAssigneeRole: "admin",
-    categoryTags: ["regulatory", "documentation", "compliance"],
-    createdAt: "2025-02-25T16:45:00Z",
-    updatedAt: "2025-03-10T13:10:00Z",
-    createdBy: "u1"
-  },
-];
+const sampleTemplates = taskTemplates;
 
 export const TaskTemplates = ({ onApplyTemplate }) => {
   const [templates, setTemplates] = useState(sampleTemplates);

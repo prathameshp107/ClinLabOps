@@ -20,75 +20,10 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { mockTasks } from "@/data/tasks-data"
 
 // Mock data for tasks
-const mockTasks = [
-  {
-    _id: '1',
-    title: 'Prepare lab equipment',
-    description: 'Ensure all lab equipment is clean and ready for use.',
-    status: 'pending',
-    priority: 'high',
-    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user1',
-    assignedToName: 'John Doe',
-    experiment: 'exp1',
-    experimentName: 'Cell Culture',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '2',
-    title: 'Analyze test results',
-    description: 'Review and interpret the latest test results from the experiment.',
-    status: 'in-progress',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user2',
-    assignedToName: 'Jane Smith',
-    experiment: 'exp2',
-    experimentName: 'DNA Sequencing',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '3',
-    title: 'Order new supplies',
-    description: 'Place an order for new chemicals and lab supplies.',
-    status: 'completed',
-    priority: 'low',
-    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user3',
-    assignedToName: 'Alex Johnson',
-    experiment: 'exp3',
-    experimentName: 'Chemical Analysis',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '4',
-    title: 'Calibrate instruments',
-    description: 'Calibrate all measurement instruments for accuracy.',
-    status: 'pending',
-    priority: 'high',
-    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user1',
-    assignedToName: 'John Doe',
-    experiment: 'exp1',
-    experimentName: 'Cell Culture',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '5',
-    title: 'Document procedures',
-    description: 'Update the documentation for all lab procedures performed this week.',
-    status: 'in-progress',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user2',
-    assignedToName: 'Jane Smith',
-    experiment: 'exp2',
-    experimentName: 'DNA Sequencing',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-  }
-];
+const mockTasksData = mockTasks;
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
@@ -103,20 +38,20 @@ export default function TasksPage() {
   
   const [tasks, setTasks] = React.useState(() => {
     // Transform mockTasks to processedTasks shape
-    return mockTasks.map(task => ({
-      id: task._id,
-      title: task.title,
+    return mockTasksData.map(task => ({
+      id: task._id || task.id,
+      title: task.title || task.name,
       description: task.description,
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate,
       assignedTo: {
-        id: task.assignedTo,
-        name: task.assignedToName,
-        avatar: "/avatars/01.png"
+        id: task.assignedTo?.id || task.assigneeId,
+        name: task.assignedTo?.name || task.assignedToName,
+        avatar: task.assignedTo?.avatar || "/avatars/01.png"
       },
       project: {
-        id: task.experiment,
+        id: task.experiment || task.experimentId,
         name: task.experimentName
       },
       createdAt: task.createdAt
@@ -128,7 +63,7 @@ export default function TasksPage() {
       setError(null)
 
       // Use mock data instead of API call
-      let filteredTasks = [...mockTasks];
+      let filteredTasks = [...mockTasksData];
 
       // Apply status filter
       if (selectedStatus !== 'all') {
@@ -137,19 +72,19 @@ export default function TasksPage() {
 
       // Transform to match expected format
       const processedTasks = filteredTasks.map(task => ({
-        id: task._id,
-        title: task.title,
+        id: task._id || task.id,
+        title: task.title || task.name,
         description: task.description,
         status: task.status,
         priority: task.priority,
         dueDate: task.dueDate,
         assignedTo: {
-          id: task.assignedTo,
-          name: task.assignedToName,
-          avatar: "/avatars/01.png"
+          id: task.assignedTo?.id || task.assigneeId,
+          name: task.assignedTo?.name || task.assignedToName,
+          avatar: task.assignedTo?.avatar || "/avatars/01.png"
         },
         project: {
-          id: task.experiment,
+          id: task.experiment || task.experimentId,
           name: task.experimentName
         },
         createdAt: task.createdAt

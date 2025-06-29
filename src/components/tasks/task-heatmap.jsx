@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Activity } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { weekDays } from "@/data/tasks-data";
 
-export function TaskHeatmap() {
+export const TaskHeatmap = ({ tasks, year = new Date().getFullYear() }) => {
   const [activeTab, setActiveTab] = useState("week");
   
   // Generate sample data for the heatmap
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const weekData = [
     { day: "Mon", tasks: 5, color: "bg-emerald-200 dark:bg-emerald-900" },
     { day: "Tue", tasks: 8, color: "bg-emerald-400 dark:bg-emerald-700" },

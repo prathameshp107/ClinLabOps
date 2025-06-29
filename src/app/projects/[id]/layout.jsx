@@ -1,10 +1,9 @@
+import { mockProjects } from "@/data/projects-data";
+
 export async function generateStaticParams() {
-  // Mock project IDs - replace with your actual data source in production
-  const projectIds = ["p1", "p2", "p3", "p4", "p5"];
-  
-  return projectIds.map(id => ({
-    id: id,
-  }));
+  // Get project IDs from centralized data
+  const projectIds = mockProjects.map(project => project.id);
+  return projectIds.map(id => ({ id }));
 }
 
 export default function ProjectLayout({ children }) {
