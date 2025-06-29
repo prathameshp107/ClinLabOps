@@ -22,9 +22,9 @@ export default function ProfilePage() {
         ...data
       }
     }
-    
+
     setUserData(updatedUserData)
-    
+
     toast({
       title: "Profile updated",
       description: "Your profile information has been successfully updated.",
@@ -41,7 +41,7 @@ export default function ProfilePage() {
         profilePicture: imageUrl
       }
     })
-    
+
     toast({
       title: "Profile picture updated",
       description: "Your profile picture has been successfully updated.",
@@ -57,7 +57,7 @@ export default function ProfilePage() {
         ...userData,
         skills: updatedSkills
       })
-      
+
       toast({
         title: "Skill added",
         description: `"${newSkill}" has been added to your skills.`,
@@ -73,7 +73,7 @@ export default function ProfilePage() {
       ...userData,
       skills: updatedSkills
     })
-    
+
     toast({
       title: "Skill removed",
       description: `"${skillToRemove}" has been removed from your skills.`,
@@ -82,25 +82,25 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout 
-      sidebarOpen={sidebarOpen} 
+    <DashboardLayout
+      sidebarOpen={sidebarOpen}
       setSidebarOpen={setSidebarOpen}
     >
-      
-        <div className="container px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
-          <ProfileHeader 
-            userData={userData} 
-            onUpdateProfilePicture={handleUpdateProfilePicture} 
-          />
-          
-          <ProfileTabs 
-            userData={userData} 
-            onUpdateUserData={handleUpdateUserData}
-            onAddSkill={handleAddSkill}
-            onRemoveSkill={handleRemoveSkill}
-          />
-        </div>
-      
+
+      <div className="container px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
+        <ProfileHeader
+          userData={userData}
+          onUpdateProfilePicture={handleUpdateProfilePicture}
+        />
+
+        <ProfileTabs
+          userData={userData}
+          onUpdateUserData={handleUpdateUserData}
+          onAddSkill={handleAddSkill}
+          onRemoveSkill={handleRemoveSkill}
+        />
+      </div>
+
     </DashboardLayout>
   )
 }

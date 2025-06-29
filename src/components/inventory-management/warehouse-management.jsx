@@ -44,77 +44,10 @@ import {
     Trash2,
     User
 } from "lucide-react"
-
-// Mock warehouses data
-const mockWarehouses = [
-    {
-        id: "WH-001",
-        name: "Main Laboratory",
-        location: "Building A, Floor 2",
-        address: "123 Science Park, Boston, MA 02142",
-        manager: "John Smith",
-        capacity: 1000,
-        used: 650,
-        itemCount: 120,
-        status: "active"
-    },
-    {
-        id: "WH-002",
-        name: "Storage Room A",
-        location: "Building A, Basement",
-        address: "123 Science Park, Boston, MA 02142",
-        manager: "Sarah Johnson",
-        capacity: 500,
-        used: 480,
-        itemCount: 85,
-        status: "active"
-    },
-    {
-        id: "WH-003",
-        name: "Storage Room B",
-        location: "Building B, Floor 1",
-        address: "456 Research Blvd, Boston, MA 02142",
-        manager: "Michael Brown",
-        capacity: 500,
-        used: 320,
-        itemCount: 65,
-        status: "active"
-    },
-    {
-        id: "WH-004",
-        name: "Cold Storage",
-        location: "Building A, Floor 1",
-        address: "123 Science Park, Boston, MA 02142",
-        manager: "Emily Wilson",
-        capacity: 200,
-        used: 120,
-        itemCount: 40,
-        status: "active"
-    },
-    {
-        id: "WH-005",
-        name: "Hazardous Materials Cabinet",
-        location: "Building A, Floor 2, Room 210",
-        address: "123 Science Park, Boston, MA 02142",
-        manager: "David Chen",
-        capacity: 100,
-        used: 45,
-        itemCount: 15,
-        status: "active"
-    }
-];
-
-// Mock inventory items for warehouse details
-const mockWarehouseItems = [
-    { id: "INV-0001", name: "Sodium Chloride", category: "Chemicals", quantity: 20, unit: "bottles" },
-    { id: "INV-0002", name: "Beaker Set", category: "Glassware", quantity: 5, unit: "sets" },
-    { id: "INV-0003", name: "Digital Scale", category: "Equipment", quantity: 2, unit: "pcs" },
-    { id: "INV-0004", name: "Nitrile Gloves", category: "Consumables", quantity: 50, unit: "boxes" },
-    { id: "INV-0005", name: "Buffer Solution", category: "Reagents", quantity: 10, unit: "bottles" }
-];
+import { warehouses, warehouseItems } from "@/data/inventory-data"
 
 export function WarehouseManagement() {
-    const [warehouses, setWarehouses] = useState(mockWarehouses)
+    const [warehouses, setWarehouses] = useState(warehouses)
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedWarehouse, setSelectedWarehouse] = useState(null)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -298,7 +231,7 @@ export function WarehouseManagement() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {mockWarehouseItems.map((item) => (
+                                            {warehouseItems.map((item) => (
                                                 <TableRow key={item.id}>
                                                     <TableCell className="font-medium">{item.id}</TableCell>
                                                     <TableCell>{item.name}</TableCell>
@@ -327,7 +260,7 @@ export function WarehouseManagement() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {mockWarehouseItems
+                                            {warehouseItems
                                                 .filter(item => item.category === "Chemicals")
                                                 .map((item) => (
                                                     <TableRow key={item.id}>

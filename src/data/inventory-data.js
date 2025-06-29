@@ -204,3 +204,39 @@ export const inventoryData = {
     }
   ]
 };
+
+// Centralized mock warehouses data
+export const warehouses = [
+  {
+    id: "WH-001",
+    name: "Main Laboratory",
+    location: "Building A, Floor 2",
+    address: "123 Science Park, Boston, MA 02142",
+    manager: "John Smith",
+    capacity: 1000,
+    used: 650,
+    itemCount: 120,
+    status: "active"
+  },
+  {
+    id: "WH-002",
+    name: "Storage Room A",
+    location: "Building A, Basement",
+    address: "123 Science Park, Boston, MA 02142",
+    manager: "Sarah Johnson",
+    capacity: 500,
+    used: 480,
+    itemCount: 85,
+    status: "active"
+  },
+  // ...add more warehouses as needed
+];
+
+// Centralized mock warehouse items
+export const warehouseItems = [
+  { id: "INV-0001", name: "Sodium Chloride", category: "Chemicals", quantity: 20, unit: "bottles" },
+  { id: "INV-0002", name: "Beaker Set", category: "Glassware", quantity: 5, unit: "sets" },
+  { id: "INV-0003", name: "Digital Scale", category: "Equipment", quantity: 2, unit: "pcs" },
+  { id: "INV-0004", name: "Nitrile Gloves", category: "Consumables", quantity: 50, unit: "boxes" },
+  { id: "INV-0005", name: "Buffer Solution", category: "Reagents", quantity: 10, unit: "bottles" }
+];

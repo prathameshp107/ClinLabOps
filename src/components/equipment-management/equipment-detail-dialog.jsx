@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { mockEquipmentMaintenanceHistory } from "@/data/equipment-data"
 
 export function EquipmentDetailDialog({
   open,
@@ -64,22 +65,6 @@ export function EquipmentDetailDialog({
       return "Not specified"
     }
   }
-
-  // Mock maintenance history data
-  const maintenanceHistory = [
-    { 
-      date: new Date(new Date(equipment.lastMaintenanceDate).getTime() - 7776000000).toISOString(), // 90 days before last maintenance
-      type: "Preventive",
-      technician: "John Smith",
-      notes: "Regular calibration and cleaning performed. All systems functioning normally."
-    },
-    { 
-      date: equipment.lastMaintenanceDate,
-      type: "Corrective",
-      technician: "Sarah Johnson",
-      notes: "Replaced faulty sensor. Performed full system diagnostic. Equipment now functioning properly."
-    }
-  ];
 
   // Calculate days until next maintenance
   const calculateDaysUntilMaintenance = () => {
@@ -298,7 +283,7 @@ export function EquipmentDetailDialog({
                 </div>
                 
                 <div className="space-y-4">
-                  {maintenanceHistory.map((record, index) => (
+                  {mockEquipmentMaintenanceHistory.filter(m => m.equipmentId === equipment.id).map((record, index) => (
                     <div 
                       key={index} 
                       className="border border-border/40 rounded-lg overflow-hidden"

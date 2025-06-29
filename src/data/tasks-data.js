@@ -18,17 +18,6 @@ export const mockTaskUsers = {
     'current-user': { id: 'current-user', name: 'You', avatarUrl: '' }
 };
 
-// Mock experiments data
-export const mockExperiments = [
-    { id: 'e1', name: 'Compound A Toxicity Study' },
-    { id: 'e2', name: 'Compound B Efficacy Test' },
-    { id: 'e3', name: 'Compound C Cellular Study' },
-    { id: 'e4', name: 'Biomarker Analysis Project' },
-    { id: 'exp1', name: 'Cell Culture' },
-    { id: 'exp2', name: 'DNA Sequencing' },
-    { id: 'exp3', name: 'Chemical Analysis' }
-];
-
 // Mock tasks data
 export const mockTasks = [
     {

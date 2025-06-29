@@ -1,20 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  DropdownMenu, 
+import {
+  DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -30,80 +30,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { 
-  Building, 
-  Edit, 
-  ExternalLink, 
-  Mail, 
-  MoreHorizontal, 
-  Phone, 
-  Plus, 
-  Search, 
-  Trash2, 
-  Truck 
+import {
+  Building,
+  Edit,
+  ExternalLink,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  Plus,
+  Search,
+  Trash2,
+  Truck
 } from "lucide-react"
-
-// Mock suppliers data
-const mockSuppliers = [
-  {
-    id: "SUP-0001",
-    name: "LabSupply Co.",
-    contactPerson: "John Smith",
-    email: "john@labsupply.com",
-    phone: "(555) 123-4567",
-    address: "123 Science Park, Boston, MA 02142",
-    website: "https://labsupply.com",
-    categories: ["Chemicals", "Glassware", "Equipment"],
-    status: "active"
-  },
-  {
-    id: "SUP-0002",
-    name: "SciencePro Inc.",
-    contactPerson: "Sarah Johnson",
-    email: "sarah@sciencepro.com",
-    phone: "(555) 987-6543",
-    address: "456 Research Blvd, San Diego, CA 92121",
-    website: "https://sciencepro.com",
-    categories: ["Reagents", "Biologicals", "Consumables"],
-    status: "active"
-  },
-  {
-    id: "SUP-0003",
-    name: "ChemWorks",
-    contactPerson: "Michael Brown",
-    email: "michael@chemworks.com",
-    phone: "(555) 456-7890",
-    address: "789 Laboratory Ave, Chicago, IL 60607",
-    website: "https://chemworks.com",
-    categories: ["Chemicals", "Reagents", "Safety Supplies"],
-    status: "active"
-  },
-  {
-    id: "SUP-0004",
-    name: "BioTech Solutions",
-    contactPerson: "Emily Wilson",
-    email: "emily@biotechsolutions.com",
-    phone: "(555) 234-5678",
-    address: "101 Innovation Way, Cambridge, MA 02139",
-    website: "https://biotechsolutions.com",
-    categories: ["Biologicals", "Equipment", "Consumables"],
-    status: "inactive"
-  },
-  {
-    id: "SUP-0005",
-    name: "Global Scientific",
-    contactPerson: "David Chen",
-    email: "david@globalscientific.com",
-    phone: "(555) 876-5432",
-    address: "202 Global Plaza, Seattle, WA 98109",
-    website: "https://globalscientific.com",
-    categories: ["Equipment", "Electronics", "Tools"],
-    status: "active"
-  }
-];
+import { suppliers } from "@/data/inventory-data"
 
 export function SupplierManagement() {
-  const [suppliers, setSuppliers] = useState(mockSuppliers)
+  const [suppliers, setSuppliers] = useState(suppliers)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedSupplier, setSelectedSupplier] = useState(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -117,14 +59,14 @@ export function SupplierManagement() {
     categories: [],
     status: "active"
   })
-  
+
   // Filter suppliers based on search query
-  const filteredSuppliers = suppliers.filter(supplier => 
+  const filteredSuppliers = suppliers.filter(supplier =>
     supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     supplier.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) ||
     supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
-  
+
   // Handle adding new supplier
   const handleAddSupplier = () => {
     const supplierToAdd = {
@@ -132,7 +74,7 @@ export function SupplierManagement() {
       id: `SUP-${String(suppliers.length + 1).padStart(4, '0')}`,
       categories: newSupplier.categories.split(',').map(cat => cat.trim())
     }
-    
+
     setSuppliers([...suppliers, supplierToAdd])
     setIsAddDialogOpen(false)
     setNewSupplier({
@@ -146,17 +88,17 @@ export function SupplierManagement() {
       status: "active"
     })
   }
-  
+
   // Handle deleting supplier
   const handleDeleteSupplier = (id) => {
     setSuppliers(suppliers.filter(supplier => supplier.id !== id))
   }
-  
+
   // Handle viewing supplier details
   const handleViewSupplier = (supplier) => {
     setSelectedSupplier(supplier)
   }
-  
+
   return (
     <div className="space-y-6">
       {selectedSupplier ? (
@@ -167,7 +109,7 @@ export function SupplierManagement() {
               Back to Suppliers
             </Button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="md:col-span-2">
               <CardHeader>
@@ -225,7 +167,7 @@ export function SupplierManagement() {
                     </Badge>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-muted-foreground">Categories Supplied</p>
                   <div className="flex flex-wrap gap-2">
@@ -238,7 +180,7 @@ export function SupplierManagement() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Recent Orders</CardTitle>
@@ -271,7 +213,7 @@ export function SupplierManagement() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -293,7 +235,7 @@ export function SupplierManagement() {
                       <Input
                         id="name"
                         value={newSupplier.name}
-                        onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})}
+                        onChange={(e) => setNewSupplier({ ...newSupplier, name: e.target.value })}
                         placeholder="Company name"
                       />
                     </div>
@@ -302,7 +244,7 @@ export function SupplierManagement() {
                       <Input
                         id="contactPerson"
                         value={newSupplier.contactPerson}
-                        onChange={(e) => setNewSupplier({...newSupplier, contactPerson: e.target.value})}
+                        onChange={(e) => setNewSupplier({ ...newSupplier, contactPerson: e.target.value })}
                         placeholder="Full name"
                       />
                     </div>
@@ -314,7 +256,7 @@ export function SupplierManagement() {
                         id="email"
                         type="email"
                         value={newSupplier.email}
-                        onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})}
+                        onChange={(e) => setNewSupplier({ ...newSupplier, email: e.target.value })}
                         placeholder="contact@company.com"
                       />
                     </div>
@@ -323,7 +265,7 @@ export function SupplierManagement() {
                       <Input
                         id="phone"
                         value={newSupplier.phone}
-                        onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})}
+                        onChange={(e) => setNewSupplier({ ...newSupplier, phone: e.target.value })}
                         placeholder="(555) 123-4567"
                       />
                     </div>
@@ -333,7 +275,7 @@ export function SupplierManagement() {
                     <Input
                       id="address"
                       value={newSupplier.address}
-                      onChange={(e) => setNewSupplier({...newSupplier, address: e.target.value})}
+                      onChange={(e) => setNewSupplier({ ...newSupplier, address: e.target.value })}
                       placeholder="Full address"
                     />
                   </div>
@@ -343,7 +285,7 @@ export function SupplierManagement() {
                       <Input
                         id="website"
                         value={newSupplier.website}
-                        onChange={(e) => setNewSupplier({...newSupplier, website: e.target.value})}
+                        onChange={(e) => setNewSupplier({ ...newSupplier, website: e.target.value })}
                         placeholder="https://example.com"
                       />
                     </div>
@@ -352,7 +294,7 @@ export function SupplierManagement() {
                       <Input
                         id="categories"
                         value={newSupplier.categories}
-                        onChange={(e) => setNewSupplier({...newSupplier, categories: e.target.value})}
+                        onChange={(e) => setNewSupplier({ ...newSupplier, categories: e.target.value })}
                         placeholder="Chemicals, Equipment, etc."
                       />
                     </div>
@@ -365,7 +307,7 @@ export function SupplierManagement() {
               </DialogContent>
             </Dialog>
           </div>
-          
+
           <div className="rounded-md border">
             <Table>
               <TableHeader>

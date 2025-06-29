@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { mockAuditTrail, mockProtocolComments } from "@/data/protocols-data"
 
 export function ProtocolDetailDialog({
   open,
@@ -63,43 +64,10 @@ export function ProtocolDetailDialog({
   }
 
   // Mock audit trail data
-  const auditTrail = [
-    { 
-      action: "Created", 
-      date: protocol.createdAt, 
-      user: protocol.author 
-    },
-    { 
-      action: "Updated", 
-      date: protocol.updatedAt, 
-      user: protocol.author,
-      details: "Updated procedure steps"
-    },
-    { 
-      action: "Status Change", 
-      date: new Date(new Date(protocol.updatedAt).getTime() + 86400000).toISOString(), 
-      user: "Jane Smith",
-      details: `Changed status from Draft to ${protocol.status}`
-    }
-  ]
+  const auditTrail = mockAuditTrail.filter(a => a.protocolId === protocol.id)
 
   // Mock comments data
-  const comments = [
-    {
-      id: 1,
-      user: "Jane Smith",
-      date: new Date(new Date(protocol.updatedAt).getTime() + 172800000).toISOString(),
-      content: "Please add more details to the materials section.",
-      resolved: true
-    },
-    {
-      id: 2,
-      user: "John Doe",
-      date: new Date(new Date(protocol.updatedAt).getTime() + 259200000).toISOString(),
-      content: "The procedure looks good, but we should clarify step 3.",
-      resolved: false
-    }
-  ]
+  const comments = mockProtocolComments.filter(c => c.protocolId === protocol.id)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

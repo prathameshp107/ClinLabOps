@@ -77,14 +77,14 @@ import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
 import { ExperimentChart } from "./experiment-chart"
-import { generateMockExperiments } from "@/lib/mock-data"
+import { mockExperimentsFull } from "@/data/experiments-data"
 
 export function ExperimentManagement() {
   const router = useRouter()
   const [view, setView] = useState("grid")
-  const [experiments, setExperiments] = useState([])
-  const [filteredExperiments, setFilteredExperiments] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [experiments, setExperiments] = useState(mockExperimentsFull)
+  const [filteredExperiments, setFilteredExperiments] = useState(mockExperimentsFull)
+  const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortBy, setSortBy] = useState("updatedAt")
@@ -92,28 +92,6 @@ export function ExperimentManagement() {
   const [selectedExperiment, setSelectedExperiment] = useState(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-
-  // Fetch experiments data
-  useEffect(() => {
-    // In a real app, this would be an API call
-    const fetchExperiments = async () => {
-      try {
-        setIsLoading(true)
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        const data = generateMockExperiments()
-        setExperiments(data)
-        setFilteredExperiments(data)
-      } catch (error) {
-        console.error("Error fetching experiments:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchExperiments()
-  }, [])
 
   // Filter and sort experiments
   useEffect(() => {

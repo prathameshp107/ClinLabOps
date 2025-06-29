@@ -11,14 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-
-const teamMembers = [
-    { id: "tm1", name: "Dr. Sarah Johnson", role: "Lab Director" },
-    { id: "tm2", name: "Dr. Michael Chen", role: "Senior Researcher" },
-    { id: "tm3", name: "Jessica Williams", role: "Lab Technician" },
-    { id: "tm4", name: "Robert Garcia", role: "Quality Control" },
-    { id: "tm5", name: "Emily Davis", role: "Customer Relations" }
-];
+import { teamMembers } from "@/data/enquiries-data"
 
 export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
     // Form state

@@ -143,3 +143,49 @@ export const protocolsData = [
     ]
   }
 ];
+
+// Mock audit trail for protocols
+export const mockAuditTrail = [
+  {
+    protocolId: "PROT-001",
+    action: "Created",
+    date: "2023-03-15T10:30:00Z",
+    user: "Dr. John Smith"
+  },
+  {
+    protocolId: "PROT-001",
+    action: "Updated",
+    date: "2023-04-02T14:45:00Z",
+    user: "Dr. John Smith",
+    details: "Updated procedure steps"
+  },
+  {
+    protocolId: "PROT-001",
+    action: "Status Change",
+    date: "2023-04-03T14:45:00Z",
+    user: "Jane Smith",
+    details: "Changed status from Draft to Approved"
+  },
+  // ...add more for other protocols
+];
+
+// Mock comments for protocols
+export const mockProtocolComments = [
+  {
+    id: 1,
+    protocolId: "PROT-001",
+    user: "Jane Smith",
+    date: "2023-04-04T14:45:00Z",
+    content: "Please add more details to the materials section.",
+    resolved: true
+  },
+  {
+    id: 2,
+    protocolId: "PROT-001",
+    user: "John Doe",
+    date: "2023-04-05T14:45:00Z",
+    content: "The procedure looks good, but we should clarify step 3.",
+    resolved: false
+  },
+  // ...add more for other protocols
+];

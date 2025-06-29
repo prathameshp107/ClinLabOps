@@ -240,3 +240,22 @@ export const equipmentData = [
     ]
   }
 ];
+
+// Mock maintenance history for equipment
+export const mockEquipmentMaintenanceHistory = [
+  {
+    equipmentId: "EQ-001",
+    date: "2023-08-10T00:00:00Z",
+    type: "Corrective",
+    technician: "Sarah Johnson",
+    notes: "Replaced faulty sensor. Performed full system diagnostic. Equipment now functioning properly."
+  },
+  {
+    equipmentId: "EQ-001",
+    date: "2023-05-10T00:00:00Z",
+    type: "Preventive",
+    technician: "John Smith",
+    notes: "Regular calibration and cleaning performed. All systems functioning normally."
+  },
+  // ...add more for other equipment
+];
