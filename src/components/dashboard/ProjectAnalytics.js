@@ -25,6 +25,7 @@ import {
   Scatter
 } from 'recharts';
 import { Badge } from "@/components/ui/badge";
+import { mockProjects } from "@/data/projects-data";
 
 const COLORS = {
   'on track': '#10B981',
@@ -54,106 +55,106 @@ const STATUS_DESCRIPTIONS = {
 };
 
 // Mock data - in a real app, this would come from an API
-const mockProjects = [
-  {
-    id: 'p1',
-    name: 'Website Redesign',
-    status: 'on track',
-    progress: 0.65,
-    startDate: '2025-05-15',
-    endDate: '2025-07-20',
-    budget: 50000,
-    spent: 32000,
-    tasks: {
-      total: 45,
-      completed: 28,
-      inProgress: 12,
-      overdue: 5
-    },
-    risks: [
-      'Potential delay in content delivery from marketing team',
-      'Third-party API integration pending approval'
-    ]
-  },
-  {
-    id: 'p2',
-    name: 'Mobile App',
-    status: 'at risk',
-    progress: 0.35,
-    startDate: '2025-06-01',
-    endDate: '2025-08-15',
-    budget: 75000,
-    spent: 60000,
-    tasks: {
-      total: 68,
-      completed: 22,
-      inProgress: 25,
-      overdue: 8
-    },
-    risks: [
-      'Backend API performance issues',
-      'App store review process may cause delays'
-    ]
-  },
-  {
-    id: 'p3',
-    name: 'Data Migration',
-    status: 'delayed',
-    progress: 0.2,
-    startDate: '2025-05-01',
-    endDate: '2025-06-30',
-    budget: 30000,
-    spent: 28000,
-    tasks: {
-      total: 30,
-      completed: 6,
-      inProgress: 8,
-      overdue: 4
-    },
-    risks: [
-      'Data validation taking longer than expected',
-      'Legacy system compatibility issues'
-    ]
-  },
-  {
-    id: 'p4',
-    name: 'Marketing Campaign',
-    status: 'on track',
-    progress: 0.8,
-    startDate: '2025-06-10',
-    endDate: '2025-07-30',
-    budget: 45000,
-    spent: 35000,
-    tasks: {
-      total: 38,
-      completed: 31,
-      inProgress: 5,
-      overdue: 2
-    },
-    risks: [
-      'Creative assets approval pending'
-    ]
-  },
-  {
-    id: 'p5',
-    name: 'Server Upgrade',
-    status: 'on hold',
-    progress: 0.1,
-    startDate: '2025-06-20',
-    endDate: '2025-07-10',
-    budget: 20000,
-    spent: 5000,
-    tasks: {
-      total: 15,
-      completed: 2,
-      inProgress: 3,
-      overdue: 0
-    },
-    risks: [
-      'Waiting for hardware delivery'
-    ]
-  }
-];
+// const mockProjects = [
+//   {
+//     id: 'p1',
+//     name: 'Website Redesign',
+//     status: 'on track',
+//     progress: 0.65,
+//     startDate: '2025-05-15',
+//     endDate: '2025-07-20',
+//     budget: 50000,
+//     spent: 32000,
+//     tasks: {
+//       total: 45,
+//       completed: 28,
+//       inProgress: 12,
+//       overdue: 5
+//     },
+//     risks: [
+//       'Potential delay in content delivery from marketing team',
+//       'Third-party API integration pending approval'
+//     ]
+//   },
+//   {
+//     id: 'p2',
+//     name: 'Mobile App',
+//     status: 'at risk',
+//     progress: 0.35,
+//     startDate: '2025-06-01',
+//     endDate: '2025-08-15',
+//     budget: 75000,
+//     spent: 60000,
+//     tasks: {
+//       total: 68,
+//       completed: 22,
+//       inProgress: 25,
+//       overdue: 8
+//     },
+//     risks: [
+//       'Backend API performance issues',
+//       'App store review process may cause delays'
+//     ]
+//   },
+//   {
+//     id: 'p3',
+//     name: 'Data Migration',
+//     status: 'delayed',
+//     progress: 0.2,
+//     startDate: '2025-05-01',
+//     endDate: '2025-06-30',
+//     budget: 30000,
+//     spent: 28000,
+//     tasks: {
+//       total: 30,
+//       completed: 6,
+//       inProgress: 8,
+//       overdue: 4
+//     },
+//     risks: [
+//       'Data validation taking longer than expected',
+//       'Legacy system compatibility issues'
+//     ]
+//   },
+//   {
+//     id: 'p4',
+//     name: 'Marketing Campaign',
+//     status: 'on track',
+//     progress: 0.8,
+//     startDate: '2025-06-10',
+//     endDate: '2025-07-30',
+//     budget: 45000,
+//     spent: 35000,
+//     tasks: {
+//       total: 38,
+//       completed: 31,
+//       inProgress: 5,
+//       overdue: 2
+//     },
+//     risks: [
+//       'Creative assets approval pending'
+//     ]
+//   },
+//   {
+//     id: 'p5',
+//     name: 'Server Upgrade',
+//     status: 'on hold',
+//     progress: 0.1,
+//     startDate: '2025-06-20',
+//     endDate: '2025-07-10',
+//     budget: 20000,
+//     spent: 5000,
+//     tasks: {
+//       total: 15,
+//       completed: 2,
+//       inProgress: 3,
+//       overdue: 0
+//     },
+//     risks: [
+//       'Waiting for hardware delivery'
+//     ]
+//   }
+// ];
 
 // Enhanced Custom Tooltip
 const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) => {

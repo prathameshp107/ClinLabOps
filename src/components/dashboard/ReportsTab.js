@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
-import { Search, Filter, Download, Eye, Trash2, FileText, FileSpreadsheet, Plus, FileArchive, FilePieChart, FileBarChart2, RefreshCw, Upload  } from 'lucide-react';
+import { Search, Filter, Download, Eye, Trash2, FileText, FileSpreadsheet, Plus, FileArchive, FilePieChart, FileBarChart2, RefreshCw, Upload } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PreviewReportDialog } from './PreviewReportDialog';
 import { UploadReportDialog } from './UploadReportDialog';
 import { ReportsPagination } from './ReportsPagination';
+import { reportsData } from "@/data/dashboard-data";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
@@ -95,13 +96,13 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
   const handleUploadReport = (uploadedReport) => {
     // In a real app, this would add the uploaded report to the backend
     console.log('Report uploaded:', uploadedReport);
-    
+
     // Show success message
     alert(`Successfully uploaded report: ${uploadedReport.title}\n\n` +
-          `File: ${uploadedReport.file}\n` +
-          `Type: ${uploadedReport.type}\n` +
-          `Size: ${uploadedReport.size}`);
-    
+      `File: ${uploadedReport.file}\n` +
+      `Type: ${uploadedReport.type}\n` +
+      `Size: ${uploadedReport.size}`);
+
     // In a real app, you would update the reports list by either:
     // 1. Adding the uploaded report to the reports array
     // setReports(prev => [uploadedReport, ...prev]);
@@ -139,7 +140,7 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
         onOpenChange={setIsPreviewOpen}
         onDownload={handleDownload}
       />
-      
+
       {/* Upload Report Dialog */}
       <UploadReportDialog
         open={isUploadDialogOpen}
@@ -195,7 +196,7 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
               })}
             </SelectContent>
           </Select>
-          <Button 
+          <Button
             className="ml-auto"
             onClick={() => setIsUploadDialogOpen(true)}
           >

@@ -88,7 +88,7 @@ export function addTaskSubtask(taskId, subtaskData) {
 }
 
 /**
- * Update a subtask in a task
+ * Update a subtask in atask
  */
 export function updateTaskSubtask(taskId, subtaskId, subtaskData) {
     return Promise.resolve({ taskId, subtaskId, subtaskData });
