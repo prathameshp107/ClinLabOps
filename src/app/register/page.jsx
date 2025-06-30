@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 // Dynamically import Lottie to avoid SSR issues with document/window
 import dynamic from "next/dynamic"
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
@@ -103,7 +104,9 @@ export default function RegisterPage() {
   const [passwordStrength, setPasswordStrength] = useState(0)
   const [signupSuccess, setSignupSuccess] = useState(false)
   const [formError, setFormError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const { theme } = useTheme()
+  const router = useRouter()
 
   // Animation data state
   const [animationData, setAnimationData] = useState(null)
@@ -162,30 +165,28 @@ export default function RegisterPage() {
   const onSubmit = async (data) => {
     setIsLoading(true)
     setFormError("")
+    setSuccessMessage("")
 
     try {
-      await register({
+      const response = await register({
         name: data.fullName,
         email: data.email,
         password: data.password,
         roles: [data.role || 'User'],
       })
 
-      setIsLoading(false)
-      setSignupSuccess(true)
-
-      // Trigger confetti on success
-      if (typeof window !== 'undefined') {
-        import('canvas-confetti').then((confettiModule) => {
-          const confetti = confettiModule.default
-          confetti({
-            particleCount: 150,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#4F46E5', '#10B981', '#3B82F6']
-          })
-        })
+      if (!response) {
+        setFormError("An unexpected error occurred. Please try again.")
+        setIsLoading(false)
+        return;
       }
+
+      setTimeout(() => {
+        setSuccessMessage("Registration successful! Redirecting to login...");
+        setIsLoading(false);
+        router.push("/login");
+      }, 1500);
+
     } catch (error) {
       console.error("Error submitting form:", error)
       setIsLoading(false)
@@ -265,6 +266,25 @@ export default function RegisterPage() {
                       <h2 className="text-2xl font-bold">Create Your Lab Account</h2>
                       <p className="text-muted-foreground">Join LabTasker to optimize your preclinical testing workflow</p>
                     </div>
+
+                    <AnimatePresence>
+                      {formError && (
+                        <motion.div key="form-error" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                          <Alert variant="destructive" className="mb-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{formError}</AlertDescription>
+                          </Alert>
+                        </motion.div>
+                      )}
+                      {successMessage && (
+                        <motion.div key="success-message" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                          <Alert variant="success" className="mb-4">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <AlertDescription>{successMessage}</AlertDescription>
+                          </Alert>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     <Tabs defaultValue="email" className="w-full">
                       <TabsList className="grid w-full grid-cols-2 mb-4">
