@@ -28,6 +28,9 @@ app.use('/api/enquiries', enquiriesRouter);
 const projectsRouter = require('./routes/projects');
 app.use('/api/projects', projectsRouter);
 
+const authRouter = require('./routes/auth');
+app.use('/api/auth', authRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;

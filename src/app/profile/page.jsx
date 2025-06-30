@@ -1,17 +1,41 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileTabs } from "@/components/profile/profile-tabs"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
-import { profileData } from "@/data/profile-data"
+import { useRouter } from "next/navigation"
+import { getProfile, isAuthenticated } from "@/services/authService"
 
 export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [userData, setUserData] = useState(profileData)
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push("/login")
+      return
+    }
+    getProfile()
+      .then((data) => {
+        setUserData(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        setLoading(false)
+        toast({
+          title: "Error",
+          description: err.message || "Failed to load profile.",
+          variant: "destructive",
+        })
+        router.push("/login")
+      })
+  }, [])
 
   // Handle updating user data
   const handleUpdateUserData = (section, data) => {
@@ -81,18 +105,24 @@ export default function ProfilePage() {
     })
   }
 
+  if (loading) {
+    return <div className="flex justify-center items-center h-96">Loading profile...</div>
+  }
+
+  if (!userData) {
+    return null
+  }
+
   return (
     <DashboardLayout
       sidebarOpen={sidebarOpen}
       setSidebarOpen={setSidebarOpen}
     >
-
       <div className="container px-4 sm:px-6 lg:px-8 py-6 max-w-6xl mx-auto">
         <ProfileHeader
           userData={userData}
           onUpdateProfilePicture={handleUpdateProfilePicture}
         />
-
         <ProfileTabs
           userData={userData}
           onUpdateUserData={handleUpdateUserData}
@@ -100,7 +130,6 @@ export default function ProfilePage() {
           onRemoveSkill={handleRemoveSkill}
         />
       </div>
-
     </DashboardLayout>
   )
 }

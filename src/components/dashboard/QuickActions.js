@@ -2,7 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Upload, UserPlus, Calendar, Settings } from "lucide-react";
-import { quickActions } from "@/data/dashboard-data";
+
+const quickActions = [
+  { id: 1, label: 'New Task', icon: <Plus size={20} />, variant: 'outline' },
+  { id: 2, label: 'New Project', icon: <FileText size={20} />, variant: 'outline' },
+  { id: 3, label: 'Upload Files', icon: <Upload size={20} />, variant: 'outline' },
+  { id: 4, label: 'Add User', icon: <UserPlus size={20} />, variant: 'outline' },
+  { id: 5, label: 'Calendar', icon: <Calendar size={20} />, variant: 'outline' },
+  { id: 6, label: 'Settings', icon: <Settings size={20} />, variant: 'outline' },
+];
 
 export default function QuickActions() {
   return (
