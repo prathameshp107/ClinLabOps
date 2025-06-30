@@ -1,11 +1,15 @@
-import { mockProjects, mockUsers, mockActivities, mockMilestones, mockDocuments } from "@/data/projects-data";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 /**
  * Fetch all projects
  * @returns {Promise<Array>} List of projects
  */
-export function getProjects() {
-  return Promise.resolve([...mockProjects]);
+export async function getProjects() {
+  const response = await fetch(`${API_URL}/projects`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch projects');
+  }
+  return response.json();
 }
 
 /**
@@ -13,9 +17,13 @@ export function getProjects() {
  * @param {string} id
  * @returns {Promise<Object|null>} Project object or null
  */
-export function getProjectById(id) {
-  const project = mockProjects.find(p => p.id === id) || null;
-  return Promise.resolve(project);
+export async function getProjectById(id) {
+  const response = await fetch(`${API_URL}/projects/${id}`);
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error('Failed to fetch project');
+  }
+  return response.json();
 }
 
 /**
@@ -23,11 +31,16 @@ export function getProjectById(id) {
  * @param {Object} projectData
  * @returns {Promise<Object>} Created project
  */
-export function createProject(projectData) {
-  // In a real app, this would POST to an API
-  const newProject = { ...projectData, id: `p${Date.now()}` };
-  // mockProjects.push(newProject); // Not mutating mock data
-  return Promise.resolve(newProject);
+export async function createProject(projectData) {
+  const response = await fetch(`${API_URL}/projects`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(projectData),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to create project');
+  }
+  return response.json();
 }
 
 /**
@@ -36,11 +49,16 @@ export function createProject(projectData) {
  * @param {Object} projectData
  * @returns {Promise<Object|null>} Updated project or null
  */
-export function updateProject(id, projectData) {
-  const project = mockProjects.find(p => p.id === id);
-  if (!project) return Promise.resolve(null);
-  const updated = { ...project, ...projectData };
-  return Promise.resolve(updated);
+export async function updateProject(id, projectData) {
+  const response = await fetch(`${API__URL}/projects/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(projectData),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update project');
+  }
+  return response.json();
 }
 
 /**
@@ -48,11 +66,14 @@ export function updateProject(id, projectData) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteProject(id) {
-  // In a real app, this would DELETE from an API
-  // Here, just resolve true if found
-  const exists = mockProjects.some(p => p.id === id);
-  return Promise.resolve(exists);
+export async function deleteProject(id) {
+  const response = await fetch(`${API_URL}/projects/${id}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete project');
+  }
+  return true; // Or handle as per API response
 }
 
 /**

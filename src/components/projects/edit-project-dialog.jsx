@@ -65,7 +65,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 
 import { mockUsers, commonTags } from "@/data/projects-data"
 
-export function EditProjectDialog({ project, open, onOpenChange }) {
+export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
   const [activeTab, setActiveTab] = useState("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [projectData, setProjectData] = useState({
@@ -96,25 +96,25 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
 
   const validateForm = () => {
     const errors = {}
-    
+
     if (!projectData.name.trim()) {
       errors.name = "Project name is required"
     }
-    
+
     if (!projectData.description.trim()) {
       errors.description = "Project description is required"
     }
-    
+
     if (!projectData.startDate) {
       errors.startDate = "Start date is required"
     }
-    
+
     if (!projectData.endDate) {
       errors.endDate = "End date is required"
     } else if (projectData.endDate < projectData.startDate) {
       errors.endDate = "End date cannot be earlier than start date"
     }
-    
+
     setFormErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -125,7 +125,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
       ...prev,
       [name]: value
     }))
-    
+
     // Clear error when user types
     if (formErrors[name]) {
       setFormErrors(prev => ({
@@ -138,7 +138,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
   const handleNumberInputChange = (e) => {
     const { name, value } = e.target
     const numberValue = parseInt(value, 10)
-    
+
     if (!isNaN(numberValue) && numberValue >= 0 && numberValue <= 100) {
       setProjectData(prev => ({
         ...prev,
@@ -152,7 +152,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
       ...prev,
       [field]: date
     }))
-    
+
     // Clear error when user selects date
     if (formErrors[field]) {
       setFormErrors(prev => ({
@@ -174,12 +174,12 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
     if (projectData.team.some(member => member.id === user.id)) {
       return
     }
-    
+
     setProjectData(prev => ({
       ...prev,
-      team: [...prev.team, { 
-        id: user.id, 
-        name: user.name, 
+      team: [...prev.team, {
+        id: user.id,
+        name: user.name,
         role: user.role,
         department: user.department
       }]
@@ -199,7 +199,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
       setTagInput("")
       return
     }
-    
+
     setProjectData(prev => ({
       ...prev,
       tags: [...prev.tags, tag.trim()]
@@ -216,32 +216,29 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
 
   const handleSubmit = async (e) => {
     e?.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
     try {
-      // In a real application, you would send the data to your API here
-      console.log("Updating project:", projectData)
-      
-      // Simulate successful API call
-      setTimeout(() => {
-        setIsSubmitting(false)
-        onOpenChange(false)
-      }, 1000)
+      // Use the onSave callback passed from the parent page
+      if (onSave) {
+        await onSave(projectData);
+      }
     } catch (error) {
-      console.error("Error updating project:", error)
+      console.error("Failed to save project", error)
+      // You might want to show an error message to the user here
+    } finally {
       setIsSubmitting(false)
-      // Handle error appropriately
     }
   }
 
   const filteredTagSuggestions = commonTags
-    .filter(tag => 
-      tag.toLowerCase().includes(tagInput.toLowerCase()) && 
+    .filter(tag =>
+      tag.toLowerCase().includes(tagInput.toLowerCase()) &&
       !projectData.tags.includes(tag)
     )
     .slice(0, 5)
@@ -258,9 +255,9 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
             Update project details and information
           </DialogDescription>
         </DialogHeader>
-        
-        <Tabs 
-          defaultValue="details" 
+
+        <Tabs
+          defaultValue="details"
           className="w-full overflow-hidden"
           value={activeTab}
           onValueChange={setActiveTab}
@@ -287,7 +284,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
               Additional Info
             </TabsTrigger>
           </TabsList>
-          
+
           <form onSubmit={handleSubmit}>
             <ScrollArea className="pr-4" style={{ height: 'calc(75vh - 180px)' }}>
               <TabsContent value="details" className="mt-0 space-y-4">
@@ -308,7 +305,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                       <p className="text-sm text-destructive">{formErrors.name}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="description">
                       Description <span className="text-destructive">*</span>
@@ -325,7 +322,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                       <p className="text-sm text-destructive">{formErrors.description}</p>
                     )}
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="startDate">
@@ -363,7 +360,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                         <p className="text-sm text-destructive">{formErrors.startDate}</p>
                       )}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="endDate">
                         End Date <span className="text-destructive">*</span>
@@ -402,7 +399,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="status">Status</Label>
@@ -421,7 +418,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="priority">Priority</Label>
                       <Select
@@ -438,7 +435,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="progress">
                         Progress ({projectData.progress}%)
@@ -456,12 +453,12 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="team" className="mt-0 space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Team Members</Label>
-                    
+
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full justify-between">
@@ -503,17 +500,17 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className={projectData.team.length > 0 ? "" : "sr-only"}>
                       Selected Team Members ({projectData.team.length})
                     </Label>
-                    
+
                     {projectData.team.length > 0 ? (
                       <div className="space-y-2">
                         {projectData.team.map(member => (
-                          <div 
-                            key={member.id} 
+                          <div
+                            key={member.id}
                             className="flex items-center justify-between p-2 border rounded-md"
                           >
                             <div className="flex items-center gap-2">
@@ -527,9 +524,9 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                                 </span>
                               </div>
                             </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => handleTeamMemberRemove(member.id)}
                             >
                               <X className="h-4 w-4" />
@@ -552,7 +549,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="additional" className="mt-0 space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -594,12 +591,12 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                       Press Enter to add a tag
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label className={projectData.tags.length > 0 ? "" : "sr-only"}>
                       Selected Tags ({projectData.tags.length})
                     </Label>
-                    
+
                     {projectData.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {projectData.tags.map(tag => (
@@ -630,7 +627,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                 </div>
               </TabsContent>
             </ScrollArea>
-            
+
             <DialogFooter className="mt-6 gap-2">
               <div className="flex items-center mr-auto">
                 {activeTab !== "details" && (
@@ -647,7 +644,7 @@ export function EditProjectDialog({ project, open, onOpenChange }) {
                   </Button>
                 )}
               </div>
-              
+
               {activeTab !== "additional" ? (
                 <Button
                   type="button"

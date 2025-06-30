@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Share2, Users, Mail, Copy, Check, X, Search } from "lucide-react"
+import { Share2, Users, Mail, Copy, Check, X, Search, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { 
   Dialog,

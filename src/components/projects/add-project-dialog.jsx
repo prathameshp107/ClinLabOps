@@ -590,7 +590,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           </TabsList>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            <ScrollArea className="flex-1 min-h-0 max-h-[calc(95vh-220px)] pr-2 px-8" style={{ overflowY: 'auto' }}>
+            <ScrollArea className="flex-1 min-h-[calc(95vh-220px)] pr-2 px-8" style={{ overflowY: 'auto' }}>
               <TabsContent value="details" className="mt-0 space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -873,42 +873,33 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         </span>
                       </div>
 
-                      <Select
-                        onValueChange={(value) => {
-                          const selectedUser = mockUsers.find(user => user.id === value);
-                          if (selectedUser) {
-                            handleTeamMemberAdd(selectedUser);
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-full bg-background/50 border-border/50">
-                          <SelectValue placeholder="Add team members" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockUsers
-                            .filter(user => !projectData.team.some(member => member.id === user.id) &&
-                              (!projectData.principalInvestigator || user.id !== projectData.principalInvestigator.id))
-                            .map(user => (
-                              <SelectItem
-                                key={user.id}
-                                value={user.id}
-                                className="py-2"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
-                                    {user.name.split(' ').map(n => n[0]).join('')}
+                      <PopoverContent className="w-[300px] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search for a team member..." />
+                          <CommandEmpty>No results found.</CommandEmpty>
+                          <CommandGroup heading="Suggestions">
+                            {Array.isArray(mockUsers) && mockUsers
+                              .filter(user => !projectData.team.some(member => member.id === user.id))
+                              .map(user => (
+                                <CommandItem
+                                  key={user.id}
+                                  onSelect={() => handleTeamMemberAdd(user)}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center">
+                                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center mr-3">
+                                      <span className="text-xs font-bold">{user.name.charAt(0)}</span>
+                                    </div>
+                                    <div>
+                                      <p className="font-medium">{user.name}</p>
+                                      <p className="text-xs text-muted-foreground">{user.role}</p>
+                                    </div>
                                   </div>
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{user.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {user.role} • {user.department}
-                                    </span>
-                                  </div>
-                                </div>
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                                </CommandItem>
+                              ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
 
                       {/* Display selected team members */}
                       {projectData.team.length > 0 && (

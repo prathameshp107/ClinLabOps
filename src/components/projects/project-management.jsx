@@ -5,11 +5,12 @@ import { motion } from "framer-motion"
 import {
   PlusCircle, SearchIcon, FilterIcon, Grid3X3, List,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
-  Users, Clock,
-  Card, CardContent, CardHeader, CardTitle,
-  Avatar, AvatarFallback, AvatarImage,
-  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
-  Badge,
+  Users, Clock
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -17,14 +18,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  ScrollArea
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { ProjectTable } from "./project-table"
 import { ProjectCardView } from "./project-card-view"
@@ -38,18 +40,12 @@ import { ProjectDependencies } from "./project-dependencies"
 import { ProjectStatusTracking } from "./project-status-tracking"
 import { ProjectGanttChart } from "./project-gantt-chart"
 import { mockProjects, mockUsers } from "@/data/projects-data"
+import { getProjects, createProject, updateProject, deleteProject } from "@/services/projectService"
 
 export function ProjectManagement() {
-  // Initialize projects state with data from localStorage or default mock data
-  const [projects, setProjects] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedProjects = localStorage.getItem('projects');
-      if (savedProjects) {
-        return JSON.parse(savedProjects);
-      }
-    }
-    return mockProjects;
-  });
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,6 +65,27 @@ export function ProjectManagement() {
   const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentUser, setCurrentUser] = useState(mockUsers.u1); // Use centralized mock user
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const data = await getProjects();
+        // The backend uses _id, but frontend components might expect id.
+        // We map _id to id for consistency.
+        const adaptedData = data.map(p => ({ ...p, id: p._id }));
+        setProjects(adaptedData);
+        setError(null);
+      } catch (err) {
+        setError("Failed to load projects. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   // Save projects to localStorage whenever they change
   useEffect(() => {
@@ -196,51 +213,42 @@ export function ProjectManagement() {
     setProjects(updatedProjects);
   }
 
-  const handleAddProject = (newProject) => {
-    // Clean up description if it contains HTML tags
-    const cleanedProject = {
-      ...newProject,
-      description: newProject.description?.replace(/<\/?[^>]+(>|$)/g, "") || ""
-    };
+  const handleAddProject = async (newProjectData) => {
+    try {
+      const newProject = await createProject(newProjectData);
+      const adaptedProject = { ...newProject, id: newProject._id };
+      setProjects(prev => [...prev, adaptedProject]);
+      setShowAddProjectDialog(false);
+    } catch (error) {
+      console.error("Failed to add project:", error);
+      // Optionally, show an error message to the user
+    }
+  };
 
-    // Add the new project to the projects array
-    const updatedProjects = [...projects, cleanedProject];
+  const handleEditProject = async (editedProjectData) => {
+    if (!selectedProject) return;
+    try {
+      const updated = await updateProject(selectedProject.id, editedProjectData);
+      const adaptedUpdated = { ...updated, id: updated._id };
+      setProjects(prev => prev.map(p => p.id === adaptedUpdated.id ? adaptedUpdated : p));
+      setSelectedProject(null);
+    } catch (error) {
+      console.error("Failed to edit project:", error);
+      // Optionally, show an error message to the user
+    }
+  };
 
-    // Update state with the new projects array
-    setProjects(updatedProjects);
-
-    // Close the dialog
-    setShowAddProjectDialog(false);
-
-    // Show a success message or notification (you can implement this later)
-    console.log("Project added successfully:", cleanedProject);
-  }
-
-  const handleEditProject = (editedProject) => {
-    const updatedProjects = projects.map(project =>
-      project.id === editedProject.id
-        ? {
-          ...editedProject,
-          activityLog: [
-            ...project.activityLog || [],
-            {
-              id: `a${Date.now()}`,
-              userId: currentUser.id,
-              action: "updated",
-              timestamp: new Date().toISOString(),
-              details: "Project updated"
-            }
-          ]
-        }
-        : project
-    );
-
-    setProjects(updatedProjects);
-  }
-
-  const handleDeleteProject = (projectId) => {
-    setProjects(prev => prev.filter(project => project.id !== projectId));
-  }
+  const handleDeleteProject = async (projectId) => {
+    try {
+      await deleteProject(projectId);
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+      setShowDeleteProjectDialog(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      // Optionally, show an error message to the user
+    }
+  };
 
   const handleShareProject = (projectId, invitedUsers) => {
     const updatedProjects = projects.map(project => {
@@ -271,7 +279,7 @@ export function ProjectManagement() {
     });
 
     setProjects(updatedProjects);
-  }
+  };
 
   // Update project dependencies
   const handleUpdateProjectDependencies = (dependencies) => {
@@ -319,6 +327,9 @@ export function ProjectManagement() {
 
     setProjects(updatedProjects);
   };
+
+  if (loading) return <div>Loading projects...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="space-y-8 pb-10">
