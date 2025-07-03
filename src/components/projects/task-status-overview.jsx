@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { tasksData } from "@/data/projects-data"
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -58,12 +57,12 @@ const CustomTooltip = ({ active, payload }) => {
     return null;
 };
 
-export function TaskStatusOverview() {
+export function TaskStatusOverview({ tasks = [] }) {
     const [activeTab, setActiveTab] = useState("overview");
-    const totalTasks = tasksData.reduce((sum, task) => sum + task.value, 0);
-    const totalTaskCount = tasksData.reduce((sum, task) => sum + task.count, 0);
-    const completionRate = Math.round((tasksData[0].count / totalTaskCount) * 100);
-    const averageWorkload = Math.round(tasksData.reduce((sum, task) => sum + (task.count / task.total * 100), 0) / tasksData.length);
+    const totalTasks = (tasks || []).reduce((sum, task) => sum + (task.value || 0), 0);
+    const totalTaskCount = (tasks || []).length;
+    const completionRate = totalTaskCount > 0 ? Math.round(((tasks[0]?.count || 0) / totalTaskCount) * 100) : 0;
+    const averageWorkload = totalTaskCount > 0 ? Math.round((tasks || []).reduce((sum, task) => sum + ((task.count || 0) / (task.total || 1) * 100), 0) / (tasks.length || 1)) : 0;
 
     return (
         <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
@@ -126,7 +125,7 @@ export function TaskStatusOverview() {
                                     <PieChart>
                                         <ChartTooltip content={<CustomTooltip />} />
                                         <Pie
-                                            data={tasksData}
+                                            data={tasks || []}
                                             dataKey="value"
                                             nameKey="name"
                                             cx="50%"
@@ -137,7 +136,7 @@ export function TaskStatusOverview() {
                                             animationDuration={1000}
                                             animationBegin={0}
                                         >
-                                            {tasksData.map((entry, index) => (
+                                            {(tasks || []).map((entry, index) => (
                                                 <Cell
                                                     key={`cell-${index}`}
                                                     fill={entry.color}
@@ -154,7 +153,7 @@ export function TaskStatusOverview() {
                             </div>
 
                             <div className="mt-6 grid grid-cols-2 gap-4 w-full">
-                                {tasksData.map((item, index) => (
+                                {(tasks || []).map((item, index) => (
                                     <motion.div
                                         key={index}
                                         initial={{ opacity: 0, y: 20 }}
@@ -214,7 +213,7 @@ export function TaskStatusOverview() {
                         </div>
 
                         <div className="space-y-4">
-                            {tasksData.map((item, index) => (
+                            {(tasks || []).map((item, index) => (
                                 <motion.div
                                     key={index}
                                     initial={{ opacity: 0, y: 20 }}
@@ -234,7 +233,7 @@ export function TaskStatusOverview() {
                                         </Badge>
                                     </div>
 
-                                    {item.assignees.length > 0 ? (
+                                    {item.assignees && item.assignees.length > 0 ? (
                                         <div className="space-y-3">
                                             {item.assignees.map((assignee, idx) => (
                                                 <div key={idx} className="flex items-center justify-between">

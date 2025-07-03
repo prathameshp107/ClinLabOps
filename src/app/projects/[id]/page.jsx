@@ -24,6 +24,7 @@ import { AddMemberModal } from "@/components/projects/add-member-modal"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UserAvatar from "@/components/tasks/user-avatar"
 import { getProjectById } from "@/services/projectService"
+import { TaskStatusOverview } from "@/components/projects/task-status-overview"
 
 export default function ProjectPage({ params }) {
   const { id } = params;

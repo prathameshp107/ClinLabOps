@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Users, X, UserPlus, Check } from "lucide-react"
+import { Users, X, UserPlus, Check, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -32,8 +32,8 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
   }
 
   const handleRoleChange = (userId, role) => {
-    setNewMembers(prev => 
-      prev.map(member => 
+    setNewMembers(prev =>
+      prev.map(member =>
         member.id === userId ? { ...member, role } : member
       )
     )
@@ -43,10 +43,10 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
     setNewMembers(prev => prev.filter(member => member.id !== userId))
   }
 
-  const filteredMembers = suggestedMembers.filter(member => 
+  const filteredMembers = suggestedMembers.filter(member =>
     (member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.department.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.department.toLowerCase().includes(searchQuery.toLowerCase())) &&
     !newMembers.some(newMember => newMember.id === member.id)
   )
 
@@ -64,9 +64,9 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
             <Label htmlFor="member-search">Search User</Label>
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="member-search" 
-                placeholder="Search by name or email" 
+              <Input
+                id="member-search"
+                placeholder="Search by name or email"
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -126,8 +126,8 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
             </div>
             <div className="max-h-[200px] overflow-y-auto">
               {filteredMembers.map((user, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="flex items-center justify-between p-2 hover:bg-muted/50 cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
@@ -139,8 +139,8 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
                       <p className="text-xs text-muted-foreground">{user.role} • {user.department}</p>
                     </div>
                   </div>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleMemberSelect(user)}
                   >
@@ -152,8 +152,8 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
           </div>
         </div>
         <DialogFooter>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => {
               onOpenChange(false)
               setNewMembers([])
@@ -162,7 +162,7 @@ export function AddMemberModal({ open, onOpenChange, onAddMember }) {
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleAddMember}
             disabled={newMembers.length === 0 || newMembers.some(member => !member.role)}
           >
