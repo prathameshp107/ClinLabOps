@@ -70,7 +70,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember }) {
             <div className="space-y-3">
               <div className="flex items-center gap-4 flex-wrap">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  {project.name}
+                  {project.name ? project.name : project.title}
                 </h1>
                 <Button
                   variant="ghost"

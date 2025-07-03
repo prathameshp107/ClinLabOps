@@ -117,7 +117,7 @@ export default function ProjectPage({ params }) {
             <div className="flex items-center text-sm text-gray-500">
               <span>Projects</span>
               <ChevronRight className="h-4 w-4 mx-2" />
-              <span className="font-medium text-gray-900">{project.name}</span>
+              <span className="font-medium text-gray-900">{project.name ? project.name : project.title}</span>
             </div>
           </div>
         </div>

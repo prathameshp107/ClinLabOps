@@ -22,7 +22,11 @@ export default function ProjectsPage() {
   }, [])
 
   if (loading) {
-    return <ProjectsLoading />
+    return (
+      <DashboardLayout>
+        <ProjectsLoading />
+      </DashboardLayout>
+    )
   }
 
   return (

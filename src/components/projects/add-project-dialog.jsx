@@ -128,54 +128,56 @@ const EditorMenuBar = ({ editor }) => {
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="10" x2="21" y1="6" y2="6" /><line x1="10" x2="21" y1="12" y2="12" /><line x1="10" x2="21" y1="18" y2="18" /><path d="M4 6h1v4" /><path d="M4 10h2" /><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" /></svg>
       </Button>
       <div className="w-px h-6 bg-border mx-1"></div>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className={cn("h-8 px-2", editor.isActive('link') ? "bg-muted" : "")}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-3">
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm">Insert Link</h4>
+      {editor && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={cn("h-8 px-2", editor.isActive('link') ? "bg-muted" : "")}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-3">
             <div className="space-y-2">
-              <Input
-                id="url"
-                placeholder="https://example.com"
-                className="col-span-3 h-8"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    editor.chain().focus().setLink({ href: e.target.value }).run()
-                    e.target.value = ''
-                    document.body.click() // Close popover
-                  }
-                }}
-              />
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    const url = document.getElementById('url').value
-                    if (url) {
-                      editor.chain().focus().setLink({ href: url }).run()
-                      document.getElementById('url').value = ''
+              <h4 className="font-medium text-sm">Insert Link</h4>
+              <div className="space-y-2">
+                <Input
+                  id="url"
+                  placeholder="https://example.com"
+                  className="col-span-3 h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      editor.chain().focus().setLink({ href: e.target.value }).run()
+                      e.target.value = ''
                       document.body.click() // Close popover
                     }
                   }}
-                >
-                  Insert
-                </Button>
+                />
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      const url = document.getElementById('url').value
+                      if (url) {
+                        editor.chain().focus().setLink({ href: url }).run()
+                        document.getElementById('url').value = ''
+                        document.body.click() // Close popover
+                      }
+                    }}
+                  >
+                    Insert
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   )
 }

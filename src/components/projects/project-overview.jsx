@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { BarChart3, FileText, Tag, TrendingUp, Calendar, Users, DollarSign, Clock, Target, Zap, CheckCircle2, AlertCircle, User, Activity } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,6 +13,7 @@ import { TaskStatusOverview } from "./task-status-overview"
 import { PriorityBreakdown } from "./priority-breakdown"
 import { TeamWorkload } from "./team-workload"
 import { mockActivities, mockMilestones, statProgressColors } from "@/data/projects-data"
+import { getActivities } from "@/services/activityService"
 
 const StatProgress = ({ label, value, total, progress, color = "blue", icon: Icon, trend, description }) => {
   const colorClasses = statProgressColors[color] || statProgressColors.blue;
@@ -123,6 +124,12 @@ const MilestoneItem = ({ milestone, index }) => {
 };
 
 export function ProjectOverview({ project }) {
+  const [activities, setActivities] = useState([]);
+  useEffect(() => {
+    if (!project?.id) return;
+    getActivities({ project: project.id }).then(setActivities).catch(() => setActivities([]));
+  }, [project?.id]);
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
       {/* Left Column - Main Content */}
@@ -179,9 +186,7 @@ export function ProjectOverview({ project }) {
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-1">
-              {mockActivities.map((activity, index) => (
-                <ActivityItem key={index} activity={activity} index={index} />
-              ))}
+              <RecentActivity activities={activities} />
             </div>
           </CardContent>
         </Card>

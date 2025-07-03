@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -41,6 +41,8 @@ import { ProjectStatusTracking } from "./project-status-tracking"
 import { ProjectGanttChart } from "./project-gantt-chart"
 import { mockProjects, mockUsers } from "@/data/projects-data"
 import { getProjects, createProject, updateProject, deleteProject } from "@/services/projectService"
+import { createActivity } from "@/services/activityService"
+import { ProjectsLoading } from "@/components/projects/projects-loading"
 
 export function ProjectManagement() {
   const [projects, setProjects] = useState([]);
@@ -219,9 +221,15 @@ export function ProjectManagement() {
       const adaptedProject = { ...newProject, id: newProject._id };
       setProjects(prev => [...prev, adaptedProject]);
       setShowAddProjectDialog(false);
+      // Create activity for project creation
+      await createActivity({
+        type: 'project_created',
+        description: `Project '${adaptedProject.name}' was created`,
+        user: currentUser.id,
+        project: adaptedProject.id
+      });
     } catch (error) {
       console.error("Failed to add project:", error);
-      // Optionally, show an error message to the user
     }
   };
 
@@ -232,9 +240,15 @@ export function ProjectManagement() {
       const adaptedUpdated = { ...updated, id: updated._id };
       setProjects(prev => prev.map(p => p.id === adaptedUpdated.id ? adaptedUpdated : p));
       setSelectedProject(null);
+      // Create activity for project update
+      await createActivity({
+        type: 'project_updated',
+        description: `Project '${adaptedUpdated.name}' was updated`,
+        user: currentUser.id,
+        project: adaptedUpdated.id
+      });
     } catch (error) {
       console.error("Failed to edit project:", error);
-      // Optionally, show an error message to the user
     }
   };
 
@@ -328,7 +342,7 @@ export function ProjectManagement() {
     setProjects(updatedProjects);
   };
 
-  if (loading) return <div>Loading projects...</div>;
+  if (loading) return <ProjectsLoading />;
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (

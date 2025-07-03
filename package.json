@@ -49,6 +49,7 @@
     "@tiptap/react": "^2.11.7",
     "@tiptap/starter-kit": "^2.11.7",
     "autoprefixer": "^10.4.21",
+    "axios": "^1.10.0",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
