@@ -86,6 +86,11 @@ const ProjectSchema = new mongoose.Schema({
   tasks: [TaskSchema],
   documents: [DocumentSchema],
   milestones: [MilestoneSchema],
-});
+  projectCode: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model('Project', ProjectSchema); 

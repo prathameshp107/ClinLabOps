@@ -144,7 +144,7 @@ export function ProjectCardView({ projects, onAction }) {
                       <Star className={cn("h-4 w-4 transition-all", project.isFavorite ? 'fill-yellow-500' : '')} />
                     </Button>
                     <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors duration-200">
-                      {project.name}
+                      {project.title}
                     </h3>
                   </div>
                   <div className="flex flex-wrap gap-2">
