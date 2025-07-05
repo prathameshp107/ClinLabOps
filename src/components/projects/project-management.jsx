@@ -43,6 +43,7 @@ import { mockProjects, mockUsers } from "@/data/projects-data"
 import { getProjects, createProject, updateProject, deleteProject } from "@/services/projectService"
 import { createActivity } from "@/services/activityService"
 import { ProjectsLoading } from "@/components/projects/projects-loading"
+import { ErrorState } from "@/components/ui/error-state"
 
 export function ProjectManagement() {
   const [projects, setProjects] = useState([]);
@@ -343,7 +344,38 @@ export function ProjectManagement() {
   };
 
   if (loading) return <ProjectsLoading />;
-  if (error) return <div className="text-red-500">{error}</div>;
+  if (error) {
+    return (
+      <ErrorState
+        title="Unable to Load Projects"
+        message="We encountered an issue while loading your projects. This might be due to a network connection or server issue."
+        error={error}
+        onRetry={() => {
+          setError(null);
+          setLoading(true);
+          // Re-fetch projects
+          const fetchProjects = async () => {
+            try {
+              const data = await getProjects();
+              const adaptedData = data.map(p => ({ ...p, id: p._id }));
+              setProjects(adaptedData);
+              setError(null);
+            } catch (err) {
+              setError("Failed to load projects. Please try again later.");
+              console.error(err);
+            } finally {
+              setLoading(false);
+            }
+          };
+          fetchProjects();
+        }}
+        onContinue={() => {
+          setError(null);
+          setProjects([]);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8 pb-10">
