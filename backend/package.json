@@ -5,7 +5,9 @@
     "main": "app.js",
     "scripts": {
         "start": "node app.js",
-        "test": "jest"
+        "test": "jest",
+        "seed": "node scripts/seed-project-data.js",
+        "seed:dev": "set MONGODB_URI=mongodb://localhost:27017/labtasker && node scripts/seed-project-data.js"
     },
     "dependencies": {
         "bcrypt": "^6.0.0",

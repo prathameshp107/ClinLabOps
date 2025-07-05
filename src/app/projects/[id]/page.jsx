@@ -112,8 +112,8 @@ export default function ProjectPage({ params }) {
     <DashboardLayout>
       <div className="flex flex-col min-h-screen bg-white">
         {/* Breadcrumb */}
-        <div className="px-4 py-2 border-b border-gray-200">
-          <div className="max-w-[1400px] mx-auto">
+        <div className="px-6 py-2 border-b border-gray-200">
+          <div>
             <div className="flex items-center text-sm text-gray-500">
               <span>Projects</span>
               <ChevronRight className="h-4 w-4 mx-2" />
@@ -124,7 +124,7 @@ export default function ProjectPage({ params }) {
 
         {/* Project Header */}
         <div className="border-b border-gray-200">
-          <div className="max-w-[1400px] mx-auto px-4">
+          <div className="px-6">
             <ProjectHeader
               project={project}
               onAddTask={handleAddTask}
@@ -135,7 +135,7 @@ export default function ProjectPage({ params }) {
 
         {/* Project Navigation */}
         <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-          <div className="max-w-[1400px] mx-auto px-4">
+          <div className="px-6">
             <div className="flex items-center justify-between py-2">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="flex items-center justify-between">
