@@ -1,283 +1,637 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { Plus, Filter, Calendar, BarChart2, Users, SlidersHorizontal, RefreshCw, AlertCircle, Clock, CheckCircle2, Search, OctagonAlert, List, Grid, PlusCircle, Loader2 } from "lucide-react"
+
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { TaskManagement } from "@/components/tasks/task-management"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BackgroundBeams } from "@/components/ui/aceternity/background-beams"
-import { SparklesCore } from "@/components/ui/aceternity/sparkles"
-import {
-  Search,
-  Plus,
-  Filter,
-  Calendar,
-  BarChart2,
-  Users,
-  SlidersHorizontal,
-  RefreshCw,
-  AlertCircle,
-  Clock,
-  CheckCircle2
-} from "lucide-react"
-import { TasksLoading } from "@/components/tasks/tasks-loading"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { DataTable } from "@/components/tasks-v2/data-table"
+import { TaskGrid } from "@/components/tasks-v2/task-grid"
+import { columns } from "@/components/tasks-v2/columns"
+import { DataTableRowActions } from "@/components/tasks-v2/data-table-row-actions"
+import { toast } from "@/components/ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
+import { TooltipProvider } from "@/components/ui/tooltip"
+
+// Mock data for tasks
+const mockTasks = [
+  {
+    _id: '1',
+    title: 'Prepare lab equipment',
+    description: 'Ensure all lab equipment is clean and ready for use.',
+    status: 'pending',
+    priority: 'high',
+    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user1',
+    assignedToName: 'John Doe',
+    experiment: 'exp1',
+    experimentName: 'Cell Culture',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '2',
+    title: 'Analyze test results',
+    description: 'Review and interpret the latest test results from the experiment.',
+    status: 'in-progress',
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user2',
+    assignedToName: 'Jane Smith',
+    experiment: 'exp2',
+    experimentName: 'DNA Sequencing',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '3',
+    title: 'Order new supplies',
+    description: 'Place an order for new chemicals and lab supplies.',
+    status: 'completed',
+    priority: 'low',
+    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user3',
+    assignedToName: 'Alex Johnson',
+    experiment: 'exp3',
+    experimentName: 'Chemical Analysis',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '4',
+    title: 'Calibrate instruments',
+    description: 'Calibrate all measurement instruments for accuracy.',
+    status: 'pending',
+    priority: 'high',
+    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user1',
+    assignedToName: 'John Doe',
+    experiment: 'exp1',
+    experimentName: 'Cell Culture',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    _id: '5',
+    title: 'Document procedures',
+    description: 'Update the documentation for all lab procedures performed this week.',
+    status: 'in-progress',
+    priority: 'medium',
+    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    assignedTo: 'user2',
+    assignedToName: 'Jane Smith',
+    experiment: 'exp2',
+    experimentName: 'DNA Sequencing',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  }
+];
 
 export default function TasksPage() {
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [error, setError] = React.useState(null)
+  const [activeTab, setActiveTab] = React.useState("all")
+  const [selectedStatus, setSelectedStatus] = React.useState("all")
+  const [viewMode, setViewMode] = React.useState("table") // 'table' or 'grid'
+  const [lastRefreshed, setLastRefreshed] = React.useState(new Date())
+  const [isRefreshing, setIsRefreshing] = React.useState(false)
+  const [selectedTasks, setSelectedTasks] = React.useState([])
+  const [selectedTask, setSelectedTask] = React.useState(null)
+  const [showTaskDetails, setShowTaskDetails] = React.useState(false)
+  
+  const [tasks, setTasks] = React.useState(() => {
+    // Transform mockTasks to processedTasks shape
+    return mockTasks.map(task => ({
+      id: task._id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.dueDate,
+      assignedTo: {
+        id: task.assignedTo,
+        name: task.assignedToName,
+        avatar: "/avatars/01.png"
+      },
+      project: {
+        id: task.experiment,
+        name: task.experimentName
+      },
+      createdAt: task.createdAt
+    }));
+  });
 
-  // Simulate loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
+  const fetchTasksData = React.useCallback(async () => {
+    try {
+      setError(null)
+
+      // Use mock data instead of API call
+      let filteredTasks = [...mockTasks];
+
+      // Apply status filter
+      if (selectedStatus !== 'all') {
+        filteredTasks = filteredTasks.filter(task => task.status === selectedStatus);
+      }
+
+      // Transform to match expected format
+      const processedTasks = filteredTasks.map(task => ({
+        id: task._id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        priority: task.priority,
+        dueDate: task.dueDate,
+        assignedTo: {
+          id: task.assignedTo,
+          name: task.assignedToName,
+          avatar: "/avatars/01.png"
+        },
+        project: {
+          id: task.experiment,
+          name: task.experimentName
+        },
+        createdAt: task.createdAt
+      }));
+
+      setTasks(processedTasks);
+      setLastRefreshed(new Date());
+    } catch (err) {
+      console.error("Error processing tasks:", err);
+      setError("Failed to load tasks. Please try again later.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [selectedStatus]);
+
+  React.useEffect(() => {
+    fetchTasksData()
+  }, [fetchTasksData])
 
   const handleRefresh = () => {
-    setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
-    }, 800)
+    setIsRefreshing(true)
+    fetchTasksData()
   }
 
-  // --- Stats mock data (replace with real data logic) ---
-  const stats = [
-    { label: "Total Tasks", value: 42, icon: <BarChart2 className="h-5 w-5 text-primary" /> },
-    { label: "Completed", value: 18, icon: <CheckCircle2 className="h-5 w-5 text-green-500" /> },
-    { label: "In Progress", value: 12, icon: <Clock className="h-5 w-5 text-yellow-500" /> },
-    { label: "Overdue", value: 3, icon: <AlertCircle className="h-5 w-5 text-red-500" /> },
-  ];
-  const [showTaskModal, setShowTaskModal] = useState(false);
+  const taskStats = React.useMemo(() => {
+    const total = tasks.length
+    const completed = tasks.filter((t) => t.status === "completed").length
+    const inProgress = tasks.filter((t) => t.status === "in-progress").length
+    const pending = tasks.filter((t) => t.status === "pending").length
+    const overdue = tasks.filter(t =>
+      new Date(t.dueDate) < new Date() && t.status !== 'completed'
+    ).length
 
-  if (loading) {
-    return <TasksLoading />;
+    return { total, completed, inProgress, pending, overdue }
+  }, [tasks])
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      setTasks(prevTasks =>
+        prevTasks.map(task =>
+          task.id === taskId ? { ...task, status: newStatus } : task
+        )
+      )
+
+      toast({
+        title: "Status updated",
+        description: `Task marked as ${newStatus}.`,
+      })
+    } catch (error) {
+      fetchTasksData()
+      toast({
+        title: "Error updating status",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEditTask = (task) => {
+    toast({
+      title: "Edit task",
+      description: `Editing task: ${task.title}`,
+    })
+  }
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId))
+      toast({
+        title: "Task deleted",
+        description: "The task has been removed.",
+      })
+    } catch (error) {
+      fetchTasksData()
+      toast({
+        title: "Error deleting task",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleBulkDelete = () => {
+    if (selectedTasks.length === 0) return
+
+    if (window.confirm(`Are you sure you want to delete ${selectedTasks.length} selected tasks?`)) {
+      setTasks(prev => prev.filter(task => !selectedTasks.includes(task.id)))
+      setSelectedTasks([])
+      toast({
+        title: "Tasks deleted",
+        description: `${selectedTasks.length} tasks have been removed.`,
+      })
+    }
+  }
+
+  const handleBulkStatusChange = (status) => {
+    if (selectedTasks.length === 0) return
+
+    setTasks(prev =>
+      prev.map(task =>
+        selectedTasks.includes(task.id) ? { ...task, status } : task
+      )
+    )
+    setSelectedTasks([])
+    toast({
+      title: "Status updated",
+      description: `${selectedTasks.length} tasks marked as ${status}.`,
+    })
+  }
+
+  const handleTaskSelect = (taskId) => {
+    setSelectedTasks(prev => {
+      if (prev.includes(taskId)) {
+        return prev.filter(id => id !== taskId)
+      } else {
+        return [...prev, taskId]
+      }
+    })
+  }
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setShowTaskDetails(true);
+  };
+
+  const handleOpenChange = (isOpen) => {
+    setShowTaskDetails(isOpen);
+    if (!isOpen) {
+      // Optional: Clear the selected task when dialog is closed
+      setSelectedTask(null);
+    }
+  };
+
+  const handleTaskAction = (task, action) => {
+    if (action === 'delete') {
+      if (window.confirm('Are you sure you want to delete this task?')) {
+        setTasks(prev => prev.filter(t => t.id !== task.id))
+        setShowTaskDetails(false)
+        toast({
+          title: "Task deleted",
+          description: "The task has been successfully deleted.",
+        })
+      }
+    } else if (action === 'edit') {
+      // Handle edit action if needed
+      console.log('Edit task:', task.id)
+    } else if (action === 'statusChange') {
+      // Handle status change
+      setTasks(prev => 
+        prev.map(t => 
+          t.id === task.id ? { ...t, status: task.status } : t
+        )
+      )
+    }
+  }
+
+  const getFilteredTasks = () => {
+    let filtered = [...tasks]
+
+    if (activeTab === 'active') {
+      filtered = filtered.filter(task => ['pending', 'in-progress'].includes(task.status))
+    } else if (activeTab === 'completed') {
+      filtered = filtered.filter(task => task.status === 'completed')
+    }
+
+    return filtered
+  }
+
+  const filteredTasks = getFilteredTasks()
+
+  const tableColumns = React.useMemo(() => {
+    return columns.map(col => {
+      if (col.id === 'actions') {
+        return {
+          ...col,
+          cell: ({ row }) => (
+            <DataTableRowActions 
+              row={row} 
+              onView={(task) => {
+                setSelectedTask(task);
+                setShowTaskDetails(true);
+              }}
+              onEdit={(task) => {
+                // Handle edit action
+                console.log('Edit task:', task.id);
+                // You can implement edit functionality here
+                // For example: setEditingTask(task); setShowTaskForm(true);
+              }}
+              onDelete={(taskId) => {
+                if (window.confirm('Are you sure you want to delete this task?')) {
+                  setTasks(prev => prev.filter(t => t.id !== taskId));
+                  toast({
+                    title: "Task deleted",
+                    description: "The task has been successfully deleted.",
+                  });
+                }
+              }}
+              onStatusChange={(taskId, status) => {
+                setTasks(prev => 
+                  prev.map(t => 
+                    t.id === taskId ? { ...t, status } : t
+                  )
+                );
+                toast({
+                  title: "Status updated",
+                  description: `Task marked as ${status}.`,
+                });
+              }}
+            />
+          )
+        };
+      }
+      return col;
+    });
+  }, [setTasks, setSelectedTask, setShowTaskDetails])
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)]">
+          <div className="bg-red-50 p-4 rounded-lg flex items-center max-w-md">
+            <OctagonAlert className="h-5 w-5 text-red-500 mr-2" />
+            <p className="text-red-700">{error}</p>
+          </div>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? 'Refreshing...' : 'Try Again'}
+          </Button>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   return (
     <DashboardLayout>
-      <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-background via-background/95 to-background/90">
-        <BackgroundBeams className="opacity-30" />
-        {/* Floating Action Button for quick task creation */}
-
-        <div className="p-8 w-full relative z-10">
-          {/* Sticky header/toolbar */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 bg-background/60 backdrop-blur-xl rounded-2xl p-6 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] sticky top-0 z-30"
-          >
-            <div>
-              <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary/60 drop-shadow-sm">
-                Task Management
-              </h1>
-              <p className="text-muted-foreground mt-2 text-lg">
-                Create, assign, and track laboratory tasks efficiently
-              </p>
-            </div>
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="relative flex-1 md:w-72">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search tasks..."
-                  className="pl-11 h-12 bg-background/80 border-border/50 shadow-lg rounded-xl focus:ring-2 focus:ring-primary/30"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 shadow-lg bg-background/80 border-border/50 rounded-xl hover:bg-primary/5 transition-colors"
-              >
-                <SlidersHorizontal className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 shadow-lg hover:shadow-xl transition-all duration-300 bg-background/80 backdrop-blur-sm border-border/50 rounded-xl hover:bg-primary/5"
-                onClick={handleRefresh}
-              >
-                <RefreshCw className={`h-5 w-5 ${loading ? "animate-spin" : ""}`} />
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Animated statistics cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="lg:col-span-3"
-            >
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                      Tasks Overview
-                    </CardTitle>
-                    <div className="flex items-center gap-3">
-                      <Button variant="outline" size="sm" className="h-9 gap-2 shadow-md rounded-xl hover:bg-primary/5 transition-colors">
-                        <Filter className="h-4 w-4" />
-                        <span>Filter</span>
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-9 gap-2 shadow-md rounded-xl hover:bg-primary/5 transition-colors">
-                        <SlidersHorizontal className="h-4 w-4" />
-                        <span>Sort</span>
-                      </Button>
-                    </div>
+      <div className="flex flex-col min-h-screen w-full bg-background">
+        {/* Header with Stats */}
+        <div className="w-full border-b">
+          <div className="w-full px-6 py-6">
+            <div className="max-w-[2000px] mx-auto">
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+                    <p className="text-muted-foreground">
+                      Manage and track your laboratory tasks
+                    </p>
                   </div>
-                  <CardDescription className="text-base mt-2">
-                    Manage and track all laboratory tasks in one place
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <TaskManagement view="all" searchQuery={searchQuery} />
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="space-y-8"
-            >
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <Calendar className="h-6 w-6 text-primary" />
-                    </div>
-                    Upcoming Deadlines
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-muted animate-pulse"></div>
-                          <div className="space-y-2 flex-1">
-                            <div className="h-4 bg-muted rounded-lg animate-pulse"></div>
-                            <div className="h-3 bg-muted rounded-lg animate-pulse w-2/3"></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-accent/50 transition-colors">
-                        <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
-                          <AlertCircle className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-base font-medium">PCR Analysis</p>
-                          <p className="text-sm text-muted-foreground">Due today</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-accent/50 transition-colors">
-                        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
-                          <Clock className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-base font-medium">Sample Preparation</p>
-                          <p className="text-sm text-muted-foreground">Due tomorrow</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-accent/50 transition-colors">
-                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
-                          <Calendar className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <p className="text-base font-medium">Data Analysis</p>
-                          <p className="text-sm text-muted-foreground">Due in 3 days</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-4 hover:bg-primary/5 transition-colors rounded-xl"
-                  >
-                    View all deadlines
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Task
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card className="bg-background/80 backdrop-blur-xl border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10">
-                      <Users className="h-6 w-6 text-primary" />
-                    </div>
-                    Team Workload
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  {loading ? (
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="space-y-2">
-                          <div className="flex justify-between">
-                            <div className="h-4 bg-muted rounded-lg animate-pulse w-1/3"></div>
-                            <div className="h-4 bg-muted rounded-lg animate-pulse w-1/6"></div>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full animate-pulse"></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-medium">Dr. Jane Smith</span>
-                          <span className="text-muted-foreground">8 tasks</span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-red-500 to-red-400 w-[80%] rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-medium">Dr. Mike Johnson</span>
-                          <span className="text-muted-foreground">5 tasks</span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 w-[50%] rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-base">
-                          <span className="font-medium">Sarah Williams</span>
-                          <span className="text-muted-foreground">3 tasks</span>
-                        </div>
-                        <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-green-500 to-green-400 w-[30%] rounded-full"></div>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <StatCard
+                    title="Total"
+                    value={taskStats.total}
+                    icon={<List className="h-4 w-4" />}
+                    variant="default"
+                  />
+                  <StatCard
+                    title="Pending"
+                    value={taskStats.pending}
+                    icon={<Clock className="h-4 w-4 text-amber-500" />}
+                    variant="pending"
+                  />
+                  <StatCard
+                    title="In Progress"
+                    value={taskStats.inProgress}
+                    icon={<Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
+                    variant="inProgress"
+                  />
+                  <StatCard
+                    title="Completed"
+                    value={taskStats.completed}
+                    icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
+                    variant="completed"
+                  />
+                  <StatCard
+                    title="Overdue"
+                    value={taskStats.overdue}
+                    icon={<AlertCircle className="h-4 w-4 text-red-500" />}
+                    variant="overdue"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 w-full px-6 py-6">
+          <div className="max-w-[2000px] mx-auto">
+            {/* Toolbar */}
+            <div className="flex flex-col space-y-4 mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="flex-1"></div> {/* Spacer for left alignment */}
+                <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                  <div className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 shadow-sm overflow-hidden">
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'table' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'} border-r border-gray-200 dark:border-gray-800`}
+                      style={{ borderTopLeftRadius: '9999px', borderBottomLeftRadius: '9999px' }}
+                    >
+                      <List className="mr-2 h-4 w-4" />
+                      Table
+                    </button>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'grid' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'}`}
+                      style={{ borderTopRightRadius: '9999px', borderBottomRightRadius: '9999px' }}
+                    >
+                      <Grid className="mr-2 h-4 w-4" />
+                      Grid
+                    </button>
+                  </div>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="w-full mt-4 hover:bg-primary/5 transition-colors rounded-xl"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="h-10 ml-2 shadow-sm border border-gray-200 dark:border-gray-800"
                   >
-                    Manage team
+                    <RefreshCw
+                      className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    />
+                    Refresh
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
+              {/* Bulk Actions */}
+              {selectedTasks.length > 0 && (
+                <div className="flex items-center justify-between p-3 bg-accent/30 rounded-md border">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">{selectedTasks.length} selected</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTasks([])}
+                      className="h-8"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => handleBulkStatusChange('in-progress')}
+                    >
+                      <Loader2 className="mr-2 h-3.5 w-3.5" />
+                      Mark In Progress
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={() => handleBulkStatusChange('completed')}
+                    >
+                      <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+                      Mark Completed
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-8"
+                      onClick={handleBulkDelete}
+                    >
+                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
 
-            </motion.div>
+            {/* Content */}
+            <div className="w-full overflow-x-auto">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-muted-foreground">
+                  {filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} found
+                </div>
+              </div>
+
+              {viewMode === 'table' ? (
+                <div className="cursor-pointer">
+                  <DataTable
+                    columns={tableColumns}
+                    data={filteredTasks}
+                    onRowSelectionChange={setSelectedTasks}
+                    selectedRows={selectedTasks}
+                    onRowClick={handleTaskClick}
+                  />
+                </div>
+              ) : (
+                <TaskGrid
+                  tasks={filteredTasks}
+                  selectedTasks={selectedTasks}
+                  onTaskSelect={handleTaskSelect}
+                  onTaskClick={handleTaskClick}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
+      
+      {/* Task Details Dialog */}
+      {selectedTask && (
+        <TooltipProvider>
+          <TaskDetailsDialog
+            open={showTaskDetails}
+            onOpenChange={handleOpenChange}
+            task={selectedTask}
+            onAction={handleTaskAction}
+            users={[
+              { id: 'user1', name: 'John Doe', avatar: 'JD' },
+              { id: 'user2', name: 'Jane Smith', avatar: 'JS' },
+              { id: 'user3', name: 'Robert Johnson', avatar: 'RJ' },
+            ]}
+            experiments={[
+              { id: 'exp1', name: 'Cell Culture' },
+              { id: 'exp2', name: 'DNA Sequencing' },
+              { id: 'exp3', name: 'Protein Analysis' },
+            ]}
+          />
+        </TooltipProvider>
+      )}
     </DashboardLayout>
+  )
+}
+
+function StatCard({ title, value, icon, variant = 'default' }) {
+  const variantClasses = {
+    default: 'bg-background',
+    pending: 'bg-amber-50 dark:bg-amber-900/20',
+    inProgress: 'bg-blue-50 dark:bg-blue-900/20',
+    completed: 'bg-green-50 dark:bg-green-900/20',
+    overdue: 'bg-red-50 dark:bg-red-900/20',
+  }
+
+  return (
+    <div className={`flex items-center p-4 rounded-lg border ${variantClasses[variant]}`}>
+      <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
+        {icon}
+      </div>
+      <div className="ml-4">
+        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+        <p className="text-2xl font-bold">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+// Add missing icon component
+function Trash2(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+      <line x1="10" x2="10" y1="11" y2="17" />
+      <line x1="14" x2="14" y1="11" y2="17" />
+    </svg>
   )
 }

@@ -36,6 +36,7 @@ import PerformanceMetrics from "@/components/my-page/performance-metrics";
 import NotificationsPanel from "@/components/my-page/notifications-panel";
 import UpcomingDeadlines from "@/components/my-page/upcoming-deadlines";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import UserAvatar from "@/components/tasks/user-avatar";
 
 // Mock data - would be fetched from API in real app
 import { 
@@ -59,7 +60,7 @@ export default function MyPage() {
     email: "sarah.johnson@labtasker.com",
     role: "Senior Researcher",
     department: "Oncology Research",
-    avatar: "/avatars/sarah-johnson.jpg"
+    avatar: "SJ"
   };
 
   return (
@@ -73,10 +74,7 @@ export default function MyPage() {
         className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6"
       >
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-2 border-primary">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-          </Avatar>
+          <UserAvatar user={user} size="xl" />
           <div>
             <h1 className="text-2xl font-bold">{user.name}</h1>
             <p className="text-muted-foreground">{user.role} • {user.department}</p>
@@ -464,10 +462,7 @@ export default function MyPage() {
                             <div className="flex items-center justify-between mt-1">
                               <div className="flex -space-x-2">
                                 {project.team && project.team.slice(0, 3).map((member, i) => (
-                                  <Avatar key={i} className="h-6 w-6 border-2 border-background">
-                                    <AvatarImage src={member.avatar} alt={member.name} />
-                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
+                                  <UserAvatar key={i} user={member} size="sm" />
                                 ))}
                                 {project.team && project.team.length > 3 && (
                                   <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-xs border-2 border-background">

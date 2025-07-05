@@ -2,15 +2,15 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
+import {
   Search, PlusCircle, Filter, User, UserPlus, Shield, Users,
   AlertTriangle, CheckCircle, Lock, Unlock, UserX, RefreshCw,
-  ArrowUpDown, ChevronDown
+  ArrowUpDown, ChevronDown, Download, FileSpreadsheet, FileText
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -26,70 +26,147 @@ import { ResetPasswordDialog } from "./reset-password-dialog"
 import { DeleteUserDialog } from "./delete-user-dialog"
 import { UserTable } from "./user-table"
 import { UserActivityLogs } from "./user-activity-logs"
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver"
+import { toast } from "@/components/ui/use-toast"
 
 // Sample user data
-const mockUsers = [
+const initialUsers = [
   {
-    id: "u1",
+    id: 1,
     name: "Dr. Sarah Johnson",
     email: "sarah.johnson@labtasker.com",
     role: "Admin",
     department: "Research & Development",
     lastLogin: "2025-03-22T14:25:33",
     status: "Active",
-    twoFactorEnabled: true
+    twoFactorEnabled: true,
+    phone: "+1 555-123-0001",
+    isPowerUser: true,
   },
   {
-    id: "u2",
+    id: 2,
     name: "Mark Williams",
     email: "mark.williams@labtasker.com",
     role: "Scientist",
     department: "Biochemistry",
     lastLogin: "2025-03-21T09:12:45",
     status: "Active",
-    twoFactorEnabled: false
+    twoFactorEnabled: false,
+    phone: "+1 555-123-0002",
+    isPowerUser: false,
   },
   {
-    id: "u3",
+    id: 3,
     name: "Dr. Emily Chen",
     email: "emily.chen@labtasker.com",
     role: "Reviewer",
     department: "Quality Control",
     lastLogin: "2025-03-20T16:30:22",
     status: "Active",
-    twoFactorEnabled: true
+    twoFactorEnabled: true,
+    phone: "+1 555-123-0003",
+    isPowerUser: false,
   },
   {
-    id: "u4",
+    id: 4,
     name: "James Rodriguez",
     email: "james.rodriguez@labtasker.com",
     role: "Technician",
     department: "Laboratory Operations",
     lastLogin: "2025-03-18T11:45:10",
-    status: "Active",
-    twoFactorEnabled: false
+    status: "Suspended",
+    twoFactorEnabled: false,
+    phone: "+1 555-123-0004",
+    isPowerUser: false,
   },
   {
-    id: "u5",
+    id: 5,
     name: "Olivia Taylor",
     email: "olivia.taylor@labtasker.com",
     role: "Scientist",
     department: "Microbiology",
     lastLogin: null,
-    status: "Pending",
-    twoFactorEnabled: false
+    status: "Invited",
+    twoFactorEnabled: false,
+    phone: "",
+    isPowerUser: false,
   },
   {
-    id: "u6",
+    id: 6,
     name: "Robert Kim",
     email: "robert.kim@labtasker.com",
     role: "Technician",
     department: "Equipment Maintenance",
     lastLogin: "2025-02-15T10:22:37",
+    status: "Locked",
+    twoFactorEnabled: true,
+    phone: "+1 555-123-0006",
+    isPowerUser: true,
+  },
+  {
+    id: 7,
+    name: "Lisa Anderson",
+    email: "lisa.anderson@labtasker.com",
+    role: "Scientist",
+    department: "Molecular Biology",
+    lastLogin: null,
+    status: "Pending",
+    twoFactorEnabled: false,
+    phone: "+1 555-123-0007",
+    isPowerUser: false,
+  },
+  {
+    id: 8,
+    name: "David Wilson",
+    email: "david.wilson@labtasker.com",
+    role: "Technician",
+    department: "Analytical Chemistry",
+    lastLogin: "2025-01-10T14:30:00",
     status: "Inactive",
-    twoFactorEnabled: true
+    twoFactorEnabled: false,
+    phone: "+1 555-123-0008",
+    isPowerUser: false,
   }
 ]
+
+// Helper functions for status badges (duplicated from user-columns.jsx for StatusLegend)
+function getStatusBadgeVariant(status) {
+  switch (status) {
+    case "Active": return "success";
+    case "Inactive": return "secondary";
+    case "Pending": return "warning";
+    case "Suspended": return "destructive";
+    case "Invited": return "outline";
+    case "Locked": return "default";
+    default: return "secondary";
+  }
+}
+
+function getStatusIcon(status) {
+  switch (status) {
+    case "Active": return "✓";
+    case "Inactive": return "○";
+    case "Pending": return "⏱";
+    case "Suspended": return "⚠";
+    case "Invited": return "✉";
+    case "Locked": return "🔒";
+    default: return "";
+  }
+}
+
+// Helper function to format dates for export
+function formatDate(dateString) {
+  if (!dateString) return "Never";
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
 
 export function UserManagement() {
   // State for search, filters, and selected user
@@ -102,19 +179,22 @@ export function UserManagement() {
   const [activeTab, setActiveTab] = useState("all-users")
   const [selectedUser, setSelectedUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // Dialog states
   const [showAddUserDialog, setShowAddUserDialog] = useState(false)
   const [showEditUserDialog, setShowEditUserDialog] = useState(false)
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false)
   const [showDeleteUserDialog, setShowDeleteUserDialog] = useState(false)
 
+  // State for users
+  const [users, setUsers] = useState(initialUsers);
+
   // Simulate loading state
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -158,7 +238,7 @@ export function UserManagement() {
 
   // Filter users based on search query and active filters
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter(user => {
+    return users.filter(user => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
@@ -197,12 +277,27 @@ export function UserManagement() {
 
       return true
     })
-  }, [searchQuery, activeFilters, mockUsers])
+  }, [searchQuery, activeFilters, users])
+
+  // Add user handler: ensures unique numeric ID
+  const handleAddUser = (userData) => {
+    // Find the lowest unused positive integer
+    const usedIds = new Set(users.map(u => u.id));
+    let newId = 1;
+    while (usedIds.has(newId)) newId++;
+    const newUser = {
+      ...userData,
+      id: newId,
+      twoFactorEnabled: !!userData.enable2FA,
+      lastLogin: null,
+    };
+    setUsers(prev => [...prev, newUser]);
+  };
 
   // Handle user actions
   const handleUserAction = (action, user) => {
     setSelectedUser(user)
-    
+
     switch (action) {
       case "edit":
         setShowEditUserDialog(true)
@@ -226,6 +321,52 @@ export function UserManagement() {
     }
   }
 
+  // Export users to CSV/Excel
+  const handleExport = (format = "xlsx") => {
+    const exportData = filteredUsers.map(u => ({
+      ID: u.id,
+      Name: u.name,
+      Email: u.email,
+      Phone: u.phone || "N/A",
+      "Power User": u.isPowerUser ? "Yes" : "No",
+      Role: u.role,
+      Department: u.department || "N/A",
+      Status: u.status,
+      "Last Login": u.lastLogin ? formatDate(u.lastLogin) : "Never",
+      "2FA": u.twoFactorEnabled ? "Yes" : "No",
+      Avatar: u.avatar ? "Uploaded" : "None",
+    }));
+
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+    const filename = `users_${timestamp}.${format}`;
+
+    if (format === "csv") {
+      // Export as CSV
+      const headers = Object.keys(exportData[0]);
+      const csvContent = [
+        headers.join(","),
+        ...exportData.map(row => headers.map(header => `"${row[header]}"`).join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, filename);
+    } else {
+      // Export as Excel
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Users");
+      const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      saveAs(new Blob([wbout], { type: "application/octet-stream" }), filename);
+    }
+
+    toast({
+      title: "Export successful",
+      description: `${exportData.length} users exported to ${filename}`,
+    });
+  };
+
+
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -241,10 +382,30 @@ export function UserManagement() {
               Manage system users, roles, and permissions
             </p>
           </div>
-          <Button onClick={() => setShowAddUserDialog(true)} className="gap-2 self-start sm:self-auto">
-            <UserPlus className="h-4 w-4" />
-            Add New User
-          </Button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Export Users
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2">
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={() => setShowAddUserDialog(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add New User
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="all-users" className="w-full" onValueChange={setActiveTab}>
@@ -259,7 +420,7 @@ export function UserManagement() {
                 <span>Activity Logs</span>
               </TabsTrigger>
             </TabsList>
-            
+
             {activeTab === "all-users" && (
               <div className="flex flex-1 items-center gap-2 max-w-md ml-auto">
                 <div className="relative flex-1">
@@ -291,7 +452,7 @@ export function UserManagement() {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>Filter Users</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    
+
                     <DropdownMenuGroup>
                       <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                         Role {filterCounts.role < Object.keys(activeFilters.role).length && `(${filterCounts.role}/${Object.keys(activeFilters.role).length})`}
@@ -313,9 +474,9 @@ export function UserManagement() {
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuGroup>
-                    
+
                     <DropdownMenuSeparator />
-                    
+
                     <DropdownMenuGroup>
                       <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                         Status {filterCounts.status < Object.keys(activeFilters.status).length && `(${filterCounts.status}/${Object.keys(activeFilters.status).length})`}
@@ -337,9 +498,9 @@ export function UserManagement() {
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuGroup>
-                    
+
                     <DropdownMenuSeparator />
-                    
+
                     <DropdownMenuGroup>
                       <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
                         Last Login {filterCounts.lastLogin < Object.keys(activeFilters.lastLogin).length && `(${filterCounts.lastLogin}/${Object.keys(activeFilters.lastLogin).length})`}
@@ -387,9 +548,9 @@ export function UserManagement() {
                         </div>
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
-                    
+
                     <DropdownMenuSeparator />
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -407,7 +568,7 @@ export function UserManagement() {
           <TabsContent value="all-users" className="space-y-4">
             <AnimatePresence mode="wait">
               {isLoading ? (
-                <motion.div 
+                <motion.div
                   key="loading"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -427,8 +588,14 @@ export function UserManagement() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <UserTable 
-                    users={filteredUsers} 
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-sm text-muted-foreground">
+                      {filteredUsers.length} of {users.length} users
+                    </span>
+                  </div>
+                  <UserTable
+                    users={filteredUsers}
                     onUserAction={handleUserAction}
                     className="table-auto w-full"
                   />
@@ -436,11 +603,11 @@ export function UserManagement() {
               )}
             </AnimatePresence>
           </TabsContent>
-          
+
           <TabsContent value="activity-logs" className="space-y-4">
             <AnimatePresence mode="wait">
               {isLoading ? (
-                <motion.div 
+                <motion.div
                   key="loading"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -467,35 +634,36 @@ export function UserManagement() {
           </TabsContent>
         </Tabs>
       </motion.div>
-      
+
       {/* User Management Dialogs */}
       <AnimatePresence>
         {showAddUserDialog && (
-          <AddUserDialog 
-            open={showAddUserDialog} 
-            onOpenChange={setShowAddUserDialog} 
+          <AddUserDialog
+            open={showAddUserDialog}
+            onOpenChange={setShowAddUserDialog}
+            onAddUser={handleAddUser}
           />
         )}
-        
+
         {showEditUserDialog && selectedUser && (
-          <EditUserDialog 
-            open={showEditUserDialog} 
+          <EditUserDialog
+            open={showEditUserDialog}
             onOpenChange={setShowEditUserDialog}
             user={selectedUser}
           />
         )}
-        
+
         {showResetPasswordDialog && selectedUser && (
-          <ResetPasswordDialog 
-            open={showResetPasswordDialog} 
+          <ResetPasswordDialog
+            open={showResetPasswordDialog}
             onOpenChange={setShowResetPasswordDialog}
             user={selectedUser}
           />
         )}
-        
+
         {showDeleteUserDialog && selectedUser && (
-          <DeleteUserDialog 
-            open={showDeleteUserDialog} 
+          <DeleteUserDialog
+            open={showDeleteUserDialog}
             onOpenChange={setShowDeleteUserDialog}
             user={selectedUser}
           />

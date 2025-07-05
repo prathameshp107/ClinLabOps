@@ -142,7 +142,7 @@ export default function HelpSupportPage() {
     
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       console.log("Support ticket submitted:", data);
       

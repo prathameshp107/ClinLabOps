@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Shield, Eye, EyeOff, Copy, RefreshCw, Check } from "lucide-react"
+import { Shield, Eye, EyeOff, Copy, RefreshCw, Check, Upload, X, Loader2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -26,8 +26,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { toast } from "@/components/ui/use-toast"
 
-export function AddUserDialog({ open, onOpenChange }) {
+export function AddUserDialog({ open, onOpenChange, onAddUser }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -38,12 +40,20 @@ export function AddUserDialog({ open, onOpenChange }) {
     sendInvite: true,
     passwordType: "auto",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    phone: "",
+    isPowerUser: false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
-  
+  const [avatarFile, setAvatarFile] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState("")
+  const [avatarLoading, setAvatarLoading] = useState(false)
+  const [errors, setErrors] = useState({})
+  const fileInputRef = useRef(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+
   // Password strength validation
   const validatePasswordStrength = (password) => {
     const minLength = password.length >= 8
@@ -51,7 +61,7 @@ export function AddUserDialog({ open, onOpenChange }) {
     const hasLowercase = /[a-z]/.test(password)
     const hasNumber = /[0-9]/.test(password)
     const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password)
-    
+
     return {
       valid: minLength && hasUppercase && hasLowercase && hasNumber && hasSpecial,
       minLength,
@@ -61,85 +71,182 @@ export function AddUserDialog({ open, onOpenChange }) {
       hasSpecial
     }
   }
-  
+
   const passwordStrength = formData.password ? validatePasswordStrength(formData.password) : null
   const passwordsMatch = formData.password === formData.confirmPassword
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {}
+
+    if (!formData.name.trim()) newErrors.name = "Name is required"
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format"
+    }
+    if (!formData.role) newErrors.role = "Role is required"
+
+    if (formData.passwordType === "manual") {
+      if (!formData.password) {
+        newErrors.password = "Password is required"
+      } else if (!passwordStrength?.valid) {
+        newErrors.password = "Password does not meet requirements"
+      }
+      if (!passwordsMatch) {
+        newErrors.confirmPassword = "Passwords do not match"
+      }
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }))
+    }
   }
 
   const handleCheckboxChange = (field, checked) => {
     setFormData(prev => ({ ...prev, [field]: checked }))
   }
-  
+
   const generateRandomPassword = () => {
     // Generate a strong random password
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
     let password = "";
-    
+
     // Ensure at least one of each required character type
     password += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.floor(Math.random() * 26)];
     password += "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)];
     password += "0123456789"[Math.floor(Math.random() * 10)];
     password += "!@#$%^&*()_+"[Math.floor(Math.random() * 12)];
-    
+
     // Fill up to 12 characters
     for (let i = 0; i < 8; i++) {
       password += chars[Math.floor(Math.random() * chars.length)];
     }
-    
+
     // Shuffle the password
     password = password.split('').sort(() => 0.5 - Math.random()).join('');
-    
-    setFormData(prev => ({ 
-      ...prev, 
-      password, 
-      confirmPassword: password 
+
+    setFormData(prev => ({
+      ...prev,
+      password,
+      confirmPassword: password
     }))
     setPasswordVisible(true)
   }
-  
+
   const copyPasswordToClipboard = () => {
     navigator.clipboard.writeText(formData.password)
     setCopySuccess(true)
     setTimeout(() => setCopySuccess(false), 2000)
   }
 
+  const validateAvatarFile = (file) => {
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPEG, PNG, GIF, or WebP image.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 2MB.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file && validateAvatarFile(file)) {
+      setAvatarLoading(true);
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setAvatarPreview(ev.target.result);
+        setAvatarLoading(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file && validateAvatarFile(file)) {
+      setAvatarLoading(true);
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setAvatarPreview(ev.target.result);
+        setAvatarLoading(false);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = async (e) => {
     e?.preventDefault()
-    
-    if (!formData.name || !formData.email || !formData.role) {
-      // Form validation would go here
-      return
+
+    if (!validateForm()) {
+      return;
     }
-    
-    // Additional validation for manual password
-    if (formData.passwordType === "manual") {
-      if (!passwordStrength?.valid) {
-        alert("Password does not meet strength requirements")
-        return
-      }
-      
-      if (!passwordsMatch) {
-        alert("Passwords do not match")
-        return
-      }
-    }
-    
+
     setIsSubmitting(true)
-    
+
     try {
-      // In a real app, this would call an API to create the user
-      console.log("Creating new user:", {
-        ...formData,
-        password: formData.passwordType === "auto" && !formData.password ? "auto-generated" : "manually-set"
-      })
-      
+      if (onAddUser) {
+        onAddUser({
+          ...formData,
+          avatar: avatarPreview,
+          enable2FA: formData.enable2FA,
+          isPowerUser: formData.isPowerUser,
+        });
+      }
+
+      toast({
+        title: "User created successfully",
+        description: `${formData.name} has been added to the system.`,
+      });
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
       onOpenChange(false)
       setFormData({
         name: "",
@@ -151,18 +258,45 @@ export function AddUserDialog({ open, onOpenChange }) {
         sendInvite: true,
         passwordType: "auto",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        phone: "",
+        isPowerUser: false,
       })
+      setAvatarFile(null);
+      setAvatarPreview("");
+      setErrors({});
     } catch (error) {
       console.error("Error creating user:", error)
+      toast({
+        title: "Error creating user",
+        description: "Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  const handleInvite = () => {
+    if (!formData.email || errors.email) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Invitation Sent",
+      description: `An invitation email was sent to ${formData.email}`
+    });
+    setFormData(prev => ({ ...prev, status: "Invited" }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add New User</DialogTitle>
@@ -170,14 +304,85 @@ export function AddUserDialog({ open, onOpenChange }) {
               Create a new user account and send an invitation email.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Tabs defaultValue="details" className="mt-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details">User Details</TabsTrigger>
               <TabsTrigger value="password">Password & Security</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="details" className="space-y-4 pt-4">
+              {/* Avatar Upload Section */}
+              <div className="flex flex-col items-center gap-4 mb-6">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`relative group cursor-pointer transition-all duration-200 ${isDragOver ? 'scale-105' : 'hover:scale-105'
+                        }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Avatar className="h-24 w-24 ring-4 ring-gray-200 dark:ring-gray-700 group-hover:ring-primary/50 transition-all duration-200">
+                        {avatarLoading ? (
+                          <div className="flex items-center justify-center h-full w-full bg-gray-100 dark:bg-gray-800">
+                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                          </div>
+                        ) : avatarPreview ? (
+                          <AvatarImage src={avatarPreview} alt="Avatar preview" />
+                        ) : (
+                          <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-primary/20 to-primary/10">
+                            {formData.name ? formData.name[0].toUpperCase() : "U"}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+
+                      {avatarPreview && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeAvatar();
+                          }}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="bg-black/50 rounded-full p-2">
+                          <Upload className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Click or drag to upload avatar</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
+
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Upload a profile picture (JPEG, PNG, GIF, WebP)
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Maximum size: 2MB
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="name" className="required">Full Name</Label>
@@ -187,8 +392,12 @@ export function AddUserDialog({ open, onOpenChange }) {
                     placeholder="Jane Doe"
                     value={formData.name}
                     onChange={handleInputChange}
+                    className={errors.name ? "border-red-500" : ""}
                     required
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-500">{errors.name}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email" className="required">Email Address</Label>
@@ -199,20 +408,29 @@ export function AddUserDialog({ open, onOpenChange }) {
                     placeholder="jane.doe@example.com"
                     value={formData.email}
                     onChange={handleInputChange}
+                    className={errors.email ? "border-red-500" : ""}
                     required
                   />
+                  {errors.email && (
+                    <p className="text-sm text-red-500">{errors.email}</p>
+                  )}
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="role" className="required">Role</Label>
-                  <Select 
+                  <Select
                     required
                     value={formData.role}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+                    onValueChange={(value) => {
+                      setFormData(prev => ({ ...prev, role: value }))
+                      if (errors.role) {
+                        setErrors(prev => ({ ...prev, role: "" }))
+                      }
+                    }}
                   >
-                    <SelectTrigger id="role" className="w-full">
+                    <SelectTrigger id="role" className={errors.role ? "border-red-500" : ""}>
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -230,6 +448,9 @@ export function AddUserDialog({ open, onOpenChange }) {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
+                  {errors.role && (
+                    <p className="text-sm text-red-500">{errors.role}</p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="department">Department (Optional)</Label>
@@ -242,34 +463,52 @@ export function AddUserDialog({ open, onOpenChange }) {
                   />
                 </div>
               </div>
-              
-              <div className="grid gap-2">
-                <Label>Status</Label>
-                <div className="flex items-center justify-between rounded-md border p-3">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="user-status">
-                      {formData.status === "Active" ? "Active" : "Inactive"}
-                    </Label>
-                    <div className="text-sm text-muted-foreground">
-                      {formData.status === "Active" 
-                        ? "User can log in and use the system immediately" 
-                        : "User cannot log in until activated"}
-                    </div>
-                  </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    id="status"
+                    value={formData.status}
+                    onValueChange={value => setFormData(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Inactive">Inactive</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Suspended">Suspended</SelectItem>
+                      <SelectItem value="Invited">Invited</SelectItem>
+                      <SelectItem value="Locked">Locked</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    placeholder="+1 555-123-4567"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="grid gap-2 flex items-center mt-6">
+                  <Label htmlFor="isPowerUser">Power User</Label>
                   <Switch
-                    id="user-status"
-                    checked={formData.status === "Active"}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        status: checked ? "Active" : "Inactive" 
-                      }))
-                    }
+                    id="isPowerUser"
+                    checked={formData.isPowerUser}
+                    onCheckedChange={checked => setFormData(prev => ({ ...prev, isPowerUser: checked }))}
                   />
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="password" className="space-y-4 pt-4">
               <div className="grid gap-2">
                 <Label>Password Options</Label>
@@ -290,7 +529,7 @@ export function AddUserDialog({ open, onOpenChange }) {
                   </Button>
                 </div>
               </div>
-              
+
               {formData.passwordType === "auto" ? (
                 <div className="space-y-4">
                   <div className="grid gap-2">
@@ -307,7 +546,7 @@ export function AddUserDialog({ open, onOpenChange }) {
                         Generate
                       </Button>
                     </div>
-                    
+
                     <div className="relative">
                       <Input
                         value={formData.password}
@@ -367,6 +606,7 @@ export function AddUserDialog({ open, onOpenChange }) {
                         value={formData.password}
                         onChange={handleInputChange}
                         placeholder="Enter password"
+                        className={errors.password ? "border-red-500" : ""}
                         required
                       />
                       <Button
@@ -386,8 +626,11 @@ export function AddUserDialog({ open, onOpenChange }) {
                         </span>
                       </Button>
                     </div>
+                    {errors.password && (
+                      <p className="text-sm text-red-500">{errors.password}</p>
+                    )}
                   </div>
-                  
+
                   <div className="grid gap-2">
                     <Label htmlFor="confirmPassword" className="required">Confirm Password</Label>
                     <Input
@@ -397,58 +640,57 @@ export function AddUserDialog({ open, onOpenChange }) {
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       placeholder="Confirm password"
+                      className={errors.confirmPassword ? "border-red-500" : ""}
                       required
                     />
+                    {errors.confirmPassword && (
+                      <p className="text-sm text-red-500">{errors.confirmPassword}</p>
+                    )}
                   </div>
-                  
+
                   {formData.password && (
                     <div className="space-y-2">
                       <div className="text-sm">Password strength:</div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <div 
-                            className={`h-1 w-16 rounded-full ${
-                              passwordStrength?.minLength ? "bg-green-500" : "bg-gray-200"
-                            }`}
+                          <div
+                            className={`h-1 w-16 rounded-full ${passwordStrength?.minLength ? "bg-green-500" : "bg-gray-200"
+                              }`}
                           ></div>
                           <span className="text-xs text-muted-foreground">At least 8 characters</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div 
-                            className={`h-1 w-16 rounded-full ${
-                              passwordStrength?.hasUppercase ? "bg-green-500" : "bg-gray-200"
-                            }`}
+                          <div
+                            className={`h-1 w-16 rounded-full ${passwordStrength?.hasUppercase ? "bg-green-500" : "bg-gray-200"
+                              }`}
                           ></div>
                           <span className="text-xs text-muted-foreground">Uppercase letter</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div 
-                            className={`h-1 w-16 rounded-full ${
-                              passwordStrength?.hasLowercase ? "bg-green-500" : "bg-gray-200"
-                            }`}
+                          <div
+                            className={`h-1 w-16 rounded-full ${passwordStrength?.hasLowercase ? "bg-green-500" : "bg-gray-200"
+                              }`}
                           ></div>
                           <span className="text-xs text-muted-foreground">Lowercase letter</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div 
-                            className={`h-1 w-16 rounded-full ${
-                              passwordStrength?.hasNumber ? "bg-green-500" : "bg-gray-200"
-                            }`}
+                          <div
+                            className={`h-1 w-16 rounded-full ${passwordStrength?.hasNumber ? "bg-green-500" : "bg-gray-200"
+                              }`}
                           ></div>
                           <span className="text-xs text-muted-foreground">Number</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div 
-                            className={`h-1 w-16 rounded-full ${
-                              passwordStrength?.hasSpecial ? "bg-green-500" : "bg-gray-200"
-                            }`}
+                          <div
+                            className={`h-1 w-16 rounded-full ${passwordStrength?.hasSpecial ? "bg-green-500" : "bg-gray-200"
+                              }`}
                           ></div>
                           <span className="text-xs text-muted-foreground">Special character</span>
                         </div>
                       </div>
                     </div>
                   )}
-                  
+
                   {formData.password && formData.confirmPassword && !passwordsMatch && (
                     <div className="text-sm text-red-500">
                       Passwords do not match
@@ -456,7 +698,7 @@ export function AddUserDialog({ open, onOpenChange }) {
                   )}
                 </div>
               )}
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between rounded-md border p-3">
                   <div className="space-y-0.5">
@@ -464,8 +706,8 @@ export function AddUserDialog({ open, onOpenChange }) {
                       Two-Factor Authentication (2FA)
                     </Label>
                     <div className="text-sm text-muted-foreground">
-                      {formData.enable2FA 
-                        ? "User will need to set up 2FA on first login" 
+                      {formData.enable2FA
+                        ? "User will need to set up 2FA on first login"
                         : "User can log in with just a password"}
                     </div>
                   </div>
@@ -475,15 +717,15 @@ export function AddUserDialog({ open, onOpenChange }) {
                     onCheckedChange={(checked) => handleCheckboxChange("enable2FA", checked)}
                   />
                 </div>
-                
+
                 <div className="flex items-center justify-between rounded-md border p-3">
                   <div className="space-y-0.5">
                     <Label htmlFor="sendInvite">
                       Send Invitation Email
                     </Label>
                     <div className="text-sm text-muted-foreground">
-                      {formData.sendInvite 
-                        ? "User will receive login details via email" 
+                      {formData.sendInvite
+                        ? "User will receive login details via email"
                         : "No automatic email will be sent"}
                     </div>
                   </div>
@@ -496,13 +738,35 @@ export function AddUserDialog({ open, onOpenChange }) {
               </div>
             </TabsContent>
           </Tabs>
-          
-          <DialogFooter className="mt-6">
+
+          <DialogFooter className="mt-6 gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleInvite}
+                  disabled={!formData.email || !!errors.email}
+                >
+                  Invite by Email
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Send invitation email to this user</p>
+              </TooltipContent>
+            </Tooltip>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create User"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create User"
+              )}
             </Button>
           </DialogFooter>
         </form>

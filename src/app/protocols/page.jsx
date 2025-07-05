@@ -5,6 +5,8 @@ import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProtocolList } from "@/components/protocol-management/protocol-list"
 import { ProtocolFormDialog } from "@/components/protocol-management/protocol-form-dialog"
 import { ProtocolDetailDialog } from "@/components/protocol-management/protocol-detail-dialog"
+import { DataTable } from "@/components/tasks-v2/data-table"
+import { createProtocolColumns } from "@/components/protocol-management/protocol-columns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PlusCircle, Search, Filter, SlidersHorizontal, BookOpen, LayoutGrid, Table as TableIcon } from "lucide-react"
@@ -121,6 +123,15 @@ export default function ProtocolsPage() {
     }
     setFormDialogOpen(false)
   }
+
+  // Create columns with action handlers
+  const columns = createProtocolColumns({
+    onView: handleViewProtocol,
+    onEdit: handleEditProtocol,
+    onDuplicate: handleDuplicateProtocol,
+    onArchive: (protocol) => handleArchiveProtocol(protocol.id),
+    onDelete: (protocol) => handleDeleteProtocol(protocol.id),
+  })
 
   // Animation variants
   const containerVariants = {
@@ -326,14 +337,18 @@ export default function ProtocolsPage() {
                 ))}
               </motion.div>
             ) : (
-              <ProtocolList
-                protocols={filteredProtocols}
-                onView={handleViewProtocol}
-                onEdit={handleEditProtocol}
-                onDuplicate={handleDuplicateProtocol}
-                onArchive={handleArchiveProtocol}
-                onDelete={handleDeleteProtocol}
-              />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.5 }}
+              >
+                <DataTable
+                  columns={columns}
+                  data={filteredProtocols}
+                  onRowClick={handleViewProtocol}
+                />
+              </motion.div>
             )}
           </AnimatePresence>
 

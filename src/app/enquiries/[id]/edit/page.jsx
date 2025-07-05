@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { EnquiriesSidebar } from "@/components/enquiries/enquiries-sidebar"
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 // Mock data for team members
 const teamMembers = [
@@ -115,10 +115,10 @@ const mockEnquiries = [
 export default function EditEnquiryPage({ params }) {
   const router = useRouter();
   const { id } = params;
-  
+
   // Find the enquiry by ID
   const enquiry = mockEnquiries.find(e => e.id === id);
-  
+
   // Form state
   const [customerName, setCustomerName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -131,7 +131,7 @@ export default function EditEnquiryPage({ params }) {
   const [assignedTo, setAssignedTo] = useState("");
   const [notifyCustomer, setNotifyCustomer] = useState(false);
   const [updateStatus, setUpdateStatus] = useState(null);
-  
+
   // Load enquiry data when component mounts
   useEffect(() => {
     if (enquiry) {
@@ -146,11 +146,11 @@ export default function EditEnquiryPage({ params }) {
       setAssignedTo(enquiry.assignedTo);
     }
   }, [enquiry]);
-  
+
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate form
     if (!customerName || !email || !subject || !details || !priority || !status || !assignedTo) {
       toast({
@@ -160,10 +160,10 @@ export default function EditEnquiryPage({ params }) {
       });
       return;
     }
-    
+
     // Set loading state
     setUpdateStatus("loading");
-    
+
     // Simulate API call
     setTimeout(() => {
       // Update enquiry object
@@ -190,291 +190,291 @@ export default function EditEnquiryPage({ params }) {
           ...enquiry.activities
         ]
       };
-      
+
       // Success state
       setUpdateStatus("success");
-      
+
       // Show success toast
       toast({
         title: "Enquiry Updated",
         description: "Enquiry has been updated successfully.",
       });
-      
+
       // Redirect to enquiry details after a delay
       setTimeout(() => {
         router.push(`/enquiries/${id}`);
-      }, 1500);
-    }, 1000);
+      }, 100);
+    }, 100);
   };
-  
+
   if (!enquiry) {
     return (
-      <div className="container mx-auto py-6">
-        <Button variant="ghost" onClick={() => router.back()} className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Enquiries
-        </Button>
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Enquiry Not Found</h2>
-              <p className="text-muted-foreground mb-6">
-                The enquiry you're trying to edit doesn't exist or has been removed.
-              </p>
-              <Button onClick={() => router.push("/enquiries")}>
-                Return to Enquiries
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardLayout>
+        <div className="w-full px-8 py-6 space-y-6">
+          <Button variant="ghost" onClick={() => router.back()} className="mb-6">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Enquiries
+          </Button>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Enquiry Not Found</h2>
+                <p className="text-muted-foreground mb-6">
+                  The enquiry you're trying to edit doesn't exist or has been removed.
+                </p>
+                <Button onClick={() => router.push("/enquiries")}>Return to Enquiries</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
     );
   }
-  
+
   return (
-    <div className="container mx-auto py-6 flex flex-col md:flex-row gap-6">
-      <EnquiriesSidebar className="hidden md:block w-64 shrink-0" />
-      
-      <div className="flex-1 space-y-6">
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Enquiry
-          </Button>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Edit Enquiry</CardTitle>
-            <CardDescription>
-              Update the details of this customer enquiry
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Customer Information</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <DashboardLayout>
+      <div className="w-full px-8 py-6 space-y-6 flex flex-col md:flex-row gap-6">
+        <div className="flex-1 space-y-6">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" onClick={() => router.back()}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Enquiry
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Enquiry</CardTitle>
+              <CardDescription>
+                Update the details of this customer enquiry
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Customer Information</h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="customerName">Customer Name <span className="text-red-500">*</span></Label>
+                      <div className="relative">
+                        <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="customerName"
+                          placeholder="Enter customer name"
+                          className="pl-8"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="companyName">Company Name</Label>
+                      <div className="relative">
+                        <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="companyName"
+                          placeholder="Enter company name (optional)"
+                          className="pl-8"
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
+                      <div className="relative">
+                        <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="Enter email address"
+                          className="pl-8"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="phone"
+                          placeholder="Enter phone number (optional)"
+                          className="pl-8"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Enquiry Details</h3>
+
                   <div className="space-y-2">
-                    <Label htmlFor="customerName">Customer Name <span className="text-red-500">*</span></Label>
-                    <div className="relative">
-                      <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="customerName" 
-                        placeholder="Enter customer name"
-                        className="pl-8"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
+                    <Label htmlFor="subject">Subject <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="subject"
+                      placeholder="Enter enquiry subject"
+                      value={subject}
+                      onChange={(e) => setSubject(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="details">Details <span className="text-red-500">*</span></Label>
+                    <Textarea
+                      id="details"
+                      placeholder="Enter detailed description of the enquiry"
+                      className="min-h-[150px]"
+                      value={details}
+                      onChange={(e) => setDetails(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
+                      <Select
+                        value={status}
+                        onValueChange={setStatus}
                         required
-                      />
+                      >
+                        <SelectTrigger id="status">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">Company Name</Label>
-                    <div className="relative">
-                      <Building className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="companyName" 
-                        placeholder="Enter company name (optional)"
-                        className="pl-8"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
-                    <div className="relative">
-                      <Mail className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="email" 
-                        type="email"
-                        placeholder="Enter email address"
-                        className="pl-8"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+
+                    <div className="space-y-2">
+                      <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
+                      <Select
+                        value={priority}
+                        onValueChange={setPriority}
                         required
-                      />
+                      >
+                        <SelectTrigger id="priority">
+                          <SelectValue placeholder="Select priority level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="High">High</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="Low">Low</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="assignedTo">Assign To <span className="text-red-500">*</span></Label>
+                      <Select
+                        value={assignedTo}
+                        onValueChange={setAssignedTo}
+                        required
+                      >
+                        <SelectTrigger id="assignedTo">
+                          <SelectValue placeholder="Select team member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {teamMembers.map(member => (
+                            <SelectItem key={member.id} value={member.name}>
+                              {member.name} - {member.role}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        id="phone" 
-                        placeholder="Enter phone number (optional)"
-                        className="pl-8"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
-                  </div>
                 </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Enquiry Details</h3>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject <span className="text-red-500">*</span></Label>
-                  <Input 
-                    id="subject" 
-                    placeholder="Enter enquiry subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="details">Details <span className="text-red-500">*</span></Label>
-                  <Textarea 
-                    id="details" 
-                    placeholder="Enter detailed description of the enquiry"
-                    className="min-h-[150px]"
-                    value={details}
-                    onChange={(e) => setDetails(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
-                    <Select 
-                      value={status} 
-                      onValueChange={setStatus}
-                      required
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
-                    <Select 
-                      value={priority} 
-                      onValueChange={setPriority}
-                      required
-                    >
-                      <SelectTrigger id="priority">
-                        <SelectValue placeholder="Select priority level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="assignedTo">Assign To <span className="text-red-500">*</span></Label>
-                    <Select 
-                      value={assignedTo} 
-                      onValueChange={setAssignedTo}
-                      required
-                    >
-                      <SelectTrigger id="assignedTo">
-                        <SelectValue placeholder="Select team member" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teamMembers.map(member => (
-                          <SelectItem key={member.id} value={member.name}>
-                            {member.name} - {member.role}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="notifyCustomer">Notify Customer of Changes</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Send an email notification to the customer about these updates
-                  </p>
-                </div>
-                <Switch 
-                  id="notifyCustomer" 
-                  checked={notifyCustomer}
-                  onCheckedChange={setNotifyCustomer}
-                />
-              </div>
-              
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button 
-                  variant="outline" 
-                  type="button"
-                  onClick={() => router.push(`/enquiries/${id}`)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
-                  disabled={updateStatus === "loading"}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                >
-                  {updateStatus === "loading" ? (
-                    <>
-                      <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-        
-        {/* Success Message */}
-        {updateStatus === "success" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="border-green-500">
-              <CardContent className="pt-6">
-                <div className="flex items-center space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Enquiry Updated Successfully</h3>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="notifyCustomer">Notify Customer of Changes</Label>
                     <p className="text-sm text-muted-foreground">
-                      Your changes have been saved. Redirecting to enquiry details...
+                      Send an email notification to the customer about these updates
                     </p>
                   </div>
+                  <Switch
+                    id="notifyCustomer"
+                    checked={notifyCustomer}
+                    onCheckedChange={setNotifyCustomer}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => router.push(`/enquiries/${id}`)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateStatus === "loading"}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  >
+                    {updateStatus === "loading" ? (
+                      <>
+                        <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Success Message */}
+          {updateStatus === "success" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Card className="border-green-500">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Enquiry Updated Successfully</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Your changes have been saved. Redirecting to enquiry details...
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -22,6 +22,7 @@ import { ProjectTimeline } from "@/components/projects/project-timeline"
 import { AddTaskModal } from "@/components/projects/add-task-modal"
 import { AddMemberModal } from "@/components/projects/add-member-modal"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import UserAvatar from "@/components/tasks/user-avatar"
 
 
 export default function ProjectPage({ params }) {
@@ -56,10 +57,10 @@ export default function ProjectPage({ params }) {
           deadline: "Dec 31, 2023",
           priority: "medium",
           team: [
-            { id: 'm1', name: 'Sarah Miller', role: 'Project Lead', department: 'Research', joinedAt: '3 months ago', avatar: '/avatars/sarah.png' },
-            { id: 'm2', name: 'John Doe', role: 'Lab Technician', department: 'Laboratory', joinedAt: '2 months ago', avatar: '/avatars/john.png' },
-            { id: 'm3', name: 'Emily Chen', role: 'Data Scientist', department: 'Analytics', joinedAt: '1 month ago', avatar: '/avatars/emily.png' },
-            { id: 'm4', name: 'Michael Brown', role: 'Research Assistant', department: 'Research', joinedAt: '3 weeks ago', avatar: '/avatars/michael.png' }
+            { id: 'm1', name: 'Sarah Miller', role: 'Project Lead', department: 'Research', joinedAt: '3 months ago', avatar: 'SM' },
+            { id: 'm2', name: 'John Doe', role: 'Lab Technician', department: 'Laboratory', joinedAt: '2 months ago', avatar: 'JD' },
+            { id: 'm3', name: 'Emily Chen', role: 'Data Scientist', department: 'Analytics', joinedAt: '1 month ago', avatar: 'EC' },
+            { id: 'm4', name: 'Michael Brown', role: 'Research Assistant', department: 'Research', joinedAt: '3 weeks ago', avatar: 'MB' }
           ],
           tasks: [
             { id: 't1', name: 'Sample Collection', status: 'completed', assignee: 'Sarah Miller', assigneeId: 'm1', dueDate: 'Oct 25, 2023', priority: 'high', progress: 100, description: 'Collect all required samples from the laboratory storage.' },

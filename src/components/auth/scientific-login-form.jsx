@@ -215,8 +215,8 @@ export default function ScientificLoginForm() {
       setLoginSuccess(true);
       setTimeout(() => {
         router.push("/admin-dashboard");
-      }, 1000);
-    }, 1500);
+      }, 100);
+    }, 100);
   };
 
   // Render success animation if login is successful

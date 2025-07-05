@@ -1,524 +1,563 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { 
-  CheckSquare, 
   Plus, 
-  Trash, 
-  GripVertical, 
+  Trash2,
+  Save,
+  X,
   Edit, 
-  Calendar, 
+  AlertCircle,
+  CheckCircle2,
   Clock, 
   User, 
-  Flag, 
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  X
+  Calendar,
+  ArrowUpDown,
+  Filter
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { HoverBorderGradient } from "@/components/ui/aceternity/hover-border-gradient";
+import { DatePicker } from "@/components/ui/date-picker";
+import { DataTablePagination } from "@/components/tasks-v2/data-table-pagination";
+
+const mockUsers = [
+  { id: "1", name: "Alice Johnson", avatar: "AJ" },
+  { id: "2", name: "Bob Smith", avatar: "BS" },
+  { id: "3", name: "Charlie Brown", avatar: "CB" },
+  { id: "4", name: "Diana Prince", avatar: "DP" },
+];
+
+const priorities = ["high", "medium", "low"];
+const statuses = ["not_started", "in_progress", "completed"];
+
+// Helper function to generate unique task ID
+const generateTaskId = (existingSubtasks) => {
+  if (existingSubtasks.length === 0) {
+    return "ST-001";
+  }
+
+  // Extract all existing ID numbers
+  const existingNumbers = existingSubtasks
+    .map(st => st.id)
+    .filter(id => id && typeof id === 'string' && id.startsWith('ST-'))
+    .map(id => {
+      const match = id.match(/ST-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    })
+    .filter(num => num > 0);
+
+  // Find the highest number and increment by 1
+  const maxNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
+  const nextNumber = maxNumber + 1;
+
+  return `ST-${nextNumber.toString().padStart(3, '0')}`;
+};
+
+// Helper functions
+const getPriorityColor = (priority) => {
+  switch (priority) {
+    case "high": return "bg-red-100 text-red-700 border-red-200";
+    case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    case "low": return "bg-green-100 text-green-700 border-green-200";
+    default: return "bg-gray-100 text-gray-700 border-gray-200";
+  }
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case "completed": return "bg-green-100 text-green-700 border-green-200";
+    case "in_progress": return "bg-blue-100 text-blue-700 border-blue-200";
+    case "not_started": return "bg-gray-100 text-gray-700 border-gray-200";
+    default: return "bg-gray-100 text-gray-700 border-gray-200";
+  }
+};
+
+const getStatusIcon = (status) => {
+  switch (status) {
+    case "completed": return <CheckCircle2 className="h-4 w-4" />;
+    case "in_progress": return <Clock className="h-4 w-4" />;
+    case "not_started": return <AlertCircle className="h-4 w-4" />;
+    default: return <AlertCircle className="h-4 w-4" />;
+  }
+};
+
+// Mock table object for pagination
+const createMockTable = (data, pagination, setPagination) => ({
+  getFilteredRowModel: () => ({ rows: data }),
+  getFilteredSelectedRowModel: () => ({ rows: [] }),
+  getState: () => ({ pagination }),
+  setPageSize: (pageSize) => setPagination(prev => ({ ...prev, pageSize })),
+  setPageIndex: (pageIndex) => setPagination(prev => ({ ...prev, pageIndex })),
+  getPageCount: () => Math.ceil(data.length / pagination.pageSize),
+  getCanPreviousPage: () => pagination.pageIndex > 0,
+  getCanNextPage: () => pagination.pageIndex < Math.ceil(data.length / pagination.pageSize) - 1,
+  previousPage: () => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) })),
+  nextPage: () => setPagination(prev => ({
+    ...prev,
+    pageIndex: Math.min(Math.ceil(data.length / prev.pageSize) - 1, prev.pageIndex + 1)
+  })),
+});
 
 export function SubtasksList({ task, setTask }) {
-  const [subtasks, setSubtasks] = useState(task.subtasks);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
-  const [isReordering, setIsReordering] = useState(false);
-  const [expandedSubtasks, setExpandedSubtasks] = useState({});
-  const [editingSubtask, setEditingSubtask] = useState(null);
-  
-  const completedSubtasks = subtasks.filter(subtask => subtask.completed).length;
+  const [subtasks, setSubtasks] = useState(() => {
+    // Ensure all existing subtasks have unique IDs
+    const existingSubtasks = task.subtasks || [];
+    return existingSubtasks.map((st, index) => ({
+      ...st,
+      id: st.id || generateTaskId(existingSubtasks.slice(0, index))
+    }));
+  });
+  const [editingId, setEditingId] = useState(null);
+  const [newSubtask, setNewSubtask] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" });
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  // Calculate progress
+  const completedSubtasks = subtasks.filter(st => st.status === "completed").length;
   const progress = subtasks.length > 0 ? Math.round((completedSubtasks / subtasks.length) * 100) : 0;
   
+  // Sort and filter subtasks
+  const sortedAndFilteredSubtasks = subtasks
+    .filter(st => filterStatus === "all" || st.status === filterStatus)
+    .sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+
+      if (sortConfig.key === "assignee") {
+        aVal = mockUsers.find(u => u.id === a.assignee)?.name || "";
+        bVal = mockUsers.find(u => u.id === b.assignee)?.name || "";
+      }
+
+      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+  // Get current page data
+  const startIndex = pagination.pageIndex * pagination.pageSize;
+  const endIndex = startIndex + pagination.pageSize;
+  const currentPageSubtasks = sortedAndFilteredSubtasks.slice(startIndex, endIndex);
+
+  // Create mock table object for pagination component
+  const mockTable = createMockTable(sortedAndFilteredSubtasks, pagination, setPagination);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [filterStatus, sortConfig]);
+
+  // Add new subtask row
   const handleAddSubtask = () => {
-    if (newSubtaskTitle.trim() === "") return;
-    
-    const newSubtask = {
-      id: `ST-${Date.now().toString().slice(-3)}`,
-      title: newSubtaskTitle,
-      completed: false,
-      status: "not_started",
-      progress: 0,
+    const newId = generateTaskId(subtasks);
+    setNewSubtask({
+      id: newId,
+      title: "",
+      assignee: mockUsers[0].id,
       priority: "medium",
-      assignee: task.teamMembers[0],
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 86400000).toISOString(), // Next day
-      notes: ""
-    };
-    
-    const updatedSubtasks = [...subtasks, newSubtask];
-    setSubtasks(updatedSubtasks);
-    setNewSubtaskTitle("");
-    setIsAdding(false);
-    
-    // In a real app, you would update the task on the backend
+      status: "not_started",
+      dueDate: null,
+    });
+    setEditingId("new");
   };
-  
-  const handleToggleSubtask = (id) => {
-    const updatedSubtasks = subtasks.map(subtask => 
-      subtask.id === id ? { 
-        ...subtask, 
-        completed: !subtask.completed,
-        status: !subtask.completed ? "completed" : "in_progress",
-        progress: !subtask.completed ? 100 : 50
-      } : subtask
-    );
-    setSubtasks(updatedSubtasks);
-    
-    // In a real app, you would update the task on the backend
+
+  // Save new or edited subtask
+  const handleSave = (subtask) => {
+    if (!subtask.title.trim()) {
+      alert("Subtask title is required");
+      return;
+    }
+
+    if (editingId === "new") {
+      setSubtasks([...subtasks, { ...subtask, title: subtask.title.trim() }]);
+      setNewSubtask(null);
+    } else {
+      setSubtasks(subtasks.map(st => st.id === subtask.id ? { ...subtask, title: subtask.title.trim() } : st));
+    }
+    setEditingId(null);
   };
-  
-  const handleDeleteSubtask = (id) => {
-    const updatedSubtasks = subtasks.filter(subtask => subtask.id !== id);
-    setSubtasks(updatedSubtasks);
-    
-    // In a real app, you would update the task on the backend
+
+  // Edit existing subtask
+  const handleEdit = (id) => {
+    const subtask = subtasks.find(st => st.id === id);
+    setNewSubtask({ ...subtask });
+    setEditingId(id);
   };
-  
-  const handleReorderEnd = () => {
-    setIsReordering(false);
-    
-    // In a real app, you would update the task order on the backend
+
+  // Cancel editing
+  const handleCancel = () => {
+    setEditingId(null);
+    setNewSubtask(null);
   };
-  
-  const toggleExpandSubtask = (id) => {
-    setExpandedSubtasks(prev => ({
-      ...prev,
-      [id]: !prev[id]
+
+  // Delete subtask
+  const handleDelete = (id) => {
+    if (confirm("Are you sure you want to delete this subtask?")) {
+      setSubtasks(subtasks.filter(st => st.id !== id));
+      if (editingId === id) handleCancel();
+    }
+  };
+
+  // Handle sort
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
     }));
   };
   
-  const handleEditSubtask = (subtask) => {
-    setEditingSubtask({...subtask});
+  // Handle date change
+  const handleDateChange = (date) => {
+    setNewSubtask(prev => ({ ...prev, dueDate: date }));
   };
-  
-  const handleSaveSubtask = () => {
-    if (!editingSubtask) return;
-    
-    const updatedSubtasks = subtasks.map(subtask => 
-      subtask.id === editingSubtask.id ? editingSubtask : subtask
-    );
-    
-    setSubtasks(updatedSubtasks);
-    setEditingSubtask(null);
-    
-    // In a real app, you would update the task on the backend
-  };
-  
-  const handleCancelEdit = () => {
-    setEditingSubtask(null);
-  };
-  
-  const getStatusBadgeVariant = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'in_progress': return 'warning';
-      case 'not_started': return 'outline';
-      default: return 'outline';
-    }
-  };
-  
-  const getPriorityBadgeVariant = (priority) => {
-    switch (priority) {
-      case 'high': return 'destructive';
-      case 'medium': return 'warning';
-      case 'low': return 'outline';
-      default: return 'outline';
-    }
-  };
-  
-  const renderSubtaskCard = (subtask) => {
-    const isExpanded = expandedSubtasks[subtask.id];
-    const isEditing = editingSubtask && editingSubtask.id === subtask.id;
-    
-    return (
-      <motion.div
-        layout
+
+  // Render a row (editable or static)
+  const renderRow = (subtask, isEditing) => (
+    <motion.tr
+      key={subtask.id}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className="w-full"
-      >
-        <HoverBorderGradient className="w-full">
-          <Card className="w-full">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id={`subtask-${subtask.id}`}
-                    checked={subtask.completed}
-                    onCheckedChange={() => handleToggleSubtask(subtask.id)}
-                    className="mt-1"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-primary/5">
+      className={cn(
+        "hover:bg-muted/50 transition-colors border-b border-border/50",
+        isEditing && "bg-muted/30"
+      )}
+    >
+      <TableCell className="font-mono text-sm">
+        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
                         {subtask.id}
                       </Badge>
+      </TableCell>
+
+      <TableCell className="font-medium">
                       {isEditing ? (
                         <Input
-                          value={editingSubtask.title}
-                          onChange={(e) => setEditingSubtask({...editingSubtask, title: e.target.value})}
-                          className="h-7 text-base font-medium"
+            value={subtask.title}
+            onChange={e => setNewSubtask({ ...subtask, title: e.target.value })}
+            placeholder="Enter subtask name..."
+            className="max-w-[200px]"
+            autoFocus
                         />
                       ) : (
-                        <CardTitle className={cn(
-                          "text-base",
-                          subtask.completed && "line-through text-muted-foreground"
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              subtask.status === "completed" && "line-through text-muted-foreground"
                         )}>
                           {subtask.title}
-                        </CardTitle>
-                      )}
+            </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
+        )}
+      </TableCell>
+
+      <TableCell>
                       {isEditing ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-6 text-xs">
-                              {editingSubtask.status.replace('_', ' ')}
-                              <ChevronDown className="ml-1 h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            <DropdownMenuItem onClick={() => setEditingSubtask({...editingSubtask, status: 'not_started', completed: false, progress: 0})}>
-                              Not Started
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setEditingSubtask({...editingSubtask, status: 'in_progress', completed: false, progress: 50})}>
-                              In Progress
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setEditingSubtask({...editingSubtask, status: 'completed', completed: true, progress: 100})}>
-                              Completed
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <Badge variant={getStatusBadgeVariant(subtask.status)}>
-                          {subtask.status.replace('_', ' ')}
-                        </Badge>
-                      )}
-                      
-                      {isEditing ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-6 text-xs">
-                              {editingSubtask.priority}
-                              <ChevronDown className="ml-1 h-3 w-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            <DropdownMenuItem onClick={() => setEditingSubtask({...editingSubtask, priority: 'low'})}>
-                              Low
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setEditingSubtask({...editingSubtask, priority: 'medium'})}>
-                              Medium
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setEditingSubtask({...editingSubtask, priority: 'high'})}>
-                              High
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ) : (
-                        <Badge variant={getPriorityBadgeVariant(subtask.priority)}>
-                          {subtask.priority}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-1">
-                  {!isEditing && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleEditSubtask(subtask)}
-                      >
-                        <Edit className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive"
-                        onClick={() => handleDeleteSubtask(subtask.id)}
-                      >
-                        <Trash className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => toggleExpandSubtask(subtask.id)}
-                      >
-                        {isExpanded ? (
-                          <ChevronUp className="h-3.5 w-3.5" />
-                        ) : (
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        )}
-                      </Button>
-                    </>
-                  )}
-                  
-                  {isEditing && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleCancelEdit}
-                        className="h-7"
-                      >
-                        <X className="h-3.5 w-3.5 mr-1" />
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={handleSaveSubtask}
-                        className="h-7"
-                      >
-                        Save
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="pb-3">
-              <div className="flex flex-col gap-3">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span>{subtask.progress}%</span>
-                  </div>
-                  <Progress value={subtask.progress} className="h-1.5" />
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2">
-                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                    {isEditing ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="outline" size="sm" className="h-7 text-xs">
-                            <Avatar className="h-4 w-4 mr-1">
-                              <AvatarImage src={editingSubtask.assignee.avatar} />
-                              <AvatarFallback>{editingSubtask.assignee.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {editingSubtask.assignee.name}
-                            <ChevronDown className="ml-1 h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          {task.teamMembers.map(member => (
-                            <DropdownMenuItem 
-                              key={member.id}
-                              onClick={() => setEditingSubtask({...editingSubtask, assignee: member})}
-                            >
-                              <Avatar className="h-4 w-4 mr-1">
-                                <AvatarImage src={member.avatar} />
-                                <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              {member.name}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <div className="flex items-center gap-1 text-xs">
-                        <Avatar className="h-4 w-4">
-                          <AvatarImage src={subtask.assignee.avatar} />
-                          <AvatarFallback>{subtask.assignee.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span>{subtask.assignee.name}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                    {isEditing ? (
-                      <div className="flex items-center gap-1 text-xs">
-                        <Input
-                          type="date"
-                          value={format(new Date(editingSubtask.startDate), 'yyyy-MM-dd')}
-                          onChange={(e) => setEditingSubtask({...editingSubtask, startDate: new Date(e.target.value).toISOString()})}
-                          className="h-7 w-24"
-                        />
-                        <span>to</span>
-                        <Input
-                          type="date"
-                          value={format(new Date(editingSubtask.endDate), 'yyyy-MM-dd')}
-                          onChange={(e) => setEditingSubtask({...editingSubtask, endDate: new Date(e.target.value).toISOString()})}
-                          className="h-7 w-24"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-xs">
-                        {format(new Date(subtask.startDate), 'MMM d')} - {format(new Date(subtask.endDate), 'MMM d, yyyy')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                {(isExpanded || isEditing) && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-1"
-                  >
-                    <div className="flex items-start gap-2">
-                      <MessageSquare className="h-3.5 w-3.5 text-muted-foreground mt-1" />
-                      {isEditing ? (
-                        <Textarea
-                          value={editingSubtask.notes}
-                          onChange={(e) => setEditingSubtask({...editingSubtask, notes: e.target.value})}
-                          placeholder="Add notes..."
-                          className="min-h-[60px] text-xs"
-                        />
-                      ) : (
-                        <p className="text-xs">
-                          {subtask.notes || "No notes added yet."}
-                        </p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </HoverBorderGradient>
-      </motion.div>
-    );
-  };
-  
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-md flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-primary" />
-            Subtasks
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant={isReordering ? "default" : "outline"} 
-              size="sm"
-              onClick={() => setIsReordering(!isReordering)}
-            >
-              {isReordering ? "Done" : "Reorder"}
-            </Button>
-            {!isAdding && (
-              <Button size="sm" onClick={() => setIsAdding(true)}>
-                <Plus className="h-4 w-4 mr-1" />
-                Add Subtask
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted-foreground">Overall Progress</span>
-            <span>{completedSubtasks}/{subtasks.length} completed</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-        
-        <AnimatePresence>
-          {isAdding && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex items-center gap-2 mb-3"
-            >
-              <Input
-                value={newSubtaskTitle}
-                onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                placeholder="Enter subtask title..."
-                className="flex-1"
-                autoFocus
-              />
-              <Button size="sm" onClick={handleAddSubtask}>Add</Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => {
-                  setIsAdding(false);
-                  setNewSubtaskTitle("");
-                }}
-              >
-                Cancel
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {isReordering ? (
-          <Reorder.Group 
-            axis="y" 
-            values={subtasks} 
-            onReorder={setSubtasks}
-            className="space-y-3"
+          <Select
+            value={subtask.assignee}
+            onValueChange={val => setNewSubtask({ ...subtask, assignee: val })}
           >
-            {subtasks.map((subtask) => (
-              <Reorder.Item
-                key={subtask.id}
-                value={subtask}
-                className="cursor-move"
-              >
-                <div className="flex items-center gap-2 p-2 rounded-md bg-background border border-border/50">
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
-                  <Badge variant="outline" className="bg-primary/5">
-                    {subtask.id}
-                  </Badge>
-                  <span className={cn(
-                    "flex-1 text-sm",
-                    subtask.completed && "line-through text-muted-foreground"
-                  )}>
-                    {subtask.title}
-                  </span>
-                  <Badge variant={getStatusBadgeVariant(subtask.status)}>
-                    {subtask.status.replace('_', ' ')}
-                  </Badge>
-                </div>
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {mockUsers.map(user => (
+                <SelectItem key={user.id} value={user.id}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs">{user.avatar}</AvatarFallback>
+                            </Avatar>
+                    {user.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : (
-          <div className="space-y-3">
-            {subtasks.map((subtask) => renderSubtaskCard(subtask))}
-            
-            {subtasks.length === 0 && (
-              <div className="text-center py-6 text-muted-foreground">
-                <p>No subtasks yet. Add one to get started.</p>
+          <div className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback className="text-xs">
+                {mockUsers.find(u => u.id === subtask.assignee)?.avatar || "?"}
+              </AvatarFallback>
+                        </Avatar>
+            <span className="text-sm">
+              {mockUsers.find(u => u.id === subtask.assignee)?.name || "Unassigned"}
+            </span>
+                      </div>
+                    )}
+      </TableCell>
+
+      <TableCell>
+        {isEditing ? (
+          <Select
+            value={subtask.priority}
+            onValueChange={val => setNewSubtask({ ...subtask, priority: val })}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {priorities.map(p => (
+                <SelectItem key={p} value={p}>
+                  <Badge variant="outline" className={getPriorityColor(p)}>
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </Badge>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="outline" className={getPriorityColor(subtask.priority)}>
+            {subtask.priority.charAt(0).toUpperCase() + subtask.priority.slice(1)}
+          </Badge>
+        )}
+      </TableCell>
+
+      <TableCell>
+        {isEditing ? (
+          <Select
+            value={subtask.status}
+            onValueChange={val => setNewSubtask({ ...subtask, status: val })}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statuses.map(s => (
+                <SelectItem key={s} value={s}>
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(s)}
+                    {s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Badge variant="outline" className={getStatusColor(subtask.status)}>
+            <div className="flex items-center gap-1">
+              {getStatusIcon(subtask.status)}
+              {subtask.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </div>
+          </Badge>
+        )}
+      </TableCell>
+
+      <TableCell>
+                      {isEditing ? (
+          <DatePicker
+            selectedDate={subtask.dueDate}
+            onDateChange={handleDateChange}
+            placeholder="Select due date"
+            className="w-[140px]"
+            showClearButton={true}
+            showTodayButton={true}
+                        />
+                      ) : (
+          <div className="flex items-center gap-1 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            {subtask.dueDate ? format(new Date(subtask.dueDate), 'MMM d, yyyy') : "No due date"}
+                    </div>
+        )}
+      </TableCell>
+
+      <TableCell>
+        {isEditing ? (
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => handleSave(subtask)}
+              className="h-8 px-2"
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleCancel}
+              className="h-8 px-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
               </div>
-            )}
+        ) : (
+          <div className="flex gap-1">
+            <Button 
+              size="sm"
+              variant="ghost"
+              onClick={() => handleEdit(subtask.id)}
+              className="h-8 px-2"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => handleDelete(subtask.id)}
+              className="h-8 px-2 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              </Button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </TableCell>
+    </motion.tr>
+  );
+
+  return (
+    <div className="w-full space-y-4">
+      {/* Header with progress */}
+      <div className="flex justify-between items-center">
+        <div className="space-y-1">
+          <h3 className="text-lg font-semibold">Subtasks</h3>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>{completedSubtasks} of {subtasks.length} completed</span>
+            <span>•</span>
+            <span>{progress}% complete</span>
+          </div>
+        </div>
+        <Button onClick={handleAddSubtask} variant="default" size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Subtask
+        </Button>
+          </div>
+
+      {/* Progress bar */}
+      {subtasks.length > 0 && (
+        <div className="space-y-2">
+          <Progress value={progress} className="h-2" />
+        </div>
+      )}
+
+      {/* Filters and sorting */}
+      <div className="flex justify-between items-center">
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-[150px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="not_started">Not Started</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+          </SelectContent>
+        </Select>
+        </div>
+        
+      {/* Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-border/50">
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("id")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Task ID
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("title")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Subtask Name
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("assignee")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Assigned To
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("priority")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Priority
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleSort("status")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Status
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
+              <TableHead>
+              <Button 
+                variant="ghost" 
+                  onClick={() => handleSort("dueDate")}
+                  className="h-auto p-0 font-medium"
+                >
+                  Due Date
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+              </Button>
+              </TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <AnimatePresence>
+              {currentPageSubtasks.map(st =>
+                editingId === st.id
+                  ? renderRow(newSubtask || st, true)
+                  : renderRow(st, false)
+              )}
+              {editingId === "new" && newSubtask && renderRow(newSubtask, true)}
+        </AnimatePresence>
+        
+            {sortedAndFilteredSubtasks.length === 0 && (
+              <TableRow className="border-b border-border/50">
+                <TableCell colSpan={7} className="h-24 text-center">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <AlertCircle className="h-8 w-8" />
+                    <p>No subtasks found</p>
+                    <p className="text-sm">Add a subtask to get started</p>
+                </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+          </div>
+
+      {/* Pagination */}
+      {sortedAndFilteredSubtasks.length > 0 && (
+        <DataTablePagination table={mockTable} />
+        )}
+    </div>
   );
 }

@@ -5,6 +5,8 @@ import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { EquipmentList } from "@/components/equipment-management/equipment-list"
 import { EquipmentFormDialog } from "@/components/equipment-management/equipment-form-dialog"
 import { EquipmentDetailDialog } from "@/components/equipment-management/equipment-detail-dialog"
+import { DataTable } from "@/components/tasks-v2/data-table"
+import { createEquipmentColumns } from "@/components/equipment-management/equipment-columns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -16,20 +18,24 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { 
-  PlusCircle, 
-  Search, 
-  SlidersHorizontal, 
+import {
+  PlusCircle,
+  Search,
+  SlidersHorizontal,
   Zap,
   Settings,
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
   Clock,
-  XCircle
+  XCircle,
+  LayoutGrid,
+  Table as TableIcon,
+  RefreshCw
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { equipmentData } from "@/data/equipment-data"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function EquipmentsPage() {
   const [equipment, setEquipment] = useState(equipmentData)
@@ -42,6 +48,8 @@ export default function EquipmentsPage() {
   const [formMode, setFormMode] = useState("create")
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState("table") // "grid" or "table"
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Calculate statistics for the dashboard cards
   const stats = {
@@ -54,14 +62,14 @@ export default function EquipmentsPage() {
 
   // Filter equipment based on search query and status filter
   const filteredEquipment = equipment.filter(item => {
-    const matchesSearch = 
+    const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.serialNumber.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -120,7 +128,7 @@ export default function EquipmentsPage() {
       };
       setEquipment([...equipment, newEquipment]);
     } else {
-      setEquipment(equipment.map(item => 
+      setEquipment(equipment.map(item =>
         item.id === equipmentData.id ? { ...item, ...equipmentData } : item
       ));
     }
@@ -129,10 +137,27 @@ export default function EquipmentsPage() {
 
   // Handle updating equipment status
   const handleUpdateStatus = (equipmentId, newStatus) => {
-    setEquipment(equipment.map(item => 
+    setEquipment(equipment.map(item =>
       item.id === equipmentId ? { ...item, status: newStatus } : item
     ));
   };
+
+  // Handle refresh
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    // Simulate refresh
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  };
+
+  // Create columns with action handlers
+  const columns = createEquipmentColumns({
+    onView: handleViewEquipment,
+    onEdit: handleEditEquipment,
+    onDelete: handleDeleteEquipment,
+    onUpdateStatus: handleUpdateStatus,
+  })
 
   // Status card configurations
   const statusCards = [
@@ -179,210 +204,269 @@ export default function EquipmentsPage() {
   ];
 
   return (
-    <DashboardLayout 
-      sidebarOpen={sidebarOpen} 
+    <DashboardLayout
+      sidebarOpen={sidebarOpen}
       setSidebarOpen={setSidebarOpen}
     >
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50">
-        {/* Animated background pattern */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-100/30 to-purple-100/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-emerald-100/30 to-blue-100/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        <div className="relative z-10 transition-all duration-300 ease-in-out w-full">
-          <div className="container px-4 sm:px-6 lg:px-8 py-8 max-w-full mx-auto">
-            {/* Modern Header Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
-                    <Settings className="h-6 w-6 text-white" />
-                  </div>
+      <div className="flex flex-col min-h-screen w-full bg-background">
+        {/* Header with Stats */}
+        <div className="w-full border-b">
+          <div className="w-full px-6 py-6">
+            <div className="max-w-[2000px] mx-auto">
+              <div className="flex flex-col space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-                      Equipment Management
-                    </h1>
-                    <p className="text-muted-foreground text-sm sm:text-base mt-1 font-medium">
+                    <h1 className="text-3xl font-bold tracking-tight">Equipment Management</h1>
+                    <p className="text-muted-foreground">
                       Manage laboratory equipment, maintenance schedules, and status tracking
                     </p>
                   </div>
+                  <Button
+                    onClick={handleCreateEquipment}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+                    size="lg"
+                  >
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Add Equipment
+                  </Button>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {statusCards.map((card, index) => (
+                    <div
+                      key={index}
+                      className={`flex items-center p-4 rounded-lg border bg-gradient-to-br ${card.gradient} ${card.borderColor}`}
+                    >
+                      <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
+                        <card.icon className={`h-4 w-4 ${card.iconColor}`} />
+                      </div>
+                      <div className="ml-4">
+                        <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+                        <p className="text-2xl font-bold">{card.value}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <Button 
-                onClick={handleCreateEquipment}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 px-6 py-3"
-                size="lg"
-              >
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Add Equipment
-                <div className="absolute inset-0 bg-white/20 rounded-md blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </Button>
             </div>
+          </div>
+        </div>
 
-            
-
-            {/* Enhanced Search and Filters */}
-            <Card className="mb-8 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative flex-1 group">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-blue-500 transition-colors duration-200" />
-                      <Input
-                        placeholder="Search equipment by name, ID, type, or serial number..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-12 h-12 bg-white/80 border-0 shadow-sm focus:shadow-md focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-base"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-md opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                    </div>
-                    <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={cn(
-                          "h-12 px-4 bg-white/80 border-0 shadow-sm hover:shadow-md transition-all duration-300",
-                          showFilters && "bg-blue-50 text-blue-600 shadow-md"
-                        )}
-                      >
-                        <SlidersHorizontal className="h-5 w-5 mr-2" />
-                        Filters
-                        {showFilters && (
-                          <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-600">
-                            ON
-                          </Badge>
-                        )}
-                      </Button>
-                      <Select
-                        value={sortOption}
-                        onValueChange={setSortOption}
-                      >
-                        <SelectTrigger className="w-[200px] h-12 bg-white/80 border-0 shadow-sm hover:shadow-md transition-all duration-300">
-                          <TrendingUp className="h-4 w-4 mr-2 text-muted-foreground" />
-                          <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-                          <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                          <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-                          <SelectItem value="date-asc">Date (Oldest)</SelectItem>
-                          <SelectItem value="date-desc">Date (Newest)</SelectItem>
-                          <SelectItem value="status">Status</SelectItem>
-                          <SelectItem value="location">Location</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+        {/* Main Content */}
+        <div className="flex-1 w-full px-6 py-6">
+          <div className="max-w-[2000px] mx-auto">
+            {/* Toolbar */}
+            <div className="flex flex-col space-y-4 mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div className="relative flex-1 max-w-2xl">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search equipment by name, ID, type, or serial number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-12 h-12 bg-card/40 backdrop-blur-sm border-border/30 rounded-xl shadow-sm focus-visible:ring-primary/30 text-base transition-all duration-200 hover:border-border/50 focus:border-primary/50"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 rounded-full hover:bg-primary/10"
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                  {/* View Mode Toggle */}
+                  <div className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 shadow-sm overflow-hidden">
+                    <Button
+                      variant={viewMode === "grid" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("grid")}
+                      className={cn(
+                        "rounded-r-none transition-all duration-200",
+                        viewMode === "grid" ? "shadow-sm" : "hover:bg-muted/80"
+                      )}
+                    >
+                      <LayoutGrid className="h-4 w-4 mr-1.5" />
+                      Grid
+                    </Button>
+                    <Button
+                      variant={viewMode === "table" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("table")}
+                      className={cn(
+                        "rounded-l-none transition-all duration-200",
+                        viewMode === "table" ? "shadow-sm" : "hover:bg-muted/80"
+                      )}
+                    >
+                      <TableIcon className="h-4 w-4 mr-1.5" />
+                      Table
+                    </Button>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="h-10 shadow-sm border border-gray-200 dark:border-gray-800"
+                  >
+                    <RefreshCw
+                      className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
 
-                  {showFilters && (
-                    <div className="p-6 bg-gradient-to-r from-slate-50/80 to-blue-50/30 rounded-xl border border-slate-200/50 space-y-4 animate-in slide-in-from-top-2 duration-300">
-                      <div className="flex items-center gap-2 mb-4">
-                        <SlidersHorizontal className="h-5 w-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900">Filter Options</h3>
+              {/* Filters */}
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 max-w-3xl mx-auto bg-card/30 backdrop-blur-sm p-4 rounded-xl border border-border/20 shadow-sm">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground/80">Status Filter</label>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="bg-background/50 border-border/30 focus:ring-primary/30">
+                            <SelectValue placeholder="All Statuses" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="Available">Available</SelectItem>
+                            <SelectItem value="In Use">In Use</SelectItem>
+                            <SelectItem value="Under Maintenance">Under Maintenance</SelectItem>
+                            <SelectItem value="Out of Order">Out of Order</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Status Filter</label>
-                          <Select
-                            value={statusFilter}
-                            onValueChange={setStatusFilter}
-                          >
-                            <SelectTrigger className="bg-white/80 border-0 shadow-sm hover:shadow-md transition-all duration-300">
-                              <SelectValue placeholder="All Statuses" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-                              <SelectItem value="all">All Statuses</SelectItem>
-                              <SelectItem value="Available">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                                  Available
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="In Use">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                                  In Use
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="Under Maintenance">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                  Under Maintenance
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="Out of Order">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                                  Out of Order
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="flex items-end">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setStatusFilter("all");
-                              setSearchQuery("");
-                            }}
-                            className="bg-white/80 border-0 shadow-sm hover:shadow-md transition-all duration-300"
-                          >
-                            Clear Filters
-                          </Button>
-                        </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground/80">Sort By</label>
+                        <Select value={sortOption} onValueChange={setSortOption}>
+                          <SelectTrigger className="bg-background/50 border-border/30 focus:ring-primary/30">
+                            <SelectValue placeholder="Sort by" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+                            <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+                            <SelectItem value="date-asc">Date (Oldest)</SelectItem>
+                            <SelectItem value="date-desc">Date (Newest)</SelectItem>
+                            <SelectItem value="status">Status</SelectItem>
+                            <SelectItem value="location">Location</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setStatusFilter("all");
+                            setSearchQuery("");
+                            setSortOption("name-asc");
+                          }}
+                          className="bg-background/50 hover:bg-primary/5 transition-all duration-200 hover:border-primary/30"
+                        >
+                          Clear Filters
+                        </Button>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Results Summary */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="px-3 py-1 bg-blue-50/80 text-blue-700 border border-blue-200/50">
-                  {sortedEquipment.length} {sortedEquipment.length === 1 ? 'result' : 'results'}
-                </Badge>
-                {(searchQuery || statusFilter !== "all") && (
-                  <Badge variant="outline" className="px-3 py-1 bg-amber-50/80 text-amber-700 border border-amber-200/50">
-                    Filtered
-                  </Badge>
+                  </motion.div>
                 )}
+              </AnimatePresence>
+            </div>
+
+            {/* Content */}
+            <div className="w-full overflow-x-auto">
+              <div className="flex justify-between items-center mb-4">
+                <div className="text-sm text-muted-foreground">
+                  {sortedEquipment.length} {sortedEquipment.length === 1 ? "equipment" : "equipment"} found
+                </div>
               </div>
+
+              <AnimatePresence>
+                {sortedEquipment.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center py-20 text-center bg-card/40 backdrop-blur-sm rounded-2xl border border-border/30 shadow-sm"
+                  >
+                    <div className="rounded-full bg-primary/10 p-5 mb-6">
+                      <Settings className="h-10 w-10 text-primary/80" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3">No equipment found</h3>
+                    <p className="text-muted-foreground max-w-md mb-8 text-base">
+                      We couldn't find any equipment matching your search criteria. Try adjusting your search or add new equipment.
+                    </p>
+                    <Button
+                      onClick={handleCreateEquipment}
+                      variant="outline"
+                      className="bg-background/50 hover:bg-primary/5 transition-all duration-200 hover:border-primary/30 py-6 px-8 text-base"
+                    >
+                      <PlusCircle className="mr-2 h-5 w-5" />
+                      Add New Equipment
+                    </Button>
+                  </motion.div>
+                ) : viewMode === "grid" ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-0 overflow-hidden"
+                  >
+                    <EquipmentList
+                      equipment={sortedEquipment}
+                      onView={handleViewEquipment}
+                      onEdit={handleEditEquipment}
+                      onDelete={handleDeleteEquipment}
+                      onUpdateStatus={handleUpdateStatus}
+                      view={viewMode}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <DataTable
+                      columns={columns}
+                      data={sortedEquipment}
+                      onRowClick={handleViewEquipment}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-
-            {/* Equipment List with enhanced styling */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-0 overflow-hidden">
-              <EquipmentList
-                equipment={sortedEquipment}
-                onView={handleViewEquipment}
-                onEdit={handleEditEquipment}
-                onDelete={handleDeleteEquipment}
-                onUpdateStatus={handleUpdateStatus}
-              />
-            </div>
-
-            {/* Equipment Form Dialog */}
-            <EquipmentFormDialog
-              open={formDialogOpen}
-              onOpenChange={setFormDialogOpen}
-              equipment={selectedEquipment}
-              mode={formMode}
-              onSubmit={handleSubmitEquipment}
-            />
-
-            {/* Equipment Detail Dialog */}
-            <EquipmentDetailDialog
-              open={detailDialogOpen}
-              onOpenChange={setDetailDialogOpen}
-              equipment={selectedEquipment}
-              onEdit={handleEditEquipment}
-              onUpdateStatus={handleUpdateStatus}
-            />
           </div>
         </div>
       </div>
+
+      {/* Equipment Form Dialog */}
+      <EquipmentFormDialog
+        open={formDialogOpen}
+        onOpenChange={setFormDialogOpen}
+        equipment={selectedEquipment}
+        mode={formMode}
+        onSubmit={handleSubmitEquipment}
+      />
+
+      {/* Equipment Detail Dialog */}
+      <EquipmentDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        equipment={selectedEquipment}
+        onEdit={handleEditEquipment}
+        onUpdateStatus={handleUpdateStatus}
+      />
     </DashboardLayout>
   )
 }

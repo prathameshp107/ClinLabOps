@@ -50,9 +50,10 @@ import { SubtasksList } from "@/components/tasks/subtasks-list";
 import { TaskFiles } from "@/components/tasks/task-files";
 import { TaskComments } from "@/components/tasks/task-comments";
 import { TaskActivityLog } from "@/components/tasks/task-activity-log";
-import { TaskProgress } from "@/components/tasks/task-progress";
 import { BackButton } from "@/components/tasks/back-button";
 import { TaskTimeline } from "@/components/tasks/task-timeline";
+import { RelatedTasksCard } from "@/components/tasks/related-tasks-card";
+import UserAvatar from "@/components/tasks/user-avatar";
 
 // Aceternity UI Components
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
@@ -91,7 +92,7 @@ export default function TaskDetailPage() {
             "Consult with Dr. Chen about optimized protocol"
           ]
         });
-      }, 1500);
+      }, 100);
     }
   }, [task]);
 
@@ -162,13 +163,13 @@ export default function TaskDetailPage() {
           createdBy: {
             id: "u1",
             name: "Dr. Jane Doe",
-            avatar: "/avatars/jane-doe.png"
+            avatar: "JD"
           },
           dueDate: "2023-11-05T23:59:59Z",
           assignee: {
             id: "u2",
             name: "John Smith",
-            avatar: "/avatars/john-smith.png"
+            avatar: "JS"
           },
           project: {
             id: "p1",
@@ -186,7 +187,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u2",
                 name: "John Smith",
-                avatar: "/avatars/john-smith.png"
+                avatar: "JS"
               },
               startDate: "2023-10-16T09:00:00Z",
               endDate: "2023-10-16T14:00:00Z",
@@ -202,7 +203,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u2",
                 name: "John Smith",
-                avatar: "/avatars/john-smith.png"
+                avatar: "JS"
               },
               startDate: "2023-10-17T09:00:00Z",
               endDate: "2023-10-17T11:00:00Z",
@@ -218,7 +219,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u2",
                 name: "John Smith",
-                avatar: "/avatars/john-smith.png"
+                avatar: "JS"
               },
               startDate: "2023-10-18T09:00:00Z",
               endDate: "2023-10-18T16:00:00Z",
@@ -234,7 +235,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u3",
                 name: "Emily Chen",
-                avatar: "/avatars/emily-chen.png"
+                avatar: "EC"
               },
               startDate: "2023-10-21T09:00:00Z",
               endDate: "2023-10-21T16:00:00Z",
@@ -250,7 +251,7 @@ export default function TaskDetailPage() {
               assignee: {
                 id: "u4",
                 name: "Michael Brown",
-                avatar: "/avatars/michael-brown.png"
+                avatar: "MB"
               },
               startDate: "2023-10-22T09:00:00Z",
               endDate: "2023-10-22T16:00:00Z",
@@ -267,19 +268,19 @@ export default function TaskDetailPage() {
               id: "c1",
               text: "I've started the PCR analysis. The first batch of samples is running now.",
               createdAt: "2023-10-17T11:20:00Z",
-              user: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+              user: { id: "u2", name: "John Smith", avatar: "JS" }
             },
             {
               id: "c2",
               text: "Great! Make sure to follow the updated protocol we discussed in the meeting.",
               createdAt: "2023-10-17T13:45:00Z",
-              user: { id: "u1", name: "Dr. Jane Doe", avatar: "/avatars/jane-doe.png" }
+              user: { id: "u1", name: "Dr. Jane Doe", avatar: "JD" }
             },
             {
               id: "c3",
               text: "I've completed the first 5 samples. Results look promising. Will continue with the rest tomorrow.",
               createdAt: "2023-10-19T17:30:00Z",
-              user: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+              user: { id: "u2", name: "John Smith", avatar: "JS" }
             }
           ],
           activityLog: [
@@ -294,10 +295,10 @@ export default function TaskDetailPage() {
             { id: "a9", type: "file_uploaded", timestamp: "2023-10-20T16:30:00Z", user: "John Smith", details: "PCR_Results_Partial.docx" }
           ],
           teamMembers: [
-            { id: "u1", name: "Dr. Jane Doe", role: "Principal Investigator", avatar: "/avatars/jane-doe.png" },
-            { id: "u2", name: "John Smith", role: "Lab Technician", avatar: "/avatars/john-smith.png" },
-            { id: "u3", name: "Emily Chen", role: "Research Assistant", avatar: "/avatars/emily-chen.png" },
-            { id: "u4", name: "Michael Brown", role: "Data Analyst", avatar: "/avatars/michael-brown.png" }
+            { id: "u1", name: "Dr. Jane Doe", role: "Principal Investigator", avatar: "JD" },
+            { id: "u2", name: "John Smith", role: "Lab Technician", avatar: "JS" },
+            { id: "u3", name: "Emily Chen", role: "Research Assistant", avatar: "EC" },
+            { id: "u4", name: "Michael Brown", role: "Data Analyst", avatar: "MB" }
           ],
           relatedTasks: [
             {
@@ -305,28 +306,28 @@ export default function TaskDetailPage() {
               title: "Data Analysis for Group A",
               status: "completed",
               dueDate: "2023-10-25T23:59:59Z",
-              assignee: { id: "u4", name: "Michael Brown", avatar: "/avatars/michael-brown.png" }
+              assignee: { id: "u4", name: "Michael Brown", avatar: "MB" }
             },
             {
               id: "T11",
               title: "Equipment Calibration",
               status: "in_progress",
               dueDate: "2023-11-10T23:59:59Z",
-              assignee: { id: "u2", name: "John Smith", avatar: "/avatars/john-smith.png" }
+              assignee: { id: "u2", name: "John Smith", avatar: "JS" }
             },
             {
               id: "T12",
               title: "Lab Inventory Check",
               status: "not_started",
               dueDate: "2023-11-15T23:59:59Z",
-              assignee: { id: "u3", name: "Emily Chen", avatar: "/avatars/emily-chen.png" }
+              assignee: { id: "u3", name: "Emily Chen", avatar: "EC" }
             },
             {
               id: "T13",
               title: "Reagent Order",
               status: "completed",
               dueDate: "2023-10-30T23:59:59Z",
-              assignee: { id: "u1", name: "Dr. Jane Doe", avatar: "/avatars/jane-doe.png" }
+              assignee: { id: "u1", name: "Dr. Jane Doe", avatar: "JD" }
             }
           ]
         };
@@ -486,276 +487,45 @@ export default function TaskDetailPage() {
 
         {/* Main content */}
         <div className="flex-1 overflow-auto p-4 sm:p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 max-w-[1600px] mx-auto">
-            {/* Left column - Task details */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* AI Insights Panel - New Feature */}
-              {aiSuggestions && (
-                <AnimatePresence>
-                  {showAiInsights && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="border-primary/20 bg-primary/5 overflow-hidden glass-card">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-center">
-                            <CardTitle className="text-md flex items-center gap-2">
-                              <Zap className="h-4 w-4 text-primary" />
-                              AI Task Insights
-                            </CardTitle>
-                            <Button variant="ghost" size="sm" onClick={() => setShowAiInsights(false)}>
-                              Hide
-                            </Button>
-                          </div>
-                          <CardDescription>
-                            AI-powered analysis and recommendations for this task
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div className="flex flex-col p-3 bg-background rounded-lg border">
-                              <span className="text-xs text-muted-foreground">Risk Level</span>
-                              <div className="flex items-center mt-1">
-                                <Badge variant={aiSuggestions.riskLevel === 'high' ? 'destructive' : 'warning'} className="capitalize">
-                                  {aiSuggestions.riskLevel}
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="flex flex-col p-3 bg-background rounded-lg border">
-                              <span className="text-xs text-muted-foreground">Estimated Completion</span>
-                              <div className="flex items-center mt-1">
-                                <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                                <span className="text-sm font-medium">
-                                  {format(new Date(aiSuggestions.estimatedCompletion), 'MMM d, yyyy')}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col p-3 bg-background rounded-lg border">
-                              <span className="text-xs text-muted-foreground">Potential Bottlenecks</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {aiSuggestions.bottlenecks.map((bottleneck, i) => (
-                                  <Badge key={i} variant="outline" className="bg-destructive/10 text-destructive text-xs">
-                                    {bottleneck}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="bg-background rounded-lg border p-3">
-                            <h4 className="text-sm font-medium mb-2">AI Recommendations</h4>
-                            <ul className="space-y-2">
-                              {aiSuggestions.recommendations.map((rec, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm">
-                                  <ArrowUpRight className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                                  <span>{rec}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              )}
-
-              {!showAiInsights && aiSuggestions && (
-                <Button
-                  variant="outline"
-                  className="w-full border-dashed border-primary/50 bg-primary/5 hover:bg-primary/10"
-                  onClick={() => setShowAiInsights(true)}
-                >
-                  <Zap className="h-4 w-4 mr-2 text-primary" />
-                  Show AI Task Insights
-                </Button>
-              )}
-
-              <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex justify-between items-center mb-4">
-                  <TabsList className="grid grid-cols-4 w-auto">
-                    <TabsTrigger value="overview">Overview</TabsTrigger>
-                    <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
-                    <TabsTrigger value="files">Files</TabsTrigger>
-                    <TabsTrigger value="comments">Comments</TabsTrigger>
-                  </TabsList>
-
-                  <div className="flex items-center gap-2">
-                    <Badge variant={
-                      task.priority === 'high' ? 'destructive' :
-                        task.priority === 'medium' ? 'warning' : 'outline'
-                    } className="capitalize">
-                      {task.priority} Priority
-                    </Badge>
-                    <Badge variant="outline" className="bg-primary/5">
-                      {task.progress}% Complete
-                    </Badge>
-                  </div>
-                </div>
-
-                <TabsContent value="overview" className="space-y-6">
-                  <TaskOverview task={task} />
-                  <TaskProgress task={task} />
-
-                  {/* Enhanced Timeline Feature */}
-                  <TaskTimeline subtasks={task.subtasks} />
-
-                </TabsContent>
-
-                <TabsContent value="subtasks" className="space-y-6">
-                  <SubtasksList task={task} setTask={setTask} />
-                </TabsContent>
-
-                <TabsContent value="files" className="space-y-6">
-                  <TaskFiles task={task} />
-                </TabsContent>
-
-                <TabsContent value="comments" className="space-y-6">
-                  <TaskComments task={task} />
-                </TabsContent>
-              </Tabs>
-            </div>
-
-            {/* Right column - Sidebar */}
-            <div className="space-y-6">
-              <TaskAssignee task={task} teamMembers={task.teamMembers} />
-
-              <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
-                <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                      <Clock className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg">Due Date</CardTitle>
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-2 shadow-sm hover:shadow-md transition-shadow">
-                    <Edit className="h-4 w-4" />
-                    Change
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-base font-medium text-foreground">{format(new Date(task.dueDate), 'MMM d, yyyy')}</span>
-                      </div>
-                      {new Date(task.dueDate) < new Date() && (
-                        <Badge variant="destructive" className="text-sm px-3 py-1 animate-fade-in">Overdue</Badge>
-                      )}
-                    </div>
-
-                    {new Date(task.dueDate) >= new Date() && (
-                      <div className="mt-2">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                          <span>Progress to Due Date</span>
-                          <span>{Math.ceil(100 - (differenceInDays(new Date(task.dueDate), new Date()) / differenceInDays(new Date(task.dueDate), new Date(task.createdAt))) * 100)}%</span>
-                        </div>
-                        <Progress
-                          value={100 - (differenceInDays(new Date(task.dueDate), new Date()) / differenceInDays(new Date(task.dueDate), new Date(task.createdAt))) * 100}
-                          className="h-2 mb-1"
-                          indicatorColor="bg-blue-500"
-                        />
-                        <div className="text-xs text-muted-foreground mt-1">
-                          <span className="font-semibold text-foreground">{Math.max(0, Math.ceil((new Date(task.dueDate) - new Date()) / (1000 * 60 * 60 * 24)))}</span> days remaining
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300">
-                <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                      <Tag className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg">Tags</CardTitle>
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-2 shadow-sm hover:shadow-md transition-shadow">
-                    <PlusCircle className="h-4 w-4" />
-                    Add Tag
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-wrap gap-2">
-                    {task.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="bg-primary/5 hover:bg-primary/10 transition-colors px-3 py-1 text-sm shadow-sm">
-                        {tag}
+          <div className="w-full max-w-[1600px] mx-auto px-4">
+            <div className="space-y-6 w-full">
+              <TooltipProvider>
+                <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <TabsList className="grid grid-cols-4 w-auto">
+                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                      <TabsTrigger value="subtasks">Subtasks</TabsTrigger>
+                      <TabsTrigger value="files">Files</TabsTrigger>
+                      <TabsTrigger value="comments">Comments</TabsTrigger>
+                    </TabsList>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={
+                        task.priority === 'high' ? 'destructive' :
+                          task.priority === 'medium' ? 'warning' : 'outline'
+                      } className="capitalize">
+                        {task.priority} Priority
                       </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Enhanced Related Tasks Card */}
-              <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm shadow-lg shadow-primary/5 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col">
-                <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                      <FileText className="h-5 w-5 text-primary" />
+                      <Badge variant="outline" className="bg-primary/5">
+                        {task.progress}% Complete
+                      </Badge>
                     </div>
-                    <CardTitle className="text-lg">Related Tasks</CardTitle>
                   </div>
-                  <Button variant="outline" size="sm" className="gap-2 shadow-sm hover:shadow-md transition-shadow">
-                    <PlusCircle className="h-4 w-4" />
-                    Link Task
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-0 flex-1 flex flex-col">
-                  <ScrollArea className="h-[240px] custom-scrollbar">
-                    <div className="divide-y divide-border/50">
-                      {task.relatedTasks?.length > 0 ? (
-                        task.relatedTasks.map((relatedTask, i) => (
-                          <motion.div
-                            key={relatedTask.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.05 }}
-                            className="p-4 hover:bg-muted/50 transition-colors cursor-pointer group flex flex-col sm:flex-row justify-between items-start gap-2"
-                          >
-                            <div className="flex items-start gap-2 min-w-0">
-                              <Badge variant="outline" className="bg-primary/5 text-xs px-2 py-0.5 flex-shrink-0">T{relatedTask.id}</Badge>
-                              <span className="text-sm font-medium flex-1 break-words">{relatedTask.title}</span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground min-w-0">
-                              <Badge variant={
-                                relatedTask.status === 'completed' ? 'success' :
-                                  relatedTask.status === 'in_progress' ? 'warning' : 'outline'
-                              } className="capitalize">
-                                {relatedTask.status.replace('_', ' ')}
-                              </Badge>
-                              <span className="flex items-center gap-1 min-w-0">
-                                <Calendar className="h-3 w-3" />
-                                {format(new Date(relatedTask.dueDate), 'MMM d')}
-                              </span>
-                              <span className="flex items-center gap-1 min-w-0">
-                                <Users className="h-3 w-3" />
-                                {relatedTask.assignee?.name || 'N/A'}
-                              </span>
-                            </div>
-                          </motion.div>
-                        ))
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-                          <Link2 className="h-12 w-12 mb-4 text-primary/50" />
-                          <p className="text-lg font-medium">No related tasks</p>
-                          <p className="text-sm mt-1">Link tasks to show dependencies or related work.</p>
-                          <Button variant="outline" className="mt-4 gap-2">
-                            <PlusCircle className="h-4 w-4" /> Link First Task
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-
-              <TaskActivityLog activities={task.activityLog} />
+                  <TabsContent value="overview" className="space-y-6 w-full">
+                    <TaskOverview task={task} className="w-full" />
+                    <RelatedTasksCard relatedTasks={task.relatedTasks} className="w-full" />
+                    <TaskActivityLog activities={task.activityLog} className="w-full" />
+                  </TabsContent>
+                  <TabsContent value="subtasks" className="space-y-6 w-full">
+                    <SubtasksList task={task} setTask={setTask} className="w-full" />
+                  </TabsContent>
+                  <TabsContent value="files" className="space-y-6 w-full">
+                    <TaskFiles task={task} className="w-full" />
+                  </TabsContent>
+                  <TabsContent value="comments" className="space-y-6 w-full">
+                    <TaskComments task={task} className="w-full" />
+                  </TabsContent>
+                </Tabs>
+              </TooltipProvider>
             </div>
           </div>
         </div>

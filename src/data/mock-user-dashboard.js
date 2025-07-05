@@ -185,10 +185,10 @@ export const mockMemberProjects = [
     color: "bg-blue-500",
     role: "Lead Researcher",
     team: [
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Dr. Emily Chen", avatar: "/avatars/emily-chen.jpg" },
-      { name: "Mark Williams", avatar: "/avatars/mark-williams.jpg" },
-      { name: "Dr. Robert Kim", avatar: "/avatars/robert-kim.jpg" }
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Dr. Emily Chen", avatar: "EC" },
+      { name: "Mark Williams", avatar: "MW" },
+      { name: "Dr. Robert Kim", avatar: "RK" }
     ]
   },
   {
@@ -205,10 +205,10 @@ export const mockMemberProjects = [
     color: "bg-purple-500",
     role: "Scientific Advisor",
     team: [
-      { name: "Dr. Emily Chen", avatar: "/avatars/emily-chen.jpg" },
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "James Rodriguez", avatar: "/avatars/james-rodriguez.jpg" },
-      { name: "Olivia Taylor", avatar: "/avatars/olivia-taylor.jpg" }
+      { name: "Dr. Emily Chen", avatar: "EC" },
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "James Rodriguez", avatar: "JR" },
+      { name: "Olivia Taylor", avatar: "OT" }
     ]
   },
   {
@@ -225,9 +225,9 @@ export const mockMemberProjects = [
     color: "bg-green-500",
     role: "Collaborator",
     team: [
-      { name: "Mark Williams", avatar: "/avatars/mark-williams.jpg" },
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Dr. Robert Kim", avatar: "/avatars/robert-kim.jpg" }
+      { name: "Mark Williams", avatar: "MW" },
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Dr. Robert Kim", avatar: "RK" }
     ]
   },
   {
@@ -244,9 +244,9 @@ export const mockMemberProjects = [
     color: "bg-amber-500",
     role: "Researcher",
     team: [
-      { name: "Dr. Robert Kim", avatar: "/avatars/robert-kim.jpg" },
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Olivia Taylor", avatar: "/avatars/olivia-taylor.jpg" }
+      { name: "Dr. Robert Kim", avatar: "RK" },
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Olivia Taylor", avatar: "OT" }
     ]
   },
   {
@@ -263,9 +263,9 @@ export const mockMemberProjects = [
     color: "bg-gray-500",
     role: "Supervisor",
     team: [
-      { name: "James Rodriguez", avatar: "/avatars/james-rodriguez.jpg" },
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Mark Williams", avatar: "/avatars/mark-williams.jpg" }
+      { name: "James Rodriguez", avatar: "JR" },
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Mark Williams", avatar: "MW" }
     ]
   }
 ];
@@ -286,10 +286,10 @@ export const mockOwnedProjects = [
     color: "bg-indigo-500",
     isOwner: true,
     team: [
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Dr. Emily Chen", avatar: "/avatars/emily-chen.jpg" },
-      { name: "Mark Williams", avatar: "/avatars/mark-williams.jpg" },
-      { name: "Olivia Taylor", avatar: "/avatars/olivia-taylor.jpg" }
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Dr. Emily Chen", avatar: "EC" },
+      { name: "Mark Williams", avatar: "MW" },
+      { name: "Olivia Taylor", avatar: "OT" }
     ]
   },
   {
@@ -306,9 +306,9 @@ export const mockOwnedProjects = [
     color: "bg-teal-500",
     isOwner: true,
     team: [
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "James Rodriguez", avatar: "/avatars/james-rodriguez.jpg" },
-      { name: "Mark Williams", avatar: "/avatars/mark-williams.jpg" }
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "James Rodriguez", avatar: "JR" },
+      { name: "Mark Williams", avatar: "MW" }
     ]
   },
   {
@@ -325,9 +325,9 @@ export const mockOwnedProjects = [
     color: "bg-pink-500",
     isOwner: true,
     team: [
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Dr. Robert Kim", avatar: "/avatars/robert-kim.jpg" },
-      { name: "Dr. Emily Chen", avatar: "/avatars/emily-chen.jpg" }
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Dr. Robert Kim", avatar: "RK" },
+      { name: "Dr. Emily Chen", avatar: "EC" }
     ]
   },
   {
@@ -344,10 +344,10 @@ export const mockOwnedProjects = [
     color: "bg-orange-500",
     isOwner: true,
     team: [
-      { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" },
-      { name: "Olivia Taylor", avatar: "/avatars/olivia-taylor.jpg" },
-      { name: "James Rodriguez", avatar: "/avatars/james-rodriguez.jpg" },
-      { name: "Mark Williams", avatar: "/avatars/mark-williams.jpg" }
+      { name: "Dr. Sarah Johnson", avatar: "SJ" },
+      { name: "Olivia Taylor", avatar: "OT" },
+      { name: "James Rodriguez", avatar: "JR" },
+      { name: "Mark Williams", avatar: "MW" }
     ]
   }
 ];
@@ -361,7 +361,7 @@ export const mockActivities = [
     description: "Calibrate laboratory equipment",
     time: "2 hours ago",
     project: "Lab Maintenance",
-    user: { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" }
+    user: { name: "Dr. Sarah Johnson", avatar: "SJ" }
   },
   {
     id: 402,
@@ -370,7 +370,7 @@ export const mockActivities = [
     description: "Left feedback on PCR analysis results",
     time: "Yesterday",
     project: "Oncology Research",
-    user: { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" }
+    user: { name: "Dr. Sarah Johnson", avatar: "SJ" }
   },
   {
     id: 403,
@@ -379,7 +379,7 @@ export const mockActivities = [
     description: "Prepare monthly progress report",
     time: "2 days ago",
     project: "Administration",
-    user: { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" }
+    user: { name: "Dr. Sarah Johnson", avatar: "SJ" }
   },
   {
     id: 404,
@@ -388,7 +388,7 @@ export const mockActivities = [
     description: "Added research protocol documentation",
     time: "3 days ago",
     project: "Clinical Trial XYZ",
-    user: { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" }
+    user: { name: "Dr. Sarah Johnson", avatar: "SJ" }
   },
   {
     id: 405,
@@ -397,7 +397,7 @@ export const mockActivities = [
     description: "Modified deadline for antibody binding analysis",
     time: "4 days ago",
     project: "Immunology Study",
-    user: { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" }
+    user: { name: "Dr. Sarah Johnson", avatar: "SJ" }
   },
   {
     id: 406,
@@ -406,7 +406,7 @@ export const mockActivities = [
     description: "Added Dr. Emily Chen to Proteomics Study",
     time: "1 week ago",
     project: "Proteomics Study",
-    user: { name: "Dr. Sarah Johnson", avatar: "/avatars/sarah-johnson.jpg" }
+    user: { name: "Dr. Sarah Johnson", avatar: "SJ" }
   }
 ];
 
