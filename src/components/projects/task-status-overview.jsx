@@ -57,12 +57,130 @@ const CustomTooltip = ({ active, payload }) => {
     return null;
 };
 
-export function TaskStatusOverview({ tasks = [] }) {
+export function TaskStatusOverview({ project }) {
     const [activeTab, setActiveTab] = useState("overview");
-    const totalTasks = (tasks || []).reduce((sum, task) => sum + (task.value || 0), 0);
-    const totalTaskCount = (tasks || []).length;
-    const completionRate = totalTaskCount > 0 ? Math.round(((tasks[0]?.count || 0) / totalTaskCount) * 100) : 0;
-    const averageWorkload = totalTaskCount > 0 ? Math.round((tasks || []).reduce((sum, task) => sum + ((task.count || 0) / (task.total || 1) * 100), 0) / (tasks.length || 1)) : 0;
+
+    // Calculate task status breakdown from project tasks
+    const calculateTaskStatusBreakdown = () => {
+        if (!project?.tasks || project.tasks.length === 0) return [];
+
+        const statusCounts = {
+            completed: 0,
+            in_progress: 0,
+            pending: 0,
+            on_hold: 0
+        };
+
+        // Count tasks by status
+        project.tasks.forEach(task => {
+            const status = task.status?.toLowerCase() || 'pending';
+            if (statusCounts.hasOwnProperty(status)) {
+                statusCounts[status]++;
+            } else {
+                statusCounts.pending++; // Default to pending if status is unknown
+            }
+        });
+
+        const totalTasks = project.tasks.length;
+
+        return [
+            {
+                name: 'Completed',
+                count: statusCounts.completed,
+                value: totalTasks > 0 ? Math.round((statusCounts.completed / totalTasks) * 100) : 0,
+                color: '#10b981',
+                icon: CheckCircle2,
+                trendDirection: statusCounts.completed > 0 ? "up" : "down",
+                trend: statusCounts.completed > 0 ? "+5 this week" : "No tasks",
+                description: "Tasks that have been finished successfully",
+                totalTasks
+            },
+            {
+                name: 'In Progress',
+                count: statusCounts.in_progress,
+                value: totalTasks > 0 ? Math.round((statusCounts.in_progress / totalTasks) * 100) : 0,
+                color: '#3b82f6',
+                icon: Clock,
+                trendDirection: statusCounts.in_progress > 0 ? "up" : "down",
+                trend: statusCounts.in_progress > 0 ? "+3 this week" : "No tasks",
+                description: "Tasks currently being worked on",
+                totalTasks
+            },
+            {
+                name: 'Pending',
+                count: statusCounts.pending,
+                value: totalTasks > 0 ? Math.round((statusCounts.pending / totalTasks) * 100) : 0,
+                color: '#f59e0b',
+                icon: AlertCircle,
+                trendDirection: statusCounts.pending > 0 ? "down" : "up",
+                trend: statusCounts.pending > 0 ? "-2 this week" : "No tasks",
+                description: "Tasks waiting to be started",
+                totalTasks
+            },
+            {
+                name: 'On Hold',
+                count: statusCounts.on_hold,
+                value: totalTasks > 0 ? Math.round((statusCounts.on_hold / totalTasks) * 100) : 0,
+                color: '#ef4444',
+                icon: AlertCircle,
+                trendDirection: statusCounts.on_hold > 0 ? "down" : "up",
+                trend: statusCounts.on_hold > 0 ? "-1 this week" : "No tasks",
+                description: "Tasks temporarily paused",
+                totalTasks
+            }
+        ].filter(item => item.count > 0); // Only show statuses that have tasks
+    };
+
+    const tasks = calculateTaskStatusBreakdown();
+    const totalTasks = tasks.reduce((sum, task) => sum + task.value, 0);
+    const totalTaskCount = project?.tasks?.length || 0;
+    const completionRate = totalTaskCount > 0 ? Math.round((tasks.find(t => t.name === 'Completed')?.count || 0) / totalTaskCount * 100) : 0;
+    const averageWorkload = totalTaskCount > 0 ? Math.round((tasks.reduce((sum, task) => sum + task.value, 0) / tasks.length) || 0) : 0;
+
+    // Show message when no tasks are available
+    if (!project?.tasks || project.tasks.length === 0) {
+        return (
+            <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+                <CardHeader className="px-6 py-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-b border-gray-100/50">
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
+                            <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
+                                <ChartPie className="h-5 w-5 text-white" />
+                            </div>
+                            Task Status Overview
+                        </CardTitle>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                <span className="text-sm text-gray-600">No tasks available</span>
+                            </div>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 transition-colors" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Shows the distribution of tasks by their current status</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                            <ChartPie className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Tasks Available</h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md">
+                            This project doesn't have any tasks yet. Add tasks to see the status breakdown and progress analysis.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
@@ -125,7 +243,7 @@ export function TaskStatusOverview({ tasks = [] }) {
                                     <PieChart>
                                         <ChartTooltip content={<CustomTooltip />} />
                                         <Pie
-                                            data={tasks || []}
+                                            data={tasks}
                                             dataKey="value"
                                             nameKey="name"
                                             cx="50%"
@@ -136,7 +254,7 @@ export function TaskStatusOverview({ tasks = [] }) {
                                             animationDuration={1000}
                                             animationBegin={0}
                                         >
-                                            {(tasks || []).map((entry, index) => (
+                                            {tasks.map((entry, index) => (
                                                 <Cell
                                                     key={`cell-${index}`}
                                                     fill={entry.color}
@@ -153,7 +271,7 @@ export function TaskStatusOverview({ tasks = [] }) {
                             </div>
 
                             <div className="mt-6 grid grid-cols-2 gap-4 w-full">
-                                {(tasks || []).map((item, index) => (
+                                {tasks.map((item, index) => (
                                     <motion.div
                                         key={index}
                                         initial={{ opacity: 0, y: 20 }}
@@ -213,7 +331,7 @@ export function TaskStatusOverview({ tasks = [] }) {
                         </div>
 
                         <div className="space-y-4">
-                            {(tasks || []).map((item, index) => (
+                            {tasks.map((item, index) => (
                                 <motion.div
                                     key={index}
                                     initial={{ opacity: 0, y: 20 }}
@@ -233,31 +351,40 @@ export function TaskStatusOverview({ tasks = [] }) {
                                         </Badge>
                                     </div>
 
-                                    {item.assignees && item.assignees.length > 0 ? (
+                                    {project?.team && project.team.length > 0 ? (
                                         <div className="space-y-3">
-                                            {item.assignees.map((assignee, idx) => (
-                                                <div key={idx} className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-8 w-8">
-                                                            <AvatarFallback className="bg-primary/10 text-primary">
-                                                                {assignee.name.split(' ').map(n => n[0]).join('')}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
-                                                            <p className="text-sm font-medium">{assignee.name}</p>
-                                                            <p className="text-xs text-muted-foreground">{assignee.role}</p>
+                                            {project.team.map((member, idx) => {
+                                                const memberTasks = project.tasks.filter(task =>
+                                                    (task.assigneeId === member.id || task.assignee === member.name) &&
+                                                    task.status === item.name.toLowerCase().replace(' ', '_')
+                                                );
+                                                const memberProgress = memberTasks.length > 0 ?
+                                                    (memberTasks.filter(t => t.status === 'completed').length / memberTasks.length) * 100 : 0;
+
+                                                return (
+                                                    <div key={idx} className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarFallback className="bg-primary/10 text-primary">
+                                                                    {member.name.split(' ').map(n => n[0]).join('')}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
+                                                                <p className="text-sm font-medium">{member.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{member.role}</p>
+                                                            </div>
                                                         </div>
+                                                        <Progress
+                                                            value={memberProgress}
+                                                            className="w-24 h-2"
+                                                        />
                                                     </div>
-                                                    <Progress
-                                                        value={Math.random() * 100}
-                                                        className="w-24 h-2"
-                                                    />
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="text-center py-4 text-muted-foreground">
-                                            <p className="text-sm">No assignees for this status</p>
+                                            <p className="text-sm">No team members assigned to this project</p>
                                         </div>
                                     )}
                                 </motion.div>
