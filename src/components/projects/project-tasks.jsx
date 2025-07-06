@@ -96,7 +96,7 @@ const TaskPriority = ({ priority }) => {
   );
 };
 
-export function ProjectTasks({ tasks, team, onAddTask }) {
+export function ProjectTasks({ tasks, team, onAddTask, onDeleteTask }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
   const [searchQuery, setSearchQuery] = useState("")
@@ -107,6 +107,7 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
   const [sortBy, setSortBy] = useState("dueDate")
   const [sortDirection, setSortDirection] = useState("asc")
   const [selectedTasks, setSelectedTasks] = useState([])
+  const [deletingTaskId, setDeletingTaskId] = useState(null)
 
   const filteredTasks = useMemo(() => {
     return tasks?.filter(task => {
@@ -483,9 +484,22 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                               <Edit className="h-4 w-4 mr-3 text-blue-600" />
                               Edit Task
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+                            <DropdownMenuItem
+                              className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+                              onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this task?')) {
+                                  setDeletingTaskId(task.id)
+                                  try {
+                                    await onDeleteTask?.(task.id)
+                                  } finally {
+                                    setDeletingTaskId(null)
+                                  }
+                                }
+                              }}
+                              disabled={deletingTaskId === task.id}
+                            >
                               <Trash className="h-4 w-4 mr-3" />
-                              Delete Task
+                              {deletingTaskId === task.id ? 'Deleting...' : 'Delete Task'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

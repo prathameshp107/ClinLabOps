@@ -23,7 +23,7 @@ import { AddTaskModal } from "@/components/projects/add-task-modal"
 import { AddMemberModal } from "@/components/projects/add-member-modal"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UserAvatar from "@/components/tasks/user-avatar"
-import { getProjectById, exportProjectData } from "@/services/projectService"
+import { getProjectById, exportProjectData, addProjectMember, uploadProjectDocument, removeProjectTask } from "@/services/projectService"
 import { TaskStatusOverview } from "@/components/projects/task-status-overview"
 import { createTask as createProjectTask } from "@/services/taskService"
 
@@ -102,6 +102,45 @@ export default function ProjectPage({ params }) {
       alert("Failed to create task: " + err.message);
     }
   };
+
+  // Add member handler
+  const handleAddMemberToProject = async (members) => {
+    if (!project) return;
+    try {
+      const addedMembers = [];
+      for (const member of members) {
+        const added = await addProjectMember(project.id, member);
+        addedMembers.push(added);
+      }
+      setProject(prev => ({
+        ...prev,
+        team: [...(prev.team || []), ...addedMembers],
+      }));
+      setShowAddMemberModal(false);
+    } catch (err) {
+      alert("Failed to add member: " + err.message);
+    }
+  };
+
+  // Upload document handler
+  const handleUploadDocument = async (file, options) => {
+    if (!project) return;
+    const uploadedDoc = await uploadProjectDocument(project.id, file, options)
+    setProject(prev => ({
+      ...prev,
+      documents: [...(prev.documents || []), uploadedDoc],
+    }))
+  }
+
+  // Delete task handler
+  const handleDeleteTask = async (taskId) => {
+    if (!project) return;
+    await removeProjectTask(project.id, taskId)
+    setProject(prev => ({
+      ...prev,
+      tasks: prev.tasks.filter(t => t.id !== taskId),
+    }))
+  }
 
   if (loading) {
     return (
@@ -248,13 +287,13 @@ export default function ProjectPage({ params }) {
                     {project && <ProjectOverview project={project} />}
                   </TabsContent>
                   <TabsContent value="tasks" className="mt-0">
-                    {project && <ProjectTasks tasks={project.tasks} team={project.team} onAddTask={handleCreateTask} />}
+                    {project && <ProjectTasks tasks={project.tasks} team={project.team} onAddTask={handleCreateTask} onDeleteTask={handleDeleteTask} />}
                   </TabsContent>
                   <TabsContent value="team" className="mt-0">
                     {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
                   </TabsContent>
                   <TabsContent value="documents" className="mt-0">
-                    {project && <ProjectDocuments documents={project.documents} />}
+                    {project && <ProjectDocuments documents={project.documents} onUpload={handleUploadDocument} />}
                   </TabsContent>
                   <TabsContent value="timeline" className="mt-0">
                     {project && <ProjectTimeline timeline={project.timeline} />}
@@ -285,6 +324,7 @@ export default function ProjectPage({ params }) {
           open={showAddMemberModal}
           onOpenChange={setShowAddMemberModal}
           projectId={project?.id}
+          onAddMember={handleAddMemberToProject}
         />
       </div>
     </DashboardLayout>

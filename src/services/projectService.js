@@ -82,9 +82,16 @@ export async function deleteProject(id) {
  * @param {Object} memberData
  * @returns {Promise<Object>} Added member
  */
-export function addProjectMember(projectId, memberData) {
-  // In a real app, this would POST to an API
-  return Promise.resolve({ ...memberData, id: `u${Date.now()}` });
+export async function addProjectMember(projectId, memberData) {
+  const response = await fetch(`${API_URL}/projects/${projectId}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(memberData),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to add member');
+  }
+  return response.json();
 }
 
 /**
@@ -194,9 +201,31 @@ export function removeProjectDocument(projectId, documentId) {
 
 /**
  * Upload a document to a project
+ * @param {string} projectId
+ * @param {File} file
+ * @param {Object} options (optional) - { uploadedBy, tags, status }
+ * @returns {Promise<Object>} Uploaded document
  */
-export function uploadProjectDocument(projectId, file) {
-  return Promise.resolve({ projectId, file });
+export async function uploadProjectDocument(projectId, file, options = {}) {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (options.uploadedBy) formData.append('uploadedBy', options.uploadedBy);
+  if (options.status) formData.append('status', options.status);
+  if (options.tags) {
+    if (Array.isArray(options.tags)) {
+      options.tags.forEach(tag => formData.append('tags', tag));
+    } else {
+      formData.append('tags', options.tags);
+    }
+  }
+  const response = await fetch(`${API_URL}/projects/${projectId}/documents`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error('Failed to upload document');
+  }
+  return response.json();
 }
 
 /**
@@ -251,9 +280,18 @@ export function addProjectTask(projectId, taskData) {
 
 /**
  * Remove a task from a project
+ * @param {string} projectId
+ * @param {string} taskId
+ * @returns {Promise<Object>} Deleted task
  */
-export function removeProjectTask(projectId, taskId) {
-  return Promise.resolve({ projectId, taskId });
+export async function removeProjectTask(projectId, taskId) {
+  const response = await fetch(`${API_URL}/projects/${projectId}/tasks/${taskId}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to delete task');
+  }
+  return response.json();
 }
 
 /**

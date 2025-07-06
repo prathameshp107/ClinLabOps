@@ -37,7 +37,7 @@ const FileIcon = ({ type }) => {
   );
 };
 
-export function ProjectDocuments({ documents = [] }) {
+export function ProjectDocuments({ documents = [], onUpload }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
   const [searchQuery, setSearchQuery] = useState("")
@@ -53,6 +53,7 @@ export function ProjectDocuments({ documents = [] }) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState([])
   const [showStats, setShowStats] = useState(true)
+  const [uploadError, setUploadError] = useState("")
 
   const filteredDocuments = useMemo(() => {
     return documents?.filter(doc => {
@@ -153,12 +154,21 @@ export function ProjectDocuments({ documents = [] }) {
     setUploadTags(uploadTags.filter(tag => tag !== tagToRemove))
   }
 
-  const handleUpload = () => {
-    console.log('Uploading file:', selectedFile)
-    console.log('With tags:', uploadTags)
-    setIsUploadModalOpen(false)
-    setSelectedFile(null)
-    setUploadTags([])
+  const handleUpload = async () => {
+    setIsLoading(true)
+    setUploadError("")
+    try {
+      if (onUpload && selectedFile) {
+        await onUpload(selectedFile, { tags: uploadTags })
+      }
+      setIsUploadModalOpen(false)
+      setSelectedFile(null)
+      setUploadTags([])
+    } catch (err) {
+      setUploadError(err.message || "Failed to upload document")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleOpenChange = (open) => {
@@ -810,12 +820,13 @@ export function ProjectDocuments({ documents = [] }) {
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={!selectedFile}
+              disabled={!selectedFile || isLoading}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/25 disabled:opacity-50"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Upload Document
+              {isLoading ? "Uploading..." : "Upload Document"}
             </Button>
+            {uploadError && <div className="text-red-500 text-sm mt-2">{uploadError}</div>}
           </DialogFooter>
         </DialogContent>
       </Dialog>

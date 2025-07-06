@@ -283,4 +283,72 @@ exports.addProjectTask = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+};
+
+// Add a new member to a project
+exports.addProjectMember = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const memberData = req.body;
+        if (!memberData || !memberData.name) {
+            return res.status(400).json({ error: 'Member name is required' });
+        }
+        // Generate a unique member id if not provided
+        const memberId = memberData.id || `TM${Date.now()}`;
+        const newMember = { ...memberData, id: memberId };
+        const project = await Project.findById(id);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        project.team.push(newMember);
+        await project.save();
+        res.status(201).json(newMember);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Upload a document to a project
+exports.uploadProjectDocument = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const { originalname, mimetype, size, filename, path } = req.file;
+        const { uploadedBy = 'Unknown', tags = [], status = 'active' } = req.body;
+        const newDoc = {
+            id: `DOC${Date.now()}`,
+            name: originalname,
+            type: mimetype.split('/')[1] || 'file',
+            size,
+            uploadedBy,
+            uploadedAt: new Date().toISOString(),
+            tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
+            status,
+            filePath: path,
+            fileName: filename
+        };
+        const project = await Project.findById(id);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        project.documents.push(newDoc);
+        await project.save();
+        res.status(201).json(newDoc);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Delete a task from a project
+exports.deleteProjectTask = async (req, res) => {
+    try {
+        const { id, taskId } = req.params;
+        const project = await Project.findById(id);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        const taskIndex = project.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return res.status(404).json({ error: 'Task not found' });
+        const [deletedTask] = project.tasks.splice(taskIndex, 1);
+        await project.save();
+        res.json({ success: true, deletedTask });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 }; 
