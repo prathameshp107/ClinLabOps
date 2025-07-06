@@ -249,36 +249,7 @@ export default function ProjectPage({ params }) {
                   </TabsList>
 
                   {/* View Toggle */}
-                  <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-md">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('grid')}
-                            className="h-8 w-8 p-0"
-                          >
-                            <LayoutGrid className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Grid View</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setViewMode('list')}
-                            className="h-8 w-8 p-0"
-                          >
-                            <GripVertical className="h-4 w-4 rotate-90" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>List View</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
+                  
                 </div>
 
                 {/* Tab Content */}

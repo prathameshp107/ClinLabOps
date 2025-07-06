@@ -286,39 +286,6 @@ export function ProjectTasks({ tasks, team, onAddTask, onDeleteTask }) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex rounded-xl border border-gray-200/50 bg-white/60 backdrop-blur-sm overflow-hidden shadow-sm">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={viewMode === "list" ? "secondary" : "ghost"}
-                        size="icon"
-                        className={`rounded-none h-11 w-11 ${viewMode === "list" ? 'bg-blue-50 text-blue-600' : ''}`}
-                        onClick={() => setViewMode("list")}
-                      >
-                        <ListChecks className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>List View</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={viewMode === "board" ? "secondary" : "ghost"}
-                        size="icon"
-                        className={`rounded-none h-11 w-11 border-l border-gray-200/50 ${viewMode === "board" ? 'bg-blue-50 text-blue-600' : ''}`}
-                        onClick={() => setViewMode("board")}
-                      >
-                        <LayoutGrid className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Board View</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
               <Button
                 size="sm"
                 onClick={() => setIsAddTaskModalOpen(true)}
