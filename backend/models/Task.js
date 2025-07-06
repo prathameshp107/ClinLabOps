@@ -49,6 +49,7 @@ const TaskSchema = new mongoose.Schema({
   labels: [{ type: String }],
   attachments: [{ type: String }],
   projectId: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
+  customId: { type: String }, // Pretty task ID (e.g., LMS - 1)
   subtasks: [SubtaskSchema],
   comments: [CommentSchema],
   files: [FileSchema],

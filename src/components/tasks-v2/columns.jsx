@@ -43,12 +43,12 @@ export const columns = [
     enableHiding: false,
   },
   {
-    accessorKey: "id",
+    accessorKey: "customId",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Task ID" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px] font-mono text-sm">{row.getValue("id")}</div>
+      <div className="w-[80px] font-mono text-sm">{row.getValue("customId") || row.getValue("id")}</div>
     ),
     enableSorting: true,
     enableHiding: false,

@@ -135,6 +135,13 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
                         {/* Task Meta - improved layout and value highlighting */}
                         <div className="space-y-3 text-sm bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 mb-2 border border-gray-100 dark:border-gray-800">
                             <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                {/* Task ID */}
+                                <div className="flex items-center text-muted-foreground">
+                                    <span className="font-mono text-xs">Task ID</span>
+                                </div>
+                                <div className="flex items-center justify-end font-mono text-xs text-gray-700 dark:text-gray-200">
+                                    {task.id}
+                                </div>
                                 {/* Due */}
                                 <div className="flex items-center text-muted-foreground">
                                     <Calendar className="h-4 w-4 mr-2 opacity-70" />
@@ -170,6 +177,17 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
                                 </div>
                                 <div className="flex items-center justify-end font-semibold text-gray-800 dark:text-gray-100">
                                     <UserAvatar user={task.assignedTo} size="sm" />
+                                    <span className="ml-2">{task.assignedTo?.name || 'Unassigned'}</span>
+                                </div>
+                                {/* Status */}
+                                <div className="flex items-center text-muted-foreground">
+                                    <CheckCircle className="h-4 w-4 mr-2 opacity-70" />
+                                    <span>Status</span>
+                                </div>
+                                <div className="flex items-center justify-end font-semibold text-gray-700 dark:text-gray-200">
+                                    <span className={cn("px-2 py-1 rounded-full text-xs font-bold", getStatusColor(task.status))}>
+                                        {task.status?.replace('-', ' ') || 'No status'}
+                                    </span>
                                 </div>
                                 {/* Project */}
                                 <div className="flex items-center text-muted-foreground">

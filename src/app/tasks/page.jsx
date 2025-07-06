@@ -3,10 +3,17 @@
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Filter, Calendar, BarChart2, Users, SlidersHorizontal, RefreshCw, AlertCircle, Clock, CheckCircle2, Search, OctagonAlert, List, Grid, PlusCircle, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Calendar as CalendarIcon, Folder, Target, Flag, User, Sparkles } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker"
 
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTable } from "@/components/tasks-v2/data-table"
@@ -21,7 +28,7 @@ import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { getTasks, createTask } from "@/services/taskService"
-import { AddTaskModal } from "@/components/projects/add-task-modal"
+import { getProjects, getProjectById } from "@/services/projectService"
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
@@ -36,12 +43,68 @@ export default function TasksPage() {
   const [showAddTaskModal, setShowAddTaskModal] = React.useState(false)
 
   const [tasks, setTasks] = React.useState([]);
+  const [projects, setProjects] = React.useState([]);
+  const [selectedProjectId, setSelectedProjectId] = React.useState("");
+  const [selectedProject, setSelectedProject] = React.useState(null);
+  const [team, setTeam] = React.useState([]);
+
+  // Helper to generate acronym from project name (letters only, no brackets)
+  function getProjectAcronym(name) {
+    if (!name) return '';
+    return name
+      .replace(/[^a-zA-Z\s]/g, '') // Remove non-letters
+      .split(/\s+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  // Helper to get the next custom task number for a project
+  function getNextTaskNumberForProject(tasks, projectAcronym) {
+    const numbers = tasks
+      .filter(t => t.customId && t.customId.startsWith(projectAcronym + ' - '))
+      .map(t => parseInt(t.customId.split(' - ')[1], 10))
+      .filter(n => !isNaN(n));
+    return numbers.length ? Math.max(...numbers) + 1 : 1;
+  }
+
+  function mapTask(task, projects = [], allTasks = []) {
+    const project = projects.find(p => (p._id || p.id) === (task.projectId || task.project?._id || task.project?.id));
+    let customId = undefined;
+    if (project && project.name) {
+      const acronym = getProjectAcronym(project.name);
+      // If the task already has a customId, keep it; otherwise, generate
+      if (task.customId) {
+        customId = task.customId;
+      } else {
+        // Find the next available number for this project
+        const nextNum = getNextTaskNumberForProject(allTasks, acronym);
+        customId = `${acronym} - ${nextNum}`;
+      }
+    }
+    return {
+      ...task,
+      id: task._id || task.id,
+      customId,
+      assignedTo: task.assignee ? { name: task.assignee } : { name: 'Unassigned' },
+      project: project || { name: '-' },
+    };
+  }
 
   const fetchTasksData = React.useCallback(async () => {
     try {
       setError(null)
-      const data = await getTasks(selectedStatus !== 'all' ? { status: selectedStatus } : {});
-      setTasks(data);
+      const [data, allProjects] = await Promise.all([
+        getTasks(selectedStatus !== 'all' ? { status: selectedStatus } : {}),
+        getProjects()
+      ]);
+      setProjects(allProjects);
+      // Map all tasks and assign customId
+      let mappedTasks = [];
+      for (const task of data) {
+        mappedTasks.push(mapTask(task, allProjects, mappedTasks));
+      }
+      setTasks(mappedTasks);
       setLastRefreshed(new Date());
     } catch (err) {
       console.error("Error fetching tasks:", err);
@@ -254,14 +317,53 @@ export default function TasksPage() {
 
   const handleAddTask = async (taskData) => {
     try {
-      const newTask = await createTask(taskData);
-      setTasks(prev => [...prev, newTask]);
+      let customId = undefined;
+      let project = null;
+      if (taskData.projectId) {
+        const allProjects = projects.length ? projects : await getProjects();
+        project = allProjects.find(p => (p._id || p.id) === taskData.projectId);
+        if (project && project.name) {
+          const acronym = getProjectAcronym(project.name);
+          // Use current tasks to determine next customId
+          const nextNum = getNextTaskNumberForProject(tasks, acronym);
+          customId = `${acronym} - ${nextNum}`;
+        }
+      }
+      const newTask = await createTask({ ...taskData, customId });
+      const allProjects = projects.length ? projects : await getProjects();
+      setTasks(prev => {
+        const mapped = mapTask(newTask, allProjects, prev);
+        return [...prev, mapped];
+      });
       setShowAddTaskModal(false);
       toast({ title: "Task created", description: `Task '${newTask.title}' was created.` });
     } catch (err) {
       toast({ title: "Error creating task", description: err.message, variant: "destructive" });
     }
   };
+
+  // Fetch all projects when modal opens
+  React.useEffect(() => {
+    if (showAddTaskModal) {
+      getProjects().then(setProjects);
+      setSelectedProjectId("");
+      setSelectedProject(null);
+      setTeam([]);
+    }
+  }, [showAddTaskModal]);
+
+  // Fetch selected project details (including team)
+  React.useEffect(() => {
+    if (selectedProjectId) {
+      getProjectById(selectedProjectId).then((proj) => {
+        setSelectedProject(proj);
+        setTeam(proj.team || []);
+      });
+    } else {
+      setSelectedProject(null);
+      setTeam([]);
+    }
+  }, [selectedProjectId]);
 
   if (error) {
     return (
@@ -483,7 +585,7 @@ export default function TasksPage() {
         </TooltipProvider>
       )}
 
-      <AddTaskModal
+      <AddTaskModalForTasks
         open={showAddTaskModal}
         onOpenChange={setShowAddTaskModal}
         onAddTask={handleAddTask}
@@ -536,4 +638,265 @@ function Trash2(props) {
       <line x1="14" x2="14" y1="11" y2="17" />
     </svg>
   )
+}
+
+// Custom AddTaskModal for tasks page (inline definition)
+function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
+  const [formData, setFormData] = React.useState({
+    title: "",
+    description: "",
+    assignee: "",
+    priority: "",
+    dueDate: null,
+    status: "todo",
+    labels: [],
+    attachments: []
+  });
+  const [focusedField, setFocusedField] = React.useState(null);
+  const [projects, setProjects] = React.useState([]);
+  const [selectedProjectId, setSelectedProjectId] = React.useState("");
+  const [team, setTeam] = React.useState([]);
+  React.useEffect(() => {
+    if (open) {
+      setFormData({
+        title: "",
+        description: "",
+        assignee: "",
+        priority: "",
+        dueDate: null,
+        status: "todo",
+        labels: [],
+        attachments: []
+      });
+      setSelectedProjectId("");
+      setTeam([]);
+      getProjects().then(setProjects);
+    }
+  }, [open]);
+  React.useEffect(() => {
+    if (selectedProjectId) {
+      getProjectById(selectedProjectId).then((proj) => {
+        setTeam(proj.team || []);
+      });
+    } else {
+      setTeam([]);
+    }
+  }, [selectedProjectId]);
+  const handleSubmit = () => {
+    if (!formData.title.trim() || !selectedProjectId) return;
+    let taskToSend = { ...formData, projectId: selectedProjectId };
+    if (formData.assignee && team.length) {
+      const member = team.find(m => m.id === formData.assignee);
+      if (member) {
+        taskToSend.assignee = member.name;
+      }
+    }
+    onAddTask(taskToSend);
+    onOpenChange(false);
+  };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && e.metaKey) {
+      handleSubmit();
+    }
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl">
+        <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/50">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+          <div className="relative">
+            <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              Create New Task
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-600 mt-2 flex items-center gap-1">
+              <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">⌘</kbd>
+              <span>+</span>
+              <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">Enter</kbd>
+              <span className="ml-1">to save</span>
+            </DialogDescription>
+          </div>
+        </DialogHeader>
+        <div className="px-6 py-6 space-y-6 overflow-auto">
+          {/* Project Selector */}
+          <div className="space-y-3">
+            <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Folder className="h-4 w-4 text-indigo-500" />
+              Project*
+            </Label>
+            <Select
+              value={selectedProjectId}
+              onValueChange={setSelectedProjectId}
+            >
+              <SelectTrigger id="task-project" className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200">
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                {projects.map((proj) => (
+                  <SelectItem key={proj.id || proj._id} value={proj.id || proj._id}>
+                    {proj.name || proj.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Title Input */}
+          <div className="space-y-3">
+            <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Target className="h-4 w-4 text-indigo-500" />
+              Title*
+            </Label>
+            <div className="relative">
+              <Input
+                id="task-name"
+                placeholder="What needs to be done?"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setFocusedField('title')}
+                onBlur={() => setFocusedField(null)}
+                className={cn(
+                  "h-11 text-base border-2 transition-all duration-200 bg-white/50",
+                  focusedField === 'title'
+                    ? "border-indigo-300 shadow-lg shadow-indigo-100"
+                    : "border-slate-200 hover:border-slate-300"
+                )}
+              />
+              {focusedField === 'title' && (
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-md blur-sm opacity-50"></div>
+              )}
+            </div>
+          </div>
+          {/* Description */}
+          <div className="space-y-3">
+            <Label htmlFor="task-description" className="text-sm font-medium text-slate-700">
+              Description
+            </Label>
+            <Textarea
+              id="task-description"
+              placeholder="Add more details about this task..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onFocus={() => setFocusedField('description')}
+              onBlur={() => setFocusedField(null)}
+              className={cn(
+                "min-h-[100px] resize-none border-2 transition-all duration-200 bg-white/50",
+                focusedField === 'description'
+                  ? "border-indigo-300 shadow-lg shadow-indigo-100"
+                  : "border-slate-200 hover:border-slate-300"
+              )}
+            />
+          </div>
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Assignee */}
+            <div className="space-y-3">
+              <Label htmlFor="task-assignee" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <User className="h-4 w-4 text-indigo-500" />
+                Assignee
+              </Label>
+              <Select
+                value={formData.assignee}
+                onValueChange={(value) => setFormData({ ...formData, assignee: value })}
+                disabled={!selectedProjectId || team.length === 0}
+              >
+                <SelectTrigger
+                  id="task-assignee"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                >
+                  <SelectValue placeholder={selectedProjectId ? (team.length ? "Select team member" : "No team members") : "Select project first"} />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                  {team.map((member, i) => (
+                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                          {member.name.charAt(0)}
+                        </div>
+                        {member.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Priority */}
+            <div className="space-y-3">
+              <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Flag className="h-4 w-4 text-indigo-500" />
+                Priority
+              </Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value) => setFormData({ ...formData, priority: value })}
+              >
+                <SelectTrigger
+                  id="task-priority"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                >
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Status */}
+            <div className="space-y-3">
+              <Label htmlFor="task-status" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-indigo-500" />
+                Status
+              </Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger
+                  id="task-status"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                >
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {/* Due Date */}
+          <div className="space-y-3">
+            <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-indigo-500" />
+              Due Date
+            </Label>
+            <DatePicker
+              selectedDate={formData.dueDate}
+              onDateChange={(date) => setFormData({ ...formData, dueDate: date })}
+              placeholder="Pick a due date"
+              className="w-full h-11"
+              popoverClassName="min-w-[320px]"
+              disabled={false}
+              showClearButton={true}
+              showTodayButton={true}
+              enableYearNavigation={true}
+              mode="single"
+            />
+          </div>
+        </div>
+        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-slate-200/50 flex justify-end">
+          <Button onClick={handleSubmit} disabled={!formData.title.trim() || !selectedProjectId}>
+            Create Task
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
