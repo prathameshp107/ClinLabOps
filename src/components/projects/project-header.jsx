@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "@/components/ui/dropdown-menu"
 
 const AvatarGroup = ({ children }) => {
   return (
@@ -35,7 +35,7 @@ const StatItem = ({ icon: Icon, label, value, className = "", trend = null }) =>
   </div>
 );
 
-export function ProjectHeader({ project, onAddTask, onAddMember }) {
+export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
@@ -112,7 +112,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember }) {
                   <MoreHorizontal className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 p-2 bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-2xl">
+              <DropdownMenuContent align="end" className="w-64 p-2 bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-2xl overflow-visible">
                 <DropdownMenuItem onClick={onAddTask} className="text-sm py-3 px-3 rounded-xl hover:bg-blue-50 transition-colors">
                   <ListTodo className="h-4 w-4 mr-3 text-blue-600" />
                   Add Task
@@ -130,11 +130,18 @@ export function ProjectHeader({ project, onAddTask, onAddMember }) {
                   <Share className="h-4 w-4 mr-3 text-indigo-600" />
                   Share Project
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-gray-50 transition-colors">
-                  <Download className="h-4 w-4 mr-3 text-gray-600" />
-                  Export Data
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-2 bg-gray-200/50" />
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="text-sm py-3 px-3 rounded-xl hover:bg-gray-50 transition-colors flex items-center">
+                    <Download className="h-4 w-4 mr-3 text-gray-600" />
+                    Export Data
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="min-w-[180px] bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-2xl z-[60]">
+                    <DropdownMenuItem onClick={() => onExport && onExport('csv')} className="text-sm px-4 py-2 hover:bg-blue-50 rounded-t-xl">Export as CSV</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onExport && onExport('xlsx')} className="text-sm px-4 py-2 hover:bg-green-50">Export as Excel</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onExport && onExport('pdf')} className="text-sm px-4 py-2 hover:bg-red-50">Export as PDF</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onExport && onExport('json')} className="text-sm px-4 py-2 hover:bg-gray-50 rounded-b-xl">Export as JSON</DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors">
                   <Trash className="h-4 w-4 mr-3" />
                   Delete Project

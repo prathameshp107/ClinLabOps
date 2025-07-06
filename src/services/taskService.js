@@ -19,13 +19,27 @@ export function getTaskById(id) {
 }
 
 /**
- * Create a new task
+ * Create a new task for a project
+ * @param {string} projectId
  * @param {Object} taskData
  * @returns {Promise<Object>} Created task
  */
-export function createTask(taskData) {
-    const newTask = { ...taskData, id: `t${Date.now()}` };
-    return Promise.resolve(newTask);
+export async function createTask(projectId, taskData) {
+    if (!projectId) {
+        // fallback to mock
+        const newTask = { ...taskData, id: `t${Date.now()}` };
+        return Promise.resolve(newTask);
+    }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const response = await fetch(`${API_URL}/projects/${projectId}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData),
+    });
+    if (!response.ok) {
+        throw new Error('Failed to create task');
+    }
+    return response.json();
 }
 
 /**

@@ -384,4 +384,32 @@ export function getProjectPerformance(projectId) {
  */
 export function getProjectReports(projectId) {
   return Promise.resolve([]);
+}
+
+/**
+ * Export project data in the specified format
+ * @param {string} id - Project ID
+ * @param {string} format - Export format (csv, xlsx, pdf, json)
+ */
+export async function exportProjectData(id, format = 'json') {
+  const response = await fetch(`${API_URL}/projects/${id}/export?format=${format}`);
+  if (!response.ok) {
+    throw new Error('Failed to export project data');
+  }
+  // Get filename from Content-Disposition header
+  const disposition = response.headers.get('Content-Disposition');
+  let filename = `project_${id}.${format}`;
+  if (disposition && disposition.includes('filename=')) {
+    filename = disposition.split('filename=')[1].replace(/"/g, '').trim();
+  }
+  const blob = await response.blob();
+  // Trigger file download
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 } 

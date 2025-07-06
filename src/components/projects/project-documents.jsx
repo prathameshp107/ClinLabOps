@@ -227,7 +227,7 @@ export function ProjectDocuments({ documents = [] }) {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {/* Enhanced Header Section */}
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
@@ -246,7 +246,7 @@ export function ProjectDocuments({ documents = [] }) {
                 </div>
               </div>
             </div>
-          </div>
+        </div>
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
@@ -257,15 +257,15 @@ export function ProjectDocuments({ documents = [] }) {
               <BarChart3 className="h-4 w-4 mr-2" />
               {showStats ? 'Hide' : 'Show'} Stats
             </Button>
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/25 border-0"
-              onClick={() => handleOpenChange(true)}
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Upload Document
-            </Button>
-          </div>
+        <Button
+          size="lg"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/25 border-0"
+          onClick={() => handleOpenChange(true)}
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Upload Document
+        </Button>
+      </div>
         </div>
 
         {/* Document Statistics */}
@@ -423,7 +423,7 @@ export function ProjectDocuments({ documents = [] }) {
           </div>
         </CardContent>
       </Card>
-
+      
       {/* Documents List */}
       <Card className="bg-white/70 backdrop-blur-sm border border-slate-200/50 shadow-xl shadow-slate-900/5 overflow-hidden">
         <CardContent className="p-0">
@@ -509,12 +509,12 @@ export function ProjectDocuments({ documents = [] }) {
                   ))}
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100/80">
-                  {paginatedDocuments.map((doc, i) => (
-                    <div key={doc.id} className="group flex items-center justify-between px-6 py-5 hover:bg-gradient-to-r hover:from-slate-50/80 hover:to-blue-50/30 transition-all duration-200">
-                      <div className="flex items-center gap-4 flex-1">
+            <div className="divide-y divide-slate-100/80">
+              {paginatedDocuments.map((doc, i) => (
+                <div key={doc.id} className="group flex items-center justify-between px-6 py-5 hover:bg-gradient-to-r hover:from-slate-50/80 hover:to-blue-50/30 transition-all duration-200">
+                  <div className="flex items-center gap-4 flex-1">
                         <div className="relative">
-                          <FileIcon type={doc.type} />
+                    <FileIcon type={doc.type} />
                           {doc.status === 'archived' && (
                             <div className="absolute -top-1 -right-1 p-1 bg-amber-100 rounded-full">
                               <Archive className="h-3 w-3 text-amber-600" />
@@ -526,15 +526,15 @@ export function ProjectDocuments({ documents = [] }) {
                             </div>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-base font-semibold text-slate-900 truncate">
-                              {doc.name}
-                            </h3>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-base font-semibold text-slate-900 truncate">
+                          {doc.name}
+                        </h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
+                        <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded-full">
                                 {Math.round(doc.size / 1024)} KB
-                              </span>
+                        </span>
                               {doc.status && (
                                 <Badge
                                   variant="outline"
@@ -548,16 +548,16 @@ export function ProjectDocuments({ documents = [] }) {
                                 </Badge>
                               )}
                             </div>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-3 text-sm text-slate-600 mb-3">
-                            <span className="flex items-center gap-1">
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 text-sm text-slate-600 mb-3">
+                        <span className="flex items-center gap-1">
                               <User className="h-3 w-3" />
-                              <span className="font-medium text-slate-900">{doc.uploadedBy}</span>
-                            </span>
-                            <span className="text-slate-400">•</span>
+                          <span className="font-medium text-slate-900">{doc.uploadedBy}</span>
+                        </span>
+                        <span className="text-slate-400">•</span>
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
-                              <span>{doc.uploadedAt}</span>
+                        <span>{doc.uploadedAt}</span>
                             </span>
                             {doc.lastModified && (
                               <>
@@ -565,22 +565,22 @@ export function ProjectDocuments({ documents = [] }) {
                                 <span className="text-xs text-slate-500">Modified {doc.lastModified}</span>
                               </>
                             )}
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {doc.tags?.map((tag, tagIndex) => (
-                              <Badge
-                                key={tagIndex}
-                                variant="secondary"
-                                className="bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 border-slate-300/50 px-3 py-1 text-xs font-medium rounded-full hover:from-blue-100 hover:to-blue-200 hover:text-blue-800 transition-colors"
-                              >
-                                <Tag className="h-3 w-3 mr-1" />
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
                       </div>
-                      <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <div className="flex flex-wrap gap-2">
+                        {doc.tags?.map((tag, tagIndex) => (
+                          <Badge
+                            key={tagIndex}
+                            variant="secondary"
+                            className="bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 border-slate-300/50 px-3 py-1 text-xs font-medium rounded-full hover:from-blue-100 hover:to-blue-200 hover:text-blue-800 transition-colors"
+                          >
+                                <Tag className="h-3 w-3 mr-1" />
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                         <div className="flex items-center gap-1">
                           <Button
                             variant="outline"
@@ -590,25 +590,25 @@ export function ProjectDocuments({ documents = [] }) {
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
+                    <Button
+                      variant="outline"
+                      size="sm"
                             className="h-9 px-3 text-sm border-slate-200 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors"
-                          >
+                    >
                             <Download className="h-4 w-4 mr-1" />
-                            Download
-                          </Button>
+                      Download
+                    </Button>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-9 w-9 rounded-lg hover:bg-slate-100 transition-colors"
-                            >
-                              <MoreHorizontal className="h-5 w-5 text-slate-500" />
-                            </Button>
-                          </DropdownMenuTrigger>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 w-9 rounded-lg hover:bg-slate-100 transition-colors"
+                        >
+                          <MoreHorizontal className="h-5 w-5 text-slate-500" />
+                        </Button>
+                      </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56 bg-white/95 backdrop-blur-sm border-slate-200/50 shadow-xl rounded-xl p-2">
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-blue-50 transition-colors">
                               <Eye className="h-4 w-4 mr-3 text-blue-600" />
@@ -625,21 +625,21 @@ export function ProjectDocuments({ documents = [] }) {
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-amber-50 transition-colors">
                               <Copy className="h-4 w-4 mr-3 text-amber-600" />
                               Copy Link
-                            </DropdownMenuItem>
+                        </DropdownMenuItem>
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-indigo-50 transition-colors">
                               <Edit className="h-4 w-4 mr-3 text-indigo-600" />
                               Edit Details
-                            </DropdownMenuItem>
+                        </DropdownMenuItem>
                             <DropdownMenuSeparator className="my-2 bg-slate-200/50" />
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
-                              <Trash className="h-4 w-4 mr-3" />
+                          <Trash className="h-4 w-4 mr-3" />
                               Delete Document
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
                 </div>
               )}
               {totalPages > 1 && (
@@ -695,11 +695,11 @@ export function ProjectDocuments({ documents = [] }) {
                 }
               </p>
               <div className="flex items-center gap-4">
-                <Button
+              <Button
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-500/25 px-6 py-3"
-                  onClick={() => handleOpenChange(true)}
-                >
-                  <Plus className="h-5 w-5 mr-2" />
+                onClick={() => handleOpenChange(true)}
+              >
+                <Plus className="h-5 w-5 mr-2" />
                   Upload Document
                 </Button>
                 {(searchQuery || typeFilter !== 'all' || statusFilter !== 'all') && (
@@ -714,7 +714,7 @@ export function ProjectDocuments({ documents = [] }) {
                   >
                     <X className="h-4 w-4 mr-2" />
                     Clear Filters
-                  </Button>
+              </Button>
                 )}
               </div>
             </div>

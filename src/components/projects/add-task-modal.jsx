@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/utils"
 
 export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     title: "",
     description: "",
     assignee: "",
@@ -36,13 +36,28 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
     status: "todo",
     labels: [],
     attachments: []
-  })
-
+  }
+  const [formData, setFormData] = useState(initialFormData)
   const [focusedField, setFocusedField] = useState(null)
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      setFormData(initialFormData)
+    }
+  }, [open])
 
   const handleSubmit = () => {
     if (!formData.title.trim()) return
-    onAddTask(formData)
+    let taskToSend = { ...formData }
+    // Convert assignee ID to name if possible
+    if (formData.assignee && project?.team) {
+      const member = project.team.find(m => m.id === formData.assignee)
+      if (member) {
+        taskToSend.assignee = member.name
+      }
+    }
+    onAddTask(taskToSend)
     onOpenChange(false)
   }
 

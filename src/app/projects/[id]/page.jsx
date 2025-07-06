@@ -23,8 +23,9 @@ import { AddTaskModal } from "@/components/projects/add-task-modal"
 import { AddMemberModal } from "@/components/projects/add-member-modal"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UserAvatar from "@/components/tasks/user-avatar"
-import { getProjectById } from "@/services/projectService"
+import { getProjectById, exportProjectData } from "@/services/projectService"
 import { TaskStatusOverview } from "@/components/projects/task-status-overview"
+import { createTask as createProjectTask } from "@/services/taskService"
 
 export default function ProjectPage({ params }) {
   const { id } = params;
@@ -36,6 +37,7 @@ export default function ProjectPage({ params }) {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
+  const [exporting, setExporting] = useState(false);
 
   // Add useEffect to fetch project data
   useEffect(() => {
@@ -70,6 +72,35 @@ export default function ProjectPage({ params }) {
 
   const handleAddMember = () => {
     setShowAddMemberModal(true);
+  };
+
+  // Export handler
+  const handleExport = async (format) => {
+    if (!project) return;
+    setExporting(true);
+    try {
+      await exportProjectData(project.id, format);
+      // Optionally show a toast/alert for success
+      alert(`Exported project "${project.name}" as ${format.toUpperCase()}`);
+    } catch (err) {
+      alert(`Failed to export project: ${err.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Real backend-integrated task creation
+  const handleCreateTask = async (taskData) => {
+    if (!project) return;
+    try {
+      const newTask = await createProjectTask(project.id, taskData);
+      setProject(prev => ({
+        ...prev,
+        tasks: [...(prev.tasks || []), newTask],
+      }));
+    } catch (err) {
+      alert("Failed to create task: " + err.message);
+    }
   };
 
   if (loading) {
@@ -129,6 +160,7 @@ export default function ProjectPage({ params }) {
               project={project}
               onAddTask={handleAddTask}
               onAddMember={handleAddMember}
+              onExport={handleExport}
             />
           </div>
         </div>
@@ -216,7 +248,7 @@ export default function ProjectPage({ params }) {
                     {project && <ProjectOverview project={project} />}
                   </TabsContent>
                   <TabsContent value="tasks" className="mt-0">
-                    {project && <ProjectTasks tasks={project.tasks} team={project.team} onAddTask={handleAddTask} />}
+                    {project && <ProjectTasks tasks={project.tasks} team={project.team} onAddTask={handleCreateTask} />}
                   </TabsContent>
                   <TabsContent value="team" className="mt-0">
                     {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
@@ -245,7 +277,8 @@ export default function ProjectPage({ params }) {
         <AddTaskModal
           open={showAddTaskModal}
           onOpenChange={setShowAddTaskModal}
-          projectId={project?.id}
+          project={project}
+          onAddTask={handleCreateTask}
         />
 
         <AddMemberModal

@@ -7,18 +7,23 @@
         "start": "node app.js",
         "test": "jest",
         "seed": "node scripts/seed-project-data.js",
-        "seed:dev": "set MONGODB_URI=mongodb://localhost:27017/labtasker && node scripts/seed-project-data.js"
+        "seed:dev": "set MONGODB_URI=mongodb://localhost:27017/labtasker && node scripts/seed-project-data.js",
+        "dev": "nodemon app.js"
     },
     "dependencies": {
         "bcrypt": "^6.0.0",
         "cors": "^2.8.5",
         "dotenv": "^17.0.0",
+        "exceljs": "^4.4.0",
         "express": "^5.1.0",
+        "json2csv": "^6.0.0-alpha.2",
         "jsonwebtoken": "^9.0.2",
-        "mongoose": "^8.16.1"
+        "mongoose": "^8.16.1",
+        "pdfkit": "^0.17.1"
     },
     "devDependencies": {
         "jest": "^30.0.3",
+        "nodemon": "^3.1.10",
         "supertest": "^7.1.1"
     }
 }
