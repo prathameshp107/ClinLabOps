@@ -34,6 +34,9 @@ app.use('/api/auth', authRouter);
 const activitiesRouter = require('./routes/activities');
 app.use('/api/activities', activitiesRouter);
 
+// Register tasks route
+app.use('/api/tasks', require('./routes/tasks'));
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;

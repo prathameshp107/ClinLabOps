@@ -54,8 +54,10 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
 
     if (!tasks || tasks.length === 0) {
         return (
-            <div className="text-center py-8 text-muted-foreground">
-                No tasks found
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <svg width="64" height="64" fill="none" viewBox="0 0 24 24" className="mb-4 opacity-60"><path d="M7 7h10M7 11h6m-6 4h10M5 5v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <div className="text-lg font-semibold">No tasks available</div>
+                <div className="text-sm mt-1">You have not created any tasks yet. Click <b>New Task</b> to get started!</div>
             </div>
         )
     }

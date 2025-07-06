@@ -20,10 +20,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { mockTasks } from "@/data/tasks-data"
-
-// Mock data for tasks
-const mockTasksData = mockTasks;
+import { getTasks, createTask } from "@/services/taskService"
+import { AddTaskModal } from "@/components/projects/add-task-modal"
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
@@ -35,65 +33,18 @@ export default function TasksPage() {
   const [selectedTasks, setSelectedTasks] = React.useState([])
   const [selectedTask, setSelectedTask] = React.useState(null)
   const [showTaskDetails, setShowTaskDetails] = React.useState(false)
-  
-  const [tasks, setTasks] = React.useState(() => {
-    // Transform mockTasks to processedTasks shape
-    return mockTasksData.map(task => ({
-      id: task._id || task.id,
-      title: task.title || task.name,
-      description: task.description,
-      status: task.status,
-      priority: task.priority,
-      dueDate: task.dueDate,
-      assignedTo: {
-        id: task.assignedTo?.id || task.assigneeId,
-        name: task.assignedTo?.name || task.assignedToName,
-        avatar: task.assignedTo?.avatar || "/avatars/01.png"
-      },
-      project: {
-        id: task.experiment || task.experimentId,
-        name: task.experimentName
-      },
-      createdAt: task.createdAt
-    }));
-  });
+  const [showAddTaskModal, setShowAddTaskModal] = React.useState(false)
+
+  const [tasks, setTasks] = React.useState([]);
 
   const fetchTasksData = React.useCallback(async () => {
     try {
       setError(null)
-
-      // Use mock data instead of API call
-      let filteredTasks = [...mockTasksData];
-
-      // Apply status filter
-      if (selectedStatus !== 'all') {
-        filteredTasks = filteredTasks.filter(task => task.status === selectedStatus);
-      }
-
-      // Transform to match expected format
-      const processedTasks = filteredTasks.map(task => ({
-        id: task._id || task.id,
-        title: task.title || task.name,
-        description: task.description,
-        status: task.status,
-        priority: task.priority,
-        dueDate: task.dueDate,
-        assignedTo: {
-          id: task.assignedTo?.id || task.assigneeId,
-          name: task.assignedTo?.name || task.assignedToName,
-          avatar: task.assignedTo?.avatar || "/avatars/01.png"
-        },
-        project: {
-          id: task.experiment || task.experimentId,
-          name: task.experimentName
-        },
-        createdAt: task.createdAt
-      }));
-
-      setTasks(processedTasks);
+      const data = await getTasks(selectedStatus !== 'all' ? { status: selectedStatus } : {});
+      setTasks(data);
       setLastRefreshed(new Date());
     } catch (err) {
-      console.error("Error processing tasks:", err);
+      console.error("Error fetching tasks:", err);
       setError("Failed to load tasks. Please try again later.");
     } finally {
       setIsRefreshing(false);
@@ -233,8 +184,8 @@ export default function TasksPage() {
       console.log('Edit task:', task.id)
     } else if (action === 'statusChange') {
       // Handle status change
-      setTasks(prev => 
-        prev.map(t => 
+      setTasks(prev =>
+        prev.map(t =>
           t.id === task.id ? { ...t, status: task.status } : t
         )
       )
@@ -261,8 +212,8 @@ export default function TasksPage() {
         return {
           ...col,
           cell: ({ row }) => (
-            <DataTableRowActions 
-              row={row} 
+            <DataTableRowActions
+              row={row}
               onView={(task) => {
                 setSelectedTask(task);
                 setShowTaskDetails(true);
@@ -283,8 +234,8 @@ export default function TasksPage() {
                 }
               }}
               onStatusChange={(taskId, status) => {
-                setTasks(prev => 
-                  prev.map(t => 
+                setTasks(prev =>
+                  prev.map(t =>
                     t.id === taskId ? { ...t, status } : t
                   )
                 );
@@ -300,6 +251,17 @@ export default function TasksPage() {
       return col;
     });
   }, [setTasks, setSelectedTask, setShowTaskDetails])
+
+  const handleAddTask = async (taskData) => {
+    try {
+      const newTask = await createTask(taskData);
+      setTasks(prev => [...prev, newTask]);
+      setShowAddTaskModal(false);
+      toast({ title: "Task created", description: `Task '${newTask.title}' was created.` });
+    } catch (err) {
+      toast({ title: "Error creating task", description: err.message, variant: "destructive" });
+    }
+  };
 
   if (error) {
     return (
@@ -337,9 +299,8 @@ export default function TasksPage() {
                       Manage and track your laboratory tasks
                     </p>
                   </div>
-                  <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Task
+                  <Button className="sm:w-auto w-full" onClick={() => setShowAddTaskModal(true)}>
+                    <Plus className="mr-2 h-4 w-4" /> New Task
                   </Button>
                 </div>
 
@@ -499,7 +460,7 @@ export default function TasksPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Task Details Dialog */}
       {selectedTask && (
         <TooltipProvider>
@@ -521,6 +482,12 @@ export default function TasksPage() {
           />
         </TooltipProvider>
       )}
+
+      <AddTaskModal
+        open={showAddTaskModal}
+        onOpenChange={setShowAddTaskModal}
+        onAddTask={handleAddTask}
+      />
     </DashboardLayout>
   )
 }

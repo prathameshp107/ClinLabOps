@@ -1,11 +1,17 @@
 import { mockTasks, taskTemplates, mockTaskUsers, mockActivityLog } from "@/data/tasks-data";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 /**
- * Fetch all tasks
+ * Fetch all tasks (optionally filter by projectId)
+ * @param {Object} filter
  * @returns {Promise<Array>} List of tasks
  */
-export function getTasks() {
-    return Promise.resolve([...mockTasks]);
+export async function getTasks(filter = {}) {
+    const params = new URLSearchParams(filter).toString();
+    const response = await fetch(`${API_URL}/tasks${params ? `?${params}` : ''}`);
+    if (!response.ok) throw new Error('Failed to fetch tasks');
+    return response.json();
 }
 
 /**
@@ -13,32 +19,24 @@ export function getTasks() {
  * @param {string} id
  * @returns {Promise<Object|null>} Task object or null
  */
-export function getTaskById(id) {
-    const task = mockTasks.find(t => t.id === id || t._id === id) || null;
-    return Promise.resolve(task);
+export async function getTaskById(id) {
+    const response = await fetch(`${API_URL}/tasks/${id}`);
+    if (!response.ok) throw new Error('Failed to fetch task');
+    return response.json();
 }
 
 /**
- * Create a new task for a project
- * @param {string} projectId
+ * Create a new task
  * @param {Object} taskData
  * @returns {Promise<Object>} Created task
  */
-export async function createTask(projectId, taskData) {
-    if (!projectId) {
-        // fallback to mock
-        const newTask = { ...taskData, id: `t${Date.now()}` };
-        return Promise.resolve(newTask);
-    }
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    const response = await fetch(`${API_URL}/projects/${projectId}/tasks`, {
+export async function createTask(taskData) {
+    const response = await fetch(`${API_URL}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(taskData),
     });
-    if (!response.ok) {
-        throw new Error('Failed to create task');
-    }
+    if (!response.ok) throw new Error('Failed to create task');
     return response.json();
 }
 
@@ -48,11 +46,14 @@ export async function createTask(projectId, taskData) {
  * @param {Object} taskData
  * @returns {Promise<Object|null>} Updated task or null
  */
-export function updateTask(id, taskData) {
-    const task = mockTasks.find(t => t.id === id || t._id === id);
-    if (!task) return Promise.resolve(null);
-    const updated = { ...task, ...taskData };
-    return Promise.resolve(updated);
+export async function updateTask(id, taskData) {
+    const response = await fetch(`${API_URL}/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData),
+    });
+    if (!response.ok) throw new Error('Failed to update task');
+    return response.json();
 }
 
 /**
@@ -60,9 +61,12 @@ export function updateTask(id, taskData) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteTask(id) {
-    const exists = mockTasks.some(t => t.id === id || t._id === id);
-    return Promise.resolve(exists);
+export async function deleteTask(id) {
+    const response = await fetch(`${API_URL}/tasks/${id}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete task');
+    return true;
 }
 
 /**
@@ -97,74 +101,115 @@ export function updateTaskPriority(taskId, priority) {
 /**
  * Add a subtask to a task
  */
-export function addTaskSubtask(taskId, subtaskData) {
-    return Promise.resolve({ taskId, subtaskData });
+export async function addTaskSubtask(taskId, subtaskData) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/subtasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subtaskData),
+    });
+    if (!response.ok) throw new Error('Failed to add subtask');
+    return response.json();
 }
 
 /**
  * Update a subtask in atask
  */
-export function updateTaskSubtask(taskId, subtaskId, subtaskData) {
-    return Promise.resolve({ taskId, subtaskId, subtaskData });
+export async function updateTaskSubtask(taskId, subtaskId, subtaskData) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/subtasks/${subtaskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subtaskData),
+    });
+    if (!response.ok) throw new Error('Failed to update subtask');
+    return response.json();
 }
 
 /**
  * Remove a subtask from a task
  */
-export function removeTaskSubtask(taskId, subtaskId) {
-    return Promise.resolve({ taskId, subtaskId });
+export async function removeTaskSubtask(taskId, subtaskId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/subtasks/${subtaskId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete subtask');
+    return true;
 }
 
 /**
  * Add a comment to a task
  */
-export function addTaskComment(taskId, comment) {
-    return Promise.resolve({ taskId, comment });
+export async function addTaskComment(taskId, comment) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(comment),
+    });
+    if (!response.ok) throw new Error('Failed to add comment');
+    return response.json();
 }
 
 /**
  * Remove a comment from a task
  */
-export function removeTaskComment(taskId, commentId) {
-    return Promise.resolve({ taskId, commentId });
+export async function removeTaskComment(taskId, commentId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/comments/${commentId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete comment');
+    return true;
 }
 
 /**
  * Get all comments for a task
  */
-export function getTaskComments(taskId) {
-    // In a real app, filter by taskId
-    return Promise.resolve([]);
+export async function getTaskComments(taskId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/comments`);
+    if (!response.ok) throw new Error('Failed to fetch comments');
+    return response.json();
 }
 
 /**
  * Add an attachment to a task
  */
-export function addTaskAttachment(taskId, file) {
-    return Promise.resolve({ taskId, file });
+export async function addTaskAttachment(taskId, file, uploadedBy) {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (uploadedBy) formData.append('uploadedBy', uploadedBy);
+    const response = await fetch(`${API_URL}/tasks/${taskId}/files`, {
+        method: 'POST',
+        body: formData,
+    });
+    if (!response.ok) throw new Error('Failed to upload file');
+    return response.json();
 }
 
 /**
  * Remove an attachment from a task
  */
-export function removeTaskAttachment(taskId, attachmentId) {
-    return Promise.resolve({ taskId, attachmentId });
+export async function removeTaskAttachment(taskId, attachmentId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/files/${attachmentId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to delete file');
+    return true;
 }
 
 /**
  * Get the activity log for a task
  */
-export function getTaskActivityLog(taskId) {
-    // In a real app, filter by taskId
-    return Promise.resolve([...mockActivityLog]);
+export async function getTaskActivityLog(taskId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/activity`);
+    if (!response.ok) throw new Error('Failed to fetch activity log');
+    return response.json();
 }
 
 /**
  * Get related tasks
  */
-export function getRelatedTasks(taskId) {
-    // In a real app, filter by relation
-    return Promise.resolve([]);
+export async function getRelatedTasks(taskId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/related`);
+    if (!response.ok) throw new Error('Failed to fetch related tasks');
+    return response.json();
 }
 
 /**
@@ -331,4 +376,39 @@ export function updateTaskProgress(taskId, progress) {
 export function getTaskProgress(taskId) {
     // In a real app, fetch from backend
     return Promise.resolve({ taskId, progress: Math.floor(Math.random() * 100) });
+}
+
+/**
+ * Update task assignee
+ */
+export async function updateTaskAssignee(taskId, assignee) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/assignee`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignee }),
+    });
+    if (!response.ok) throw new Error('Failed to update assignee');
+    return response.json();
+}
+
+/**
+ * Update task comment
+ */
+export async function updateTaskComment(taskId, commentId, comment) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/comments/${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(comment),
+    });
+    if (!response.ok) throw new Error('Failed to update comment');
+    return response.json();
+}
+
+/**
+ * Get task attachments
+ */
+export async function getTaskAttachments(taskId) {
+    const response = await fetch(`${API_URL}/tasks/${taskId}/files`);
+    if (!response.ok) throw new Error('Failed to fetch files');
+    return response.json();
 } 

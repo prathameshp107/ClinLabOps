@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import { DataTablePagination } from "@/components/tasks-v2/data-table-pagination";
 import { subtaskPriorities, subtaskStatuses, mockTaskUsers } from "@/data/tasks-data";
+import { addTaskSubtask, updateTaskSubtask, removeTaskSubtask } from "@/services/taskService";
 
 // Helper function to generate unique task ID
 const generateTaskId = (existingSubtasks) => {
@@ -155,6 +156,10 @@ export function SubtasksList({ task, setTask }) {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }, [filterStatus, sortConfig]);
 
+  useEffect(() => {
+    setSubtasks(task.subtasks || []);
+  }, [task.subtasks]);
+
   // Add new subtask row
   const handleAddSubtask = () => {
     const newId = generateTaskId(subtasks);
@@ -170,19 +175,26 @@ export function SubtasksList({ task, setTask }) {
   };
 
   // Save new or edited subtask
-  const handleSave = (subtask) => {
+  const handleSave = async (subtask) => {
     if (!subtask.title.trim()) {
       alert("Subtask title is required");
       return;
     }
-
-    if (editingId === "new") {
-      setSubtasks([...subtasks, { ...subtask, title: subtask.title.trim() }]);
-      setNewSubtask(null);
-    } else {
-      setSubtasks(subtasks.map(st => st.id === subtask.id ? { ...subtask, title: subtask.title.trim() } : st));
+    try {
+      if (editingId === "new") {
+        const added = await addTaskSubtask(task.id, { ...subtask, title: subtask.title.trim() });
+        setSubtasks([...subtasks, added]);
+        setTask(prev => ({ ...prev, subtasks: [...(prev.subtasks || []), added] }));
+        setNewSubtask(null);
+      } else {
+        const updated = await updateTaskSubtask(task.id, subtask.id, { ...subtask, title: subtask.title.trim() });
+        setSubtasks(subtasks.map(st => st.id === subtask.id ? updated : st));
+        setTask(prev => ({ ...prev, subtasks: prev.subtasks.map(st => st.id === subtask.id ? updated : st) }));
+      }
+      setEditingId(null);
+    } catch (err) {
+      alert("Failed to save subtask: " + err.message);
     }
-    setEditingId(null);
   };
 
   // Edit existing subtask
@@ -199,10 +211,13 @@ export function SubtasksList({ task, setTask }) {
   };
 
   // Delete subtask
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this subtask?")) {
+  const handleDelete = async (id) => {
+    try {
+      await removeTaskSubtask(task.id, id);
       setSubtasks(subtasks.filter(st => st.id !== id));
-      if (editingId === id) handleCancel();
+      setTask(prev => ({ ...prev, subtasks: prev.subtasks.filter(st => st.id !== id) }));
+    } catch (err) {
+      alert("Failed to delete subtask: " + err.message);
     }
   };
 

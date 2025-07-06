@@ -96,7 +96,7 @@ const TaskPriority = ({ priority }) => {
   );
 };
 
-export function ProjectTasks({ tasks, team, onAddTask, onDeleteTask }) {
+export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
   const [searchQuery, setSearchQuery] = useState("")
@@ -112,8 +112,8 @@ export function ProjectTasks({ tasks, team, onAddTask, onDeleteTask }) {
   const filteredTasks = useMemo(() => {
     return tasks?.filter(task => {
       const matchesSearch = searchQuery === "" ||
-        task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (task.title && task.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()))
       const matchesStatus = statusFilter === "all" || task.status === statusFilter
       const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter
       return matchesSearch && matchesStatus && matchesPriority

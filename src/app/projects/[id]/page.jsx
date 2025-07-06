@@ -23,9 +23,9 @@ import { AddTaskModal } from "@/components/projects/add-task-modal"
 import { AddMemberModal } from "@/components/projects/add-member-modal"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UserAvatar from "@/components/tasks/user-avatar"
-import { getProjectById, exportProjectData, addProjectMember, uploadProjectDocument, removeProjectTask } from "@/services/projectService"
+import { getProjectById, exportProjectData, addProjectMember, uploadProjectDocument } from "@/services/projectService"
 import { TaskStatusOverview } from "@/components/projects/task-status-overview"
-import { createTask as createProjectTask } from "@/services/taskService"
+import { getTasks, createTask, deleteTask } from "@/services/taskService"
 
 export default function ProjectPage({ params }) {
   const { id } = params;
@@ -38,6 +38,8 @@ export default function ProjectPage({ params }) {
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [viewMode, setViewMode] = useState("grid");
   const [exporting, setExporting] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
 
   // Add useEffect to fetch project data
   useEffect(() => {
@@ -65,6 +67,23 @@ export default function ProjectPage({ params }) {
     fetchProject();
   }, [id]);
 
+  // Fetch tasks for this project
+  useEffect(() => {
+    if (!id) return;
+    const fetchTasks = async () => {
+      setTasksLoading(true);
+      try {
+        const data = await getTasks({ projectId: id });
+        setTasks(data);
+      } catch (err) {
+        setTasks([]);
+      } finally {
+        setTasksLoading(false);
+      }
+    };
+    fetchTasks();
+  }, [id]);
+
   // Handlers for actions
   const handleAddTask = () => {
     setShowAddTaskModal(true);
@@ -89,15 +108,13 @@ export default function ProjectPage({ params }) {
     }
   };
 
-  // Real backend-integrated task creation
+  // Create task using new backend
   const handleCreateTask = async (taskData) => {
     if (!project) return;
     try {
-      const newTask = await createProjectTask(project.id, taskData);
-      setProject(prev => ({
-        ...prev,
-        tasks: [...(prev.tasks || []), newTask],
-      }));
+      const newTask = await createTask({ ...taskData, projectId: project.id });
+      setTasks(prev => [...prev, newTask]);
+      setShowAddTaskModal(false);
     } catch (err) {
       alert("Failed to create task: " + err.message);
     }
@@ -132,14 +149,14 @@ export default function ProjectPage({ params }) {
     }))
   }
 
-  // Delete task handler
+  // Delete task using new backend
   const handleDeleteTask = async (taskId) => {
-    if (!project) return;
-    await removeProjectTask(project.id, taskId)
-    setProject(prev => ({
-      ...prev,
-      tasks: prev.tasks.filter(t => t.id !== taskId),
-    }))
+    try {
+      await deleteTask(taskId);
+      setTasks(prev => prev.filter(t => t._id !== taskId && t.id !== taskId));
+    } catch (err) {
+      alert("Failed to delete task: " + err.message);
+    }
   }
 
   if (loading) {
@@ -258,7 +275,7 @@ export default function ProjectPage({ params }) {
                     {project && <ProjectOverview project={project} />}
                   </TabsContent>
                   <TabsContent value="tasks" className="mt-0">
-                    {project && <ProjectTasks tasks={project.tasks} team={project.team} onAddTask={handleCreateTask} onDeleteTask={handleDeleteTask} />}
+                    {project && <ProjectTasks tasks={tasks} team={project.team} onAddTask={handleCreateTask} onDeleteTask={handleDeleteTask} />}
                   </TabsContent>
                   <TabsContent value="team" className="mt-0">
                     {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}

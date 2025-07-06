@@ -10,16 +10,7 @@ import { Paperclip, Send, UserCircle, AlertCircle, Clock, Download, X, Bold, Ita
 import { format, formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "./modern-rich-text-editor";
-import { mockTaskUsers } from "@/data/tasks-data";
-
-// Mock users for @mentions
-const mockUsers = [
-  { id: "1", name: "John Doe", email: "john@example.com", avatarUrl: "" },
-  { id: "2", name: "Jane Smith", email: "jane@example.com", avatarUrl: "" },
-  { id: "3", name: "Robert Johnson", email: "robert@example.com", avatarUrl: "" },
-  { id: "4", name: "Emily Brown", email: "emily@example.com", avatarUrl: "" },
-  { id: "5", name: "Michael Wilson", email: "michael@example.com", avatarUrl: "" },
-];
+import { getTaskComments, addTaskComment, updateTaskComment, removeTaskComment } from "@/services/taskService";
 
 // Helper: mock reactions and replies for demo
 const mockReactions = [
@@ -32,51 +23,6 @@ const mockReplies = {
   // commentId: [replies]
 };
 
-// Dummy data for comments and replies
-const dummyComments = [
-  {
-    id: "c1",
-    text: "<p>I'm a bit unclear about how condensation forms in the water cycle. Can someone break it down?</p>",
-    author: { id: "1", name: "Noah Pierre", avatarUrl: "" },
-    createdAt: new Date(Date.now() - 68 * 60 * 1000),
-    replies: [
-      {
-        id: "c1r1",
-        text: "<p>Condensation happens when water vapor cools down and changes back into liquid droplets. It's the step before precipitation. The example with the glass of ice water in the video was a great visual!</p>",
-        author: { id: "2", name: "Skill Sprout", avatarUrl: "" },
-        createdAt: new Date(Date.now() - 8 * 60 * 1000),
-      },
-    ],
-  },
-  {
-    id: "c2",
-    text: "<p>I really enjoyed today's lesson on the water cycle! The animations made the processes so much easier to grasp.</p>",
-    author: { id: "3", name: "Mollie Hall", avatarUrl: "" },
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    replies: [],
-  },
-  {
-    id: "c3",
-    text: "<p>How do we measure the amount of water vapor in the air? Is it something we'll cover later?</p>",
-    author: { id: "4", name: "Lyle Kauffman", avatarUrl: "" },
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    replies: [
-      {
-        id: "c3r1",
-        text: "<p>Yes, I think we'll dive deeper into that in the next module on humidity. But the short answer is: we measure it using a tool called a hygrometer.</p>",
-        author: { id: "5", name: "Amanda Lowery", avatarUrl: "" },
-        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-      },
-      {
-        id: "c3r2",
-        text: "<p>Exactly! The next lesson will cover humidity, and I'm excited to see how it all connects back to the water cycle.</p>",
-        author: { id: "6", name: "Owen Garcia", avatarUrl: "" },
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      },
-    ],
-  },
-];
-
 export const TaskComments = ({
   taskId,
   initialComments = [],
@@ -86,7 +32,7 @@ export const TaskComments = ({
   maxHeight = 400,
   className = ""
 }) => {
-  const [comments, setComments] = useState(dummyComments);
+  const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [files, setFiles] = useState([]);
   const [mentionQuery, setMentionQuery] = useState("");
@@ -104,6 +50,18 @@ export const TaskComments = ({
   const [showReplies, setShowReplies] = useState({});
   const [replyText, setReplyText] = useState({});
   const [currentUser] = useState(mockTaskUsers['current-user']);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Fetch comments from backend
+  useEffect(() => {
+    if (!taskId) return;
+    setLoading(true);
+    getTaskComments(taskId)
+      .then(setComments)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [taskId]);
 
   // Monitor for @mentions
   useEffect(() => {
@@ -180,58 +138,39 @@ export const TaskComments = ({
   };
 
   // Submit a new comment
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (commentText.trim() === "" && files.length === 0) return;
-
-    // Find and process @mentions
-    const mentionRegex = /@([a-zA-Z0-9 ]+)/g;
-    const mentions = [];
-    let match;
-
-    while ((match = mentionRegex.exec(commentText)) !== null) {
-      const mentionedName = match[1].trim();
-      const mentionedUser = mockUsers.find(user =>
-        user.name.toLowerCase() === mentionedName.toLowerCase()
-      );
-
-      if (mentionedUser) {
-        mentions.push(mentionedUser.id);
-      }
+    try {
+      const newComment = await addTaskComment(taskId, {
+        text: commentText,
+        author: { id: "current-user", name: "Current User" },
+        createdAt: new Date().toISOString(),
+        replies: [],
+      });
+      setComments(prev => [...prev, newComment]);
+      setCommentText("");
+    } catch (err) {
+      setError(err.message);
     }
+  };
 
-    // Process file attachments
-    const attachments = files.map(file => ({
-      id: `attachment-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      url: URL.createObjectURL(file) // In a real app, you'd upload to a server
-    }));
+  // Edit comment
+  const handleEditComment = async (commentId, newText) => {
+    try {
+      const updated = await updateTaskComment(taskId, commentId, { text: newText });
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: updated.text } : c));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
-    // Create the new comment
-    const newComment = {
-      id: `comment-${Date.now()}`,
-      text: commentText,
-      author: {
-        id: "current-user", // In a real app, this would be the logged-in user
-        name: "You",
-        avatarUrl: ""
-      },
-      createdAt: new Date(),
-      mentions,
-      attachments,
-      isNew: true // Flag for animation
-    };
-
-    // Add to comments and reset input
-    setComments([...comments, newComment]);
-    setCommentText("");
-    setFiles([]);
-    setShowMentionSuggestions(false);
-
-    // In a real app, you would send notifications to mentioned users here
-    if (mentions.length > 0) {
-      console.log("Sending notifications to:", mentions);
+  // Delete comment
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await removeTaskComment(taskId, commentId);
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } catch (err) {
+      setError(err.message);
     }
   };
 

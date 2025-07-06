@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   FileText,
@@ -30,10 +30,23 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Timeline, TimelineItem } from "@/components/ui/timeline";
+import { getTaskActivityLog } from "@/services/taskService";
 
-export function TaskActivityLog({ activities }) {
+export function TaskActivityLog({ taskId }) {
+  const [activities, setActivities] = useState([]);
   const [filter, setFilter] = useState('all');
   const [showDetails, setShowDetails] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!taskId) return;
+    setLoading(true);
+    getTaskActivityLog(taskId)
+      .then(setActivities)
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [taskId]);
 
   const getActivityIcon = (type) => {
     switch (type) {

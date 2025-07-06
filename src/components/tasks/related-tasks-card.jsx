@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import UserAvatar from "@/components/tasks/user-avatar";
+import { getRelatedTasks } from "@/services/taskService";
 
 const statusColor = (status) => {
     switch (status) {
@@ -30,16 +31,27 @@ const statusOptions = [
     { value: "completed", label: "Completed" },
 ];
 
-export function RelatedTasksCard({ relatedTasks = [] }) {
+export function RelatedTasksCard({ taskId }) {
     const [search, setSearch] = useState("");
     const [showAdd, setShowAdd] = useState(false);
-    const [tasks, setTasks] = useState(relatedTasks);
+    const [tasks, setTasks] = useState([]);
     const [form, setForm] = useState({
         title: "",
         assignee: "",
         dueDate: null,
         status: "not_started",
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!taskId) return;
+        setLoading(true);
+        getRelatedTasks(taskId)
+            .then(setTasks)
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false));
+    }, [taskId]);
 
     const filteredTasks = useMemo(() => {
         if (!search) return tasks;
