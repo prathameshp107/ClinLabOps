@@ -362,23 +362,23 @@ export function TaskStatusOverview({ project }) {
                                                     (memberTasks.filter(t => t.status === 'completed').length / memberTasks.length) * 100 : 0;
 
                                                 return (
-                                                    <div key={idx} className="flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarFallback className="bg-primary/10 text-primary">
+                                                <div key={idx} className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <Avatar className="h-8 w-8">
+                                                            <AvatarFallback className="bg-primary/10 text-primary">
                                                                     {member.name.split(' ').map(n => n[0]).join('')}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                            <div>
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
                                                                 <p className="text-sm font-medium">{member.name}</p>
                                                                 <p className="text-xs text-muted-foreground">{member.role}</p>
                                                             </div>
-                                                        </div>
-                                                        <Progress
-                                                            value={memberProgress}
-                                                            className="w-24 h-2"
-                                                        />
                                                     </div>
+                                                    <Progress
+                                                            value={memberProgress}
+                                                        className="w-24 h-2"
+                                                    />
+                                                </div>
                                                 );
                                             })}
                                         </div>

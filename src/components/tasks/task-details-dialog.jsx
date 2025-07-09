@@ -135,6 +135,7 @@ import { TaskSubtasks } from "./task-subtasks"
 import { TaskComments } from "./task-comments"
 import { TaskFiles } from "./task-files"
 import { statusOptions, priorityOptions, dialogTaskTemplates } from "@/data/tasks-data"
+import { getUserById } from '@/services/userService'
 
 // Helper function to format date
 const formatDate = (dateString) => {
@@ -182,7 +183,7 @@ const formatTime = (seconds) => {
   ].join(':');
 };
 
-export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = [], experiments = [] }) => {
+export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = [], experiments = [], currentUserId }) => {
   const { toast } = useToast();
   // Refs
   const fileInputRef = useRef(null);
@@ -230,7 +231,8 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const [isLoading, setIsLoading] = useState(false);
 
   // Activity/comment state
-  const [comments, setComments] = useState(task?.comments || []);
+  const [comments, setComments] = useState([]);
+  const [allUsers, setAllUsers] = useState(users);
 
   // Mention state for comment input
   const [mentionQuery, setMentionQuery] = useState("");
@@ -863,8 +865,6 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
     }, 0);
   };
 
-
-
   // Check for unsaved changes
   const hasUnsavedChanges = task && (
     editedTitle !== task.title ||
@@ -950,6 +950,24 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const currentStatus = statusOptions.find(s => s.value === selectedStatus) || statusOptions[0];
   const currentPriority = priorityOptions.find(p => p.value === selectedPriority) || priorityOptions[1];
 
+  // Fetch comments and ensure all comment authors are in users
+  useEffect(() => {
+    async function fetchCommentsAndAuthors() {
+      if (!task?.id) return;
+      const fetchedComments = await getTaskComments(task.id);
+      setComments(fetchedComments);
+      // Collect all unique author IDs from comments
+      const authorIds = Array.from(new Set(fetchedComments.map(c => c.author)));
+      // Find missing author IDs
+      const missingIds = authorIds.filter(id => !users.some(u => u.id === id));
+      // Fetch missing users
+      const fetchedUsers = await Promise.all(missingIds.map(id => getUserById(id)));
+      // Merge users
+      setAllUsers([...users, ...fetchedUsers.filter(Boolean)]);
+    }
+    fetchCommentsAndAuthors();
+  }, [task?.id, users]);
+
   if (!task) return null;
 
   // Handle title edit
@@ -967,8 +985,6 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
     }
     setIsEditingDescription(!isEditingDescription);
   };
-
-  // Using the formatTime function from the top of the file
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1778,8 +1794,9 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                   <TaskComments
                     taskId={task.id}
                     initialComments={comments}
-                    currentUser={currentUser}
-                    onCommentsChange={setComments}
+                    users={allUsers}
+                    currentUserId={currentUserId}
+                    onAddComment={setComments}
                     maxHeight={320}
                     className="rounded-lg border bg-background"
                   />

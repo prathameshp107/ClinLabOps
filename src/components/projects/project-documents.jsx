@@ -161,9 +161,9 @@ export function ProjectDocuments({ documents = [], onUpload }) {
       if (onUpload && selectedFile) {
         await onUpload(selectedFile, { tags: uploadTags })
       }
-      setIsUploadModalOpen(false)
-      setSelectedFile(null)
-      setUploadTags([])
+    setIsUploadModalOpen(false)
+    setSelectedFile(null)
+    setUploadTags([])
     } catch (err) {
       setUploadError(err.message || "Failed to upload document")
     } finally {
@@ -413,7 +413,7 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                 <Grid className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+      </div>
 
           {/* Results Summary */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
