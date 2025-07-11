@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -62,20 +63,20 @@ import {
   FolderKanban,
   HelpCircle,
   CheckSquare,
-  Badge,
   Cloud,
   MoveRight,
   BarChart3,
   MapPin,
   Phone,
   X,
-  ArrowUp 
+  ArrowUp,
+  ListChecks,
+  FolderOpen, 
+  BarChart2
 } from "lucide-react";
 
 export default function LandingPage() {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const [activeDemoTab, setActiveDemoTab] = useState("dashboard");
   const [showChatWidget, setShowChatWidget] = useState(false);
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -273,7 +274,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-background via-background/80 to-background/30" />
           <BackgroundBeams className="opacity-30" />
         </div>
-        
+
         <div className="container relative z-10 mx-auto px-4">
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-3xl text-center">
@@ -379,19 +380,284 @@ export default function LandingPage() {
                     <div className="text-sm font-medium text-foreground/70">app.labtasker.com/demo</div>
                     <div className="w-12"></div>
                   </div>
-                  <div className="relative h-[500px] overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-background to-muted/30">
-                      <div className="text-center">
-                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                          <FlaskConical className="h-8 w-8 text-primary" />
+                  <div className="relative h-[600px] overflow-auto">
+                    <div className="absolute inset-0 bg-gradient-to-br from-background to-muted/20 p-6">
+                      {/* Main Demo Content */}
+                      <div className="h-full flex flex-col gap-6">
+                        {/* Demo Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-gradient-to-br from-primary/20 to-purple-500/20 p-2.5 rounded-xl border border-primary/20">
+                              <FlaskConical className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">LabTasker Platform</h3>
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                <FlaskConical className="h-3 w-3" />
+                                Comprehensive Laboratory Management Solution
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-500 px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 border border-blue-500/20">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              <span>Live Demo</span>
+                            </div>
+                          </div>
                         </div>
-                        <h3 className="text-xl font-semibold">LabTasker Dashboard</h3>
-                        <p className="mt-1 text-foreground/70">Interactive demo coming soon</p>
+
+                        {/* Main Features Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                          {/* Project Overview */}
+                          <motion.div
+                            className="bg-gradient-to-br from-background/70 to-background/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="relative z-10">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="bg-gradient-to-br from-blue-500/20 to-indigo-500/20 p-1.5 rounded-lg">
+                                  <FolderOpen className="h-4 w-4 text-blue-500" />
+                                </div>
+                                <span className="text-sm font-medium">Project Overview</span>
+                                <div className="ml-auto">
+                                  <Badge variant="outline" className="text-[10px] py-0 px-2 h-4 bg-blue-500/10 text-blue-500 border-blue-500/30">
+                                    Active
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted-foreground">Project:</span>
+                                  <span className="text-xs font-medium">Protein Analysis Study</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted-foreground">Timeline:</span>
+                                  <span className="text-xs font-medium">Jul 1 - Aug 15, 2025</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-muted-foreground">Progress:</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium">65%</span>
+                                    <div className="w-16 bg-muted rounded-full h-1.5">
+                                      <div 
+                                        className="h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
+                                        style={{ width: '65%' }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="pt-2 border-t border-border/20">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-muted-foreground">Team:</span>
+                                    <div className="flex -space-x-2">
+                                      {['JD', 'MP', 'AK', 'SL'].map((initial, i) => (
+                                        <div key={i} className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[10px] font-medium text-blue-500">
+                                          {initial}
+                                        </div>
+                                      ))}
+                                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+                                        +2
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                          {/* Task Management */}
+                          <motion.div
+                            className="bg-gradient-to-br from-background/70 to-background/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="relative z-10">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="bg-gradient-to-br from-primary/20 to-purple-500/20 p-1.5 rounded-lg">
+                                  <ListChecks className="h-4 w-4 text-primary" />
+                                </div>
+                                <span className="text-sm font-medium">Task Management</span>
+                                <div className="ml-auto">
+                                  <Badge variant="outline" className="text-[10px] py-0 px-2 h-4 bg-green-500/10 text-green-500 border-green-500/30">
+                                    New
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                {[
+                                  { task: "Sample Processing", status: "In Progress", priority: "high", progress: 65 },
+                                  { task: "Data Analysis", status: "Pending", priority: "medium", progress: 20 },
+                                  { task: "Report Generation", status: "Completed", priority: "low", progress: 100 }
+                                ].map((item, i) => (
+                                  <div key={i} className="flex items-center gap-2 text-xs p-2 bg-background/50 rounded-lg border border-border/20">
+                                    <div className={`w-2 h-2 rounded-full ${
+                                      item.priority === 'high' ? 'bg-red-500' : 
+                                      item.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
+                                    }`}></div>
+                                    <span className="text-muted-foreground flex-1">{item.task}</span>
+                                    <span className={`text-xs ${
+                                      item.status === 'Completed' ? 'text-green-500' : 
+                                      item.status === 'In Progress' ? 'text-blue-500' : 'text-amber-500'
+                                    }`}>
+                                      {item.status}
+                                    </span>
+                                    <div className="w-12 bg-muted rounded-full h-1.5">
+                                      <div 
+                                        className={`h-1.5 rounded-full ${
+                                          item.progress < 30 ? 'bg-red-500' : 
+                                          item.progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                                        }`} 
+                                        style={{ width: `${item.progress}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Feature 2: Real-time Collaboration with Activity Feed */}
+                          <motion.div
+                            className="bg-gradient-to-br from-background/70 to-background/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="relative z-10">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 p-1.5 rounded-lg">
+                                  <Users className="h-4 w-4 text-blue-500" />
+                                </div>
+                                <span className="text-sm font-medium">Live Collaboration</span>
+                                <div className="ml-auto flex items-center gap-1">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                  <span className="text-[10px] text-green-500">5 active</span>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex -space-x-2">
+                                    {[
+                                      { bg: "from-blue-500 to-blue-600", letter: "A" },
+                                      { bg: "from-green-500 to-green-600", letter: "B" },
+                                      { bg: "from-purple-500 to-purple-600", letter: "C" }
+                                    ].map((user, i) => (
+                                      <div key={i} className={`w-6 h-6 rounded-full bg-gradient-to-br ${user.bg} border-2 border-background flex items-center justify-center text-xs font-medium text-white shadow-sm`}>
+                                        {user.letter}
+                                      </div>
+                                    ))}
+                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-muted to-muted/80 border-2 border-background flex items-center justify-center text-xs text-muted-foreground">
+                                      +2
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 text-right">
+                                    <div className="text-[10px] text-muted-foreground">Recent activity</div>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  {[
+                                    { user: "Alice", action: "updated PCR protocol", time: "2m", type: "edit" },
+                                    { user: "Bob", action: "added sample notes", time: "5m", type: "add" }
+                                  ].map((activity, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-[10px] p-1.5 bg-background/50 rounded border border-border/20">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${activity.type === 'edit' ? 'bg-blue-500' : 'bg-green-500'}`}></div>
+                                      <span className="font-medium">{activity.user}</span>
+                                      <span className="text-muted-foreground">{activity.action}</span>
+                                      <span className="text-muted-foreground ml-auto">{activity.time}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          {/* Feature 3: Smart Experiment Tracking with Predictive Analytics */}
+                          <motion.div
+                            className="bg-gradient-to-br from-background/70 to-background/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:border-primary/40 hover:shadow-lg transition-all duration-300 cursor-pointer group relative overflow-hidden"
+                            whileHover={{ scale: 1.02, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="relative z-10">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-1.5 rounded-lg">
+                                  <FlaskConical className="h-4 w-4 text-emerald-500" />
+                                </div>
+                                <span className="text-sm font-medium">Smart Experiments</span>
+                                <div className="ml-auto">
+                                  <Badge variant="outline" className="text-[10px] py-0 px-2 h-4 bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
+                                    ML
+                                  </Badge>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">Protein Analysis</span>
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                  </div>
+                                  <span className="text-xs text-green-500 font-medium">Running</span>
+                                </div>
+                                <div className="h-8 flex items-end gap-1 relative">
+                                  {[30, 45, 60, 55, 70, 65, 80, 75, 85].map((height, i) => (
+                                    <div key={i} className="relative">
+                                      <div className="w-1.5 bg-gradient-to-t from-emerald-500 to-teal-500 rounded-sm" style={{ height: `${height / 2.5}px` }}></div>
+                                      {i === 8 && (
+                                        <div className="absolute -top-4 -right-2 w-3 h-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full animate-pulse"></div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="text-muted-foreground">Predicted completion</span>
+                                  <div className="flex items-center gap-1">
+                                    <Cpu className="h-3 w-3 text-emerald-500" />
+                                    <span className="text-emerald-500 font-medium">2.5h</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          
+                          {/* Data Visualization */}
+                          
+                        </div>
+
+                        {/* Enhanced Demo CTA with Additional Features */}
+                        <div className="mt-6 space-y-3">
+                          <div className="flex items-center justify-center gap-4">
+                            <Button size="sm" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                              <PlayCircle className="h-4 w-4 mr-2" />
+                              Experience Full Demo
+                            </Button>
+                            <Button size="sm" variant="outline" className="border-primary/30 text-primary hover:bg-primary/10 backdrop-blur-sm">
+                              <Cpu className="h-4 w-4 mr-2" />
+                              AI Features
+                            </Button>
+                          </div>
+                          <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Shield className="h-3 w-3 text-green-500" />
+                              <span>Enterprise Security</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Zap className="h-3 w-3 text-amber-500" />
+                              <span>Real-time Processing</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Globe className="h-3 w-3 text-blue-500" />
+                              <span>Cloud + On-premise</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="absolute -right-4 -top-4 z-10 hidden h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-600 text-white shadow-lg md:flex">
                   <div className="absolute inset-0 animate-ping rounded-full bg-primary/30"></div>
                   <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-purple-600">
@@ -1732,3 +1998,4 @@ export default function LandingPage() {
     </div>
   );
 }
+
