@@ -5,9 +5,15 @@ const cors = require('cors');
 
 const app = express();
 
+// Import logger middleware
+const logger = require('./middleware/logger');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Log all requests
+app.use(logger);
 
 // Health check route
 app.get('/', (req, res) => {

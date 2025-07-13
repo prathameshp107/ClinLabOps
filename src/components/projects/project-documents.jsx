@@ -234,7 +234,7 @@ export function ProjectDocuments({ documents = [], onUpload }) {
   }, [documents])
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="w-full p-6 space-y-6">
       {/* Enhanced Header Section */}
       <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
