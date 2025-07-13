@@ -132,28 +132,63 @@ export function ProtocolFormDialog({
   }, [open, mode, protocol, form]);
 
   // Handle form submission
-  const handleSubmit = (data) => {
-    // Add files to the data
-    const formattedProtocol = {
-      ...data,
-      files,
-    };
+  const handleSubmit = async (data) => {
+    try {
+      // Format the data to match the backend model
+      const protocolData = {
+        name: data.title,
+        description: data.objectives,
+        category: data.category,
+        version: data.version,
+        steps: data.procedure.split('\n').filter(step => step.trim() !== '').map((step, index) => ({
+          stepNumber: index + 1,
+          description: step.trim(),
+          notes: ''
+        })),
+        materials: data.materials.split('\n').filter(item => item.trim() !== ''),
+        safetyNotes: data.outcomes,
+        references: data.references ? data.references.split('\n').filter(ref => ref.trim() !== '') : [],
+        status: data.status || 'Draft',
+        isPublic: false, // Default to private
+        tags: [], // Can be added to the form if needed
+        files: files.map(file => ({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: file.url,
+          uploadedAt: file.uploadedAt || new Date().toISOString()
+        }))
+      };
 
-    // Submit the protocol
-    onSubmit(formattedProtocol);
+      // Submit the protocol
+      await onSubmit(protocolData);
+      
+      // Close the dialog on successful submission
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error submitting protocol:', error);
+      // Error handling is done in the parent component
+      throw error;
+    }
   };
 
   // Handle file upload
   const handleFileUpload = (e) => {
-    const newFiles = Array.from(e.target.files).map(file => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      url: URL.createObjectURL(file),
-      uploadedAt: new Date().toISOString(),
-    }));
-    
-    setFiles([...files, ...newFiles]);
+    try {
+      const newFiles = Array.from(e.target.files).map(file => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        url: URL.createObjectURL(file),
+        uploadedAt: new Date().toISOString(),
+        file // Keep the actual file object for upload
+      }));
+      
+      setFiles([...files, ...newFiles]);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      // You might want to show a toast notification here
+    }
   };
 
   // Handle file removal

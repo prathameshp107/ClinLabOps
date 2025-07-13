@@ -47,6 +47,10 @@ app.use('/api/tasks', require('./routes/tasks'));
 const experimentsRouter = require('./routes/experiments');
 app.use('/api/experiments', experimentsRouter);
 
+// Protocol routes
+const protocolsRouter = require('./routes/protocols');
+app.use('/api/protocols', protocolsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;

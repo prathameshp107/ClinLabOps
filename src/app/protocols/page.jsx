@@ -1,26 +1,39 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { ProtocolList } from "@/components/protocol-management/protocol-list"
 import { ProtocolFormDialog } from "@/components/protocol-management/protocol-form-dialog"
 import { ProtocolDetailDialog } from "@/components/protocol-management/protocol-detail-dialog"
 import { DataTable } from "@/components/tasks-v2/data-table"
 import { createProtocolColumns } from "@/components/protocol-management/protocol-columns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, Filter, SlidersHorizontal, BookOpen, LayoutGrid, Table as TableIcon } from "lucide-react"
+import { PlusCircle, Search, SlidersHorizontal, BookOpen, LayoutGrid, Table as TableIcon, Loader2 } from "lucide-react"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { cn } from "@/lib/utils"
-import { protocolsData } from "@/data/protocols-data"
-import { motion, AnimatePresence } from "framer-motion" // Add framer-motion for animations
+import { motion, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { Select } from "@/components/ui/select"
 import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ProtocolCard } from "@/components/protocol-management/protocol-card"
+import { useToast } from "@/components/ui/use-toast"
+import { 
+  getProtocols, 
+  createProtocol as createProtocolApi, 
+  updateProtocol as updateProtocolApi, 
+  deleteProtocol as deleteProtocolApi,
+  duplicateProtocol as duplicateProtocolApi,
+  archiveProtocol as archiveProtocolApi,
+  restoreProtocol as restoreProtocolApi
+} from "@/services/protocolService"
 
 export default function ProtocolsPage() {
-  const [protocols, setProtocols] = useState(protocolsData)
+  const router = useRouter()
+  const { toast } = useToast()
+  
+  const [protocols, setProtocols] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
@@ -31,31 +44,64 @@ export default function ProtocolsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState("grid") // "grid" or "table"
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 12,
+    total: 0,
+    totalPages: 1
+  })
   const isDesktop = useMediaQuery("(min-width: 1024px)")
 
-  // Set sidebar state based on screen size
+  // Fetch protocols on component mount and when filters change
   useEffect(() => {
     setSidebarOpen(isDesktop)
-  }, [isDesktop])
+    fetchProtocols()
+  }, [isDesktop, pagination.page, pagination.limit, categoryFilter, statusFilter])
 
-  // Get unique categories for filter
-  const categories = ["all", ...new Set(protocols.map(protocol => protocol.category))]
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery || categoryFilter !== "all" || statusFilter !== "all") {
+        fetchProtocols()
+      }
+    }, 500)
+    
+    return () => clearTimeout(timer)
+  }, [searchQuery, categoryFilter, statusFilter])
 
-  // Get unique statuses for filter
-  const statuses = ["all", ...new Set(protocols.map(protocol => protocol.status))]
+  const fetchProtocols = async () => {
+    try {
+      setIsLoading(true)
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+        search: searchQuery || undefined,
+        category: categoryFilter !== "all" ? categoryFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined
+      }
+      
+      const response = await getProtocols(params)
+      setProtocols(response.data)
+      setPagination(prev => ({
+        ...prev,
+        total: response?.pagination?.total,
+        totalPages: response?.pagination?.totalPages
+      }))
+    } catch (error) {
+      console.error('Error fetching protocols:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch protocols. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-  // Filter protocols based on search query and filters
-  const filteredProtocols = protocols.filter(protocol => {
-    const matchesSearch =
-      protocol.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      protocol.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      protocol.author.toLowerCase().includes(searchQuery.toLowerCase())
-
-    const matchesCategory = categoryFilter === "all" || protocol.category === categoryFilter
-    const matchesStatus = statusFilter === "all" || protocol.status === statusFilter
-
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  // Get unique categories and statuses for filter
+  const categories = ["all", ...new Set(protocols.map(protocol => protocol.category).filter(Boolean))]
+  const statuses = ["all", "Draft", "Active", "Archived"] // Predefined statuses for consistency
 
   // Handle creating a new protocol
   const handleCreateProtocol = () => {
@@ -73,55 +119,124 @@ export default function ProtocolsPage() {
 
   // Handle viewing a protocol
   const handleViewProtocol = (protocol) => {
-    setSelectedProtocol(protocol)
-    setDetailDialogOpen(true)
+    // Navigate to protocol detail page instead of using dialog
+    router.push(`/protocols/${protocol._id}`)
   }
 
   // Handle duplicating a protocol
-  const handleDuplicateProtocol = (protocol) => {
-    const newProtocol = {
-      ...protocol,
-      id: `PROT-${Date.now()}`,
-      title: `${protocol.title} (Copy)`,
-      status: "Draft",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  const handleDuplicateProtocol = async (protocol) => {
+    try {
+      setIsLoading(true)
+      const duplicated = await duplicateProtocolApi(protocol._id)
+      setProtocols([duplicated, ...protocols])
+      toast({
+        title: "Success",
+        description: "Protocol duplicated successfully",
+      })
+    } catch (error) {
+      console.error('Error duplicating protocol:', error)
+      toast({
+        title: "Error",
+        description: "Failed to duplicate protocol. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
     }
-    setProtocols([...protocols, newProtocol])
   }
 
   // Handle archiving a protocol
-  const handleArchiveProtocol = (protocolId) => {
-    setProtocols(protocols.map(protocol =>
-      protocol.id === protocolId
-        ? { ...protocol, status: protocol.status === "Archived" ? "Draft" : "Archived" }
-        : protocol
-    ))
+  const handleArchiveProtocol = async (protocol) => {
+    try {
+      setIsLoading(true)
+      const isArchiving = protocol.status !== "Archived"
+      const updatedProtocol = isArchiving 
+        ? await archiveProtocolApi(protocol._id)
+        : await restoreProtocolApi(protocol._id)
+      
+      setProtocols(protocols.map(p => 
+        p._id === updatedProtocol._id ? updatedProtocol : p
+      ))
+      
+      toast({
+        title: isArchiving ? "Archived" : "Restored",
+        description: `Protocol has been ${isArchiving ? 'archived' : 'restored'} successfully`,
+      })
+    } catch (error) {
+      console.error('Error updating protocol status:', error)
+      toast({
+        title: "Error",
+        description: `Failed to ${protocol.status === 'Archived' ? 'restore' : 'archive'} protocol. Please try again.`,
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Handle deleting a protocol
-  const handleDeleteProtocol = (protocolId) => {
-    setProtocols(protocols.filter(protocol => protocol.id !== protocolId))
+  const handleDeleteProtocol = async (protocolId) => {
+    if (!confirm('Are you sure you want to delete this protocol? This action cannot be undone.')) {
+      return
+    }
+    
+    try {
+      setIsLoading(true)
+      await deleteProtocolApi(protocolId)
+      setProtocols(protocols.filter(protocol => protocol._id !== protocolId))
+      toast({
+        title: "Success",
+        description: "Protocol deleted successfully",
+      })
+    } catch (error) {
+      console.error('Error deleting protocol:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete protocol. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Handle submitting the protocol form
-  const handleSubmitProtocol = (protocolData) => {
-    if (formMode === "create") {
-      const newProtocol = {
-        ...protocolData,
-        id: `PROT-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+  const handleSubmitProtocol = async (protocolData) => {
+    try {
+      setIsLoading(true)
+      let updatedProtocol
+      
+      if (formMode === "create") {
+        updatedProtocol = await createProtocolApi(protocolData)
+        setProtocols([updatedProtocol, ...protocols])
+        toast({
+          title: "Success",
+          description: "Protocol created successfully",
+        })
+      } else {
+        updatedProtocol = await updateProtocolApi(selectedProtocol._id, protocolData)
+        setProtocols(protocols.map(protocol =>
+          protocol._id === updatedProtocol._id ? updatedProtocol : protocol
+        ))
+        toast({
+          title: "Success",
+          description: "Protocol updated successfully",
+        })
       }
-      setProtocols([...protocols, newProtocol])
-    } else {
-      setProtocols(protocols.map(protocol =>
-        protocol.id === protocolData.id
-          ? { ...protocol, ...protocolData, updatedAt: new Date().toISOString() }
-          : protocol
-      ))
+      
+      setFormDialogOpen(false)
+      return updatedProtocol
+    } catch (error) {
+      console.error(`Error ${formMode === 'create' ? 'creating' : 'updating'} protocol:`, error)
+      toast({
+        title: "Error",
+        description: `Failed to ${formMode === 'create' ? 'create' : 'update'} protocol. Please try again.`,
+        variant: "destructive"
+      })
+      throw error
+    } finally {
+      setIsLoading(false)
     }
-    setFormDialogOpen(false)
   }
 
   // Create columns with action handlers
@@ -129,29 +244,9 @@ export default function ProtocolsPage() {
     onView: handleViewProtocol,
     onEdit: handleEditProtocol,
     onDuplicate: handleDuplicateProtocol,
-    onArchive: (protocol) => handleArchiveProtocol(protocol.id),
-    onDelete: (protocol) => handleDeleteProtocol(protocol.id),
+    onArchive: handleArchiveProtocol,
+    onDelete: handleDeleteProtocol,
   })
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { type: "spring", stiffness: 300, damping: 24 }
-    }
-  }
 
   return (
     <DashboardLayout
@@ -291,8 +386,13 @@ export default function ProtocolsPage() {
           </AnimatePresence>
 
           {/* Main Content */}
-          <AnimatePresence>
-            {filteredProtocols.length === 0 ? (
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-muted-foreground">Loading protocols...</span>
+              </div>
+            ) : protocols.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -324,15 +424,15 @@ export default function ProtocolsPage() {
                 transition={{ duration: 0.5 }}
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 w-full"
               >
-                {filteredProtocols.map(protocol => (
+                {protocols.map(protocol => (
                   <ProtocolCard
-                    key={protocol.id}
+                    key={protocol._id}
                     protocol={protocol}
-                    onView={handleViewProtocol}
-                    onEdit={handleEditProtocol}
-                    onDuplicate={handleDuplicateProtocol}
-                    onArchive={handleArchiveProtocol}
-                    onDelete={handleDeleteProtocol}
+                    onView={() => handleViewProtocol(protocol)}
+                    onEdit={() => handleEditProtocol(protocol)}
+                    onDuplicate={() => handleDuplicateProtocol(protocol)}
+                    onArchive={() => handleArchiveProtocol(protocol)}
+                    onDelete={() => handleDeleteProtocol(protocol._id)}
                   />
                 ))}
               </motion.div>
@@ -345,8 +445,13 @@ export default function ProtocolsPage() {
               >
                 <DataTable
                   columns={columns}
-                  data={filteredProtocols}
+                  data={protocols}
                   onRowClick={handleViewProtocol}
+                  pagination={{
+                    currentPage: pagination.page,
+                    totalPages: pagination.totalPages,
+                    onPageChange: (page) => setPagination(prev => ({ ...prev, page }))
+                  }}
                 />
               </motion.div>
             )}
