@@ -51,6 +51,9 @@ app.use('/api/experiments', experimentsRouter);
 const protocolsRouter = require('./routes/protocols');
 app.use('/api/protocols', protocolsRouter);
 
+const equipmentsRouter = require('./routes/equipments');
+app.use('/api/equipments', equipmentsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;

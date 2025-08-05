@@ -1,11 +1,14 @@
-import { equipmentData, mockEquipmentMaintenanceHistory } from "@/data/equipment-data";
+// import { equipmentData, mockEquipmentMaintenanceHistory } from "@/data/equipment-data";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 /**
  * Fetch all equipment
  * @returns {Promise<Array>} List of equipment
  */
-export function getEquipments() {
-    return Promise.resolve([...equipmentData]);
+export async function getEquipments() {
+    const res = await fetch(`${API_URL}/equipments`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch equipments');
+    return res.json();
 }
 
 /**
@@ -13,8 +16,10 @@ export function getEquipments() {
  * @param {string} id
  * @returns {Promise<Object|null>} Equipment object or null
  */
-export function getEquipmentById(id) {
-    return Promise.resolve(equipmentData.find(e => e.id === id) || null);
+export async function getEquipmentById(id) {
+    const res = await fetch(`${API_URL}/equipments/${id}`, { credentials: 'include' });
+    if (!res.ok) return null;
+    return res.json();
 }
 
 /**
@@ -22,14 +27,15 @@ export function getEquipmentById(id) {
  * @param {Object} equipment
  * @returns {Promise<Object>} Created equipment
  */
-export function createEquipment(equipment) {
-    const newEquipment = {
-        ...equipment,
-        id: `EQ-${Date.now().toString().slice(-6)}`,
-        dateAdded: new Date().toISOString(),
-    };
-    equipmentData.push(newEquipment);
-    return Promise.resolve(newEquipment);
+export async function createEquipment(equipment) {
+    const res = await fetch(`${API_URL}/equipments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(equipment),
+    });
+    if (!res.ok) throw new Error('Failed to create equipment');
+    return res.json();
 }
 
 /**
@@ -38,11 +44,15 @@ export function createEquipment(equipment) {
  * @param {Object} updates
  * @returns {Promise<Object|null>} Updated equipment or null
  */
-export function updateEquipment(id, updates) {
-    const idx = equipmentData.findIndex(e => e.id === id);
-    if (idx === -1) return Promise.resolve(null);
-    equipmentData[idx] = { ...equipmentData[idx], ...updates };
-    return Promise.resolve(equipmentData[idx]);
+export async function updateEquipment(id, updates) {
+    const res = await fetch(`${API_URL}/equipments/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+    });
+    if (!res.ok) return null;
+    return res.json();
 }
 
 /**
@@ -50,11 +60,12 @@ export function updateEquipment(id, updates) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteEquipment(id) {
-    const idx = equipmentData.findIndex(e => e.id === id);
-    if (idx === -1) return Promise.resolve(false);
-    equipmentData.splice(idx, 1);
-    return Promise.resolve(true);
+export async function deleteEquipment(id) {
+    const res = await fetch(`${API_URL}/equipments/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    return res.ok;
 }
 
 /**
@@ -63,11 +74,15 @@ export function deleteEquipment(id) {
  * @param {string} status
  * @returns {Promise<Object|null>} Updated equipment or null
  */
-export function updateEquipmentStatus(id, status) {
-    const equipment = equipmentData.find(e => e.id === id);
-    if (!equipment) return Promise.resolve(null);
-    equipment.status = status;
-    return Promise.resolve(equipment);
+export async function updateEquipmentStatus(id, status) {
+    const res = await fetch(`${API_URL}/equipments/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status }),
+    });
+    if (!res.ok) return null;
+    return res.json();
 }
 
 /**
@@ -75,8 +90,10 @@ export function updateEquipmentStatus(id, status) {
  * @param {string} equipmentId
  * @returns {Promise<Array>} Maintenance records
  */
-export function getEquipmentMaintenanceHistory(equipmentId) {
-    return Promise.resolve(mockEquipmentMaintenanceHistory.filter(m => m.equipmentId === equipmentId));
+export async function getEquipmentMaintenanceHistory(equipmentId) {
+    const res = await fetch(`${API_URL}/equipments/${equipmentId}/maintenance-history`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch maintenance history');
+    return res.json();
 }
 
 /**
@@ -85,14 +102,15 @@ export function getEquipmentMaintenanceHistory(equipmentId) {
  * @param {Object} record
  * @returns {Promise<Object>} Added record
  */
-export function addEquipmentMaintenanceRecord(equipmentId, record) {
-    const newRecord = {
-        ...record,
-        equipmentId,
-        date: new Date().toISOString(),
-    };
-    mockEquipmentMaintenanceHistory.push(newRecord);
-    return Promise.resolve(newRecord);
+export async function addEquipmentMaintenanceRecord(equipmentId, record) {
+    const res = await fetch(`${API_URL}/equipments/${equipmentId}/maintenance-history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(record),
+    });
+    if (!res.ok) throw new Error('Failed to add maintenance record');
+    return res.json();
 }
 
 /**
@@ -100,23 +118,28 @@ export function addEquipmentMaintenanceRecord(equipmentId, record) {
  * @param {string} equipmentId
  * @returns {Promise<Array>} Files
  */
-export function getEquipmentFiles(equipmentId) {
-    const equipment = equipmentData.find(e => e.id === equipmentId);
-    return Promise.resolve(equipment?.files || []);
+export async function getEquipmentFiles(equipmentId) {
+    const res = await fetch(`${API_URL}/equipments/${equipmentId}/files`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch files');
+    return res.json();
 }
 
 /**
- * Add a file to equipment
- * @param {string} equipmentId
- * @param {Object} file
- * @returns {Promise<Object|null>} Added file or null
+ * Upload a file to equipment
+ * @param {string} id
+ * @param {File} file
+ * @returns {Promise<Object>} Uploaded file info
  */
-export function addEquipmentFile(equipmentId, file) {
-    const equipment = equipmentData.find(e => e.id === equipmentId);
-    if (!equipment) return Promise.resolve(null);
-    const newFile = { ...file, uploadedAt: new Date().toISOString() };
-    equipment.files = [...(equipment.files || []), newFile];
-    return Promise.resolve(newFile);
+export async function uploadEquipmentFile(id, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}/equipments/${id}/files`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+    });
+    if (!res.ok) throw new Error('Failed to upload file');
+    return res.json();
 }
 
 /**
@@ -125,9 +148,10 @@ export function addEquipmentFile(equipmentId, file) {
  * @param {string} fileName
  * @returns {Promise<boolean>} Success
  */
-export function deleteEquipmentFile(equipmentId, fileName) {
-    const equipment = equipmentData.find(e => e.id === equipmentId);
-    if (!equipment || !equipment.files) return Promise.resolve(false);
-    equipment.files = equipment.files.filter(f => f.name !== fileName);
-    return Promise.resolve(true);
+export async function deleteEquipmentFile(equipmentId, fileName) {
+    const res = await fetch(`${API_URL}/equipments/${equipmentId}/files/${fileName}`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+    return res.ok;
 } 

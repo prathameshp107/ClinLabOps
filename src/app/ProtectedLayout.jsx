@@ -49,6 +49,7 @@ export default function ProtectedLayout({ children }) {
         }
     }, [pathname, router, isAuthRoute]);
 
+    // Decide what to render based on state, but never return before hooks
     if (isAuthRoute) {
         return children;
     }
@@ -79,7 +80,6 @@ export default function ProtectedLayout({ children }) {
                     position: 'relative',
                     animation: fadeIn ? 'fadeInCard 0.5s' : undefined,
                 }}>
-
                     {/* Spinner or Checkmark */}
                     {!showCheck ? (
                         <div className="animate-spin mb-4 mx-auto" style={{ height: 44, width: 44, border: '5px solid #e5e7eb', borderTop: '5px solid #6366f1', borderRadius: '50%' }}></div>

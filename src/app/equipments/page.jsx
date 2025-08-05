@@ -34,11 +34,12 @@ import {
   RefreshCw
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { equipmentData } from "@/data/equipment-data"
+import * as equipmentService from "@/services/equipmentService"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function EquipmentsPage() {
-  const [equipment, setEquipment] = useState(equipmentData)
+  const [equipment, setEquipment] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortOption, setSortOption] = useState("name-asc")
@@ -50,6 +51,21 @@ export default function EquipmentsPage() {
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState("table") // "grid" or "table"
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [error, setError] = useState("")
+
+  // Fetch equipment from backend
+  useEffect(() => {
+    setLoading(true)
+    equipmentService.getEquipments()
+      .then(data => {
+        setEquipment(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError("Failed to load equipment.")
+        setLoading(false)
+      })
+  }, [isRefreshing])
 
   // Calculate statistics for the dashboard cards
   const stats = {
@@ -114,38 +130,48 @@ export default function EquipmentsPage() {
   };
 
   // Handle deleting an equipment
-  const handleDeleteEquipment = (equipmentId) => {
-    setEquipment(equipment.filter(item => item.id !== equipmentId));
+  const handleDeleteEquipment = async (equipmentId) => {
+    try {
+      await equipmentService.deleteEquipment(equipmentId)
+      setEquipment(equipment.filter(item => item.id !== equipmentId))
+    } catch (err) {
+      setError("Failed to delete equipment.")
+    }
   };
 
   // Handle submitting the equipment form
-  const handleSubmitEquipment = (equipmentData) => {
-    if (formMode === "create") {
-      const newEquipment = {
-        ...equipmentData,
-        id: `EQ-${Date.now().toString().slice(-6)}`,
-        dateAdded: new Date().toISOString(),
-      };
-      setEquipment([...equipment, newEquipment]);
-    } else {
-      setEquipment(equipment.map(item =>
-        item.id === equipmentData.id ? { ...item, ...equipmentData } : item
-      ));
+  const handleSubmitEquipment = async (equipmentData) => {
+    try {
+      if (formMode === "create") {
+        const newEquipment = await equipmentService.createEquipment(equipmentData)
+        setEquipment([...equipment, newEquipment])
+      } else {
+        const updated = await equipmentService.updateEquipment(equipmentData.id, equipmentData)
+        setEquipment(equipment.map(item =>
+          item.id === equipmentData.id ? updated : item
+        ))
+      }
+      setFormDialogOpen(false)
+    } catch (err) {
+      setError("Failed to save equipment.")
     }
-    setFormDialogOpen(false);
   };
 
   // Handle updating equipment status
-  const handleUpdateStatus = (equipmentId, newStatus) => {
-    setEquipment(equipment.map(item =>
-      item.id === equipmentId ? { ...item, status: newStatus } : item
-    ));
+  const handleUpdateStatus = async (equipmentId, newStatus) => {
+    try {
+      const updated = await equipmentService.updateEquipmentStatus(equipmentId, newStatus)
+      setEquipment(equipment.map(item =>
+        item.id === equipmentId ? updated : item
+      ))
+    } catch (err) {
+      setError("Failed to update status.")
+    }
   };
 
   // Handle refresh
   const handleRefresh = () => {
     setIsRefreshing(true);
-    // Simulate refresh
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
@@ -389,7 +415,47 @@ export default function EquipmentsPage() {
               </div>
 
               <AnimatePresence>
-                {sortedEquipment.length === 0 ? (
+                {loading ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center py-20 text-center bg-card/40 backdrop-blur-sm rounded-2xl border border-border/30 shadow-sm"
+                  >
+                    <div className="rounded-full bg-primary/10 p-5 mb-6">
+                      <RefreshCw className="h-10 w-10 text-primary/80 animate-spin" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3">Loading equipment...</h3>
+                    <p className="text-muted-foreground max-w-md mb-8 text-base">
+                      Please wait while we fetch the equipment data.
+                    </p>
+                  </motion.div>
+                ) : error ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center py-20 text-center bg-card/40 backdrop-blur-sm rounded-2xl border border-border/30 shadow-sm"
+                  >
+                    <div className="rounded-full bg-red-100 p-5 mb-6">
+                      <AlertTriangle className="h-10 w-10 text-red-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3">Error loading equipment</h3>
+                    <p className="text-muted-foreground max-w-md mb-8 text-base">
+                      {error}. Please try again later.
+                    </p>
+                    <Button
+                      onClick={handleRefresh}
+                      variant="outline"
+                      className="bg-background/50 hover:bg-primary/5 transition-all duration-200 hover:border-primary/30 py-6 px-8 text-base"
+                    >
+                      <RefreshCw className="mr-2 h-5 w-5" />
+                      Retry
+                    </Button>
+                  </motion.div>
+                ) : sortedEquipment.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
