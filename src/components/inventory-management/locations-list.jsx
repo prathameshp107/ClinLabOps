@@ -121,9 +121,9 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="type" className="text-sm font-medium">Location Type</label>
-                  <Select 
-                    value={newLocation.type} 
-                    onValueChange={(value) => setNewLocation({...newLocation, type: value})}
+                  <Select
+                    value={newLocation.type}
+                    onValueChange={(value) => setNewLocation({ ...newLocation, type: value })}
                   >
                     <SelectTrigger id="type">
                       <SelectValue placeholder="Select location type" />
@@ -174,18 +174,18 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
             {locations.length > 0 ? (
               locations.map((location) => (
                 <TableRow key={location.id}>
-                  <TableCell className="font-medium">{location.id}</TableCell>
-                  <TableCell>{location.name}</TableCell>
+                  <TableCell className="font-medium">{location?.id || 'N/A'}</TableCell>
+                  <TableCell>{location?.name || 'Unknown Location'}</TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {location.type.charAt(0).toUpperCase() + location.type.slice(1)}
+                      {(location?.type || 'unknown').charAt(0).toUpperCase() + (location?.type || 'unknown').slice(1)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{location.description}</TableCell>
-                  <TableCell>{location.capacity}</TableCell>
+                  <TableCell>{location?.description || 'No description'}</TableCell>
+                  <TableCell>{location?.capacity || 'N/A'}</TableCell>
                   <TableCell>
-                    <Badge variant={location.status === "Active" ? "success" : "secondary"}>
-                      {location.status}
+                    <Badge variant={(location?.status || 'Inactive') === "Active" ? "success" : "secondary"}>
+                      {location?.status || 'Inactive'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -239,7 +239,7 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                 <Input
                   id="edit-name"
                   value={currentLocation.name}
-                  onChange={(e) => setCurrentLocation({...currentLocation, name: e.target.value})}
+                  onChange={(e) => setCurrentLocation({ ...currentLocation, name: e.target.value })}
                   placeholder="Location name"
                 />
               </div>
@@ -248,16 +248,16 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                 <Input
                   id="edit-description"
                   value={currentLocation.description || ""}
-                  onChange={(e) => setCurrentLocation({...currentLocation, description: e.target.value})}
+                  onChange={(e) => setCurrentLocation({ ...currentLocation, description: e.target.value })}
                   placeholder="Location description"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="edit-type" className="text-sm font-medium">Location Type</label>
-                  <Select 
-                    value={currentLocation.type || "room"} 
-                    onValueChange={(value) => setCurrentLocation({...currentLocation, type: value})}
+                  <Select
+                    value={currentLocation.type || "room"}
+                    onValueChange={(value) => setCurrentLocation({ ...currentLocation, type: value })}
                   >
                     <SelectTrigger id="edit-type">
                       <SelectValue placeholder="Select location type" />
@@ -277,7 +277,7 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                     id="edit-capacity"
                     type="number"
                     value={currentLocation.capacity || ""}
-                    onChange={(e) => setCurrentLocation({...currentLocation, capacity: e.target.value})}
+                    onChange={(e) => setCurrentLocation({ ...currentLocation, capacity: e.target.value })}
                     placeholder="Storage capacity"
                   />
                 </div>

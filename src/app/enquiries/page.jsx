@@ -12,23 +12,32 @@ import { toast } from "@/components/ui/use-toast"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
-// Enquiries will be fetched from API
+import { getEnquiries } from "@/services/enquiryService"
 
 function EnquiriesPage() {
   const router = useRouter()
-  const [enquiries, setEnquiries] = useState(mockEnquiries)
+  const [enquiries, setEnquiries] = useState([])
   const [selectedEnquiry, setSelectedEnquiry] = useState(null)
   const [showQuickView, setShowQuickView] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showNewEnquiry, setShowNewEnquiry] = useState(false)
 
-  // Simulate loading state
+  // Fetch enquiries from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
+    const fetchEnquiries = async () => {
+      try {
+        setIsLoading(true)
+        const enquiriesData = await getEnquiries()
+        setEnquiries(Array.isArray(enquiriesData) ? enquiriesData : [])
+      } catch (error) {
+        console.error('Failed to fetch enquiries:', error)
+        setEnquiries([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    return () => clearTimeout(timer)
+    fetchEnquiries()
   }, [])
 
   // Handle enquiry actions

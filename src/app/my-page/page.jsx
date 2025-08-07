@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -41,8 +41,13 @@ import UserAvatar from "@/components/tasks/user-avatar";
 // Dashboard and profile data will be fetched from API
 import { getTasks } from "@/services/taskService"
 import { getProjects } from "@/services/projectService"
-import { getCurrentUser } from "@/services/userService"
-import { getDashboardData } from "@/services/dashboardService"
+import { getCurrentUser } from "@/services/authService"
+import {
+  getUserDashboardActivities,
+  getUserDashboardNotifications,
+  getUserDashboardUpcomingDeadlines,
+  getUserDashboardPerformance
+} from "@/services/dashboardService"
 
 export default function MyPage() {
   const { theme } = useTheme();
@@ -69,12 +74,18 @@ export default function MyPage() {
           currentUser,
           tasks,
           projects,
-          dashboardData
+          activities,
+          notifications,
+          upcomingDeadlines,
+          performanceData
         ] = await Promise.all([
           getCurrentUser(),
           getTasks(),
           getProjects(),
-          getDashboardData()
+          getUserDashboardActivities().catch(() => []),
+          getUserDashboardNotifications().catch(() => []),
+          getUserDashboardUpcomingDeadlines().catch(() => []),
+          getUserDashboardPerformance().catch(() => ({ summary: { completionRate: 0 } }))
         ]);
 
         // Set profile data
@@ -106,13 +117,11 @@ export default function MyPage() {
         setMemberProjects(userProjects);
         setOwnedProjects(userOwnedProjects);
 
-        // Set other data from dashboard
-        setActivities(dashboardData.activities || []);
-        setNotifications(dashboardData.notifications || []);
-        setUpcomingDeadlines(dashboardData.upcomingDeadlines || []);
-        setPerformanceData(dashboardData.performanceData || {
-          summary: { completionRate: 0 }
-        });
+        // Set dashboard data
+        setActivities(activities);
+        setNotifications(notifications);
+        setUpcomingDeadlines(upcomingDeadlines);
+        setPerformanceData(performanceData);
 
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
@@ -268,12 +277,12 @@ export default function MyPage() {
                           <div className="space-y-3">
                             <div className="flex justify-between items-center text-sm">
                               <span>Progress</span>
-                              <span className="font-medium">{mockPerformanceData.summary.completionRate}%</span>
+                              <span className="font-medium">{performanceData?.summary?.completionRate || 0}%</span>
                             </div>
                             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-white rounded-full"
-                                style={{ width: `${mockPerformanceData.summary.completionRate}%` }}
+                                style={{ width: `${performanceData?.summary?.completionRate || 0}%` }}
                               ></div>
                             </div>
 
@@ -343,7 +352,7 @@ export default function MyPage() {
                         <div className="relative">
                           <p className="text-sm text-muted-foreground">Projects</p>
                           <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">
-                            {mockMemberProjects.length}
+                            {memberProjects.length}
                           </h3>
                           <div className="mt-2 inline-flex items-center text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
                             Active
@@ -399,7 +408,7 @@ export default function MyPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
               >
-                <NotificationsPanel notifications={mockNotifications} />
+                <NotificationsPanel notifications={notifications} />
               </motion.div>
             </div>
 
@@ -412,7 +421,7 @@ export default function MyPage() {
                 transition={{ duration: 0.3, delay: 0.3 }}
                 className="col-span-1"
               >
-                <UpcomingDeadlines deadlines={mockUpcomingDeadlines} />
+                <UpcomingDeadlines deadlines={upcomingDeadlines} />
               </motion.div>
 
               {/* Activity Timeline */}
@@ -422,7 +431,7 @@ export default function MyPage() {
                 transition={{ duration: 0.3, delay: 0.4 }}
                 className="col-span-1 md:col-span-2"
               >
-                <ActivityTimeline activities={mockActivities} />
+                <ActivityTimeline activities={activities} />
               </motion.div>
             </div>
 
@@ -514,7 +523,7 @@ export default function MyPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y">
-                      {mockMemberProjects.slice(0, 3).map((project, index) => (
+                      {memberProjects.slice(0, 3).map((project, index) => (
                         <motion.div
                           key={project.id}
                           initial={{ opacity: 0, x: -10 }}
@@ -656,7 +665,7 @@ export default function MyPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <TaskList tasks={mockAssignedTasks} />
+                    <TaskList tasks={assignedTasks} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -681,7 +690,7 @@ export default function MyPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <TaskList tasks={mockCreatedTasks} />
+                    <TaskList tasks={createdTasks} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -710,7 +719,7 @@ export default function MyPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ProjectGrid projects={mockMemberProjects} />
+                    <ProjectGrid projects={memberProjects} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -735,7 +744,7 @@ export default function MyPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ProjectGrid projects={mockOwnedProjects} />
+                    <ProjectGrid projects={ownedProjects} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -752,7 +761,7 @@ export default function MyPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <PerformanceMetrics data={mockPerformanceData} />
+                <PerformanceMetrics data={performanceData} />
               </CardContent>
             </Card>
           </TabsContent>

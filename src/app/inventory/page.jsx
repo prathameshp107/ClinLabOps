@@ -1,21 +1,46 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InventoryList } from "@/components/inventory-management/inventory-list"
 import { SuppliersList } from "@/components/inventory-management/suppliers-list"
 import { LocationsList } from "@/components/inventory-management/locations-list"
 import { ReportsList } from "@/components/inventory-management/reports-list"
-// Inventory data will be fetched from API
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
+import { getInventoryItems, getSuppliers, getWarehouses } from "@/services/inventoryService"
 
-import { Package, Users, MapPin, BarChart } from "lucide-react";
+import { Package, Users, MapPin, BarChart, Loader2 } from "lucide-react";
 
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState(inventoryData.items)
-  const [suppliers, setSuppliers] = useState(inventoryData.suppliers)
-  const [locations, setLocations] = useState(inventoryData.locations)
+  const [inventory, setInventory] = useState([])
+  const [suppliers, setSuppliers] = useState([])
+  const [locations, setLocations] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const [inventoryData, suppliersData, locationsData] = await Promise.all([
+          getInventoryItems().catch(() => []),
+          getSuppliers().catch(() => []),
+          getWarehouses().catch(() => [])
+        ])
+
+        setInventory(inventoryData)
+        setSuppliers(suppliersData)
+        setLocations(locationsData)
+      } catch (error) {
+        console.error('Failed to fetch inventory data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   // Handle updating an inventory item
   const handleUpdateItem = (updatedItem) => {
@@ -72,6 +97,27 @@ export default function InventoryPage() {
   // Handle deleting a location
   const handleDeleteLocation = (locationId) => {
     setLocations(prev => prev.filter(location => location.id !== locationId))
+  }
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="w-full px-8 py-6 space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight text-primary">
+              <Package className="inline-block mr-2 h-8 w-8" /> Inventory Management
+            </h1>
+            <p className="text-lg text-muted-foreground">Manage laboratory inventory, suppliers, and storage locations</p>
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Loading inventory data...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   return (

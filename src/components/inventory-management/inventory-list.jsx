@@ -110,14 +110,14 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
   // Filter and sort items
   const filteredItems = inventoryItems.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.id.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesSearch = (item?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item?.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item?.id || '').toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory
+    const matchesCategory = selectedCategory === "all" || item?.category === selectedCategory
     const matchesStatus = selectedStatus === "all" ||
-      (selectedStatus === "low" && item.isLowStock) ||
-      (selectedStatus === "in-stock" && !item.isLowStock)
+      (selectedStatus === "low" && item?.isLowStock) ||
+      (selectedStatus === "in-stock" && !item?.isLowStock)
 
     return matchesSearch && matchesCategory && matchesStatus
   })
@@ -273,39 +273,39 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
   }
 
   // After your other handler functions like handleStockUpdate, openStockUpdateDialog, etc.
-  
+
   // Handle opening supplier edit dialog
   const openSupplierEditDialog = (supplier) => {
     setCurrentSupplier(supplier)
     setIsSupplierEditOpen(true)
   }
-  
+
   // Handle opening location edit dialog
   const openLocationEditDialog = (location) => {
     setCurrentLocation(location)
     setIsLocationEditOpen(true)
   }
-  
+
   // Handle saving edited supplier
   const handleSupplierEdit = () => {
     if (!currentSupplier) return
-    
+
     // Here you would update the supplier in your data store
     // For now, we'll just close the dialog
     setIsSupplierEditOpen(false)
     setCurrentSupplier(null)
   }
-  
+
   // Handle saving edited location
   const handleLocationEdit = () => {
     if (!currentLocation) return
-    
+
     // Here you would update the location in your data store
     // For now, we'll just close the dialog
     setIsLocationEditOpen(false)
     setCurrentLocation(null)
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -627,24 +627,24 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                       aria-label={`Select ${item.name}`}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{item.id}</TableCell>
+                  <TableCell className="font-medium">{item?.id || 'N/A'}</TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-xs text-muted-foreground">SKU: {item.sku}</div>
+                      <div className="font-medium">{item?.name || 'Unknown Item'}</div>
+                      <div className="text-xs text-muted-foreground">SKU: {item?.sku || 'N/A'}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item?.category || 'Uncategorized'}</TableCell>
                   <TableCell>
                     <div className="flex items-center">
-                      <span className="mr-2">{item.currentStock} {item.unit}</span>
-                      {item.isLowStock && (
+                      <span className="mr-2">{item?.currentStock || 0} {item?.unit || 'units'}</span>
+                      {item?.isLowStock && (
                         <AlertCircle className="h-4 w-4 text-amber-500" />
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>${item.unitPrice.toFixed(2)}</TableCell>
-                  <TableCell>{item.location}</TableCell>
+                  <TableCell>${(item?.unitPrice || 0).toFixed(2)}</TableCell>
+                  <TableCell>{item?.location || 'Unknown'}</TableCell>
                   <TableCell>
                     <Badge variant={item.isLowStock ? "outline" : "secondary"} className={item.isLowStock ? "text-amber-500 border-amber-200 bg-amber-50" : ""}>
                       {item.status}
@@ -724,7 +724,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   <Input
                     id="edit-name"
                     value={currentEditItem.name}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, name: e.target.value})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, name: e.target.value })}
                     placeholder="Item name"
                   />
                 </div>
@@ -733,7 +733,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   <Input
                     id="edit-category"
                     value={currentEditItem.category}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, category: e.target.value})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, category: e.target.value })}
                     placeholder="Category"
                   />
                 </div>
@@ -745,7 +745,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                     id="edit-currentStock"
                     type="number"
                     value={currentEditItem.currentStock}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, currentStock: parseInt(e.target.value)})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, currentStock: parseInt(e.target.value) })}
                     placeholder="0"
                   />
                 </div>
@@ -755,7 +755,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                     id="edit-minStockLevel"
                     type="number"
                     value={currentEditItem.minStockLevel}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, minStockLevel: parseInt(e.target.value)})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, minStockLevel: parseInt(e.target.value) })}
                     placeholder="0"
                   />
                 </div>
@@ -765,7 +765,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                     id="edit-unitPrice"
                     type="number"
                     value={currentEditItem.unitPrice}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, unitPrice: parseFloat(e.target.value)})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, unitPrice: parseFloat(e.target.value) })}
                     placeholder="0.00"
                   />
                 </div>
@@ -776,7 +776,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   <Input
                     id="edit-location"
                     value={currentEditItem.location}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, location: e.target.value})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, location: e.target.value })}
                     placeholder="Storage location"
                   />
                 </div>
@@ -785,7 +785,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   <Input
                     id="edit-supplier"
                     value={currentEditItem.supplier}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, supplier: e.target.value})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, supplier: e.target.value })}
                     placeholder="Supplier name"
                   />
                 </div>
@@ -794,7 +794,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   <Input
                     id="edit-unit"
                     value={currentEditItem.unit || "pcs"}
-                    onChange={(e) => setCurrentEditItem({...currentEditItem, unit: e.target.value})}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, unit: e.target.value })}
                     placeholder="Unit (e.g., pcs, boxes)"
                   />
                 </div>
@@ -823,7 +823,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                 <span className="text-sm font-medium">Current Stock:</span>
                 <span>{stockUpdateItem.currentStock} {stockUpdateItem.unit || "pcs"}</span>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Update Type</label>
                 <Select value={stockUpdateType} onValueChange={setStockUpdateType}>
@@ -837,12 +837,12 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  {stockUpdateType === "add" ? "Amount to Add" : 
-                   stockUpdateType === "subtract" ? "Amount to Remove" : 
-                   "New Stock Level"}
+                  {stockUpdateType === "add" ? "Amount to Add" :
+                    stockUpdateType === "subtract" ? "Amount to Remove" :
+                      "New Stock Level"}
                 </label>
                 <Input
                   type="number"
@@ -851,11 +851,11 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   onChange={(e) => setStockUpdateAmount(e.target.value)}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">New Stock Level:</span>
                 <span>
-                  {stockUpdateType === "add" 
+                  {stockUpdateType === "add"
                     ? stockUpdateItem.currentStock + parseInt(stockUpdateAmount || 0)
                     : stockUpdateType === "subtract"
                       ? Math.max(0, stockUpdateItem.currentStock - parseInt(stockUpdateAmount || 0))
@@ -886,7 +886,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                 <label className="text-sm font-medium">Supplier Name</label>
                 <Input
                   value={currentSupplier.name}
-                  onChange={(e) => setCurrentSupplier({...currentSupplier, name: e.target.value})}
+                  onChange={(e) => setCurrentSupplier({ ...currentSupplier, name: e.target.value })}
                 />
               </div>
             </div>
@@ -913,7 +913,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                 <label className="text-sm font-medium">Location Name</label>
                 <Input
                   value={currentLocation.name}
-                  onChange={(e) => setCurrentLocation({...currentLocation, name: e.target.value})}
+                  onChange={(e) => setCurrentLocation({ ...currentLocation, name: e.target.value })}
                 />
               </div>
             </div>

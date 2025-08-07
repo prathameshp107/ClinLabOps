@@ -1,99 +1,142 @@
-// Service layer for Enquiries
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+/**
+ * Get all enquiries
+ * @returns {Promise<Array>} List of enquiries
+ */
+export async function getEnquiries() {
+  try {
+    const response = await api.get('/enquiries');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching enquiries:', error);
+    throw error;
+  }
+}
 
 export const enquiryService = {
   getAll: async () => {
-    const response = await fetch(`${API_URL}/enquiries`, { credentials: 'include' });
-    if (!response.ok) throw new Error('Failed to fetch enquiries');
-    return response.json();
+    return getEnquiries();
   },
 
   getById: async (id) => {
-    const response = await fetch(`${API_URL}/enquiries/${id}`, { credentials: 'include' });
-    if (!response.ok) return null;
-    return response.json();
+    try {
+      const response = await api.get(`/enquiries/${id}`);
+      return response.data;
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return null;
+      }
+      console.error('Error fetching enquiry:', error);
+      throw error;
+    }
   },
 
   create: async (enquiry) => {
-    const response = await fetch(`${API_URL}/enquiries`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(enquiry),
-    });
-    if (!response.ok) throw new Error('Failed to create enquiry');
-    return response.json();
+    try {
+      const response = await api.post('/enquiries', enquiry);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating enquiry:', error);
+      throw error;
+    }
   },
 
   update: async (id, updates) => {
-    const response = await fetch(`${API_URL}/enquiries/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(updates),
-    });
-    if (!response.ok) throw new Error('Failed to update enquiry');
-    return response.json();
+    try {
+      const response = await api.put(`/enquiries/${id}`, updates);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating enquiry:', error);
+      throw error;
+    }
   },
 
   delete: async (id) => {
-    const response = await fetch(`${API_URL}/enquiries/${id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    return response.ok;
+    try {
+      await api.delete(`/enquiries/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting enquiry:', error);
+      return false;
+    }
   },
 
   addComment: async (id, comment) => {
-    const response = await fetch(`${API_URL}/enquiries/${id}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(comment),
-    });
-    if (!response.ok) throw new Error('Failed to add comment');
-    return response.json();
+    try {
+      const response = await api.post(`/enquiries/${id}/comments`, comment);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      throw error;
+    }
   },
 
   assignTo: async (id, user) => {
-    const response = await fetch(`${API_URL}/enquiries/${id}/assign`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ assignedTo: user }),
-    });
-    if (!response.ok) throw new Error('Failed to assign enquiry');
-    return response.json();
+    try {
+      const response = await api.put(`/enquiries/${id}/assign`, { assignedTo: user });
+      return response.data;
+    } catch (error) {
+      console.error('Error assigning enquiry:', error);
+      throw error;
+    }
   },
 
   addActivity: async (id, activity) => {
-    const response = await fetch(`${API_URL}/enquiries/${id}/activities`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(activity),
-    });
-    if (!response.ok) throw new Error('Failed to add activity');
-    return response.json();
+    try {
+      const response = await api.post(`/enquiries/${id}/activities`, activity);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding activity:', error);
+      throw error;
+    }
   },
 
   uploadDocument: async (id, file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await fetch(`${API_URL}/enquiries/${id}/documents`, {
-      method: 'POST',
-      credentials: 'include',
-      body: formData,
-    });
-    if (!response.ok) throw new Error('Failed to upload document');
-    return response.json();
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post(`/enquiries/${id}/documents`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      throw error;
+    }
   },
 
   export: async (format = "xlsx") => {
-    const response = await fetch(`${API_URL}/enquiries/export?format=${format}`, {
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Failed to export enquiries');
-    return response.blob();
+    try {
+      const response = await api.get(`/enquiries/export`, {
+        params: { format },
+        responseType: 'blob'
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting enquiries:', error);
+      throw error;
+    }
   },
 }; 
