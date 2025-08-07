@@ -130,8 +130,8 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             label: 'Insights',
             icon: <BarChart2 className="h-4 w-4" />,
             items: [
-                { name: 'analytics', label: 'Analytics', icon: <BarChart2 className="h-5 w-5" />, path: '#', badge: null },
-                { name: 'reports', label: 'Reports', icon: <FileText className="h-5 w-5" />, path: '#', badge: null },
+                { name: 'analytics', label: 'Analytics', icon: <BarChart2 className="h-5 w-5" />, path: '#', badge: null, comingSoon: true },
+                { name: 'reports', label: 'Reports', icon: <FileText className="h-5 w-5" />, path: '#', badge: null, comingSoon: true },
                 { name: 'enquiries', label: 'Enquiries', icon: <MessageSquare className="h-5 w-5" />, path: '/enquiries', badge: null }
             ]
         },
@@ -317,7 +317,14 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                                                                 )}>
                                                                                     {item.icon}
                                                                                 </span>
-                                                                                {!isCollapsed && <span className="flex-1">{item.label}</span>}
+                                                                                {!isCollapsed && (
+                                                                                    <div className="flex-1 flex items-center justify-between">
+                                                                                        <span>{item.label}</span>
+                                                                                        {item.comingSoon && (
+                                                                                            <span className="text-xs text-muted-foreground ml-2">Coming soon</span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
                                                                                 {item.badge && !isCollapsed && (
                                                                                     <Badge
                                                                                         variant={isActive(item.path) ? "outline" : item.badge.variant}
