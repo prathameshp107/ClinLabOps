@@ -1,11 +1,38 @@
-import { mockUsers } from "@/data/projects-data";
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 /**
  * Fetch all users
- * @returns {Promise<Array>} List of users
+ * @param {Object} params - Query parameters (page, limit, role, status, search)
+ * @returns {Promise<Array>} Array of users
  */
-export function getUsers() {
-    return Promise.resolve(Object.values(mockUsers));
+export async function getUsers(params = {}) {
+    try {
+        const response = await api.get('/users', { params });
+        // Return just the users array for compatibility with task management
+        return response.data.users || response.data;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
 }
 
 /**
@@ -13,8 +40,17 @@ export function getUsers() {
  * @param {string} id
  * @returns {Promise<Object|null>} User object or null
  */
-export function getUserById(id) {
-    return Promise.resolve(mockUsers[id] || null);
+export async function getUserById(id) {
+    try {
+        const response = await api.get(`/users/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -22,15 +58,14 @@ export function getUserById(id) {
  * @param {Object} user
  * @returns {Promise<Object>} Created user
  */
-export function createUser(user) {
-    const newUser = {
-        ...user,
-        id: `u${Date.now().toString().slice(-6)}`,
-        status: "Invited",
-        lastLogin: null,
-    };
-    mockUsers[newUser.id] = newUser;
-    return Promise.resolve(newUser);
+export async function createUser(user) {
+    try {
+        const response = await api.post('/users', user);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -39,10 +74,17 @@ export function createUser(user) {
  * @param {Object} updates
  * @returns {Promise<Object|null>} Updated user or null
  */
-export function updateUser(id, updates) {
-    if (!mockUsers[id]) return Promise.resolve(null);
-    mockUsers[id] = { ...mockUsers[id], ...updates };
-    return Promise.resolve(mockUsers[id]);
+export async function updateUser(id, updates) {
+    try {
+        const response = await api.put(`/users/${id}`, updates);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -50,10 +92,17 @@ export function updateUser(id, updates) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteUser(id) {
-    if (!mockUsers[id]) return Promise.resolve(false);
-    delete mockUsers[id];
-    return Promise.resolve(true);
+export async function deleteUser(id) {
+    try {
+        await api.delete(`/users/${id}`);
+        return true;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return false;
+        }
+        console.error('Error deleting user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -61,10 +110,17 @@ export function deleteUser(id) {
  * @param {string} id
  * @returns {Promise<Object|null>} Activated user or null
  */
-export function activateUser(id) {
-    if (!mockUsers[id]) return Promise.resolve(null);
-    mockUsers[id].status = "Active";
-    return Promise.resolve(mockUsers[id]);
+export async function activateUser(id) {
+    try {
+        const response = await api.patch(`/users/${id}/activate`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error activating user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -72,10 +128,17 @@ export function activateUser(id) {
  * @param {string} id
  * @returns {Promise<Object|null>} Deactivated user or null
  */
-export function deactivateUser(id) {
-    if (!mockUsers[id]) return Promise.resolve(null);
-    mockUsers[id].status = "Inactive";
-    return Promise.resolve(mockUsers[id]);
+export async function deactivateUser(id) {
+    try {
+        const response = await api.patch(`/users/${id}/deactivate`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error deactivating user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -83,10 +146,17 @@ export function deactivateUser(id) {
  * @param {string} id
  * @returns {Promise<Object|null>} Locked user or null
  */
-export function lockUser(id) {
-    if (!mockUsers[id]) return Promise.resolve(null);
-    mockUsers[id].status = "Locked";
-    return Promise.resolve(mockUsers[id]);
+export async function lockUser(id) {
+    try {
+        const response = await api.patch(`/users/${id}/lock`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error locking user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -94,10 +164,17 @@ export function lockUser(id) {
  * @param {string} id
  * @returns {Promise<Object|null>} Unlocked user or null
  */
-export function unlockUser(id) {
-    if (!mockUsers[id]) return Promise.resolve(null);
-    mockUsers[id].status = "Active";
-    return Promise.resolve(mockUsers[id]);
+export async function unlockUser(id) {
+    try {
+        const response = await api.patch(`/users/${id}/unlock`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error unlocking user:', error);
+        throw error;
+    }
 }
 
 /**
@@ -105,24 +182,61 @@ export function unlockUser(id) {
  * @param {Object} user
  * @returns {Promise<Object>} Invited user
  */
-export function inviteUser(user) {
-    const newUser = {
-        ...user,
-        id: `u${Date.now().toString().slice(-6)}`,
-        status: "Invited",
-        lastLogin: null,
-    };
-    mockUsers[newUser.id] = newUser;
-    return Promise.resolve(newUser);
+export async function inviteUser(user) {
+    try {
+        const response = await api.post('/users/invite', user);
+        return response.data;
+    } catch (error) {
+        console.error('Error inviting user:', error);
+        throw error;
+    }
 }
 
 /**
  * Reset a user's password
  * @param {string} id
+ * @param {string} newPassword
  * @returns {Promise<boolean>} Success
  */
-export function resetUserPassword(id) {
-    if (!mockUsers[id]) return Promise.resolve(false);
-    // In a real app, trigger password reset email
-    return Promise.resolve(true);
+export async function resetUserPassword(id, newPassword) {
+    try {
+        await api.patch(`/users/${id}/reset-password`, { newPassword });
+        return true;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return false;
+        }
+        console.error('Error resetting user password:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get user statistics
+ * @returns {Promise<Object>} User statistics
+ */
+export async function getUserStats() {
+    try {
+        const response = await api.get('/users/stats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user stats:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get user activity logs
+ * @param {string} id
+ * @param {Object} params - Query parameters (page, limit)
+ * @returns {Promise<Object>} Activity logs with pagination
+ */
+export async function getUserActivityLogs(id, params = {}) {
+    try {
+        const response = await api.get(`/users/${id}/activity`, { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user activity logs:', error);
+        throw error;
+    }
 } 

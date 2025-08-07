@@ -1,13 +1,9 @@
-import { mockTasks } from "@/data/tasks-data";
+// Tasks will be fetched from API
 
-export async function generateStaticParams() {
-  // Get task IDs from centralized data - replace with your actual data source in production
-  const taskIds = mockTasks.map(task => task.id);
-  
-  return taskIds.map(id => ({
-    id: id,
-  }));
-}
+// Remove static generation since we're using dynamic API data
+// export async function generateStaticParams() {
+//   return [];
+// }
 
 export default function TaskLayout({ children }) {
   return children;

@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { experimentsDashboardData } from "@/data/dashboard-data";
+// Dashboard data will be fetched from API
 
 export function ExperimentsDashboard() {
   const [experiments, setExperiments] = useState(experimentsDashboardData);

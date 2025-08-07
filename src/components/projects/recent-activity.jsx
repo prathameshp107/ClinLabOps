@@ -8,7 +8,7 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { TrendingUp, TrendingDown } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
-import { defaultActivities, defaultTeam } from "@/data/projects-data"
+// Activities and team data will be passed as props or fetched from API
 
 const ActivityIcon = ({ type }) => {
   const getIconConfig = (type) => {
@@ -108,8 +108,8 @@ const ActivityBadge = ({ type }) => {
 export function RecentActivity({ activities = [], team = [] }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  const activityData = activities.length > 0 ? activities : defaultActivities;
-  const teamData = team.length > 0 ? team : defaultTeam;
+  const activityData = activities || [];
+  const teamData = team || [];
 
   const getTimeColor = (time) => {
     if (time.includes('minute')) return 'text-emerald-600 bg-emerald-50';

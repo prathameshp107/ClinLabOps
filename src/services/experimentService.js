@@ -1,84 +1,78 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance with base URL and common headers
+// Create axios instance with default config
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add a request interceptor to add the auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['x-auth-token'] = token;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
 /**
- * Fetch all experiments (full objects)
- * @param {Object} filters - Optional filters for querying experiments
+ * Fetch all experiments
+ * @param {Object} params - Query parameters (status, search, sortBy, sortOrder)
  * @returns {Promise<Array>} List of experiments
  */
-export async function getExperiments(filters = {}) {
+export async function getExperiments(params = {}) {
   try {
-    const { status, search, sortBy, sortOrder } = filters;
-    const params = new URLSearchParams();
-    
-    if (status) params.append('status', status);
-    if (search) params.append('search', search);
-    if (sortBy) params.append('sortBy', sortBy);
-    if (sortOrder) params.append('sortOrder', sortOrder);
-    
-    const response = await api.get(`/experiments?${params.toString()}`);
+    const response = await api.get('/experiments', { params });
     return response.data;
   } catch (error) {
     console.error('Error fetching experiments:', error);
-    throw error.response?.data || error.message;
+    // Return empty array if there's an auth error or no experiments
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      return [];
+    }
+    throw error;
   }
 }
 
 /**
- * Fetch a simple list of experiments (id, name)
- * @returns {Promise<Array>} List of experiments (id, name)
+ * Fetch experiment statistics
+ * @returns {Promise<Object>} Experiment statistics
  */
-export async function getExperimentList() {
+export async function getExperimentStats() {
   try {
-    const response = await api.get('/experiments');
-    return response.data.map(exp => ({ id: exp._id, name: exp.title }));
+    const response = await api.get('/experiments/stats');
+    return response.data;
   } catch (error) {
-    console.error('Error fetching experiment list:', error);
-    throw error.response?.data || error.message;
+    console.error('Error fetching experiment stats:', error);
+    throw error;
   }
 }
 
 /**
- * Fetch a single experiment by ID
- * @param {string} id - Experiment ID
- * @returns {Promise<Object>} Experiment object
+ * Fetch an experiment by ID
+ * @param {string} id
+ * @returns {Promise<Object|null>} Experiment object or null
  */
 export async function getExperimentById(id) {
   try {
     const response = await api.get(`/experiments/${id}`);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching experiment ${id}:`, error);
-    throw error.response?.data || error.message;
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('Error fetching experiment:', error);
+    throw error;
   }
 }
 
 /**
  * Create a new experiment
- * @param {Object} experimentData - Experiment data
+ * @param {Object} experimentData
  * @returns {Promise<Object>} Created experiment
  */
 export async function createExperiment(experimentData) {
@@ -87,197 +81,272 @@ export async function createExperiment(experimentData) {
     return response.data;
   } catch (error) {
     console.error('Error creating experiment:', error);
-    throw error.response?.data || error.message;
+    throw error;
   }
 }
 
 /**
- * Update an experiment
- * @param {string} id - Experiment ID
- * @param {Object} experimentData - Updated experiment data
- * @returns {Promise<Object>} Updated experiment
+ * Update an existing experiment
+ * @param {string} id
+ * @param {Object} experimentData
+ * @returns {Promise<Object|null>} Updated experiment or null
  */
 export async function updateExperiment(id, experimentData) {
   try {
     const response = await api.put(`/experiments/${id}`, experimentData);
     return response.data;
   } catch (error) {
-    console.error(`Error updating experiment ${id}:`, error);
-    throw error.response?.data || error.message;
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('Error updating experiment:', error);
+    throw error;
   }
 }
 
 /**
  * Delete an experiment
- * @param {string} id - Experiment ID
- * @returns {Promise<Object>} Success message
+ * @param {string} id
+ * @returns {Promise<boolean>} Success
  */
 export async function deleteExperiment(id) {
   try {
-    const response = await api.delete(`/experiments/${id}`);
-    return response.data;
+    await api.delete(`/experiments/${id}`);
+    return true;
   } catch (error) {
-    console.error(`Error deleting experiment ${id}:`, error);
-    throw error.response?.data || error.message;
-  }
-}
-
-/**
- * Get experiment statistics
- * @returns {Promise<Array>} Experiment statistics
- */
-export async function getExperimentStats() {
-  try {
-    const response = await api.get('/experiments/stats');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching experiment stats:', error);
-    throw error.response?.data || error.message;
-  }
-}
-
-/**
- * Get experiment types (for dashboard analytics)
- * @returns {Promise<Array>} Experiment types with counts
- */
-export async function getExperimentTypes() {
-  try {
-    const response = await api.get('/experiments/stats');
-    // Transform the stats into the format expected by the frontend
-    return response.data.map(stat => ({
-      name: stat.status,
-      count: stat.count,
-      color: getStatusColor(stat.status)
-    }));
-  } catch (error) {
-    console.error('Error fetching experiment types:', error);
-    throw error.response?.data || error.message;
-  }
-}
-
-/**
- * Get experiment dashboard summary
- * @returns {Promise<Object>} Dashboard data
- */
-export async function getExperimentDashboard() {
-  try {
-    const [stats, experiments] = await Promise.all([
-      getExperimentStats(),
-      getExperiments()
-    ]);
-
-    // Transform data into the format expected by the dashboard
-    const activeExperiments = experiments.filter(exp => exp.status === 'in-progress');
-    const completedExperiments = experiments.filter(exp => exp.status === 'completed');
-    const experimentTypes = await getExperimentTypes();
-
-    return {
-      activeExperiments: activeExperiments.map(exp => ({
-        id: exp._id,
-        title: exp.title,
-        startDate: exp.startDate,
-        endDate: exp.endDate,
-        status: exp.status,
-        progress: calculateProgress(exp.startDate, exp.endDate),
-        priority: exp.priority
-      })),
-      completedExperiments: completedExperiments.map(exp => ({
-        id: exp._id,
-        title: exp.title,
-        startDate: exp.startDate,
-        endDate: exp.endDate,
-        status: exp.status,
-        progress: 100,
-        priority: exp.priority
-      })),
-      experimentTypes,
-      successRate: {
-        overall: calculateSuccessRate(experiments),
-        byType: experimentTypes.map(type => ({
-          name: type.name,
-          rate: Math.floor(Math.random() * 30) + 70 // Random success rate for demo
-        }))
-      }
-    };
-  } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+    console.error('Error deleting experiment:', error);
     throw error;
   }
 }
 
-// Helper function to calculate progress based on dates
-function calculateProgress(startDate, endDate) {
-  const now = new Date();
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  
-  if (now <= start) return 0;
-  if (now >= end) return 100;
-  
-  const total = end - start;
-  const elapsed = now - start;
-  return Math.min(Math.floor((elapsed / total) * 100), 100);
-}
-
-// Helper function to calculate overall success rate
-function calculateSuccessRate(experiments) {
-  if (!experiments.length) return 0;
-  const completed = experiments.filter(exp => exp.status === 'completed').length;
-  return Math.floor((completed / experiments.length) * 100);
-}
-
-// Helper function to get color based on status
-function getStatusColor(status) {
-  const colors = {
-    'planning': '#3b82f6',    // blue
-    'in-progress': '#8b5cf6', // purple
-    'on-hold': '#f59e0b',     // amber
-    'completed': '#10b981',   // emerald
-    'archived': '#6b7280'     // gray
-  };
-  return colors[status] || '#6b7280';
-}
-
 /**
- * Get the team for a given experiment
+ * Export experiment data
  * @param {string} id - Experiment ID
- * @returns {Promise<Array>} Team members
+ * @param {string} format - Export format (json, csv, xlsx, pdf)
+ * @returns {Promise<Object>} Export result
  */
-export async function getExperimentTeam(id) {
+export async function exportExperiment(id, format = 'json') {
   try {
-    const experiment = await getExperimentById(id);
-    return experiment.teamMembers || [];
+    const response = await api.get(`/experiments/${id}/export`, {
+      params: { format },
+      responseType: format !== 'json' ? 'blob' : 'json'
+    });
+
+    if (format !== 'json') {
+      // Handle file download
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `experiment_${id}.${format}`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      return { success: true, message: 'Experiment data exported successfully' };
+    }
+
+    return response.data;
   } catch (error) {
-    console.error(`Error fetching team for experiment ${id}:`, error);
-    throw error.response?.data || error.message;
+    console.error('Error exporting experiment:', error);
+    throw error;
   }
 }
 
 /**
- * Get version history for a given experiment
- * @param {string} id - Experiment ID
+ * Add a team member to an experiment
+ * @param {string} experimentId
+ * @param {string} memberName
+ * @returns {Promise<Object>} Updated experiment
+ */
+export async function addExperimentMember(experimentId, memberName) {
+  try {
+    const experiment = await getExperimentById(experimentId);
+    if (!experiment) return null;
+
+    const updatedMembers = [...(experiment.teamMembers || []), memberName];
+    const updatedExperiment = await updateExperiment(experimentId, {
+      ...experiment,
+      teamMembers: updatedMembers
+    });
+
+    return updatedExperiment;
+  } catch (error) {
+    console.error('Error adding experiment member:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove a team member from an experiment
+ * @param {string} experimentId
+ * @param {string} memberName
+ * @returns {Promise<Object>} Updated experiment
+ */
+export async function removeExperimentMember(experimentId, memberName) {
+  try {
+    const experiment = await getExperimentById(experimentId);
+    if (!experiment) return null;
+
+    const updatedMembers = (experiment.teamMembers || []).filter(member => member !== memberName);
+    const updatedExperiment = await updateExperiment(experimentId, {
+      ...experiment,
+      teamMembers: updatedMembers
+    });
+
+    return updatedExperiment;
+  } catch (error) {
+    console.error('Error removing experiment member:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update experiment status
+ * @param {string} experimentId
+ * @param {string} status
+ * @returns {Promise<Object>} Updated experiment
+ */
+export async function updateExperimentStatus(experimentId, status) {
+  try {
+    const updatedExperiment = await updateExperiment(experimentId, { status });
+    return updatedExperiment;
+  } catch (error) {
+    console.error('Error updating experiment status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update experiment priority
+ * @param {string} experimentId
+ * @param {string} priority
+ * @returns {Promise<Object>} Updated experiment
+ */
+export async function updateExperimentPriority(experimentId, priority) {
+  try {
+    const updatedExperiment = await updateExperiment(experimentId, { priority });
+    return updatedExperiment;
+  } catch (error) {
+    console.error('Error updating experiment priority:', error);
+    throw error;
+  }
+}
+
+/**
+ * Duplicate an experiment
+ * @param {string} experimentId
+ * @returns {Promise<Object>} Duplicated experiment
+ */
+export async function duplicateExperiment(experimentId) {
+  try {
+    const original = await getExperimentById(experimentId);
+    if (!original) return null;
+
+    const copy = {
+      ...original,
+      title: `${original.title} (Copy)`,
+      status: 'planning'
+    };
+    delete copy._id;
+    delete copy.id;
+    delete copy.createdAt;
+    delete copy.updatedAt;
+    delete copy.versionHistory;
+
+    return await createExperiment(copy);
+  } catch (error) {
+    console.error('Error duplicating experiment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Archive an experiment
+ * @param {string} experimentId
+ * @returns {Promise<Object>} Updated experiment
+ */
+export async function archiveExperiment(experimentId) {
+  try {
+    const updatedExperiment = await updateExperiment(experimentId, { status: 'archived' });
+    return updatedExperiment;
+  } catch (error) {
+    console.error('Error archiving experiment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Restore an archived experiment
+ * @param {string} experimentId
+ * @returns {Promise<Object>} Updated experiment
+ */
+export async function restoreExperiment(experimentId) {
+  try {
+    const updatedExperiment = await updateExperiment(experimentId, { status: 'planning' });
+    return updatedExperiment;
+  } catch (error) {
+    console.error('Error restoring experiment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get experiment version history
+ * @param {string} experimentId
  * @returns {Promise<Array>} Version history
  */
-export async function getExperimentVersionHistory(id) {
+export async function getExperimentVersionHistory(experimentId) {
   try {
-    const experiment = await getExperimentById(id);
-    return experiment.versionHistory || [];
+    const experiment = await getExperimentById(experimentId);
+    return experiment?.versionHistory || [];
   } catch (error) {
-    console.error(`Error fetching version history for experiment ${id}:`, error);
-    throw error.response?.data || error.message;
+    console.error('Error fetching experiment version history:', error);
+    throw error;
   }
 }
 
 /**
- * Get all active experiments
+ * Search experiments
+ * @param {string} query - Search query
+ * @param {Object} filters - Additional filters
+ * @returns {Promise<Array>} Search results
  */
-export function getActiveExperiments() {
-  return Promise.resolve([...experimentsDashboardData.activeExperiments]);
+export async function searchExperiments(query, filters = {}) {
+  try {
+    const params = { search: query, ...filters };
+    const response = await api.get('/experiments', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error searching experiments:', error);
+    throw error;
+  }
 }
 
 /**
- * Get all completed experiments
+ * Get experiments by status
+ * @param {string} status
+ * @returns {Promise<Array>} Experiments with specified status
  */
-export function getCompletedExperiments() {
-  return Promise.resolve([...experimentsDashboardData.completedExperiments]);
-} 
+export async function getExperimentsByStatus(status) {
+  try {
+    const response = await api.get('/experiments', { params: { status } });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching experiments by status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get experiments by priority
+ * @param {string} priority
+ * @returns {Promise<Array>} Experiments with specified priority
+ */
+export async function getExperimentsByPriority(priority) {
+  try {
+    const response = await api.get('/experiments', { params: { priority } });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching experiments by priority:', error);
+    throw error;
+  }
+}

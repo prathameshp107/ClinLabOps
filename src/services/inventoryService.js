@@ -1,11 +1,39 @@
-import { inventoryData, suppliers, warehouses, warehouseItems } from "@/data/inventory-data";
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// INVENTORY ITEMS
 
 /**
  * Fetch all inventory items
+ * @param {Object} params - Query parameters (category, status, location, search)
  * @returns {Promise<Array>} List of inventory items
  */
-export function getInventoryItems() {
-    return Promise.resolve([...inventoryData.items]);
+export async function getInventoryItems(params = {}) {
+    try {
+        const response = await api.get('/inventory/items', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching inventory items:', error);
+        throw error;
+    }
 }
 
 /**
@@ -13,8 +41,17 @@ export function getInventoryItems() {
  * @param {string} id
  * @returns {Promise<Object|null>} Inventory item or null
  */
-export function getInventoryItemById(id) {
-    return Promise.resolve(inventoryData.items.find(i => i.id === id) || null);
+export async function getInventoryItemById(id) {
+    try {
+        const response = await api.get(`/inventory/items/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching inventory item:', error);
+        throw error;
+    }
 }
 
 /**
@@ -22,14 +59,14 @@ export function getInventoryItemById(id) {
  * @param {Object} item
  * @returns {Promise<Object>} Created item
  */
-export function createInventoryItem(item) {
-    const newItem = {
-        ...item,
-        id: `INV-${Date.now().toString().slice(-6)}`,
-        lastRestocked: new Date().toISOString(),
-    };
-    inventoryData.items.push(newItem);
-    return Promise.resolve(newItem);
+export async function createInventoryItem(item) {
+    try {
+        const response = await api.post('/inventory/items', item);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating inventory item:', error);
+        throw error;
+    }
 }
 
 /**
@@ -38,11 +75,17 @@ export function createInventoryItem(item) {
  * @param {Object} updates
  * @returns {Promise<Object|null>} Updated item or null
  */
-export function updateInventoryItem(id, updates) {
-    const idx = inventoryData.items.findIndex(i => i.id === id);
-    if (idx === -1) return Promise.resolve(null);
-    inventoryData.items[idx] = { ...inventoryData.items[idx], ...updates };
-    return Promise.resolve(inventoryData.items[idx]);
+export async function updateInventoryItem(id, updates) {
+    try {
+        const response = await api.put(`/inventory/items/${id}`, updates);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating inventory item:', error);
+        throw error;
+    }
 }
 
 /**
@@ -50,19 +93,77 @@ export function updateInventoryItem(id, updates) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteInventoryItem(id) {
-    const idx = inventoryData.items.findIndex(i => i.id === id);
-    if (idx === -1) return Promise.resolve(false);
-    inventoryData.items.splice(idx, 1);
-    return Promise.resolve(true);
+export async function deleteInventoryItem(id) {
+    try {
+        await api.delete(`/inventory/items/${id}`);
+        return true;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return false;
+        }
+        console.error('Error deleting inventory item:', error);
+        throw error;
+    }
 }
+
+/**
+ * Update stock levels for an inventory item
+ * @param {string} id
+ * @param {Object} stockUpdate - { quantity, operation, user, purpose }
+ * @returns {Promise<Object>} Updated item
+ */
+export async function updateStock(id, stockUpdate) {
+    try {
+        const response = await api.patch(`/inventory/items/${id}/stock`, stockUpdate);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating stock:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get low stock items
+ * @returns {Promise<Array>} List of low stock items
+ */
+export async function getLowStockItems() {
+    try {
+        const response = await api.get('/inventory/items/low-stock');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching low stock items:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get expiring items
+ * @returns {Promise<Array>} List of expiring items
+ */
+export async function getExpiringItems() {
+    try {
+        const response = await api.get('/inventory/items/expiring');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching expiring items:', error);
+        throw error;
+    }
+}
+
+// SUPPLIERS
 
 /**
  * Fetch all suppliers
  * @returns {Promise<Array>} List of suppliers
  */
-export function getSuppliers() {
-    return Promise.resolve([...suppliers]);
+export async function getSuppliers() {
+    try {
+        const response = await api.get('/inventory/suppliers');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching suppliers:', error);
+        throw error;
+    }
 }
 
 /**
@@ -70,8 +171,17 @@ export function getSuppliers() {
  * @param {string} id
  * @returns {Promise<Object|null>} Supplier or null
  */
-export function getSupplierById(id) {
-    return Promise.resolve(suppliers.find(s => s.id === id) || null);
+export async function getSupplierById(id) {
+    try {
+        const response = await api.get(`/inventory/suppliers/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching supplier:', error);
+        throw error;
+    }
 }
 
 /**
@@ -79,13 +189,14 @@ export function getSupplierById(id) {
  * @param {Object} supplier
  * @returns {Promise<Object>} Created supplier
  */
-export function createSupplier(supplier) {
-    const newSupplier = {
-        ...supplier,
-        id: `SUP-${Date.now().toString().slice(-6)}`,
-    };
-    suppliers.push(newSupplier);
-    return Promise.resolve(newSupplier);
+export async function createSupplier(supplier) {
+    try {
+        const response = await api.post('/inventory/suppliers', supplier);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating supplier:', error);
+        throw error;
+    }
 }
 
 /**
@@ -94,11 +205,17 @@ export function createSupplier(supplier) {
  * @param {Object} updates
  * @returns {Promise<Object|null>} Updated supplier or null
  */
-export function updateSupplier(id, updates) {
-    const idx = suppliers.findIndex(s => s.id === id);
-    if (idx === -1) return Promise.resolve(null);
-    suppliers[idx] = { ...suppliers[idx], ...updates };
-    return Promise.resolve(suppliers[idx]);
+export async function updateSupplier(id, updates) {
+    try {
+        const response = await api.put(`/inventory/suppliers/${id}`, updates);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating supplier:', error);
+        throw error;
+    }
 }
 
 /**
@@ -106,19 +223,33 @@ export function updateSupplier(id, updates) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteSupplier(id) {
-    const idx = suppliers.findIndex(s => s.id === id);
-    if (idx === -1) return Promise.resolve(false);
-    suppliers.splice(idx, 1);
-    return Promise.resolve(true);
+export async function deleteSupplier(id) {
+    try {
+        await api.delete(`/inventory/suppliers/${id}`);
+        return true;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return false;
+        }
+        console.error('Error deleting supplier:', error);
+        throw error;
+    }
 }
+
+// WAREHOUSES
 
 /**
  * Fetch all warehouses
  * @returns {Promise<Array>} List of warehouses
  */
-export function getWarehouses() {
-    return Promise.resolve([...warehouses]);
+export async function getWarehouses() {
+    try {
+        const response = await api.get('/inventory/warehouses');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching warehouses:', error);
+        throw error;
+    }
 }
 
 /**
@@ -126,8 +257,17 @@ export function getWarehouses() {
  * @param {string} id
  * @returns {Promise<Object|null>} Warehouse or null
  */
-export function getWarehouseById(id) {
-    return Promise.resolve(warehouses.find(w => w.id === id) || null);
+export async function getWarehouseById(id) {
+    try {
+        const response = await api.get(`/inventory/warehouses/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching warehouse:', error);
+        throw error;
+    }
 }
 
 /**
@@ -135,13 +275,14 @@ export function getWarehouseById(id) {
  * @param {Object} warehouse
  * @returns {Promise<Object>} Created warehouse
  */
-export function createWarehouse(warehouse) {
-    const newWarehouse = {
-        ...warehouse,
-        id: `WH-${Date.now().toString().slice(-6)}`,
-    };
-    warehouses.push(newWarehouse);
-    return Promise.resolve(newWarehouse);
+export async function createWarehouse(warehouse) {
+    try {
+        const response = await api.post('/inventory/warehouses', warehouse);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating warehouse:', error);
+        throw error;
+    }
 }
 
 /**
@@ -150,11 +291,17 @@ export function createWarehouse(warehouse) {
  * @param {Object} updates
  * @returns {Promise<Object|null>} Updated warehouse or null
  */
-export function updateWarehouse(id, updates) {
-    const idx = warehouses.findIndex(w => w.id === id);
-    if (idx === -1) return Promise.resolve(null);
-    warehouses[idx] = { ...warehouses[idx], ...updates };
-    return Promise.resolve(warehouses[idx]);
+export async function updateWarehouse(id, updates) {
+    try {
+        const response = await api.put(`/inventory/warehouses/${id}`, updates);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating warehouse:', error);
+        throw error;
+    }
 }
 
 /**
@@ -162,39 +309,163 @@ export function updateWarehouse(id, updates) {
  * @param {string} id
  * @returns {Promise<boolean>} Success
  */
-export function deleteWarehouse(id) {
-    const idx = warehouses.findIndex(w => w.id === id);
-    if (idx === -1) return Promise.resolve(false);
-    warehouses.splice(idx, 1);
-    return Promise.resolve(true);
+export async function deleteWarehouse(id) {
+    try {
+        await api.delete(`/inventory/warehouses/${id}`);
+        return true;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return false;
+        }
+        console.error('Error deleting warehouse:', error);
+        throw error;
+    }
 }
 
+// ORDERS
+
 /**
- * Fetch all warehouse items
- * @returns {Promise<Array>} List of warehouse items
+ * Fetch all orders
+ * @param {Object} params - Query parameters (status, supplier)
+ * @returns {Promise<Array>} List of orders
  */
-export function getWarehouseItems() {
-    return Promise.resolve([...warehouseItems]);
+export async function getOrders(params = {}) {
+    try {
+        const response = await api.get('/inventory/orders', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+    }
 }
 
 /**
- * Add an item to a warehouse
- * @param {Object} item
- * @returns {Promise<Object>} Added item
+ * Fetch an order by ID
+ * @param {string} id
+ * @returns {Promise<Object|null>} Order or null
  */
-export function addWarehouseItem(item) {
-    warehouseItems.push(item);
-    return Promise.resolve(item);
+export async function getOrderById(id) {
+    try {
+        const response = await api.get(`/inventory/orders/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching order:', error);
+        throw error;
+    }
 }
 
 /**
- * Remove an item from a warehouse
- * @param {string} itemId
+ * Create a new order
+ * @param {Object} order
+ * @returns {Promise<Object>} Created order
+ */
+export async function createOrder(order) {
+    try {
+        const response = await api.post('/inventory/orders', order);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating order:', error);
+        throw error;
+    }
+}
+
+/**
+ * Update an order
+ * @param {string} id
+ * @param {Object} updates
+ * @returns {Promise<Object|null>} Updated order or null
+ */
+export async function updateOrder(id, updates) {
+    try {
+        const response = await api.put(`/inventory/orders/${id}`, updates);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating order:', error);
+        throw error;
+    }
+}
+
+/**
+ * Delete an order
+ * @param {string} id
  * @returns {Promise<boolean>} Success
  */
+export async function deleteOrder(id) {
+    try {
+        await api.delete(`/inventory/orders/${id}`);
+        return true;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return false;
+        }
+        console.error('Error deleting order:', error);
+        throw error;
+    }
+}
+
+/**
+ * Approve an order
+ * @param {string} id
+ * @param {string} approvedBy
+ * @returns {Promise<Object>} Approved order
+ */
+export async function approveOrder(id, approvedBy) {
+    try {
+        const response = await api.patch(`/inventory/orders/${id}/approve`, { approvedBy });
+        return response.data;
+    } catch (error) {
+        console.error('Error approving order:', error);
+        throw error;
+    }
+}
+
+/**
+ * Receive an order
+ * @param {string} id
+ * @param {Object} receiveData - { actualDelivery, receivedItems }
+ * @returns {Promise<Object>} Received order
+ */
+export async function receiveOrder(id, receiveData) {
+    try {
+        const response = await api.patch(`/inventory/orders/${id}/receive`, receiveData);
+        return response.data;
+    } catch (error) {
+        console.error('Error receiving order:', error);
+        throw error;
+    }
+}
+
+// STATISTICS
+
+/**
+ * Get inventory statistics
+ * @returns {Promise<Object>} Inventory statistics
+ */
+export async function getInventoryStats() {
+    try {
+        const response = await api.get('/inventory/stats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching inventory stats:', error);
+        throw error;
+    }
+}
+
+// Legacy functions for backward compatibility
+export function getWarehouseItems() {
+    return getInventoryItems();
+}
+
+export function addWarehouseItem(item) {
+    return createInventoryItem(item);
+}
+
 export function removeWarehouseItem(itemId) {
-    const idx = warehouseItems.findIndex(i => i.id === itemId);
-    if (idx === -1) return Promise.resolve(false);
-    warehouseItems.splice(idx, 1);
-    return Promise.resolve(true);
+    return deleteInventoryItem(itemId);
 } 

@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { 
-  avatarColors, 
-  userStatusColors, 
-  avatarSizeClasses, 
-  avatarVariantClasses 
-} from "@/data/tasks-data";
+import {
+    avatarColors,
+    userStatusColors,
+    avatarSizeClasses,
+    avatarVariantClasses
+} from "@/constants";
 
 const UserAvatar = ({
     user,

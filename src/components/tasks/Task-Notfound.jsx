@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ArrowLeft, Search, RefreshCw, Home, Clock, Sparkles } from 'lucide-react';
-import { taskSuggestions } from "@/data/tasks-data";
+import { taskSuggestions } from "@/constants";
 
 const ModernBackButton = ({ onClick }) => {
     const [isHovered, setIsHovered] = useState(false);

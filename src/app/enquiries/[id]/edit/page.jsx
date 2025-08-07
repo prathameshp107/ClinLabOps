@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { mockEnquiries, teamMembers } from "@/data/enquiries-data"
+// Enquiries and team members will be fetched from API
 
 export default function EditEnquiryPage({ params }) {
   const router = useRouter();

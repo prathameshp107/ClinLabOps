@@ -39,7 +39,7 @@ import { ActivityLogDialog } from "./activity-log-dialog"
 import { ProjectDependencies } from "./project-dependencies"
 import { ProjectStatusTracking } from "./project-status-tracking"
 import { ProjectGanttChart } from "./project-gantt-chart"
-import { mockProjects, mockUsers } from "@/data/projects-data"
+import { getUsers, getCurrentUser } from "@/services/userService"
 import { getProjects, createProject, updateProject, deleteProject } from "@/services/projectService"
 import { createActivity } from "@/services/activityService"
 import { ProjectsLoading } from "@/components/projects/projects-loading"
@@ -67,7 +67,38 @@ export function ProjectManagement() {
   const [showShareProjectDialog, setShowShareProjectDialog] = useState(false);
   const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [currentUser, setCurrentUser] = useState(mockUsers.u1); // Use centralized mock user
+  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState({});
+
+  // Fetch users and current user
+  useEffect(() => {
+    const fetchUsersAndCurrentUser = async () => {
+      try {
+        const [fetchedUsers, currentUserData] = await Promise.all([
+          getUsers(),
+          getCurrentUser()
+        ]);
+
+        // Convert users array to object for easier lookup
+        const usersObj = {};
+        fetchedUsers.forEach(user => {
+          usersObj[user._id] = {
+            id: user._id,
+            name: user.name,
+            avatar: user.name.charAt(0).toUpperCase(),
+            role: user.role,
+            department: user.department,
+            email: user.email
+          };
+        });
+        setUsers(usersObj);
+        setCurrentUser(currentUserData);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsersAndCurrentUser();
+  }, []);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -547,7 +578,7 @@ export function ProjectManagement() {
         open={showActivityLogDialog}
         onOpenChange={setShowActivityLogDialog}
         project={selectedProject}
-        users={mockUsers}
+        users={users}
       />
     </div>
   );

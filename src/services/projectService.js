@@ -1,15 +1,36 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 /**
  * Fetch all projects
  * @returns {Promise<Array>} List of projects
  */
 export async function getProjects() {
-  const response = await fetch(`${API_URL}/projects`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch projects');
+  try {
+    const response = await api.get('/projects');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
   }
-  return response.json();
 }
 
 /**
@@ -18,12 +39,16 @@ export async function getProjects() {
  * @returns {Promise<Object|null>} Project object or null
  */
 export async function getProjectById(id) {
-  const response = await fetch(`${API_URL}/projects/${id}`);
-  if (!response.ok) {
-    if (response.status === 404) return null;
-    throw new Error('Failed to fetch project');
+  try {
+    const response = await api.get(`/projects/${id}`);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('Error fetching project:', error);
+    throw error;
   }
-  return response.json();
 }
 
 /**
@@ -32,15 +57,13 @@ export async function getProjectById(id) {
  * @returns {Promise<Object>} Created project
  */
 export async function createProject(projectData) {
-  const response = await fetch(`${API_URL}/projects`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(projectData),
-  });
-  if (!response.ok) {
-    throw new Error('Failed to create project');
+  try {
+    const response = await api.post('/projects', projectData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating project:', error);
+    throw error;
   }
-  return response.json();
 }
 
 /**
@@ -50,15 +73,16 @@ export async function createProject(projectData) {
  * @returns {Promise<Object|null>} Updated project or null
  */
 export async function updateProject(id, projectData) {
-  const response = await fetch(`${API__URL}/projects/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(projectData),
-  });
-  if (!response.ok) {
-    throw new Error('Failed to update project');
+  try {
+    const response = await api.put(`/projects/${id}`, projectData);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('Error updating project:', error);
+    throw error;
   }
-  return response.json();
 }
 
 /**
@@ -67,13 +91,13 @@ export async function updateProject(id, projectData) {
  * @returns {Promise<boolean>} Success
  */
 export async function deleteProject(id) {
-  const response = await fetch(`${API_URL}/projects/${id}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) {
-    throw new Error('Failed to delete project');
+  try {
+    await api.delete(`/projects/${id}`);
+    return true;
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    throw error;
   }
-  return true; // Or handle as per API response
 }
 
 /**
@@ -83,15 +107,13 @@ export async function deleteProject(id) {
  * @returns {Promise<Object>} Added member
  */
 export async function addProjectMember(projectId, memberData) {
-  const response = await fetch(`${API_URL}/projects/${projectId}/members`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(memberData),
-  });
-  if (!response.ok) {
-    throw new Error('Failed to add member');
+  try {
+    const response = await api.post(`/projects/${projectId}/members`, memberData);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding project member:', error);
+    throw error;
   }
-  return response.json();
 }
 
 /**
@@ -100,9 +122,20 @@ export async function addProjectMember(projectId, memberData) {
  * @param {string} memberId
  * @returns {Promise<boolean>} Success
  */
-export function removeProjectMember(projectId, memberId) {
-  // In a real app, this would DELETE from an API
-  return Promise.resolve(true);
+export async function removeProjectMember(projectId, memberId) {
+  try {
+    // This would need to be implemented in the backend
+    // For now, we'll update the project by removing the member
+    const project = await getProjectById(projectId);
+    if (!project) return false;
+
+    const updatedTeam = project.team.filter(member => member.id !== memberId);
+    await updateProject(projectId, { ...project, team: updatedTeam });
+    return true;
+  } catch (error) {
+    console.error('Error removing project member:', error);
+    throw error;
+  }
 }
 
 /**
@@ -110,9 +143,14 @@ export function removeProjectMember(projectId, memberId) {
  * @param {string} projectId
  * @returns {Promise<Array>} List of activities
  */
-export function getProjectActivities(projectId) {
-  // Filter mockActivities by projectId if available
-  return Promise.resolve([...mockActivities]);
+export async function getProjectActivities(projectId) {
+  try {
+    const project = await getProjectById(projectId);
+    return project?.activityLog || [];
+  } catch (error) {
+    console.error('Error fetching project activities:', error);
+    throw error;
+  }
 }
 
 /**
@@ -120,9 +158,14 @@ export function getProjectActivities(projectId) {
  * @param {string} projectId
  * @returns {Promise<Array>} List of milestones
  */
-export function getProjectMilestones(projectId) {
-  // Filter mockMilestones by projectId if available
-  return Promise.resolve([...mockMilestones]);
+export async function getProjectMilestones(projectId) {
+  try {
+    const project = await getProjectById(projectId);
+    return project?.milestones || [];
+  } catch (error) {
+    console.error('Error fetching project milestones:', error);
+    throw error;
+  }
 }
 
 /**
@@ -130,51 +173,96 @@ export function getProjectMilestones(projectId) {
  * @param {string} projectId
  * @returns {Promise<Array>} List of documents
  */
-export function getProjectDocuments(projectId) {
-  // Filter mockDocuments by projectId if available
-  return Promise.resolve([...mockDocuments || []]);
+export async function getProjectDocuments(projectId) {
+  try {
+    const project = await getProjectById(projectId);
+    return project?.documents || [];
+  } catch (error) {
+    console.error('Error fetching project documents:', error);
+    throw error;
+  }
 }
 
 /**
  * Change a project member's role
  */
-export function changeProjectMemberRole(projectId, memberId, newRole) {
-  return Promise.resolve({ projectId, memberId, newRole });
+export async function changeProjectMemberRole(projectId, memberId, newRole) {
+  try {
+    const project = await getProjectById(projectId);
+    if (!project) return null;
+
+    const updatedTeam = project.team.map(member =>
+      member.id === memberId ? { ...member, role: newRole } : member
+    );
+
+    const updatedProject = await updateProject(projectId, { ...project, team: updatedTeam });
+    return updatedProject;
+  } catch (error) {
+    console.error('Error changing project member role:', error);
+    throw error;
+  }
 }
 
 /**
  * Send a message to a project member
  */
 export function sendProjectMessage(projectId, memberId, message) {
-  return Promise.resolve({ projectId, memberId, message });
+  // This would typically integrate with a messaging system
+  return Promise.resolve({ projectId, memberId, message, sent: true });
 }
 
 /**
  * Get the team for a project
  */
-export function getProjectTeam(projectId) {
-  const project = mockProjects.find(p => p.id === projectId);
-  return Promise.resolve(project?.team || []);
+export async function getProjectTeam(projectId) {
+  try {
+    const project = await getProjectById(projectId);
+    return project?.team || [];
+  } catch (error) {
+    console.error('Error fetching project team:', error);
+    throw error;
+  }
 }
 
 /**
  * Add a tag to a project
  */
-export function addProjectTag(projectId, tag) {
-  return Promise.resolve({ projectId, tag });
+export async function addProjectTag(projectId, tag) {
+  try {
+    const project = await getProjectById(projectId);
+    if (!project) return null;
+
+    const updatedTags = [...(project.tags || []), tag];
+    const updatedProject = await updateProject(projectId, { ...project, tags: updatedTags });
+    return updatedProject;
+  } catch (error) {
+    console.error('Error adding project tag:', error);
+    throw error;
+  }
 }
 
 /**
  * Remove a tag from a project
  */
-export function removeProjectTag(projectId, tag) {
-  return Promise.resolve({ projectId, tag });
+export async function removeProjectTag(projectId, tag) {
+  try {
+    const project = await getProjectById(projectId);
+    if (!project) return null;
+
+    const updatedTags = (project.tags || []).filter(t => t !== tag);
+    const updatedProject = await updateProject(projectId, { ...project, tags: updatedTags });
+    return updatedProject;
+  } catch (error) {
+    console.error('Error removing project tag:', error);
+    throw error;
+  }
 }
 
 /**
  * Add equipment to a project
  */
 export function addProjectEquipment(projectId, equipment) {
+  // This would need backend implementation
   return Promise.resolve({ projectId, equipment });
 }
 
@@ -182,6 +270,7 @@ export function addProjectEquipment(projectId, equipment) {
  * Remove equipment from a project
  */
 export function removeProjectEquipment(projectId, equipment) {
+  // This would need backend implementation
   return Promise.resolve({ projectId, equipment });
 }
 
@@ -189,6 +278,7 @@ export function removeProjectEquipment(projectId, equipment) {
  * Add a document to a project
  */
 export function addProjectDocument(projectId, document) {
+  // This is handled by uploadProjectDocument
   return Promise.resolve({ projectId, document });
 }
 
@@ -196,6 +286,7 @@ export function addProjectDocument(projectId, document) {
  * Remove a document from a project
  */
 export function removeProjectDocument(projectId, documentId) {
+  // This would need backend implementation
   return Promise.resolve({ projectId, documentId });
 }
 
@@ -207,75 +298,51 @@ export function removeProjectDocument(projectId, documentId) {
  * @returns {Promise<Object>} Uploaded document
  */
 export async function uploadProjectDocument(projectId, file, options = {}) {
-  const formData = new FormData();
-  formData.append('file', file);
-  if (options.uploadedBy) formData.append('uploadedBy', options.uploadedBy);
-  if (options.status) formData.append('status', options.status);
-  if (options.tags) {
-    if (Array.isArray(options.tags)) {
-      options.tags.forEach(tag => formData.append('tags', tag));
-    } else {
-      formData.append('tags', options.tags);
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (options.uploadedBy) formData.append('uploadedBy', options.uploadedBy);
+    if (options.status) formData.append('status', options.status);
+    if (options.tags) {
+      if (Array.isArray(options.tags)) {
+        options.tags.forEach(tag => formData.append('tags', tag));
+      } else {
+        formData.append('tags', options.tags);
+      }
     }
+
+    const response = await api.post(`/projects/${projectId}/documents`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading project document:', error);
+    throw error;
   }
-  const response = await fetch(`${API_URL}/projects/${projectId}/documents`, {
-    method: 'POST',
-    body: formData,
-  });
-  if (!response.ok) {
-    throw new Error('Failed to upload document');
-  }
-  return response.json();
 }
 
 /**
  * Download a document from a project
  */
 export function downloadProjectDocument(projectId, documentId) {
+  // This would need backend implementation
   return Promise.resolve({ projectId, documentId, url: '/mock-download-url' });
-}
-
-/**
- * Add a collaborator to a project
- */
-export function addProjectCollaborator(projectId, collaborator) {
-  return Promise.resolve({ projectId, collaborator });
-}
-
-/**
- * Remove a collaborator from a project
- */
-export function removeProjectCollaborator(projectId, collaborator) {
-  return Promise.resolve({ projectId, collaborator });
-}
-
-/**
- * Add a dependency to a project
- */
-export function addProjectDependency(projectId, dependency) {
-  return Promise.resolve({ projectId, dependency });
-}
-
-/**
- * Remove a dependency from a project
- */
-export function removeProjectDependency(projectId, dependencyId) {
-  return Promise.resolve({ projectId, dependencyId });
-}
-
-/**
- * Get dependencies for a project
- */
-export function getProjectDependencies(projectId) {
-  // In a real app, filter by projectId
-  return Promise.resolve([]);
 }
 
 /**
  * Add a task to a project
  */
-export function addProjectTask(projectId, taskData) {
-  return Promise.resolve({ projectId, taskData });
+export async function addProjectTask(projectId, taskData) {
+  try {
+    const response = await api.post(`/projects/${projectId}/tasks`, taskData);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding project task:', error);
+    throw error;
+  }
 }
 
 /**
@@ -285,143 +352,78 @@ export function addProjectTask(projectId, taskData) {
  * @returns {Promise<Object>} Deleted task
  */
 export async function removeProjectTask(projectId, taskId) {
-  const response = await fetch(`${API_URL}/projects/${projectId}/tasks/${taskId}`, {
-    method: 'DELETE',
-  });
-  if (!response.ok) {
-    throw new Error('Failed to delete task');
+  try {
+    const response = await api.delete(`/projects/${projectId}/tasks/${taskId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error removing project task:', error);
+    throw error;
   }
-  return response.json();
 }
 
 /**
  * Update a task in a project
  */
 export function updateProjectTask(projectId, taskId, taskData) {
+  // This would need backend implementation
   return Promise.resolve({ projectId, taskId, taskData });
 }
 
 /**
  * Get all tasks for a project
  */
-export function getProjectTasks(projectId) {
-  const project = mockProjects.find(p => p.id === projectId);
-  return Promise.resolve(project?.tasks || []);
+export async function getProjectTasks(projectId) {
+  try {
+    const project = await getProjectById(projectId);
+    return project?.tasks || [];
+  } catch (error) {
+    console.error('Error fetching project tasks:', error);
+    throw error;
+  }
 }
 
 /**
  * Update a project's status
  */
-export function updateProjectStatus(projectId, status) {
-  return Promise.resolve({ projectId, status });
+export async function updateProjectStatus(projectId, status) {
+  try {
+    const updatedProject = await updateProject(projectId, { status });
+    return updatedProject;
+  } catch (error) {
+    console.error('Error updating project status:', error);
+    throw error;
+  }
 }
 
 /**
  * Update a project's priority
  */
-export function updateProjectPriority(projectId, priority) {
-  return Promise.resolve({ projectId, priority });
+export async function updateProjectPriority(projectId, priority) {
+  try {
+    const updatedProject = await updateProject(projectId, { priority });
+    return updatedProject;
+  } catch (error) {
+    console.error('Error updating project priority:', error);
+    throw error;
+  }
 }
 
 /**
  * Toggle favorite for a project
  */
-export function toggleProjectFavorite(projectId) {
-  return Promise.resolve({ projectId });
-}
+export async function toggleProjectFavorite(projectId) {
+  try {
+    const project = await getProjectById(projectId);
+    if (!project) return null;
 
-/**
- * Add an activity to a project
- */
-export function addProjectActivity(projectId, activity) {
-  return Promise.resolve({ projectId, activity });
-}
-
-/**
- * Get the activity log for a project
- */
-export function getProjectActivityLog(projectId) {
-  // In a real app, filter by projectId
-  return Promise.resolve([]);
-}
-
-/**
- * Share a project with users
- */
-export function shareProject(projectId, invitedUsers) {
-  return Promise.resolve({ projectId, invitedUsers });
-}
-
-/**
- * Get the timeline (Gantt data) for a project
- */
-export function getProjectTimeline(projectId) {
-  // In a real app, return Gantt/timeline data
-  return Promise.resolve([]);
-}
-
-/**
- * Export the Gantt chart for a project
- */
-export function exportProjectGanttChart(projectId) {
-  // In a real app, return a file URL or blob
-  return Promise.resolve({ projectId, url: '/mock-gantt-export-url' });
-}
-
-/**
- * Add a reminder to a project
- */
-export function addProjectReminder(projectId, reminderData) {
-  return Promise.resolve({ projectId, reminderData });
-}
-
-/**
- * Remove a reminder from a project
- */
-export function removeProjectReminder(projectId, reminderId) {
-  return Promise.resolve({ projectId, reminderId });
-}
-
-/**
- * Get all reminders for a project
- */
-export function getProjectReminders(projectId) {
-  return Promise.resolve([]);
-}
-
-/**
- * Mark a project as complete
- */
-export function markProjectComplete(projectId) {
-  return Promise.resolve({ projectId, status: 'completed' });
-}
-
-/**
- * Mark a project as incomplete
- */
-export function markProjectIncomplete(projectId) {
-  return Promise.resolve({ projectId, status: 'incomplete' });
-}
-
-/**
- * Update a project's progress (0-100)
- */
-export function updateProjectProgress(projectId, progress) {
-  return Promise.resolve({ projectId, progress });
-}
-
-/**
- * Get performance analytics for a project
- */
-export function getProjectPerformance(projectId) {
-  return Promise.resolve({ projectId, performance: {} });
-}
-
-/**
- * Get reports for a project
- */
-export function getProjectReports(projectId) {
-  return Promise.resolve([]);
+    const updatedProject = await updateProject(projectId, {
+      isFavorite: !project.isFavorite
+    });
+    return updatedProject;
+  } catch (error) {
+    console.error('Error toggling project favorite:', error);
+    throw error;
+  }
 }
 
 /**
@@ -430,24 +432,100 @@ export function getProjectReports(projectId) {
  * @param {string} format - Export format (csv, xlsx, pdf, json)
  */
 export async function exportProjectData(id, format = 'json') {
-  const response = await fetch(`${API_URL}/projects/${id}/export?format=${format}`);
-  if (!response.ok) {
-    throw new Error('Failed to export project data');
+  try {
+    const response = await api.get(`/projects/${id}/export`, {
+      params: { format },
+      responseType: format !== 'json' ? 'blob' : 'json'
+    });
+
+    if (format !== 'json') {
+      // Handle file download
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `project_${id}.${format}`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      return { success: true, message: 'Project data exported successfully' };
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Error exporting project data:', error);
+    throw error;
   }
-  // Get filename from Content-Disposition header
-  const disposition = response.headers.get('Content-Disposition');
-  let filename = `project_${id}.${format}`;
-  if (disposition && disposition.includes('filename=')) {
-    filename = disposition.split('filename=')[1].replace(/"/g, '').trim();
-  }
-  const blob = await response.blob();
-  // Trigger file download
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.URL.revokeObjectURL(url);
+}
+
+// Legacy functions for backward compatibility
+export function addProjectCollaborator(projectId, collaborator) {
+  return addProjectMember(projectId, collaborator);
+}
+
+export function removeProjectCollaborator(projectId, collaborator) {
+  return removeProjectMember(projectId, collaborator.id);
+}
+
+export function addProjectDependency(projectId, dependency) {
+  return Promise.resolve({ projectId, dependency });
+}
+
+export function removeProjectDependency(projectId, dependencyId) {
+  return Promise.resolve({ projectId, dependencyId });
+}
+
+export function getProjectDependencies(projectId) {
+  return getProjectById(projectId).then(project => project?.dependencies || []);
+}
+
+export function addProjectActivity(projectId, activity) {
+  return Promise.resolve({ projectId, activity });
+}
+
+export function getProjectActivityLog(projectId) {
+  return getProjectActivities(projectId);
+}
+
+export function shareProject(projectId, invitedUsers) {
+  return Promise.resolve({ projectId, invitedUsers });
+}
+
+export function getProjectTimeline(projectId) {
+  return getProjectById(projectId).then(project => project?.timeline || []);
+}
+
+export function exportProjectGanttChart(projectId) {
+  return Promise.resolve({ projectId, url: '/mock-gantt-export-url' });
+}
+
+export function addProjectReminder(projectId, reminderData) {
+  return Promise.resolve({ projectId, reminderData });
+}
+
+export function removeProjectReminder(projectId, reminderId) {
+  return Promise.resolve({ projectId, reminderId });
+}
+
+export function getProjectReminders(projectId) {
+  return Promise.resolve([]);
+}
+
+export function markProjectComplete(projectId) {
+  return updateProjectStatus(projectId, 'Completed');
+}
+
+export function markProjectIncomplete(projectId) {
+  return updateProjectStatus(projectId, 'In Progress');
+}
+
+export function updateProjectProgress(projectId, progress) {
+  return updateProject(projectId, { progress });
+}
+
+export function getProjectPerformance(projectId) {
+  return Promise.resolve({ projectId, performance: {} });
+}
+
+export function getProjectReports(projectId) {
+  return Promise.resolve([]);
 } 

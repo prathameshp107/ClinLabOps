@@ -33,8 +33,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import { DataTablePagination } from "@/components/tasks-v2/data-table-pagination";
-import { subtaskPriorities, subtaskStatuses, mockTaskUsers } from "@/data/tasks-data";
+import { subtaskPriorities, subtaskStatuses } from "@/constants";
 import { addTaskSubtask, updateTaskSubtask, removeTaskSubtask } from "@/services/taskService";
+import { getUsers } from "@/services/userService";
 
 // Helper function to generate unique task ID
 const generateTaskId = (existingSubtasks) => {
@@ -121,6 +122,20 @@ export function SubtasksList({ task, setTask }) {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [users, setUsers] = useState([]);
+
+  // Fetch users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await getUsers();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Calculate progress
   const completedSubtasks = subtasks.filter(st => st.status === "completed").length;
@@ -134,8 +149,8 @@ export function SubtasksList({ task, setTask }) {
       let bVal = b[sortConfig.key];
 
       if (sortConfig.key === "assignee") {
-        aVal = mockTaskUsers.find(u => u.id === a.assignee)?.name || "";
-        bVal = mockTaskUsers.find(u => u.id === b.assignee)?.name || "";
+        aVal = users.find(u => u._id === a.assignee)?.name || "";
+        bVal = users.find(u => u._id === b.assignee)?.name || "";
       }
 
       if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -166,7 +181,7 @@ export function SubtasksList({ task, setTask }) {
     setNewSubtask({
       id: newId,
       title: "",
-      assignee: mockTaskUsers[0].id,
+      assignee: users[0]?._id || "",
       priority: "medium",
       status: "not_started",
       dueDate: null,
@@ -282,8 +297,8 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.values(mockTaskUsers).map(user => (
-                <SelectItem key={user.id} value={user.id}>
+              {users.map(user => (
+                <SelectItem key={user._id} value={user._id}>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                       <AvatarFallback className="text-xs">{user.avatar}</AvatarFallback>
@@ -298,11 +313,11 @@ export function SubtasksList({ task, setTask }) {
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-xs">
-                {Object.values(mockTaskUsers).find(u => u.id === subtask.assignee)?.avatar || "?"}
+                {users.find(u => u._id === subtask.assignee)?.name?.charAt(0) || "?"}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm">
-              {Object.values(mockTaskUsers).find(u => u.id === subtask.assignee)?.name || "Unassigned"}
+              {users.find(u => u._id === subtask.assignee)?.name || "Unassigned"}
             </span>
           </div>
         )}

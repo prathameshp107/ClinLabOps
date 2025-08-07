@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Beaker, ArrowRight, ClipboardCheck } from "lucide-react"
-import { experimentProgressData } from "@/data/experiments-data"
+// Experiment progress data will be fetched from API
 
 export function ExperimentTracker() {
   return (

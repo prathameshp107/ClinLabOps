@@ -1,6 +1,23 @@
-import { mockTasks, taskTemplates, mockTaskUsers, mockActivityLog } from "@/data/tasks-data";
+import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 /**
  * Fetch all tasks (optionally filter by projectId)
@@ -8,10 +25,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
  * @returns {Promise<Array>} List of tasks
  */
 export async function getTasks(filter = {}) {
-    const params = new URLSearchParams(filter).toString();
-    const response = await fetch(`${API_URL}/tasks${params ? `?${params}` : ''}`);
-    if (!response.ok) throw new Error('Failed to fetch tasks');
-    return response.json();
+    try {
+        const response = await api.get('/tasks', { params: filter });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching tasks:', error);
+        throw error;
+    }
 }
 
 /**
@@ -20,9 +40,16 @@ export async function getTasks(filter = {}) {
  * @returns {Promise<Object|null>} Task object or null
  */
 export async function getTaskById(id) {
-    const response = await fetch(`${API_URL}/tasks/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch task');
-    return response.json();
+    try {
+        const response = await api.get(`/tasks/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching task:', error);
+        throw error;
+    }
 }
 
 /**
@@ -31,13 +58,13 @@ export async function getTaskById(id) {
  * @returns {Promise<Object>} Created task
  */
 export async function createTask(taskData) {
-    const response = await fetch(`${API_URL}/tasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData),
-    });
-    if (!response.ok) throw new Error('Failed to create task');
-    return response.json();
+    try {
+        const response = await api.post('/tasks', taskData);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating task:', error);
+        throw error;
+    }
 }
 
 /**
@@ -47,13 +74,16 @@ export async function createTask(taskData) {
  * @returns {Promise<Object|null>} Updated task or null
  */
 export async function updateTask(id, taskData) {
-    const response = await fetch(`${API_URL}/tasks/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(taskData),
-    });
-    if (!response.ok) throw new Error('Failed to update task');
-    return response.json();
+    try {
+        const response = await api.put(`/tasks/${id}`, taskData);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating task:', error);
+        throw error;
+    }
 }
 
 /**
@@ -62,353 +92,410 @@ export async function updateTask(id, taskData) {
  * @returns {Promise<boolean>} Success
  */
 export async function deleteTask(id) {
-    const response = await fetch(`${API_URL}/tasks/${id}`, {
-        method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete task');
-    return true;
+    try {
+        await api.delete(`/tasks/${id}`);
+        return true;
+    } catch (error) {
+        console.error('Error deleting task:', error);
+        throw error;
+    }
 }
 
 /**
  * Assign a user to a task
  */
-export function assignTaskUser(taskId, userId) {
-    const user = Object.values(mockTaskUsers).find(u => u.id === userId);
-    return Promise.resolve({ taskId, user });
+export async function assignTaskUser(taskId, userId) {
+    try {
+        const response = await api.patch(`/tasks/${taskId}/assignee`, { assignee: userId });
+        return response.data;
+    } catch (error) {
+        console.error('Error assigning task user:', error);
+        throw error;
+    }
 }
 
 /**
  * Unassign a user from a task
  */
-export function unassignTaskUser(taskId, userId) {
-    return Promise.resolve({ taskId, userId });
+export async function unassignTaskUser(taskId) {
+    try {
+        const response = await api.patch(`/tasks/${taskId}/assignee`, { assignee: null });
+        return response.data;
+    } catch (error) {
+        console.error('Error unassigning task user:', error);
+        throw error;
+    }
 }
 
 /**
  * Update a task's status
  */
-export function updateTaskStatus(taskId, status) {
-    return Promise.resolve({ taskId, status });
+export async function updateTaskStatus(taskId, status) {
+    try {
+        const response = await api.put(`/tasks/${taskId}`, { status });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating task status:', error);
+        throw error;
+    }
 }
 
 /**
  * Update a task's priority
  */
-export function updateTaskPriority(taskId, priority) {
-    return Promise.resolve({ taskId, priority });
+export async function updateTaskPriority(taskId, priority) {
+    try {
+        const response = await api.put(`/tasks/${taskId}`, { priority });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating task priority:', error);
+        throw error;
+    }
 }
 
 /**
  * Add a subtask to a task
  */
 export async function addTaskSubtask(taskId, subtaskData) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/subtasks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subtaskData),
-    });
-    if (!response.ok) throw new Error('Failed to add subtask');
-    return response.json();
+    try {
+        const response = await api.post(`/tasks/${taskId}/subtasks`, subtaskData);
+        return response.data;
+    } catch (error) {
+        console.error('Error adding subtask:', error);
+        throw error;
+    }
 }
 
 /**
- * Update a subtask in atask
+ * Update a subtask in a task
  */
 export async function updateTaskSubtask(taskId, subtaskId, subtaskData) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/subtasks/${subtaskId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subtaskData),
-    });
-    if (!response.ok) throw new Error('Failed to update subtask');
-    return response.json();
+    try {
+        const response = await api.put(`/tasks/${taskId}/subtasks/${subtaskId}`, subtaskData);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating subtask:', error);
+        throw error;
+    }
 }
 
 /**
  * Remove a subtask from a task
  */
 export async function removeTaskSubtask(taskId, subtaskId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/subtasks/${subtaskId}`, {
-        method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete subtask');
-    return true;
+    try {
+        await api.delete(`/tasks/${taskId}/subtasks/${subtaskId}`);
+        return true;
+    } catch (error) {
+        console.error('Error removing subtask:', error);
+        throw error;
+    }
 }
 
 /**
  * Add a comment to a task
  */
 export async function addTaskComment(taskId, comment) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(comment),
-    });
-    if (!response.ok) throw new Error('Failed to add comment');
-    return response.json();
+    try {
+        const response = await api.post(`/tasks/${taskId}/comments`, comment);
+        return response.data;
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        throw error;
+    }
 }
 
 /**
  * Remove a comment from a task
  */
 export async function removeTaskComment(taskId, commentId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/comments/${commentId}`, {
-        method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete comment');
-    return true;
+    try {
+        await api.delete(`/tasks/${taskId}/comments/${commentId}`);
+        return true;
+    } catch (error) {
+        console.error('Error removing comment:', error);
+        throw error;
+    }
 }
 
 /**
  * Get all comments for a task
  */
 export async function getTaskComments(taskId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/comments`);
-    if (!response.ok) throw new Error('Failed to fetch comments');
-    return response.json();
+    try {
+        const response = await api.get(`/tasks/${taskId}/comments`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        throw error;
+    }
 }
 
 /**
  * Add an attachment to a task
  */
 export async function addTaskAttachment(taskId, file, uploadedBy) {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (uploadedBy) formData.append('uploadedBy', uploadedBy);
-    const response = await fetch(`${API_URL}/tasks/${taskId}/files`, {
-        method: 'POST',
-        body: formData,
-    });
-    if (!response.ok) throw new Error('Failed to upload file');
-    return response.json();
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (uploadedBy) formData.append('uploadedBy', uploadedBy);
+
+        const response = await api.post(`/tasks/${taskId}/files`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error adding attachment:', error);
+        throw error;
+    }
 }
 
 /**
  * Remove an attachment from a task
  */
 export async function removeTaskAttachment(taskId, attachmentId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/files/${attachmentId}`, {
-        method: 'DELETE',
-    });
-    if (!response.ok) throw new Error('Failed to delete file');
-    return true;
+    try {
+        await api.delete(`/tasks/${taskId}/files/${attachmentId}`);
+        return true;
+    } catch (error) {
+        console.error('Error removing attachment:', error);
+        throw error;
+    }
 }
 
 /**
  * Get the activity log for a task
  */
 export async function getTaskActivityLog(taskId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/activity`);
-    if (!response.ok) throw new Error('Failed to fetch activity log');
-    return response.json();
+    try {
+        const response = await api.get(`/tasks/${taskId}/activity`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching activity log:', error);
+        throw error;
+    }
 }
 
 /**
  * Get related tasks
  */
 export async function getRelatedTasks(taskId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/related`);
-    if (!response.ok) throw new Error('Failed to fetch related tasks');
-    return response.json();
+    try {
+        const response = await api.get(`/tasks/${taskId}/related`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching related tasks:', error);
+        throw error;
+    }
 }
 
 /**
  * Get all task templates
  */
 export function getTaskTemplates() {
-    return Promise.resolve([...taskTemplates]);
+    // This would need backend implementation
+    const defaultTemplates = [
+        {
+            id: 'template-1',
+            name: 'Bug Fix',
+            description: 'Template for bug fixing tasks',
+            priority: 'high',
+            labels: ['bug', 'fix']
+        },
+        {
+            id: 'template-2',
+            name: 'Feature Request',
+            description: 'Template for new feature development',
+            priority: 'medium',
+            labels: ['feature', 'enhancement']
+        },
+        {
+            id: 'template-3',
+            name: 'Research Task',
+            description: 'Template for research and investigation tasks',
+            priority: 'low',
+            labels: ['research', 'investigation']
+        }
+    ];
+    return Promise.resolve(defaultTemplates);
 }
 
 /**
  * Mark a task as complete
  */
-export function markTaskComplete(taskId) {
-    return Promise.resolve({ taskId, status: 'completed' });
+export async function markTaskComplete(taskId) {
+    return updateTaskStatus(taskId, 'done');
 }
 
 /**
  * Mark a task as incomplete
  */
-export function markTaskIncomplete(taskId) {
-    return Promise.resolve({ taskId, status: 'incomplete' });
+export async function markTaskIncomplete(taskId) {
+    return updateTaskStatus(taskId, 'todo');
 }
 
 /**
  * Add a tag to a task
  */
-export function addTaskTag(taskId, tag) {
-    return Promise.resolve({ taskId, tag });
+export async function addTaskTag(taskId, tag) {
+    try {
+        const task = await getTaskById(taskId);
+        if (!task) return null;
+
+        const updatedLabels = [...(task.labels || []), tag];
+        const updatedTask = await updateTask(taskId, { labels: updatedLabels });
+        return updatedTask;
+    } catch (error) {
+        console.error('Error adding task tag:', error);
+        throw error;
+    }
 }
 
 /**
  * Remove a tag from a task
  */
-export function removeTaskTag(taskId, tag) {
-    return Promise.resolve({ taskId, tag });
-}
+export async function removeTaskTag(taskId, tag) {
+    try {
+        const task = await getTaskById(taskId);
+        if (!task) return null;
 
-/**
- * Start time tracking for a task
- * @param {string} taskId
- * @returns {Promise<{taskId: string, startedAt: Date}>}
- */
-export function startTaskTimer(taskId) {
-    return Promise.resolve({ taskId, startedAt: new Date() });
-}
-
-/**
- * Stop time tracking for a task
- * @param {string} taskId
- * @returns {Promise<{taskId: string, stoppedAt: Date, timeSpent: number}>}
- */
-export function stopTaskTimer(taskId) {
-    return Promise.resolve({ taskId, stoppedAt: new Date(), timeSpent: Math.floor(Math.random() * 3600) });
-}
-
-/**
- * Get/set time spent on a task
- * @param {string} taskId
- * @param {number} [timeSpent] Optional, set time spent
- * @returns {Promise<{taskId: string, timeSpent: number}>}
- */
-export function setTaskTimeSpent(taskId, timeSpent) {
-    return Promise.resolve({ taskId, timeSpent });
-}
-
-export function getTaskTimeSpent(taskId) {
-    // In a real app, fetch from backend
-    return Promise.resolve({ taskId, timeSpent: Math.floor(Math.random() * 3600) });
-}
-
-/**
- * Add a watcher to a task
- */
-export function addTaskWatcher(taskId, userId) {
-    return Promise.resolve({ taskId, userId });
-}
-
-/**
- * Remove a watcher from a task
- */
-export function removeTaskWatcher(taskId, userId) {
-    return Promise.resolve({ taskId, userId });
-}
-
-/**
- * Get all watchers for a task
- */
-export function getTaskWatchers(taskId) {
-    // In a real app, fetch from backend
-    return Promise.resolve([]);
-}
-
-/**
- * Duplicate a task
- */
-export function duplicateTask(taskId) {
-    const original = mockTasks.find(t => t.id === taskId || t._id === taskId);
-    if (!original) return Promise.resolve(null);
-    const copy = { ...original, id: `t${Date.now()}`, title: `${original.title} (Copy)` };
-    return Promise.resolve(copy);
-}
-
-/**
- * Archive a task
- */
-export function archiveTask(taskId) {
-    return Promise.resolve({ taskId, archived: true });
-}
-
-/**
- * Restore an archived task
- */
-export function restoreTask(taskId) {
-    return Promise.resolve({ taskId, archived: false });
-}
-
-/**
- * Export a task (returns JSON string)
- */
-export function exportTask(taskId) {
-    const task = mockTasks.find(t => t.id === taskId || t._id === taskId);
-    return Promise.resolve(task ? JSON.stringify(task, null, 2) : null);
-}
-
-/**
- * Share a task (returns a mock shareable link)
- */
-export function shareTask(taskId) {
-    return Promise.resolve({ taskId, link: `https://labtasker.app/tasks/share/${taskId}` });
-}
-
-/**
- * Add a dependency to a task
- */
-export function addTaskDependency(taskId, dependencyTaskId) {
-    return Promise.resolve({ taskId, dependencyTaskId });
-}
-
-/**
- * Remove a dependency from a task
- */
-export function removeTaskDependency(taskId, dependencyTaskId) {
-    return Promise.resolve({ taskId, dependencyTaskId });
-}
-
-/**
- * Get dependencies for a task
- */
-export function getTaskDependencies(taskId) {
-    // In a real app, fetch from backend
-    return Promise.resolve([]);
-}
-
-/**
- * Update task progress
- */
-export function updateTaskProgress(taskId, progress) {
-    return Promise.resolve({ taskId, progress });
-}
-
-/**
- * Get task progress
- */
-export function getTaskProgress(taskId) {
-    // In a real app, fetch from backend
-    return Promise.resolve({ taskId, progress: Math.floor(Math.random() * 100) });
+        const updatedLabels = (task.labels || []).filter(label => label !== tag);
+        const updatedTask = await updateTask(taskId, { labels: updatedLabels });
+        return updatedTask;
+    } catch (error) {
+        console.error('Error removing task tag:', error);
+        throw error;
+    }
 }
 
 /**
  * Update task assignee
  */
 export async function updateTaskAssignee(taskId, assignee) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/assignee`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignee }),
-    });
-    if (!response.ok) throw new Error('Failed to update assignee');
-    return response.json();
+    try {
+        const response = await api.patch(`/tasks/${taskId}/assignee`, { assignee });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating task assignee:', error);
+        throw error;
+    }
 }
 
 /**
  * Update task comment
  */
 export async function updateTaskComment(taskId, commentId, comment) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/comments/${commentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(comment),
-    });
-    if (!response.ok) throw new Error('Failed to update comment');
-    return response.json();
+    try {
+        const response = await api.put(`/tasks/${taskId}/comments/${commentId}`, comment);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating task comment:', error);
+        throw error;
+    }
 }
 
 /**
  * Get task attachments
  */
 export async function getTaskAttachments(taskId) {
-    const response = await fetch(`${API_URL}/tasks/${taskId}/files`);
-    if (!response.ok) throw new Error('Failed to fetch files');
-    return response.json();
+    try {
+        const response = await api.get(`/tasks/${taskId}/files`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching task attachments:', error);
+        throw error;
+    }
+}
+
+// Legacy functions for backward compatibility
+export function startTaskTimer(taskId) {
+    return Promise.resolve({ taskId, startedAt: new Date() });
+}
+
+export function stopTaskTimer(taskId) {
+    return Promise.resolve({ taskId, stoppedAt: new Date(), timeSpent: Math.floor(Math.random() * 3600) });
+}
+
+export function setTaskTimeSpent(taskId, timeSpent) {
+    return Promise.resolve({ taskId, timeSpent });
+}
+
+export function getTaskTimeSpent(taskId) {
+    return Promise.resolve({ taskId, timeSpent: Math.floor(Math.random() * 3600) });
+}
+
+export function addTaskWatcher(taskId, userId) {
+    return Promise.resolve({ taskId, userId });
+}
+
+export function removeTaskWatcher(taskId, userId) {
+    return Promise.resolve({ taskId, userId });
+}
+
+export function getTaskWatchers(taskId) {
+    return Promise.resolve([]);
+}
+
+export async function duplicateTask(taskId) {
+    try {
+        const original = await getTaskById(taskId);
+        if (!original) return null;
+
+        const copy = {
+            ...original,
+            title: `${original.title} (Copy)`,
+            status: 'todo'
+        };
+        delete copy._id;
+        delete copy.id;
+
+        return await createTask(copy);
+    } catch (error) {
+        console.error('Error duplicating task:', error);
+        throw error;
+    }
+}
+
+export function archiveTask(taskId) {
+    return Promise.resolve({ taskId, archived: true });
+}
+
+export function restoreTask(taskId) {
+    return Promise.resolve({ taskId, archived: false });
+}
+
+export async function exportTask(taskId) {
+    try {
+        const task = await getTaskById(taskId);
+        return task ? JSON.stringify(task, null, 2) : null;
+    } catch (error) {
+        console.error('Error exporting task:', error);
+        throw error;
+    }
+}
+
+export function shareTask(taskId) {
+    return Promise.resolve({ taskId, link: `${window.location.origin}/tasks/${taskId}` });
+}
+
+export function addTaskDependency(taskId, dependencyTaskId) {
+    return Promise.resolve({ taskId, dependencyTaskId });
+}
+
+export function removeTaskDependency(taskId, dependencyTaskId) {
+    return Promise.resolve({ taskId, dependencyTaskId });
+}
+
+export function getTaskDependencies(taskId) {
+    return Promise.resolve([]);
+}
+
+export function updateTaskProgress(taskId, progress) {
+    return updateTask(taskId, { progress });
+}
+
+export function getTaskProgress(taskId) {
+    return getTaskById(taskId).then(task => ({ taskId, progress: task?.progress || 0 }));
 } 

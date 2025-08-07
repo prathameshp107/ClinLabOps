@@ -25,7 +25,7 @@ import {
     DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import RichTextEditor from './modern-rich-text-editor';
-import { taskOrder } from "@/data/tasks-data";
+import { taskOrder } from "@/constants";
 
 const commonTags = [
     "Oncology", "Proteomics", "Clinical", "Microbiology", "Drug Development", "Neuroscience",

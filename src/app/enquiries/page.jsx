@@ -12,7 +12,7 @@ import { toast } from "@/components/ui/use-toast"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
-import { mockEnquiries } from "@/data/enquiries-data"
+// Enquiries will be fetched from API
 
 function EnquiriesPage() {
   const router = useRouter()
@@ -168,7 +168,7 @@ function EnquiriesPage() {
             onRowClick={handleRowClick}
             Toolbar={CustomToolbar}
           />
-              </motion.div>
+        </motion.div>
 
         <AnimatePresence>
           {showQuickView && selectedEnquiry && (

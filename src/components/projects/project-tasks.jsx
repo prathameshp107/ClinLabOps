@@ -51,7 +51,7 @@ import {
   taskPriorityConfig,
   priorityOrder,
   statusOrder
-} from "@/data/projects-data"
+} from "@/constants"
 
 const getInitials = (name) => {
   return name

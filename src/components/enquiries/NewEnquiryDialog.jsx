@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
 import { ArrowLeft, Upload, Send, User, Building, Mail, Phone } from "lucide-react"
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { teamMembers } from "@/data/enquiries-data"
+import { getUsers } from "@/services/userService"
 
 export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
     // Form state
@@ -25,6 +25,24 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
     const [assignedTo, setAssignedTo] = useState("");
     const [sendConfirmation, setSendConfirmation] = useState(true);
     const [submitStatus, setSubmitStatus] = useState(null);
+    const [teamMembers, setTeamMembers] = useState([]);
+
+    // Fetch team members when component mounts
+    useEffect(() => {
+        const fetchTeamMembers = async () => {
+            try {
+                const users = await getUsers();
+                setTeamMembers(users.map(user => ({
+                    id: user._id,
+                    name: user.name,
+                    role: user.role
+                })));
+            } catch (error) {
+                console.error('Failed to fetch team members:', error);
+            }
+        };
+        fetchTeamMembers();
+    }, []);
 
     // Handle form submission
     const handleSubmit = (e) => {

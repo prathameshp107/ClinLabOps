@@ -29,7 +29,7 @@ import { UserActivityLogs } from "./user-activity-logs"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import { toast } from "@/components/ui/use-toast"
-import { mockUsers } from "@/data/projects-data"
+// Users will be fetched from API
 
 // Helper functions for status badges (duplicated from user-columns.jsx for StatusLegend)
 function getStatusBadgeVariant(status) {

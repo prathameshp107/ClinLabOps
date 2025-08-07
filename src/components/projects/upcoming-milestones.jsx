@@ -3,14 +3,14 @@
 import { Flag, Calendar, AlertCircle, CheckCircle2, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { milestoneStatusConfig } from "@/data/projects-data"
+import { milestoneStatusConfig } from "@/constants"
 
 const MilestoneStatus = ({ status }) => {
   const config = milestoneStatusConfig[status] || milestoneStatusConfig.pending;
 
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={`text-xs font-medium px-2 py-0.5 rounded ${config.color}`}
     >
       {config.label}
@@ -21,7 +21,7 @@ const MilestoneStatus = ({ status }) => {
 const getMilestoneStatus = (milestone) => {
   const today = new Date();
   const milestoneDate = new Date(milestone.date);
-  
+
   if (milestone.completed) return 'completed';
   if (milestoneDate < today) return 'overdue';
   if (milestoneDate - today < 7 * 24 * 60 * 60 * 1000) return 'in_progress'; // Within 7 days
@@ -30,8 +30,8 @@ const getMilestoneStatus = (milestone) => {
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    month: 'short', 
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
     day: 'numeric',
     year: 'numeric'
   });
@@ -104,13 +104,12 @@ export function UpcomingMilestones({ project }) {
       <CardContent className="p-0">
         <div className="divide-y divide-gray-100">
           {milestones.map((milestone, i) => (
-            <div 
-              key={milestone.id || i} 
-              className={`p-4 hover:bg-gray-50/80 transition-colors ${
-                milestone.status === 'overdue' ? 'bg-red-50/30' : 
-                milestone.status === 'completed' ? 'bg-green-50/30' : 
-                milestone.status === 'in_progress' ? 'bg-amber-50/30' : ''
-              }`}
+            <div
+              key={milestone.id || i}
+              className={`p-4 hover:bg-gray-50/80 transition-colors ${milestone.status === 'overdue' ? 'bg-red-50/30' :
+                  milestone.status === 'completed' ? 'bg-green-50/30' :
+                    milestone.status === 'in_progress' ? 'bg-amber-50/30' : ''
+                }`}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">

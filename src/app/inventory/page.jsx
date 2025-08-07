@@ -6,7 +6,7 @@ import { InventoryList } from "@/components/inventory-management/inventory-list"
 import { SuppliersList } from "@/components/inventory-management/suppliers-list"
 import { LocationsList } from "@/components/inventory-management/locations-list"
 import { ReportsList } from "@/components/inventory-management/reports-list"
-import { inventoryData } from "@/data/inventory-data"
+// Inventory data will be fetched from API
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 import { Package, Users, MapPin, BarChart } from "lucide-react";
@@ -104,27 +104,27 @@ export default function InventoryPage() {
                 Reports
               </TabsTrigger>
             </TabsList>
-            
+
             <div className="bg-background rounded-lg p-4">
               <TabsContent value="inventory" className="mt-0">
-                <InventoryList 
-                  inventoryItems={inventory} 
-                  onUpdateItem={handleUpdateItem} 
-                  onDeleteItem={handleDeleteItem} 
+                <InventoryList
+                  inventoryItems={inventory}
+                  onUpdateItem={handleUpdateItem}
+                  onDeleteItem={handleDeleteItem}
                 />
               </TabsContent>
               <TabsContent value="suppliers" className="mt-0">
-                <SuppliersList 
-                  suppliers={suppliers} 
-                  onUpdateSupplier={handleUpdateSupplier} 
-                  onDeleteSupplier={handleDeleteSupplier} 
+                <SuppliersList
+                  suppliers={suppliers}
+                  onUpdateSupplier={handleUpdateSupplier}
+                  onDeleteSupplier={handleDeleteSupplier}
                 />
               </TabsContent>
               <TabsContent value="locations" className="mt-0">
-                <LocationsList 
-                  locations={locations} 
-                  onUpdateLocation={handleUpdateLocation} 
-                  onDeleteLocation={handleDeleteLocation} 
+                <LocationsList
+                  locations={locations}
+                  onUpdateLocation={handleUpdateLocation}
+                  onDeleteLocation={handleDeleteLocation}
                 />
               </TabsContent>
               <TabsContent value="reports" className="mt-0">

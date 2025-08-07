@@ -1,50 +1,99 @@
 // Service layer for Enquiries
-import { mockEnquiries } from "@/data/enquiries-data";
-
-let enquiries = [...mockEnquiries];
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 export const enquiryService = {
-  getAll: () => Promise.resolve([...enquiries]),
-  getById: (id) => Promise.resolve(enquiries.find(e => e.id === id)),
-  create: (enquiry) => {
-    const newEnquiry = { ...enquiry, id: `e${Date.now()}` };
-    enquiries = [newEnquiry, ...enquiries];
-    return Promise.resolve(newEnquiry);
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/enquiries`, { credentials: 'include' });
+    if (!response.ok) throw new Error('Failed to fetch enquiries');
+    return response.json();
   },
-  update: (id, updates) => {
-    enquiries = enquiries.map(e => e.id === id ? { ...e, ...updates, updatedAt: new Date().toISOString() } : e);
-    return Promise.resolve(enquiries.find(e => e.id === id));
+
+  getById: async (id) => {
+    const response = await fetch(`${API_URL}/enquiries/${id}`, { credentials: 'include' });
+    if (!response.ok) return null;
+    return response.json();
   },
-  delete: (id) => {
-    enquiries = enquiries.filter(e => e.id !== id);
-    return Promise.resolve(true);
+
+  create: async (enquiry) => {
+    const response = await fetch(`${API_URL}/enquiries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(enquiry),
+    });
+    if (!response.ok) throw new Error('Failed to create enquiry');
+    return response.json();
   },
-  addComment: (id, comment) => {
-    enquiries = enquiries.map(e =>
-      e.id === id ? { ...e, comments: [...(e.comments || []), comment] } : e
-    );
-    return Promise.resolve(enquiries.find(e => e.id === id));
+
+  update: async (id, updates) => {
+    const response = await fetch(`${API_URL}/enquiries/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(updates),
+    });
+    if (!response.ok) throw new Error('Failed to update enquiry');
+    return response.json();
   },
-  assignTo: (id, user) => {
-    enquiries = enquiries.map(e =>
-      e.id === id ? { ...e, assignedTo: user } : e
-    );
-    return Promise.resolve(enquiries.find(e => e.id === id));
+
+  delete: async (id) => {
+    const response = await fetch(`${API_URL}/enquiries/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    return response.ok;
   },
-  addActivity: (id, activity) => {
-    enquiries = enquiries.map(e =>
-      e.id === id ? { ...e, activities: [activity, ...(e.activities || [])] } : e
-    );
-    return Promise.resolve(enquiries.find(e => e.id === id));
+
+  addComment: async (id, comment) => {
+    const response = await fetch(`${API_URL}/enquiries/${id}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(comment),
+    });
+    if (!response.ok) throw new Error('Failed to add comment');
+    return response.json();
   },
-  uploadDocument: (id, document) => {
-    enquiries = enquiries.map(e =>
-      e.id === id ? { ...e, documents: [...(e.documents || []), document] } : e
-    );
-    return Promise.resolve(enquiries.find(e => e.id === id));
+
+  assignTo: async (id, user) => {
+    const response = await fetch(`${API_URL}/enquiries/${id}/assign`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ assignedTo: user }),
+    });
+    if (!response.ok) throw new Error('Failed to assign enquiry');
+    return response.json();
   },
-  export: (format = "xlsx") => {
-    // Simulate export logic
-    return Promise.resolve(true);
+
+  addActivity: async (id, activity) => {
+    const response = await fetch(`${API_URL}/enquiries/${id}/activities`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(activity),
+    });
+    if (!response.ok) throw new Error('Failed to add activity');
+    return response.json();
+  },
+
+  uploadDocument: async (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_URL}/enquiries/${id}/documents`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+    });
+    if (!response.ok) throw new Error('Failed to upload document');
+    return response.json();
+  },
+
+  export: async (format = "xlsx") => {
+    const response = await fetch(`${API_URL}/enquiries/export?format=${format}`, {
+      credentials: 'include'
+    });
+    if (!response.ok) throw new Error('Failed to export enquiries');
+    return response.blob();
   },
 }; 

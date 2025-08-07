@@ -77,13 +77,13 @@ import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
 import { ExperimentChart } from "./experiment-chart"
-import { mockExperimentsFull } from "@/data/experiments-data"
+// Experiments will be fetched from API
 
 export function ExperimentManagement() {
   const router = useRouter()
   const [view, setView] = useState("grid")
-  const [experiments, setExperiments] = useState(mockExperimentsFull)
-  const [filteredExperiments, setFilteredExperiments] = useState(mockExperimentsFull)
+  const [experiments, setExperiments] = useState([])
+  const [filteredExperiments, setFilteredExperiments] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")

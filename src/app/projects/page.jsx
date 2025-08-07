@@ -6,7 +6,7 @@ import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { Button } from "@/components/ui/button"
 import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
 import { useState, useEffect } from "react"
-import { statusChips } from "@/data/projects-data"
+import { statusChips } from "@/constants"
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)

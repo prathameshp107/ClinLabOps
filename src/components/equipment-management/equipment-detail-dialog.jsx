@@ -11,10 +11,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Calendar, 
-  Edit, 
-  Download, 
+import {
+  Calendar,
+  Edit,
+  Download,
   FileUp,
   Printer,
   QrCode,
@@ -28,7 +28,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { mockEquipmentMaintenanceHistory } from "@/data/equipment-data"
+// Maintenance history will be fetched from API
 
 export function EquipmentDetailDialog({
   open,
@@ -69,12 +69,12 @@ export function EquipmentDetailDialog({
   // Calculate days until next maintenance
   const calculateDaysUntilMaintenance = () => {
     if (!equipment.nextMaintenanceDate) return null;
-    
+
     const today = new Date();
     const nextMaintenance = new Date(equipment.nextMaintenanceDate);
     const diffTime = nextMaintenance - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   };
 
@@ -189,23 +189,23 @@ export function EquipmentDetailDialog({
                           {daysUntilMaintenance !== null && (
                             <Badge className={cn(
                               daysUntilMaintenance <= 7 ? "bg-red-100 text-red-800 border-red-200" :
-                              daysUntilMaintenance <= 30 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                              "bg-green-100 text-green-800 border-green-200"
+                                daysUntilMaintenance <= 30 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                  "bg-green-100 text-green-800 border-green-200"
                             )}>
-                              {daysUntilMaintenance <= 0 
-                                ? "Overdue" 
+                              {daysUntilMaintenance <= 0
+                                ? "Overdue"
                                 : `${daysUntilMaintenance} days remaining`}
                             </Badge>
                           )}
                         </div>
-                        
+
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-sm text-muted-foreground">Maintenance frequency:</span>
                             <span className="text-sm font-medium ml-1">Every 90 days</span>
                           </div>
                         </div>
-                        
+
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-sm text-muted-foreground">Maintenance provider:</span>
@@ -221,8 +221,8 @@ export function EquipmentDetailDialog({
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-2">Status Actions</h3>
                     <div className="bg-muted/30 rounded-lg p-4 grid grid-cols-2 gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "Available")}
                         disabled={equipment.status === "Available"}
@@ -230,8 +230,8 @@ export function EquipmentDetailDialog({
                         <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
                         Available
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "In Use")}
                         disabled={equipment.status === "In Use"}
@@ -239,8 +239,8 @@ export function EquipmentDetailDialog({
                         <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                         In Use
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "Under Maintenance")}
                         disabled={equipment.status === "Under Maintenance"}
@@ -248,8 +248,8 @@ export function EquipmentDetailDialog({
                         <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
                         Maintenance
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "Out of Order")}
                         disabled={equipment.status === "Out of Order"}
@@ -281,11 +281,11 @@ export function EquipmentDetailDialog({
                     Log Maintenance
                   </Button>
                 </div>
-                
+
                 <div className="space-y-4">
                   {mockEquipmentMaintenanceHistory.filter(m => m.equipmentId === equipment.id).map((record, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="border border-border/40 rounded-lg overflow-hidden"
                     >
                       <div className="bg-muted/50 px-4 py-3 flex justify-between items-center border-b border-border/30">
@@ -320,40 +320,40 @@ export function EquipmentDetailDialog({
               </div>
 
               <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Next scheduled maintenance:</span>
-                        <span className="text-sm font-medium ml-1">{formatDate(equipment.nextMaintenanceDate)}</span>
-                      </div>
-                      {daysUntilMaintenance !== null && (
-                        <Badge className={cn(
-                          daysUntilMaintenance <= 7 ? "bg-red-100 text-red-800 border-red-200" :
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Next scheduled maintenance:</span>
+                      <span className="text-sm font-medium ml-1">{formatDate(equipment.nextMaintenanceDate)}</span>
+                    </div>
+                    {daysUntilMaintenance !== null && (
+                      <Badge className={cn(
+                        daysUntilMaintenance <= 7 ? "bg-red-100 text-red-800 border-red-200" :
                           daysUntilMaintenance <= 30 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                          "bg-green-100 text-green-800 border-green-200"
-                        )}>
-                          {daysUntilMaintenance <= 0 
-                            ? "Overdue" 
-                            : `${daysUntilMaintenance} days remaining`}
-                        </Badge>
-                      )}
+                            "bg-green-100 text-green-800 border-green-200"
+                      )}>
+                        {daysUntilMaintenance <= 0
+                          ? "Overdue"
+                          : `${daysUntilMaintenance} days remaining`}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Maintenance frequency:</span>
+                      <span className="text-sm font-medium ml-1">Every 90 days</span>
                     </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Maintenance frequency:</span>
-                        <span className="text-sm font-medium ml-1">Every 90 days</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Maintenance provider:</span>
-                        <span className="text-sm font-medium ml-1">{equipment.manufacturer} Technical Services</span>
-                      </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Maintenance provider:</span>
+                      <span className="text-sm font-medium ml-1">{equipment.manufacturer} Technical Services</span>
                     </div>
                   </div>
                 </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="documents" className="space-y-6">
@@ -365,12 +365,12 @@ export function EquipmentDetailDialog({
                     Upload File
                   </Button>
                 </div>
-                
+
                 {equipment.files && equipment.files.length > 0 ? (
                   <div className="space-y-2">
                     {equipment.files.map((file, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="flex items-center justify-between bg-muted/50 rounded-md p-3 border border-border/30"
                       >
                         <div className="flex items-center">

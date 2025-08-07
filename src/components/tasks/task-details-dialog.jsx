@@ -134,7 +134,7 @@ import UserAvatar from "@/components/tasks/user-avatar"
 import { TaskSubtasks } from "./task-subtasks"
 import { TaskComments } from "./task-comments"
 import { TaskFiles } from "./task-files"
-import { statusOptions, priorityOptions, dialogTaskTemplates } from "@/data/tasks-data"
+import { statusOptions, priorityOptions, dialogTaskTemplates } from "@/constants"
 import { getUserById } from '@/services/userService'
 
 // Helper function to format date

@@ -44,7 +44,7 @@ import {
     Trash2,
     User
 } from "lucide-react"
-import { warehouses, warehouseItems } from "@/data/inventory-data"
+// Warehouses and items will be fetched from API
 
 export function WarehouseManagement() {
     const [warehouses, setWarehouses] = useState(warehouses)

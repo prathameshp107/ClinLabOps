@@ -9,11 +9,32 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { suggestedMembers } from "@/data/projects-data"
+import { getUsers } from "@/services/userService"
+import { useEffect } from "react"
 
 export function AddMemberModal({ open, onOpenChange, onAddMember }) {
   const [searchQuery, setSearchQuery] = useState("")
   const [newMembers, setNewMembers] = useState([])
+  const [suggestedMembers, setSuggestedMembers] = useState([])
+
+  // Fetch users when component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await getUsers();
+        setSuggestedMembers(users.map(user => ({
+          id: user._id,
+          name: user.name,
+          role: user.role,
+          department: user.department || 'Unknown',
+          avatar: user.name.charAt(0).toUpperCase()
+        })));
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const handleAddMember = () => {
     if (newMembers.length > 0) {

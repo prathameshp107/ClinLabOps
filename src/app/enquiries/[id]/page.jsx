@@ -51,7 +51,7 @@ import React from "react"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UploadReportDialog from "@/components/enquiries/UploadReportDialog"
 import { toast } from "@/components/ui/use-toast"
-import { mockEnquiries } from "@/data/enquiries-data"
+// Enquiries will be fetched from API
 
 // Function to get file icon based on type
 const getFileIcon = (fileType) => {

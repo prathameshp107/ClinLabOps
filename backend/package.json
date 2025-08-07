@@ -7,7 +7,9 @@
         "start": "node app.js",
         "test": "jest",
         "seed": "node scripts/seed-project-data.js",
+        "seed:all": "node scripts/seed-all-data.js",
         "seed:dev": "set MONGODB_URI=mongodb://localhost:27017/labtasker && node scripts/seed-project-data.js",
+        "seed:all:dev": "set MONGODB_URI=mongodb://localhost:27017/labtasker && node scripts/seed-all-data.js",
         "dev": "nodemon app.js"
     },
     "dependencies": {

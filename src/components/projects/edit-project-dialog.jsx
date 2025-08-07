@@ -63,7 +63,8 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 
-import { mockUsers, commonTags } from "@/data/projects-data"
+import { commonTags } from "@/constants"
+import { getUsers } from "@/services/userService"
 
 export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
   const [activeTab, setActiveTab] = useState("details")
@@ -82,6 +83,27 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
   const [formErrors, setFormErrors] = useState({})
   const [tagInput, setTagInput] = useState("")
   const [showTagSuggestions, setShowTagSuggestions] = useState(false)
+  const [users, setUsers] = useState([])
+
+  // Fetch users when component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await getUsers();
+        setUsers(fetchedUsers.map(user => ({
+          id: user._id,
+          name: user.name,
+          role: user.role,
+          department: user.department || 'Unknown',
+          email: user.email,
+          avatar: user.name.charAt(0).toUpperCase()
+        })));
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Initialize form with project data when opened
   useEffect(() => {
@@ -476,7 +498,7 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
                           <CommandInput placeholder="Search users..." />
                           <CommandEmpty>No users found.</CommandEmpty>
                           <CommandGroup heading="Users">
-                            {mockUsers
+                            {users
                               .filter(user => !projectData.team.some(member => member.id === user.id))
                               .map(user => (
                                 <CommandItem

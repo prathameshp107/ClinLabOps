@@ -42,7 +42,7 @@ import { TaskSubtasks } from "./task-subtasks"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // Add DatePicker import
 import { DatePicker } from "@/components/ui/date-picker"
-import { mockTaskUsers } from "@/data/tasks-data"
+import { getUsers } from "@/services/userService"
 
 // Define form schema with Zod
 const taskFormSchema = z.object({
@@ -175,9 +175,7 @@ export const TaskFormDialog = ({
   // Handle form submission
   const handleSubmit = (data) => {
     // Find the assignee user object based on the selected ID
-    const assignee = userArray.find(user => user.id === data.assigneeId) ||
-      // Fallback for hardcoded users
-      Object.values(mockTaskUsers).find(user => user.id === data.assigneeId);
+    const assignee = userArray.find(user => (user._id || user.id) === data.assigneeId);
 
     // Map form fields to expected task fields
     const formattedTask = {

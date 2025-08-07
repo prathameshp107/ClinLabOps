@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, Plus, MoreVertical, Mail, Phone, Calendar, MapPin, Building, UserCheck, UserX, Clock, Beaker, Microscope   } from "lucide-react"
+import { Users, Plus, MoreVertical, Mail, Phone, Calendar, MapPin, Building, UserCheck, UserX, Clock, Beaker, Microscope } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { defaultTeam } from "@/data/projects-data"
+// Team data will be passed as props or fetched from API
 import { Mail as LucideMail, MoreHorizontal, UserCog, UserMinus, UserPlus, Shield, Star, MessageSquare, Award, Activity, Crown, Zap } from "lucide-react"
 import { AddMemberModal } from "./add-member-modal"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -31,7 +31,7 @@ import {
   memberRoleConfig,
   memberStatusConfig,
   workloadConfig
-} from "@/data/projects-data"
+} from "@/constants"
 
 const MemberRoleBadge = ({ role, isLead = false }) => {
   const config = memberRoleConfig[role] || memberRoleConfig['Lab Technician'];
@@ -56,10 +56,10 @@ const MemberRoleBadge = ({ role, isLead = false }) => {
 
 const TeamMemberCard = ({ member, index, onAction }) => {
   const statusConfig = memberStatusConfig[member.status || 'online'];
-  const workloadLevel = member.workload >= workloadConfig.high.threshold ? 'high' : 
-                       member.workload >= workloadConfig.medium.threshold ? 'medium' : 'low';
+  const workloadLevel = member.workload >= workloadConfig.high.threshold ? 'high' :
+    member.workload >= workloadConfig.medium.threshold ? 'medium' : 'low';
   const workloadColor = workloadConfig[workloadLevel].color;
-  
+
   // Real-time status indicator
   const getStatusIndicator = () => {
     switch (member.status) {
@@ -208,27 +208,27 @@ const TeamMemberCard = ({ member, index, onAction }) => {
 };
 
 export function ProjectTeam({ team, onAddMember }) {
-  const [realTimeTeam, setRealTimeTeam] = useState(team || defaultTeam);
+  const [realTimeTeam, setRealTimeTeam] = useState(team || []);
   const [isLoading, setIsLoading] = useState(false);
   const [recentActivities, setRecentActivities] = useState([]);
 
   // Real-time status updates
   useEffect(() => {
     const updateMemberStatus = () => {
-      setRealTimeTeam(prevTeam => 
+      setRealTimeTeam(prevTeam =>
         prevTeam.map(member => {
           // Randomly update status (online, away, busy)
           const statuses = ['online', 'away', 'busy'];
           const newStatus = Math.random() > 0.7 ? statuses[Math.floor(Math.random() * statuses.length)] : member.status;
-          
+
           // Randomly update workload
           const workloadChange = (Math.random() - 0.5) * 10; // ±5% change
           const newWorkload = Math.max(0, Math.min(100, (member.workload || 65) + workloadChange));
-          
+
           // Randomly update performance rating
           const ratingChange = (Math.random() - 0.5) * 0.2; // ±0.1 change
           const newRating = Math.max(1, Math.min(5, (member.rating || 4) + ratingChange));
-          
+
           return {
             ...member,
             status: newStatus,
@@ -241,7 +241,7 @@ export function ProjectTeam({ team, onAddMember }) {
 
     // Update every 5-10 seconds
     const interval = setInterval(updateMemberStatus, Math.random() * 5000 + 5000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -257,10 +257,10 @@ export function ProjectTeam({ team, onAddMember }) {
         'Joined meeting',
         'Submitted report'
       ];
-      
+
       const randomActivity = activities[Math.floor(Math.random() * activities.length)];
       const randomMember = realTimeTeam[Math.floor(Math.random() * realTimeTeam.length)];
-      
+
       if (randomMember) {
         const newActivity = {
           id: Date.now(),
@@ -269,7 +269,7 @@ export function ProjectTeam({ team, onAddMember }) {
           timestamp: new Date().toLocaleTimeString(),
           avatar: randomMember.avatar
         };
-        
+
         setRecentActivities(prev => [newActivity, ...prev.slice(0, 4)]); // Keep last 5 activities
         console.log(`${randomMember.name} ${randomActivity}`);
       }
@@ -277,7 +277,7 @@ export function ProjectTeam({ team, onAddMember }) {
 
     // Simulate activity every 3-8 seconds
     const activityInterval = setInterval(simulateActivity, Math.random() * 5000 + 3000);
-    
+
     return () => clearInterval(activityInterval);
   }, [realTimeTeam]);
 
@@ -378,14 +378,14 @@ export function ProjectTeam({ team, onAddMember }) {
                 This project doesn't have any team members assigned yet. Add team members to start collaborating on this project.
               </p>
               <div className="flex items-center gap-3">
-                <Button 
+                <Button
                   onClick={onAddMember}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add First Member
                 </Button>
-                <Button 
+                <Button
                   variant="outline"
                   className="px-6 py-2 rounded-xl border-gray-200 hover:bg-gray-50 transition-all duration-200"
                 >
@@ -427,9 +427,9 @@ export function ProjectTeam({ team, onAddMember }) {
                 <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
                 <span className="text-gray-500">No team data available</span>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onAddMember}
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
               >

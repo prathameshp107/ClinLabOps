@@ -1,200 +1,455 @@
-import * as dashboardData from "@/data/dashboard-data";
-import * as userDashboard from "@/data/mock-user-dashboard";
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 /**
- * Get tasks overview data
+ * Get dashboard stats
  */
-export function getTasksOverview() {
-    return Promise.resolve(dashboardData.tasksOverviewData);
+export async function getDashboardStats() {
+    try {
+        const response = await api.get('/dashboard/stats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+        throw error;
+    }
 }
 
 /**
  * Get task distribution data
  */
-export function getTaskDistribution() {
-    return Promise.resolve(dashboardData.taskDistributionData);
-}
-
-/**
- * Get dashboard stats
- */
-export function getDashboardStats() {
-    return Promise.resolve(dashboardData.dashboardStats);
+export async function getTaskDistribution() {
+    try {
+        const response = await api.get('/dashboard/task-distribution');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching task distribution:', error);
+        throw error;
+    }
 }
 
 /**
  * Get recent activities
  */
-export function getRecentActivities() {
-    return Promise.resolve(dashboardData.recentActivities);
+export async function getRecentActivities(limit = 10) {
+    try {
+        const response = await api.get('/dashboard/recent-activities', { params: { limit } });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching recent activities:', error);
+        throw error;
+    }
 }
 
 /**
  * Get team performance data
  */
-export function getTeamPerformance() {
-    return Promise.resolve(dashboardData.teamPerformance);
+export async function getTeamPerformance() {
+    try {
+        const response = await api.get('/dashboard/team-performance');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching team performance:', error);
+        throw error;
+    }
 }
 
 /**
- * Get all reports
+ * Get project health data
  */
-export function getReports() {
-    return Promise.resolve(dashboardData.reportsData);
-}
-
-/**
- * Get report types
- */
-export function getReportTypes() {
-    return Promise.resolve(dashboardData.reportTypes);
-}
-
-/**
- * Get report formats
- */
-export function getReportFormats() {
-    return Promise.resolve(dashboardData.reportFormats);
-}
-
-/**
- * Get pending approvals
- */
-export function getPendingApprovals() {
-    return Promise.resolve(dashboardData.pendingApprovalsData);
-}
-
-/**
- * Get user activity data
- */
-export function getUserActivity() {
-    return Promise.resolve(dashboardData.userActivityData);
-}
-
-/**
- * Get daily active users data
- */
-export function getDailyActiveUsers() {
-    return Promise.resolve(dashboardData.dailyActiveUsersData);
+export async function getProjectHealth() {
+    try {
+        const response = await api.get('/dashboard/project-health');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching project health:', error);
+        throw error;
+    }
 }
 
 /**
  * Get experiment progress data
  */
-export function getExperimentProgress() {
-    return Promise.resolve(dashboardData.experimentProgressData);
+export async function getExperimentProgress() {
+    try {
+        const response = await api.get('/dashboard/experiment-progress');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching experiment progress:', error);
+        throw error;
+    }
 }
 
 /**
- * Get task heatmap data
+ * Get user activity data
  */
-export function getTaskHeatmap() {
-    return Promise.resolve(dashboardData.taskHeatmapData);
+export async function getUserActivity() {
+    try {
+        const response = await api.get('/dashboard/user-activity');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user activity:', error);
+        throw error;
+    }
 }
 
 /**
  * Get compliance alerts data
  */
-export function getComplianceAlerts() {
-    return Promise.resolve(dashboardData.complianceAlertsData);
-}
-
-/**
- * Get notification center data
- */
-export function getNotificationCenter() {
-    return Promise.resolve(dashboardData.notificationCenterData);
+export async function getComplianceAlerts() {
+    try {
+        const response = await api.get('/dashboard/compliance-alerts');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching compliance alerts:', error);
+        throw error;
+    }
 }
 
 /**
  * Get system logs data
  */
-export function getSystemLogs() {
-    return Promise.resolve(dashboardData.systemLogsData);
+export async function getSystemLogs(params = {}) {
+    try {
+        const response = await api.get('/dashboard/system-logs', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching system logs:', error);
+        throw error;
+    }
 }
 
 /**
- * Get smart insights data
+ * Get task heatmap data
  */
+export async function getTaskHeatmap() {
+    try {
+        const response = await api.get('/dashboard/task-heatmap');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching task heatmap:', error);
+        throw error;
+    }
+}
+
+// REPORT GENERATION
+
+/**
+ * Generate and download project report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ * @param {Object} filters - Report filters
+ */
+export async function generateProjectReport(format = 'json', filters = {}) {
+    try {
+        const response = await api.get('/reports/projects', {
+            params: { format, ...filters },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            // Handle file download
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `project_report.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating project report:', error);
+        throw error;
+    }
+}
+
+/**
+ * Generate and download task report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ * @param {Object} filters - Report filters
+ */
+export async function generateTaskReport(format = 'json', filters = {}) {
+    try {
+        const response = await api.get('/reports/tasks', {
+            params: { format, ...filters },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `task_report.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating task report:', error);
+        throw error;
+    }
+}
+
+/**
+ * Generate and download inventory report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ * @param {Object} filters - Report filters
+ */
+export async function generateInventoryReport(format = 'json', filters = {}) {
+    try {
+        const response = await api.get('/reports/inventory', {
+            params: { format, ...filters },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `inventory_report.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating inventory report:', error);
+        throw error;
+    }
+}
+
+/**
+ * Generate and download user report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ * @param {Object} filters - Report filters
+ */
+export async function generateUserReport(format = 'json', filters = {}) {
+    try {
+        const response = await api.get('/reports/users', {
+            params: { format, ...filters },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `user_report.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating user report:', error);
+        throw error;
+    }
+}
+
+/**
+ * Generate and download compliance report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ * @param {Object} filters - Report filters
+ */
+export async function generateComplianceReport(format = 'json', filters = {}) {
+    try {
+        const response = await api.get('/reports/compliance', {
+            params: { format, ...filters },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `compliance_report.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating compliance report:', error);
+        throw error;
+    }
+}
+
+/**
+ * Generate and download experiment report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ * @param {Object} filters - Report filters
+ */
+export async function generateExperimentReport(format = 'json', filters = {}) {
+    try {
+        const response = await api.get('/reports/experiments', {
+            params: { format, ...filters },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `experiment_report.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating experiment report:', error);
+        throw error;
+    }
+}
+
+/**
+ * Generate and download dashboard summary report
+ * @param {string} format - Report format (json, csv, xlsx, pdf)
+ */
+export async function generateDashboardReport(format = 'json') {
+    try {
+        const response = await api.get('/reports/dashboard', {
+            params: { format },
+            responseType: format !== 'json' ? 'blob' : 'json'
+        });
+
+        if (format !== 'json') {
+            const blob = new Blob([response.data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `dashboard_summary.${format}`;
+            link.click();
+            window.URL.revokeObjectURL(url);
+            return { success: true, message: 'Report downloaded successfully' };
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('Error generating dashboard report:', error);
+        throw error;
+    }
+}
+
+// Legacy function aliases for backward compatibility
+export function getTasksOverview() {
+    return getDashboardStats();
+}
+
+export function getReports() {
+    return Promise.resolve([
+        { id: 'projects', name: 'Project Report', type: 'projects' },
+        { id: 'tasks', name: 'Task Report', type: 'tasks' },
+        { id: 'inventory', name: 'Inventory Report', type: 'inventory' },
+        { id: 'users', name: 'User Report', type: 'users' },
+        { id: 'compliance', name: 'Compliance Report', type: 'compliance' },
+        { id: 'experiments', name: 'Experiment Report', type: 'experiments' },
+        { id: 'dashboard', name: 'Dashboard Summary', type: 'dashboard' }
+    ]);
+}
+
+export function getReportTypes() {
+    return Promise.resolve([
+        'projects', 'tasks', 'inventory', 'users', 'compliance', 'experiments', 'dashboard'
+    ]);
+}
+
+export function getReportFormats() {
+    return Promise.resolve(['json', 'csv', 'xlsx', 'pdf']);
+}
+
+export function getPendingApprovals() {
+    return getComplianceAlerts();
+}
+
+export function getDailyActiveUsers() {
+    return getUserActivity();
+}
+
+export function getNotificationCenter() {
+    return getComplianceAlerts();
+}
+
 export function getSmartInsights() {
-    return Promise.resolve(dashboardData.smartInsightsData);
+    return getDashboardStats();
 }
 
-/**
- * Get tasks dashboard data
- */
 export function getTasksDashboard() {
-    return Promise.resolve(dashboardData.tasksDashboardData);
+    return getTaskDistribution();
 }
 
-/**
- * Get experiments dashboard data
- */
 export function getExperimentsDashboard() {
-    return Promise.resolve(dashboardData.experimentsDashboardData);
+    return getExperimentProgress();
 }
 
-/**
- * Get task overview data
- */
 export function getTaskOverview() {
-    return Promise.resolve(dashboardData.taskOverviewData);
+    return getTaskDistribution();
 }
 
-// --- User Dashboard Service Functions ---
-
-/**
- * Get tasks assigned to the user
- */
+// User Dashboard Functions - These would need user-specific endpoints
 export function getUserAssignedTasks() {
-    return Promise.resolve(userDashboard.mockAssignedTasks);
+    // This would need a user-specific endpoint
+    return Promise.resolve([]);
 }
 
-/**
- * Get tasks created by the user
- */
 export function getUserCreatedTasks() {
-    return Promise.resolve(userDashboard.mockCreatedTasks);
+    // This would need a user-specific endpoint
+    return Promise.resolve([]);
 }
 
-/**
- * Get projects where user is a member
- */
 export function getUserMemberProjects() {
-    return Promise.resolve(userDashboard.mockMemberProjects);
+    // This would need a user-specific endpoint
+    return Promise.resolve([]);
 }
 
-/**
- * Get projects owned by the user
- */
 export function getUserOwnedProjects() {
-    return Promise.resolve(userDashboard.mockOwnedProjects);
+    // This would need a user-specific endpoint
+    return Promise.resolve([]);
 }
 
-/**
- * Get user dashboard activities
- */
 export function getUserDashboardActivities() {
-    return Promise.resolve(userDashboard.mockActivities);
+    return getRecentActivities();
 }
 
-/**
- * Get user dashboard notifications
- */
 export function getUserDashboardNotifications() {
-    return Promise.resolve(userDashboard.mockNotifications);
+    return getComplianceAlerts();
 }
 
-/**
- * Get user dashboard upcoming deadlines
- */
 export function getUserDashboardUpcomingDeadlines() {
-    return Promise.resolve(userDashboard.mockUpcomingDeadlines);
+    // This would need a specific endpoint for deadlines
+    return Promise.resolve([]);
 }
 
-/**
- * Get user dashboard performance data
- */
 export function getUserDashboardPerformance() {
-    return Promise.resolve(userDashboard.mockPerformanceData);
+    return getTeamPerformance();
 } 

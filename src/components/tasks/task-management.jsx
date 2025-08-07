@@ -27,7 +27,11 @@ import {
   Star,
   StarOff,
   Share,
-  Activity
+  Activity,
+  XCircle,
+  ListChecks,
+  LayoutGrid,
+  Checkbox
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -44,16 +48,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Add this import at the top with other imports
 import { useRouter } from "next/navigation"
 import {
-  mockTasks,
-  mockTaskUsers,
-  mockExperiments,
+  getTasks,
+  createTask as createTaskAPI,
+  updateTask as updateTaskAPI,
+  deleteTask as deleteTaskAPI,
+  updateTaskStatus as updateTaskStatusAPI
+} from "@/services/taskService"
+import { getUsers } from "@/services/userService"
+import { getExperiments } from "@/services/experimentService"
+import {
   taskStatusConfig,
   taskPriorityConfig
-} from "@/data/tasks-data"
+} from "@/constants"
+
+// Import dialog components
+import { TaskDetailsDialog } from "./task-details-dialog"
+import { TaskFormDialog } from "./task-form-dialog"
+import { TaskDeleteDialog } from "./task-delete-dialog"
+import { TaskBoard } from "./task-board"
 
 const getDueDate = (dueDate) => {
   if (!dueDate) return "No due date";
@@ -76,18 +94,21 @@ const getDueDate = (dueDate) => {
   }
 };
 
-export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
+export const TaskManagement = ({ view = "all" }) => {
   // Add router
   const router = useRouter();
 
   // State for tasks
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState([]);
 
   // Add state for toast notifications
   const [toastMessage, setToastMessage] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [filteredTasks, setFilteredTasks] = useState(mockTasks);
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [experiments, setExperiments] = useState([]);
 
   // State for view mode
   const [viewMode, setViewMode] = useState("list");
@@ -100,7 +121,27 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
 
-  // State for filters
+  // State for filters - map frontend view to backend status
+  const getBackendStatus = (frontendStatus) => {
+    const statusMap = {
+      'pending': 'todo',
+      'in-progress': 'in-progress',
+      'completed': 'done',
+      'review': 'review'
+    };
+    return statusMap[frontendStatus] || frontendStatus;
+  };
+
+  const getFrontendStatus = (backendStatus) => {
+    const statusMap = {
+      'todo': 'pending',
+      'in-progress': 'in-progress',
+      'done': 'completed',
+      'review': 'review'
+    };
+    return statusMap[backendStatus] || backendStatus;
+  };
+
   const [statusFilter, setStatusFilter] = useState(view !== "all" ? view : "all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
@@ -122,26 +163,44 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
     overdue: 0
   });
 
-  // Simulate loading
+  // Fetch data on component mount
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [tasksData, usersData, experimentsData] = await Promise.all([
+          getTasks(),
+          getUsers(),
+          getExperiments()
+        ]);
 
-    return () => clearTimeout(timer);
+        setTasks(Array.isArray(tasksData) ? tasksData : []);
+        setUsers(Array.isArray(usersData) ? usersData : []);
+        setExperiments(Array.isArray(experimentsData) ? experimentsData : []);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
+
+
 
   // Calculate task statistics
   useEffect(() => {
     const stats = {
       total: tasks.length,
-      pending: tasks.filter(task => task.status === 'pending').length,
-      inProgress: tasks.filter(task => task.status === 'in-progress').length,
-      completed: tasks.filter(task => task.status === 'completed').length,
+      pending: tasks.filter(task => getFrontendStatus(task.status) === 'pending').length,
+      inProgress: tasks.filter(task => getFrontendStatus(task.status) === 'in-progress').length,
+      completed: tasks.filter(task => getFrontendStatus(task.status) === 'completed').length,
       overdue: tasks.filter(task => {
+        if (!task.dueDate) return false;
         const dueDate = new Date(task.dueDate);
         const now = new Date();
-        return dueDate < now && task.status !== 'completed';
+        return dueDate < now && getFrontendStatus(task.status) !== 'completed';
       }).length
     };
     setTaskStats(stats);
@@ -151,9 +210,18 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   useEffect(() => {
     let filtered = [...tasks];
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(task =>
+        (task.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.customId || '').toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
     // Apply status filter
     if (statusFilter !== "all") {
-      filtered = filtered.filter(task => task.status === statusFilter);
+      filtered = filtered.filter(task => getFrontendStatus(task.status) === statusFilter);
     }
 
     // Apply priority filter
@@ -163,12 +231,12 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
 
     // Apply assignee filter
     if (assigneeFilter !== "all") {
-      filtered = filtered.filter(task => task.assigneeId === assigneeFilter);
+      filtered = filtered.filter(task => task.assignee === assigneeFilter);
     }
 
-    // Apply experiment filter
+    // Apply experiment filter  
     if (experimentFilter !== "all") {
-      filtered = filtered.filter(task => task.experimentId === experimentFilter);
+      filtered = filtered.filter(task => task.projectId === experimentFilter);
     }
 
     // Apply due date filter
@@ -177,12 +245,14 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
       switch (dueDateFilter) {
         case "overdue":
           filtered = filtered.filter(task => {
+            if (!task.dueDate) return false;
             const dueDate = new Date(task.dueDate);
-            return dueDate < now && task.status !== 'completed';
+            return dueDate < now && getFrontendStatus(task.status) !== 'completed';
           });
           break;
         case "today":
           filtered = filtered.filter(task => {
+            if (!task.dueDate) return false;
             const dueDate = new Date(task.dueDate);
             const today = new Date();
             return dueDate.toDateString() === today.toDateString();
@@ -191,6 +261,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         case "week":
           const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
           filtered = filtered.filter(task => {
+            if (!task.dueDate) return false;
             const dueDate = new Date(task.dueDate);
             return dueDate <= weekFromNow && dueDate >= now;
           });
@@ -221,7 +292,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
     });
 
     setFilteredTasks(filtered);
-  }, [tasks, statusFilter, priorityFilter, assigneeFilter, experimentFilter, dueDateFilter, sortConfig]);
+  }, [tasks, searchQuery, statusFilter, priorityFilter, assigneeFilter, experimentFilter, dueDateFilter, sortConfig]);
 
   // Sorting function
   const requestSort = (key) => {
@@ -257,158 +328,139 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   };
 
   // Create new task
-  const createTask = (newTask) => {
-    const taskId = `t${Date.now()}`;
+  const createTask = async (newTask) => {
+    try {
+      setIsLoading(true);
 
-    // Get assignee data
-    const assigneeData = (() => {
-      if (!newTask.assigneeId) return null;
-      const user = Object.values(mockTaskUsers).find(u => u.id === newTask.assigneeId);
-      return user ? {
-        id: user.id,
-        name: user.name,
-        avatar: user.avatar
-      } : null;
-    })();
+      // Convert frontend status to backend status
+      const taskData = {
+        ...newTask,
+        status: getBackendStatus(newTask.status || 'pending')
+      };
 
-    // Get experiment data
-    const experimentData = mockExperiments.find(e => e.id === newTask.experimentId);
+      const createdTask = await createTaskAPI(taskData);
 
-    const taskWithMeta = {
-      id: taskId,
-      name: newTask.name,
-      title: newTask.name,
-      description: newTask.description,
-      experimentName: experimentData?.name || 'Unknown Experiment',
-      experimentId: newTask.experimentId,
-      experiment: newTask.experimentId,
-      assignedTo: assigneeData,
-      assignedToName: assigneeData?.name || 'Unassigned',
-      assigneeId: newTask.assigneeId,
-      priority: newTask.priority,
-      status: newTask.status,
-      dueDate: newTask.dueDate,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      attachments: [],
-      dependencies: [],
-      activityLog: [
-        {
-          id: `al${Date.now()}`,
-          userId: 'u2', // Assuming current user is admin
-          action: 'created',
-          timestamp: new Date().toISOString(),
-          details: 'Task created'
-        }
-      ]
-    };
+      // Refresh tasks list
+      const updatedTasks = await getTasks();
+      setTasks(updatedTasks);
 
-    setTasks(prev => [...prev, taskWithMeta]);
-    setShowTaskFormDialog(false);
-    setToastMessage("Task created successfully!");
+      setShowTaskFormDialog(false);
+      setToastMessage({
+        title: "Success",
+        description: "Task created successfully!",
+        variant: "success"
+      });
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      setToastMessage({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Function to update an existing task
-  const updateTask = (updatedTask) => {
-    // Format the assignee data to match the expected structure
-    const assigneeData = (() => {
-      // Check if we have an assignee from the form
-      if (updatedTask.assigneeId) {
-        // Try to find the user in the mockUsers object
-        const user = Object.values(mockTaskUsers).find(u => u.id === updatedTask.assigneeId);
+  const updateTask = async (updatedTask) => {
+    try {
+      setIsLoading(true);
 
-        // If found in mockUsers, use that data
-        if (user) {
-          return {
-            id: user.id,
-            name: user.name,
-            avatar: user.avatar
-          };
-        }
-
-        // For hardcoded users in the form that aren't in mockUsers
-        const hardcodedUsers = {
-          'user1': { id: 'user1', name: 'John Doe', avatar: 'JD' },
-          'user2': { id: 'user2', name: 'Jane Smith', avatar: 'JS' },
-          'user3': { id: 'user3', name: 'Sarah Johnson', avatar: 'SJ' },
-          'user4': { id: 'user4', name: 'Jenny Parker', avatar: 'JP' },
-          'user5': { id: 'user5', name: 'Harry Potter', avatar: 'HP' }
-        };
-
-        if (hardcodedUsers[updatedTask.assigneeId]) {
-          return hardcodedUsers[updatedTask.assigneeId];
-        }
-
-        // Fallback if we can't find the user
-        return {
-          id: updatedTask.assigneeId,
-          name: updatedTask.assigneeName || "Unknown User",
-          avatar: updatedTask.assigneeId.substring(0, 2).toUpperCase()
-        };
-      }
-
-      // Default to unassigned
-      return {
-        id: 'unassigned',
-        name: 'Unassigned',
-        avatar: 'UN'
+      // Convert frontend status to backend status
+      const taskData = {
+        ...updatedTask,
+        status: getBackendStatus(updatedTask.status || 'pending')
       };
-    })();
 
-    // In a real app, you would send this to your API
-    const updatedTasks = tasks.map(task => {
-      if (task.id === updatedTask.id) {
-        // Add activity log entry for the update
-        const newLog = {
-          id: `al${Date.now()}`,
-          userId: 'u2', // Current user ID would come from auth context
-          action: 'updated',
-          timestamp: new Date().toISOString(),
-          details: 'Task updated'
-        };
+      const updated = await updateTaskAPI(updatedTask._id || updatedTask.id, taskData);
 
-        return {
-          ...updatedTask,
-          assignedTo: assigneeData, // Use the properly formatted assignee data
-          activityLog: [...task.activityLog, newLog]
-        };
+      if (updated) {
+        // Refresh tasks list
+        const updatedTasks = await getTasks();
+        setTasks(updatedTasks);
+
+        setShowTaskFormDialog(false);
+        setToastMessage({
+          title: "Success",
+          description: "Task updated successfully!",
+          variant: "success"
+        });
+      } else {
+        setToastMessage({
+          title: "Error",
+          description: "Task not found.",
+          variant: "error"
+        });
       }
-      return task;
-    });
-
-    setTasks(updatedTasks);
-    setShowTaskFormDialog(false);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      setToastMessage({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Function to update task status
-  const updateTaskStatus = (taskId, newStatus) => {
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        const newLog = {
-          id: `al${Date.now()}`,
-          userId: 'u2', // Current user ID would come from auth context
-          action: 'updated',
-          timestamp: new Date().toISOString(),
-          details: `Status changed from "${task.status}" to "${newStatus}"`
-        };
+  const updateTaskStatus = async (taskId, newStatus) => {
+    try {
+      // Convert frontend status to backend status
+      const backendStatus = getBackendStatus(newStatus);
+      const updated = await updateTaskStatusAPI(taskId, backendStatus);
 
-        return {
-          ...task,
-          status: newStatus,
-          activityLog: [...task.activityLog, newLog]
-        };
+      if (updated) {
+        // Refresh tasks list
+        const updatedTasks = await getTasks();
+        setTasks(updatedTasks);
+
+        setToastMessage({
+          title: "Success",
+          description: "Task status updated successfully!",
+          variant: "success"
+        });
       }
-      return task;
-    });
-
-    setTasks(updatedTasks);
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+      setToastMessage({
+        title: "Error",
+        description: "Failed to update task status. Please try again.",
+        variant: "error"
+      });
+    }
   };
 
   // Function to delete a task
-  const deleteTask = (taskId) => {
-    // In a real app, you would send this to your API for soft delete
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    setShowDeleteDialog(false);
+  const deleteTask = async (taskId) => {
+    try {
+      setIsLoading(true);
+      const success = await deleteTaskAPI(taskId);
+
+      if (success) {
+        // Refresh tasks list
+        const updatedTasks = await getTasks();
+        setTasks(updatedTasks);
+
+        setShowDeleteDialog(false);
+        setToastMessage({
+          title: "Success",
+          description: "Task deleted successfully!",
+          variant: "success"
+        });
+      }
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      setToastMessage({
+        title: "Error",
+        description: "Failed to delete task. Please try again.",
+        variant: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Reset all filters
@@ -448,11 +500,34 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
   const uniqueExperiments = [...new Set(tasks.map(task => task.experimentName))];
 
   // Function to refresh data
-  const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => {
+  const handleRefresh = async () => {
+    try {
+      setIsLoading(true);
+      const [tasksData, usersData, experimentsData] = await Promise.all([
+        getTasks(),
+        getUsers(),
+        getExperiments()
+      ]);
+
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setExperiments(Array.isArray(experimentsData) ? experimentsData : []);
+
+      setToastMessage({
+        title: "Success",
+        description: "Data refreshed successfully!",
+        variant: "success"
+      });
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+      setToastMessage({
+        title: "Error",
+        description: "Failed to refresh data. Please try again.",
+        variant: "error"
+      });
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   // Get status badge color
@@ -464,6 +539,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case 'completed':
         return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'review':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
@@ -554,10 +631,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   placeholder="Search tasks..."
                   className="pl-12 bg-background/90 border-border/40 h-12 rounded-xl focus:ring-2 focus:ring-primary/30 text-base"
                   value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    resetFilters();
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <div className="flex flex-wrap gap-3 md:gap-4 items-center">
@@ -569,6 +643,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="in-progress">In Progress</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
@@ -589,9 +664,22 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Assignees</SelectItem>
-                    {Object.values(mockTaskUsers).map(user => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
+                    {users.map(user => (
+                      <SelectItem key={user._id || user.id} value={user._id || user.id}>
+                        {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={experimentFilter} onValueChange={setExperimentFilter}>
+                  <SelectTrigger className="w-[180px] bg-background/90 border-border/40 h-12 rounded-xl">
+                    <SelectValue placeholder="Experiment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Experiments</SelectItem>
+                    {experiments.map(experiment => (
+                      <SelectItem key={experiment._id || experiment.id} value={experiment._id || experiment.id}>
+                        {experiment.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -709,7 +797,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                         <tbody>
                           {filteredTasks.map((task) => (
                             <tr
-                              key={task.id}
+                              key={task._id || task.id}
                               className="border-b border-border/20 hover:bg-muted/30 transition-colors"
                             >
                               <td className="px-4 py-4">
@@ -717,7 +805,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                               </td>
                               <td className="px-6 py-4">
                                 <span className="text-sm font-mono bg-muted/50 px-2 py-1 rounded-md">
-                                  {task.id}
+                                  {task.customId || task._id || task.id}
                                 </span>
                               </td>
                               <td className="px-6 py-4">
@@ -725,18 +813,41 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                   className="font-medium cursor-pointer hover:text-primary transition-colors"
                                   onClick={() => handleTaskAction("view", task)}
                                 >
-                                  {task.name}
+                                  {task.title}
                                 </div>
                               </td>
-                              <td className="px-6 py-4 text-sm">{task.experimentName}</td>
+                              <td className="px-6 py-4 text-sm">
+                                {experiments.find(exp => exp._id === task.projectId)?.title || "No Experiment"}
+                              </td>
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
                                   <Avatar className="h-8 w-8 border-2 border-background shadow-sm">
                                     <AvatarFallback className="text-sm bg-primary/10 text-primary">
-                                      {task.assignedTo?.avatar ?? "?"}
+                                      {(() => {
+                                        if (task.assignee) {
+                                          const assignedUser = users.find(user => (user._id || user.id) === task.assignee);
+                                          if (assignedUser) {
+                                            const name = assignedUser.name || `${assignedUser.firstName || ''} ${assignedUser.lastName || ''}`.trim();
+                                            return name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
+                                          }
+                                          return task.assignee.substring(0, 2).toUpperCase();
+                                        }
+                                        return "?";
+                                      })()}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <span className="text-sm font-medium">{task.assignedTo?.name ?? "Unassigned"}</span>
+                                  <span className="text-sm font-medium">
+                                    {(() => {
+                                      if (task.assignee) {
+                                        const assignedUser = users.find(user => (user._id || user.id) === task.assignee);
+                                        if (assignedUser) {
+                                          return assignedUser.name || `${assignedUser.firstName || ''} ${assignedUser.lastName || ''}`.trim() || assignedUser.email;
+                                        }
+                                        return task.assignee;
+                                      }
+                                      return "Unassigned";
+                                    })()}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-6 py-4">
@@ -745,10 +856,13 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                                 </Badge>
                               </td>
                               <td className="px-6 py-4">
-                                <Badge className={`${getStatusColor(task.status)} px-3 py-1 rounded-full`}>
-                                  {task.status === "in-progress"
-                                    ? "In Progress"
-                                    : task.status.charAt(0).toUpperCase() + task.status.slice(1)}
+                                <Badge className={`${getStatusColor(getFrontendStatus(task.status))} px-3 py-1 rounded-full`}>
+                                  {(() => {
+                                    const frontendStatus = getFrontendStatus(task.status);
+                                    return frontendStatus === "in-progress"
+                                      ? "In Progress"
+                                      : frontendStatus.charAt(0).toUpperCase() + frontendStatus.slice(1);
+                                  })()}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4 text-sm">
@@ -797,7 +911,7 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
                       tasks={filteredTasks}
                       onAction={handleTaskAction}
                       onStatusChange={updateTaskStatus}
-                      users={mockTaskUsers}
+                      users={users}
                     />
                   </div>
                 )}
@@ -851,8 +965,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         onOpenChange={setShowTaskDetailsDialog}
         task={selectedTask}
         onAction={handleTaskAction}
-        users={mockTaskUsers}
-        experiments={mockExperiments}
+        users={users}
+        experiments={experiments}
       />
 
       {/* Task Form Dialog */}
@@ -862,8 +976,8 @@ export const TaskManagement = ({ view = "all", searchQuery = "" }) => {
         task={selectedTask}
         mode="create"
         onSubmit={createTask}
-        users={mockTaskUsers}
-        experiments={mockExperiments}
+        users={users}
+        experiments={experiments}
         tasks={tasks}
       />
 

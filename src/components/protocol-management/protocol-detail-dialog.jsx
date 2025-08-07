@@ -11,14 +11,14 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  FileText, 
-  Calendar, 
-  User, 
-  Tag, 
-  Clock, 
-  Edit, 
-  Download, 
+import {
+  FileText,
+  Calendar,
+  User,
+  Tag,
+  Clock,
+  Edit,
+  Download,
   FileUp,
   History,
   MessageSquare,
@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { mockAuditTrail, mockProtocolComments } from "@/data/protocols-data"
+// Audit trail and comments will be fetched from API
 
 export function ProtocolDetailDialog({
   open,
@@ -182,8 +182,8 @@ export function ProtocolDetailDialog({
               {protocol.files && protocol.files.length > 0 ? (
                 <div className="space-y-2">
                   {protocol.files.map((file, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="flex items-center justify-between bg-muted/50 rounded-md p-3 text-sm"
                     >
                       <div className="flex items-center">
@@ -221,8 +221,8 @@ export function ProtocolDetailDialog({
                 <h3 className="text-lg font-medium mb-2">Audit Trail</h3>
                 <div className="space-y-3">
                   {auditTrail.map((entry, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="flex items-start border-l-2 border-primary/30 pl-4 py-1"
                     >
                       <div className="bg-muted/50 p-1.5 rounded-full mr-3">
@@ -246,8 +246,8 @@ export function ProtocolDetailDialog({
                 <h3 className="text-lg font-medium mb-2">Comments</h3>
                 <div className="space-y-3">
                   {comments.map((comment) => (
-                    <div 
-                      key={comment.id} 
+                    <div
+                      key={comment.id}
                       className="bg-muted/30 rounded-lg p-3 text-sm"
                     >
                       <div className="flex items-center justify-between mb-2">

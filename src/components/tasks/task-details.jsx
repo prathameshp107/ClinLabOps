@@ -72,12 +72,9 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import {
-  mockTaskUsers,
-  mockActivityLog,
-  mockAttachments,
   taskStatusConfig,
   taskPriorityConfig
-} from "@/data/tasks-data"
+} from "@/constants"
 
 export function TaskDetails({
   taskId,
@@ -92,8 +89,8 @@ export function TaskDetails({
   const [editedTask, setEditedTask] = useState(task);
   const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
-  const [activityLog, setActivityLog] = useState(mockActivityLog);
-  const [attachments, setAttachments] = useState(mockAttachments);
+  const [activityLog, setActivityLog] = useState([]);
+  const [attachments, setAttachments] = useState([]);
 
   // Get related tasks (same experiment)
   const relatedTasksList = relatedTasks
@@ -103,9 +100,9 @@ export function TaskDetails({
   // Get experiment name
   const experimentName = experiments.find(e => e.id === task.experimentId)?.name || "Unknown Experiment";
 
-  // Get assignee details
-  const assignee = mockTaskUsers.find(u => u.id === task.assigneeId) || {
-    name: "Unassigned",
+  // Get assignee details - this should be passed as props or fetched from API
+  const assignee = {
+    name: task.assignee || "Unassigned",
     role: "Not assigned",
     avatar: "UA"
   };

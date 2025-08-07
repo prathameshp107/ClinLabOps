@@ -20,7 +20,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Check, AlertCircle, Calendar, Clock, Users, Bookmark, Settings, Activity, List, Plus, Edit, Trash2, MoreVertical, ChevronLeft, Save, X, MessageCircle, FileText, UserPlus, Layers, Star, AlertTriangle, PauseCircle, MoreHorizontal, MessageSquare, BarChart2, ArrowUpRight, ArrowDownRight, CheckCircle2 } from "lucide-react"
 import { format, parseISO, differenceInDays, isAfter, isBefore } from "date-fns"
 import { cn } from "@/lib/utils"
-import { mockProjects, memberOptions } from "@/data/projects-data"
+import { getProjectById } from "@/services/projectService"
+import { getUsers } from "@/services/userService"
 
 // Animation variants for Framer Motion
 const fadeIn = {
@@ -54,21 +55,42 @@ export function ProjectDetails({ projectId }) {
   const [newMember, setNewMember] = useState({ id: "", role: "" })
   const [newTag, setNewTag] = useState("")
   const [newComment, setNewComment] = useState("")
+  const [users, setUsers] = useState([])
 
   // Modal states
   const [showAddSubprojectModal, setShowAddSubprojectModal] = useState(false)
   const [showAddTaskModal, setShowAddTaskModal] = useState(false)
 
+  // Fetch users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await getUsers();
+        setUsers(fetchedUsers.map(user => ({
+          id: user._id,
+          name: user.name,
+          role: user.role
+        })));
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   // Fetch project data
   useEffect(() => {
-    // Simulate API call
-    const fetchProject = () => {
+    const fetchProject = async () => {
       setLoading(true)
-      setTimeout(() => {
-        const foundProject = mockProjects.find(p => p.id === projectId)
-        setProject(foundProject || null)
-        setLoading(false)
-      }, 500)
+      try {
+        const foundProject = await getProjectById(projectId);
+        setProject(foundProject || null);
+      } catch (error) {
+        console.error('Failed to fetch project:', error);
+        setProject(null);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchProject()
@@ -125,8 +147,8 @@ export function ProjectDetails({ projectId }) {
   const handleAddTeamMember = () => {
     if (!newMember.id || !newMember.role) return
 
-    // Find the selected member (in a real app, this would be from a proper members list)
-    const selectedMember = memberOptions.find(m => m.id === newMember.id)
+    // Find the selected member
+    const selectedMember = users.find(m => m.id === newMember.id)
 
     if (!selectedMember) return
 
@@ -784,7 +806,7 @@ export function ProjectDetails({ projectId }) {
                           onChange={(e) => setNewMember(prev => ({ ...prev, id: e.target.value }))}
                         >
                           <option value="">Select a member...</option>
-                          {memberOptions.map(member => (
+                          {users.map(member => (
                             <option key={member.id} value={member.id}>{member.name} - {member.role}</option>
                           ))}
                         </select>

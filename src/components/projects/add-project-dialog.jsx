@@ -71,7 +71,7 @@ import {
   studyTypes,
   dataCollectionFrequencies,
   commonTags
-} from "@/data/projects-data"
+} from "@/constants"
 
 // Rich text editor toolbar component
 const EditorMenuBar = ({ editor }) => {

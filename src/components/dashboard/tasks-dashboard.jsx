@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import TaskAnalytics from "./TaskAnalytics";
 import UserAvatar from "@/components/tasks/user-avatar";
-import { tasksDashboardData } from "@/data/dashboard-data";
+// Dashboard data will be fetched from API
 
 export function TasksDashboard() {
   const [tasks, setTasks] = useState(tasksDashboardData.recentlyAssigned);

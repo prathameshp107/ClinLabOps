@@ -54,6 +54,34 @@ app.use('/api/protocols', protocolsRouter);
 const equipmentsRouter = require('./routes/equipments');
 app.use('/api/equipments', equipmentsRouter);
 
+// User management routes
+const usersRouter = require('./routes/users');
+app.use('/api/users', usersRouter);
+
+// Inventory management routes
+const inventoryRouter = require('./routes/inventory');
+app.use('/api/inventory', inventoryRouter);
+
+// Notification routes
+const notificationsRouter = require('./routes/notifications');
+app.use('/api/notifications', notificationsRouter);
+
+// Dashboard routes
+const dashboardRouter = require('./routes/dashboard');
+app.use('/api/dashboard', dashboardRouter);
+
+// Compliance routes
+const complianceRouter = require('./routes/compliance');
+app.use('/api/compliance', complianceRouter);
+
+// File upload routes
+const filesRouter = require('./routes/files');
+app.use('/api/files', filesRouter);
+
+// Report generation routes
+const reportsRouter = require('./routes/reports');
+app.use('/api/reports', reportsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;

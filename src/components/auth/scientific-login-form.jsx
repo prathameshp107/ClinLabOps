@@ -157,7 +157,7 @@ export default function ScientificLoginForm() {
     setIsLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      await login({ email: formData.email, password: formData.password });
       setLoginSuccess(true);
       // It's good practice to wait for a moment for the user to see the success state
       // before redirecting.
@@ -165,7 +165,7 @@ export default function ScientificLoginForm() {
         router.push("/admin-dashboard");
       }, 1000);
     } catch (err) {
-      setError(err.message || "An error occurred during login. Please try again.");
+      setError(err.response?.data?.message || err.message || "An error occurred during login. Please try again.");
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {

@@ -1,10 +1,9 @@
-import { mockProjects } from "@/data/projects-data";
+// Projects will be fetched from API
 
-export async function generateStaticParams() {
-  // Get project IDs from centralized data
-  const projectIds = mockProjects.map(project => project.id);
-  return projectIds.map(id => ({ id }));
-}
+// Remove static generation since we're using dynamic API data
+// export async function generateStaticParams() {
+//   return [];
+// }
 
 export default function ProjectLayout({ children }) {
   return children;

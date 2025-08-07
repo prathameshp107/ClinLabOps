@@ -38,22 +38,118 @@ import UpcomingDeadlines from "@/components/my-page/upcoming-deadlines";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UserAvatar from "@/components/tasks/user-avatar";
 
-// Mock data - would be fetched from API in real app
-import {
-  mockAssignedTasks,
-  mockCreatedTasks,
-  mockMemberProjects,
-  mockOwnedProjects,
-  mockActivities,
-  mockNotifications,
-  mockUpcomingDeadlines,
-  mockPerformanceData
-} from "@/data/mock-user-dashboard";
-import { profileData } from "@/data/profile-data";
+// Dashboard and profile data will be fetched from API
+import { getTasks } from "@/services/taskService"
+import { getProjects } from "@/services/projectService"
+import { getCurrentUser } from "@/services/userService"
+import { getDashboardData } from "@/services/dashboardService"
 
 export default function MyPage() {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState("overview");
+
+  // State for data
+  const [profileData, setProfileData] = useState(null);
+  const [assignedTasks, setAssignedTasks] = useState([]);
+  const [createdTasks, setCreatedTasks] = useState([]);
+  const [memberProjects, setMemberProjects] = useState([]);
+  const [ownedProjects, setOwnedProjects] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [upcomingDeadlines, setUpcomingDeadlines] = useState([]);
+  const [performanceData, setPerformanceData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [
+          currentUser,
+          tasks,
+          projects,
+          dashboardData
+        ] = await Promise.all([
+          getCurrentUser(),
+          getTasks(),
+          getProjects(),
+          getDashboardData()
+        ]);
+
+        // Set profile data
+        setProfileData({
+          personal: {
+            name: currentUser.name,
+            email: currentUser.email,
+            // Add other profile fields as needed
+          },
+          professional: {
+            role: currentUser.role,
+            department: currentUser.department || 'Unknown'
+          }
+        });
+
+        // Filter tasks by current user
+        const userTasks = tasks.filter(task => task.assignedTo?._id === currentUser._id);
+        const userCreatedTasks = tasks.filter(task => task.createdBy === currentUser._id);
+
+        setAssignedTasks(userTasks);
+        setCreatedTasks(userCreatedTasks);
+
+        // Filter projects by current user
+        const userProjects = projects.filter(project =>
+          project.team?.some(member => member.id === currentUser._id)
+        );
+        const userOwnedProjects = projects.filter(project => project.createdBy === currentUser._id);
+
+        setMemberProjects(userProjects);
+        setOwnedProjects(userOwnedProjects);
+
+        // Set other data from dashboard
+        setActivities(dashboardData.activities || []);
+        setNotifications(dashboardData.notifications || []);
+        setUpcomingDeadlines(dashboardData.upcomingDeadlines || []);
+        setPerformanceData(dashboardData.performanceData || {
+          summary: { completionRate: 0 }
+        });
+
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto p-4">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto p-4">
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Failed to load profile data</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -112,15 +208,15 @@ export default function MyPage() {
                   <div className="flex items-center gap-4 mt-4">
                     <div className="flex items-center gap-1.5 text-sm">
                       <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
-                      <span>{mockAssignedTasks.filter(t => t.status === "Completed").length} tasks completed</span>
+                      <span>{assignedTasks.filter(t => t.status === "Completed").length} tasks completed</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-sm">
                       <div className="h-2.5 w-2.5 rounded-full bg-amber-500"></div>
-                      <span>{mockAssignedTasks.filter(t => t.status === "In Progress").length} in progress</span>
+                      <span>{assignedTasks.filter(t => t.status === "In Progress").length} in progress</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-sm">
                       <div className="h-2.5 w-2.5 rounded-full bg-red-500"></div>
-                      <span>{mockAssignedTasks.filter(t => t.status === "Overdue").length} overdue</span>
+                      <span>{assignedTasks.filter(t => t.status === "Overdue").length} overdue</span>
                     </div>
                   </div>
                 </div>
@@ -228,7 +324,7 @@ export default function MyPage() {
                         <div className="relative">
                           <p className="text-sm text-muted-foreground">Active Tasks</p>
                           <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">
-                            {mockAssignedTasks.filter(t => t.status !== "Completed").length}
+                            {assignedTasks.filter(t => t.status !== "Completed").length}
                           </h3>
                           <div className="mt-2 inline-flex items-center text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
                             +2 this week
@@ -266,7 +362,7 @@ export default function MyPage() {
                         <div className="relative">
                           <p className="text-sm text-muted-foreground">Completed</p>
                           <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">
-                            {mockAssignedTasks.filter(t => t.status === "Completed").length}
+                            {assignedTasks.filter(t => t.status === "Completed").length}
                           </h3>
                           <div className="mt-2 inline-flex items-center text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
                             +5 this week
@@ -285,7 +381,7 @@ export default function MyPage() {
                         <div className="relative">
                           <p className="text-sm text-muted-foreground">Overdue</p>
                           <h3 className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
-                            {mockAssignedTasks.filter(t => t.status === "Overdue").length}
+                            {assignedTasks.filter(t => t.status === "Overdue").length}
                           </h3>
                           <div className="mt-2 inline-flex items-center text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
                             -1 this week
@@ -353,7 +449,7 @@ export default function MyPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y">
-                      {mockAssignedTasks.slice(0, 5).map((task, index) => (
+                      {assignedTasks.slice(0, 5).map((task, index) => (
                         <motion.div
                           key={task.id}
                           initial={{ opacity: 0, x: -10 }}
@@ -364,8 +460,8 @@ export default function MyPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-start gap-3">
                               <div className={`mt-0.5 rounded-full p-1 ${task.status === "Completed" ? "bg-green-100 text-green-600" :
-                                  task.status === "Overdue" ? "bg-red-100 text-red-600" :
-                                    "bg-blue-100 text-blue-600"
+                                task.status === "Overdue" ? "bg-red-100 text-red-600" :
+                                  "bg-blue-100 text-blue-600"
                                 }`}>
                                 {task.status === "Completed" ? <CheckCircle2 className="h-4 w-4" /> :
                                   task.status === "Overdue" ? <AlertCircle className="h-4 w-4" /> :

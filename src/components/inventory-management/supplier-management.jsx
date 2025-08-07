@@ -42,7 +42,7 @@ import {
   Trash2,
   Truck
 } from "lucide-react"
-import { suppliers } from "@/data/inventory-data"
+// Suppliers will be fetched from API
 
 export function SupplierManagement() {
   const [suppliers, setSuppliers] = useState(suppliers)
