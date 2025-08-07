@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { getProtocolAuditTrail, getProtocolComments } from "@/services/protocolService"
 // Audit trail and comments will be fetched from API
 
 export function ProtocolDetailDialog({
@@ -63,11 +64,41 @@ export function ProtocolDetailDialog({
     }
   }
 
-  // Mock audit trail data
-  const auditTrail = mockAuditTrail.filter(a => a.protocolId === protocol.id)
+  const [auditTrail, setAuditTrail] = useState([])
+  const [comments, setComments] = useState([])
+  const [isLoadingAudit, setIsLoadingAudit] = useState(false)
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
 
-  // Mock comments data
-  const comments = mockProtocolComments.filter(c => c.protocolId === protocol.id)
+  // Fetch audit trail and comments when dialog opens
+  useEffect(() => {
+    if (open && protocol?.id) {
+      const fetchData = async () => {
+        try {
+          setIsLoadingAudit(true)
+          const auditData = await getProtocolAuditTrail(protocol.id)
+          setAuditTrail(auditData || [])
+        } catch (error) {
+          console.error('Failed to fetch audit trail:', error)
+          setAuditTrail([])
+        } finally {
+          setIsLoadingAudit(false)
+        }
+
+        try {
+          setIsLoadingComments(true)
+          const commentsData = await getProtocolComments(protocol.id)
+          setComments(commentsData || [])
+        } catch (error) {
+          console.error('Failed to fetch comments:', error)
+          setComments([])
+        } finally {
+          setIsLoadingComments(false)
+        }
+      }
+
+      fetchData()
+    }
+  }, [open, protocol?.id])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -368,13 +368,69 @@ export function getTasksOverview() {
 
 export function getReports() {
     return Promise.resolve([
-        { id: 'projects', name: 'Project Report', type: 'projects' },
-        { id: 'tasks', name: 'Task Report', type: 'tasks' },
-        { id: 'inventory', name: 'Inventory Report', type: 'inventory' },
-        { id: 'users', name: 'User Report', type: 'users' },
-        { id: 'compliance', name: 'Compliance Report', type: 'compliance' },
-        { id: 'experiments', name: 'Experiment Report', type: 'experiments' },
-        { id: 'dashboard', name: 'Dashboard Summary', type: 'dashboard' }
+        {
+            id: 'projects',
+            title: 'Project Report',
+            type: 'projects',
+            format: 'pdf',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['projects', 'analytics']
+        },
+        {
+            id: 'tasks',
+            title: 'Task Report',
+            type: 'tasks',
+            format: 'xlsx',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['tasks', 'productivity']
+        },
+        {
+            id: 'inventory',
+            title: 'Inventory Report',
+            type: 'inventory',
+            format: 'csv',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['inventory', 'stock']
+        },
+        {
+            id: 'users',
+            title: 'User Report',
+            type: 'users',
+            format: 'pdf',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['users', 'management']
+        },
+        {
+            id: 'compliance',
+            title: 'Compliance Report',
+            type: 'compliance',
+            format: 'pdf',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['compliance', 'audit']
+        },
+        {
+            id: 'experiments',
+            title: 'Experiment Report',
+            type: 'experiments',
+            format: 'xlsx',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['experiments', 'research']
+        },
+        {
+            id: 'dashboard',
+            title: 'Dashboard Summary',
+            type: 'dashboard',
+            format: 'pdf',
+            created: new Date().toISOString(),
+            generatedBy: 'System',
+            tags: ['dashboard', 'summary']
+        }
     ]);
 }
 

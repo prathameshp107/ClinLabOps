@@ -14,7 +14,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PreviewReportDialog } from './PreviewReportDialog';
 import { UploadReportDialog } from './UploadReportDialog';
 import { ReportsPagination } from './ReportsPagination';
-import { reportsData } from "@/data/dashboard-data";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
@@ -32,10 +31,10 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
   // Filter and sort reports
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
-      const matchesSearch = report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        report.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesType = selectedType === 'all' || report.type === selectedType;
-      const matchesFormat = selectedFormat === 'all' || report.format === selectedFormat;
+      const matchesSearch = (report?.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (report?.tags || []).some(tag => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesType = selectedType === 'all' || report?.type === selectedType;
+      const matchesFormat = selectedFormat === 'all' || report?.format === selectedFormat;
 
       return matchesSearch && matchesType && matchesFormat;
     }).sort((a, b) => {
@@ -75,11 +74,11 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
   const handleDownload = (reportId, e) => {
     if (e) e.stopPropagation();
     const report = reports.find(r => r.id === reportId);
-    console.log(`Downloading report: ${report.title}`);
+    console.log(`Downloading report: ${report?.title || 'Unknown'}`);
     // Simulate download
     const link = document.createElement('a');
     link.href = '#';
-    link.download = `${report.title.replace(/\s+/g, '_')}.${report.format.toLowerCase()}`;
+    link.download = `${(report?.title || 'report').replace(/\s+/g, '_')}.${(report?.format || 'pdf').toLowerCase()}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -98,10 +97,10 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
     console.log('Report uploaded:', uploadedReport);
 
     // Show success message
-    alert(`Successfully uploaded report: ${uploadedReport.title}\n\n` +
-      `File: ${uploadedReport.file}\n` +
-      `Type: ${uploadedReport.type}\n` +
-      `Size: ${uploadedReport.size}`);
+    alert(`Successfully uploaded report: ${uploadedReport?.title || 'Unknown'}\n\n` +
+      `File: ${uploadedReport?.file || 'Unknown'}\n` +
+      `Type: ${uploadedReport?.type || 'Unknown'}\n` +
+      `Size: ${uploadedReport?.size || 'Unknown'}`);
 
     // In a real app, you would update the reports list by either:
     // 1. Adding the uploaded report to the reports array
@@ -249,18 +248,18 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
                       className="cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => handlePreview(report)}
                     >
-                      <TableCell className="font-medium">{report.title}</TableCell>
+                      <TableCell className="font-medium">{report?.title || 'Untitled'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{report.type}</Badge>
+                        <Badge variant="outline">{report?.type || 'Unknown'}</Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {getFileIcon(report.format)}
-                          {report.format}
+                          {getFileIcon(report?.format || 'pdf')}
+                          {report?.format || 'pdf'}
                         </div>
                       </TableCell>
-                      <TableCell>{format(new Date(report.created), 'MMM d, yyyy')}</TableCell>
-                      <TableCell>{report.generatedBy}</TableCell>
+                      <TableCell>{report?.created ? format(new Date(report.created), 'MMM d, yyyy') : 'Unknown'}</TableCell>
+                      <TableCell>{report?.generatedBy || 'Unknown'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button

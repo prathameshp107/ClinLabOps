@@ -29,6 +29,7 @@ import { UserActivityLogs } from "./user-activity-logs"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import { toast } from "@/components/ui/use-toast"
+import { getUsers } from "@/services/userService"
 // Users will be fetched from API
 
 // Helper functions for status badges (duplicated from user-columns.jsx for StatusLegend)
@@ -88,15 +89,24 @@ export function UserManagement() {
   const [showDeleteUserDialog, setShowDeleteUserDialog] = useState(false)
 
   // State for users
-  const [users, setUsers] = useState(Object.values(mockUsers));
+  const [users, setUsers] = useState([]);
 
-  // Simulate loading state
+  // Fetch users from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const usersData = await getUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    fetchUsers();
   }, []);
 
   // Count active filters

@@ -1,14 +1,36 @@
-// import { equipmentData, mockEquipmentMaintenanceHistory } from "@/data/equipment-data";
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import axios from 'axios';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 /**
  * Fetch all equipment
  * @returns {Promise<Array>} List of equipment
  */
 export async function getEquipments() {
-    const res = await fetch(`${API_URL}/equipments`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch equipments');
-    return res.json();
+    try {
+        const response = await api.get('/equipments');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching equipments:', error);
+        throw error;
+    }
 }
 
 /**
@@ -17,9 +39,16 @@ export async function getEquipments() {
  * @returns {Promise<Object|null>} Equipment object or null
  */
 export async function getEquipmentById(id) {
-    const res = await fetch(`${API_URL}/equipments/${id}`, { credentials: 'include' });
-    if (!res.ok) return null;
-    return res.json();
+    try {
+        const response = await api.get(`/equipments/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error fetching equipment:', error);
+        throw error;
+    }
 }
 
 /**
@@ -28,14 +57,13 @@ export async function getEquipmentById(id) {
  * @returns {Promise<Object>} Created equipment
  */
 export async function createEquipment(equipment) {
-    const res = await fetch(`${API_URL}/equipments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(equipment),
-    });
-    if (!res.ok) throw new Error('Failed to create equipment');
-    return res.json();
+    try {
+        const response = await api.post('/equipments', equipment);
+        return response.data;
+    } catch (error) {
+        console.error('Error creating equipment:', error);
+        throw error;
+    }
 }
 
 /**
@@ -45,14 +73,16 @@ export async function createEquipment(equipment) {
  * @returns {Promise<Object|null>} Updated equipment or null
  */
 export async function updateEquipment(id, updates) {
-    const res = await fetch(`${API_URL}/equipments/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(updates),
-    });
-    if (!res.ok) return null;
-    return res.json();
+    try {
+        const response = await api.put(`/equipments/${id}`, updates);
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating equipment:', error);
+        throw error;
+    }
 }
 
 /**
@@ -61,11 +91,13 @@ export async function updateEquipment(id, updates) {
  * @returns {Promise<boolean>} Success
  */
 export async function deleteEquipment(id) {
-    const res = await fetch(`${API_URL}/equipments/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-    });
-    return res.ok;
+    try {
+        await api.delete(`/equipments/${id}`);
+        return true;
+    } catch (error) {
+        console.error('Error deleting equipment:', error);
+        return false;
+    }
 }
 
 /**
@@ -75,14 +107,16 @@ export async function deleteEquipment(id) {
  * @returns {Promise<Object|null>} Updated equipment or null
  */
 export async function updateEquipmentStatus(id, status) {
-    const res = await fetch(`${API_URL}/equipments/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status }),
-    });
-    if (!res.ok) return null;
-    return res.json();
+    try {
+        const response = await api.put(`/equipments/${id}`, { status });
+        return response.data;
+    } catch (error) {
+        if (error.response?.status === 404) {
+            return null;
+        }
+        console.error('Error updating equipment status:', error);
+        throw error;
+    }
 }
 
 /**
@@ -91,9 +125,13 @@ export async function updateEquipmentStatus(id, status) {
  * @returns {Promise<Array>} Maintenance records
  */
 export async function getEquipmentMaintenanceHistory(equipmentId) {
-    const res = await fetch(`${API_URL}/equipments/${equipmentId}/maintenance-history`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch maintenance history');
-    return res.json();
+    try {
+        const response = await api.get(`/equipments/${equipmentId}/maintenance-history`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching maintenance history:', error);
+        throw error;
+    }
 }
 
 /**
@@ -103,14 +141,13 @@ export async function getEquipmentMaintenanceHistory(equipmentId) {
  * @returns {Promise<Object>} Added record
  */
 export async function addEquipmentMaintenanceRecord(equipmentId, record) {
-    const res = await fetch(`${API_URL}/equipments/${equipmentId}/maintenance-history`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(record),
-    });
-    if (!res.ok) throw new Error('Failed to add maintenance record');
-    return res.json();
+    try {
+        const response = await api.post(`/equipments/${equipmentId}/maintenance-history`, record);
+        return response.data;
+    } catch (error) {
+        console.error('Error adding maintenance record:', error);
+        throw error;
+    }
 }
 
 /**
@@ -119,39 +156,81 @@ export async function addEquipmentMaintenanceRecord(equipmentId, record) {
  * @returns {Promise<Array>} Files
  */
 export async function getEquipmentFiles(equipmentId) {
-    const res = await fetch(`${API_URL}/equipments/${equipmentId}/files`, { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch files');
-    return res.json();
+    try {
+        const response = await api.get(`/equipments/${equipmentId}/files`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching equipment files:', error);
+        throw error;
+    }
 }
 
 /**
- * Upload a file to equipment
+ * Upload file to equipment
  * @param {string} id
  * @param {File} file
- * @returns {Promise<Object>} Uploaded file info
+ * @returns {Promise<Object>} Upload result
  */
 export async function uploadEquipmentFile(id, file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await fetch(`${API_URL}/equipments/${id}/files`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
-    });
-    if (!res.ok) throw new Error('Failed to upload file');
-    return res.json();
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await api.post(`/equipments/${id}/files`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error uploading equipment file:', error);
+        throw error;
+    }
 }
 
 /**
- * Delete a file from equipment
+ * Delete equipment file
  * @param {string} equipmentId
  * @param {string} fileName
  * @returns {Promise<boolean>} Success
  */
 export async function deleteEquipmentFile(equipmentId, fileName) {
-    const res = await fetch(`${API_URL}/equipments/${equipmentId}/files/${fileName}`, {
-        method: 'DELETE',
-        credentials: 'include',
-    });
-    return res.ok;
-} 
+    try {
+        await api.delete(`/equipments/${equipmentId}/files/${fileName}`);
+        return true;
+    } catch (error) {
+        console.error('Error deleting equipment file:', error);
+        return false;
+    }
+}
+
+/**
+ * Get equipment statistics
+ * @returns {Promise<Object>} Equipment statistics
+ */
+export async function getEquipmentStats() {
+    try {
+        const response = await api.get('/equipments/stats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching equipment stats:', error);
+        throw error;
+    }
+}
+
+/**
+ * Search equipment
+ * @param {string} query - Search query
+ * @param {Object} filters - Additional filters
+ * @returns {Promise<Array>} Search results
+ */
+export async function searchEquipment(query, filters = {}) {
+    try {
+        const params = { search: query, ...filters };
+        const response = await api.get('/equipments', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Error searching equipment:', error);
+        throw error;
+    }
+}

@@ -1,6 +1,7 @@
-// Re-export tasks from centralized data file
-// In a real app, this would come from a database
+// Tasks data - now using real API data
+// In a real app, this would come from a database via API
 
-export { mockTasks as tasks } from "@/data/tasks-data";
+// TODO: Replace with actual API calls
+export const tasks = [];
 
 export default tasks;

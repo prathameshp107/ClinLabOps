@@ -358,13 +358,14 @@ export const statProgressColors = {
         text: "text-purple-700",
         icon: "text-purple-600"
     }
-};// P
-riority order for sorting
+};
+
+// Priority order for sorting
 export const priorityOrder = {
-        high: 3,
-        medium: 2,
-        low: 1
-    };
+    high: 3,
+    medium: 2,
+    low: 1
+};
 
 // Status order for sorting
 export const statusOrder = {
@@ -412,10 +413,12 @@ export const workloadConfig = {
 
 // Avatar size classes
 export const avatarSizeClasses = {
+    'xs': 'h-4 w-4 text-xs',
     'sm': 'h-6 w-6 text-xs',
     'md': 'h-8 w-8 text-sm',
     'lg': 'h-10 w-10 text-base',
-    'xl': 'h-12 w-12 text-lg'
+    'xl': 'h-12 w-12 text-lg',
+    '2xl': 'h-16 w-16 text-xl'
 };
 
 // Avatar variant classes
@@ -426,6 +429,15 @@ export const avatarVariantClasses = {
     'success': 'bg-green-100 text-green-600',
     'warning': 'bg-yellow-100 text-yellow-600',
     'danger': 'bg-red-100 text-red-600'
+};
+
+// User status colors for avatar status indicators
+export const userStatusColors = {
+    'online': 'bg-green-400 border-green-300',
+    'away': 'bg-yellow-400 border-yellow-300',
+    'busy': 'bg-red-400 border-red-300',
+    'offline': 'bg-gray-300 border-gray-200',
+    'idle': 'bg-orange-400 border-orange-300'
 };
 
 // Research areas
@@ -473,4 +485,4 @@ export const statusChips = [
     { label: "Completed", value: "completed" },
 ];
 
-// Note: Mock data has been removed - now using real API data
+// Note: All mock data has been removed - components now use real API data

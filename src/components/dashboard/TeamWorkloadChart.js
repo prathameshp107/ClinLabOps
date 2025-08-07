@@ -45,7 +45,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { teamPerformance } from "@/data/dashboard-data";
 
 // Status colors for the chart
 const statusColors = {
@@ -119,7 +118,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-const TeamWorkloadChart = () => {
+const TeamWorkloadChart = ({ teamPerformance = { metrics: [] } }) => {
   const [sortBy, setSortBy] = useState('total');
   const [isLoading, setIsLoading] = useState(false);
   const [expandedMember, setExpandedMember] = useState(null);
@@ -131,7 +130,7 @@ const TeamWorkloadChart = () => {
 
   // Filter and sort team members
   const filteredTeamData = useMemo(() => {
-    let data = [...teamPerformance.metrics];
+    let data = [...(teamPerformance.metrics || [])];
 
     // Apply role filter
     if (filters.role !== 'all') {

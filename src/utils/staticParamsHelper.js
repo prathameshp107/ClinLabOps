@@ -1,7 +1,5 @@
 // This file provides helper functions for generating static params
 
-import { mockEnquiries } from "@/data/enquiries-data";
-
 // You can replace these with actual data fetching functions
 export const getProjectIds = () => {
   return ["p1", "p2", "p3", "p4", "p5"];
@@ -12,7 +10,8 @@ export const getTaskIds = () => {
 };
 
 export const getEnquiryIds = () => {
-  return mockEnquiries.map(e => e.id);
+  // TODO: Replace with actual API call to get enquiry IDs
+  return ["e1", "e2", "e3"];
 };
 
 export const getSampleIds = () => {

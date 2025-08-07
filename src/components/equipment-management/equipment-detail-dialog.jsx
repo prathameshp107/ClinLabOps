@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { getEquipmentMaintenanceHistory } from "@/services/equipmentService"
 // Maintenance history will be fetched from API
 
 export function EquipmentDetailDialog({
@@ -38,6 +39,28 @@ export function EquipmentDetailDialog({
   onUpdateStatus
 }) {
   const [activeTab, setActiveTab] = useState("overview")
+  const [maintenanceHistory, setMaintenanceHistory] = useState([])
+  const [isLoadingMaintenance, setIsLoadingMaintenance] = useState(false)
+
+  // Fetch maintenance history when dialog opens
+  useEffect(() => {
+    if (open && equipment?.id) {
+      const fetchMaintenanceHistory = async () => {
+        try {
+          setIsLoadingMaintenance(true)
+          const history = await getEquipmentMaintenanceHistory(equipment.id)
+          setMaintenanceHistory(history || [])
+        } catch (error) {
+          console.error('Failed to fetch maintenance history:', error)
+          setMaintenanceHistory([])
+        } finally {
+          setIsLoadingMaintenance(false)
+        }
+      }
+
+      fetchMaintenanceHistory()
+    }
+  }, [open, equipment?.id])
 
   if (!equipment) return null
 
@@ -283,39 +306,50 @@ export function EquipmentDetailDialog({
                 </div>
 
                 <div className="space-y-4">
-                  {mockEquipmentMaintenanceHistory.filter(m => m.equipmentId === equipment.id).map((record, index) => (
-                    <div
-                      key={index}
-                      className="border border-border/40 rounded-lg overflow-hidden"
-                    >
-                      <div className="bg-muted/50 px-4 py-3 flex justify-between items-center border-b border-border/30">
-                        <div className="flex items-center">
-                          <div className={cn(
-                            "w-2 h-2 rounded-full mr-2",
-                            record.type === "Preventive" ? "bg-blue-500" : "bg-yellow-500"
-                          )}></div>
-                          <span className="font-medium">{record.type} Maintenance</span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                          {formatDate(record.date)}
-                        </div>
-                      </div>
-                      <div className="p-4 space-y-3">
-                        <div className="flex items-start">
-                          <User className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-muted-foreground" />
-                          <div>
-                            <span className="text-sm text-muted-foreground">Technician:</span>
-                            <span className="text-sm font-medium ml-1">{record.technician}</span>
+                  {isLoadingMaintenance ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>Loading maintenance history...</p>
+                    </div>
+                  ) : maintenanceHistory.length > 0 ? (
+                    maintenanceHistory.map((record, index) => (
+                      <div
+                        key={index}
+                        className="border border-border/40 rounded-lg overflow-hidden"
+                      >
+                        <div className="bg-muted/50 px-4 py-3 flex justify-between items-center border-b border-border/30">
+                          <div className="flex items-center">
+                            <div className={cn(
+                              "w-2 h-2 rounded-full mr-2",
+                              record.type === "Preventive" ? "bg-blue-500" : "bg-yellow-500"
+                            )}></div>
+                            <span className="font-medium">{record.type} Maintenance</span>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                            {formatDate(record.date)}
                           </div>
                         </div>
-                        <div>
-                          <h4 className="text-sm font-medium mb-1">Notes:</h4>
-                          <p className="text-sm text-muted-foreground">{record.notes}</p>
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-start">
+                            <User className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-muted-foreground" />
+                            <div>
+                              <span className="text-sm text-muted-foreground">Technician:</span>
+                              <span className="text-sm font-medium ml-1">{record.technician}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium mb-1">Notes:</h4>
+                            <p className="text-sm text-muted-foreground">{record.notes}</p>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No maintenance history available.</p>
+                      <p className="text-sm">Maintenance records will appear here once added.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 

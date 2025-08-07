@@ -25,7 +25,6 @@ import {
   Scatter
 } from 'recharts';
 import { Badge } from "@/components/ui/badge";
-import { mockProjects } from "@/data/projects-data";
 
 const COLORS = {
   'on track': '#10B981',
@@ -189,12 +188,12 @@ const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) 
   return null;
 };
 
-const ProjectAnalytics = () => {
+const ProjectAnalytics = ({ projects = [] }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('month');
 
   // Process data for charts with enhanced status information
-  const statusCounts = mockProjects.reduce((acc, project) => {
+  const statusCounts = projects.reduce((acc, project) => {
     const status = project.status;
     if (!acc[status]) {
       acc[status] = {
@@ -225,7 +224,7 @@ const ProjectAnalytics = () => {
     status: status
   }));
 
-  const progressData = mockProjects.map(project => ({
+  const progressData = projects.map(project => ({
     name: project.name,
     progress: project.progress * 100,
     status: project.status,
@@ -600,9 +599,9 @@ const ProjectAnalytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockProjects
-                .filter(p => p.risks.length > 0)
-                .sort((a, b) => b.risks.length - a.risks.length)
+              {projects
+                .filter(p => p.risks && p.risks.length > 0)
+                .sort((a, b) => (b.risks?.length || 0) - (a.risks?.length || 0))
                 .slice(0, 3) // Show top 3 projects with most risks
                 .map(project => (
                   <div key={project.id} className="p-3 bg-muted/50 rounded-lg border border-dashed">

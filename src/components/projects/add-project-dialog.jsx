@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -64,7 +64,6 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 
 import {
-  mockUsers,
   projectStatuses,
   projectPriorities,
   researchAreas,
@@ -72,6 +71,7 @@ import {
   dataCollectionFrequencies,
   commonTags
 } from "@/constants"
+import { getUsers } from "@/services/userService"
 
 // Rich text editor toolbar component
 const EditorMenuBar = ({ editor }) => {
@@ -185,6 +185,7 @@ const EditorMenuBar = ({ editor }) => {
 export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [activeTab, setActiveTab] = useState("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [users, setUsers] = useState([])
   const [projectData, setProjectData] = useState({
     name: "",
     description: "",
@@ -248,6 +249,23 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [equipmentInput, setEquipmentInput] = useState("")
   const [documentInput, setDocumentInput] = useState("")
   const [collaboratorInput, setCollaboratorInput] = useState("")
+
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const usersData = await getUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        setUsers([]);
+      }
+    };
+
+    if (open) {
+      fetchUsers();
+    }
+  }, [open]);
 
   // Rich text editor setup
   const editor = useEditor({
@@ -880,21 +898,32 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           <CommandInput placeholder="Search for a team member..." />
                           <CommandEmpty>No results found.</CommandEmpty>
                           <CommandGroup heading="Suggestions">
-                            {Array.isArray(mockUsers) && mockUsers
-                              .filter(user => !projectData.team.some(member => member.id === user.id))
+                            {Array.isArray(users) && users
+                              .filter(user => !projectData.team.some(member => member.id === (user._id || user.id)))
                               .map(user => (
                                 <CommandItem
-                                  key={user.id}
-                                  onSelect={() => handleTeamMemberAdd(user)}
+                                  key={user._id || user.id}
+                                  onSelect={() => handleTeamMemberAdd({
+                                    id: user._id || user.id,
+                                    name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+                                    email: user.email,
+                                    role: user.roles?.[0] || 'User'
+                                  })}
                                   className="flex items-center justify-between"
                                 >
                                   <div className="flex items-center">
                                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center mr-3">
-                                      <span className="text-xs font-bold">{user.name.charAt(0)}</span>
+                                      <span className="text-xs font-bold">
+                                        {(user.name || user.firstName || 'U').charAt(0)}
+                                      </span>
                                     </div>
                                     <div>
-                                      <p className="font-medium">{user.name}</p>
-                                      <p className="text-xs text-muted-foreground">{user.role}</p>
+                                      <p className="font-medium">
+                                        {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {user.roles?.[0] || user.department || 'User'}
+                                      </p>
                                     </div>
                                   </div>
                                 </CommandItem>
