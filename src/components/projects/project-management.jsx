@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import {
-  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List,
+  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, LayoutGrid,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
   Users, Clock
 } from "lucide-react"
@@ -63,6 +63,7 @@ export function ProjectManagement() {
 
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
+  const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
   const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
   const [showProjectDetailsDialog, setShowProjectDetailsDialog] = useState(false);
   const [showShareProjectDialog, setShowShareProjectDialog] = useState(false);
@@ -197,6 +198,7 @@ export function ProjectManagement() {
   };
 
   const handleProjectAction = (action, project) => {
+    console.log('Project action triggered:', action, 'for project:', project);
     setSelectedProject(project);
 
     switch (action) {
@@ -205,8 +207,9 @@ export function ProjectManagement() {
         window.location.href = `/projects/${project.id}`;
         break;
       case "edit":
-        // Redirect to the dedicated edit page
-        window.location.href = `/projects/edit/${project.id}`;
+        // Open the edit project dialog
+        console.log('Opening edit dialog for project:', project);
+        setShowEditProjectDialog(true);
         break;
       case "delete":
         setShowDeleteProjectDialog(true);
@@ -272,6 +275,7 @@ export function ProjectManagement() {
       const updated = await updateProject(selectedProject.id, editedProjectData);
       const adaptedUpdated = { ...updated, id: updated._id };
       setProjects(prev => prev.map(p => p.id === adaptedUpdated.id ? adaptedUpdated : p));
+      setShowEditProjectDialog(false);
       setSelectedProject(null);
       // Create activity for project update
       await createActivity({
@@ -410,44 +414,71 @@ export function ProjectManagement() {
   }
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
-        <Button onClick={() => setShowAddProjectDialog(true)} className="gap-1">
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="h-8 px-3"
+            >
+              <LayoutGrid className="h-4 w-4 mr-1.5" />
+              Grid
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-8 px-3"
+            >
+              <List className="h-4 w-4 mr-1.5" />
+              List
+            </Button>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+        <Button
+          onClick={() => setShowAddProjectDialog(true)}
+          className="gap-2 bg-primary hover:bg-primary/90 shadow-sm"
+        >
           <PlusCircle className="h-4 w-4" />
           Add Project
         </Button>
       </div>
 
-      {/* View Selector Tabs */}
-      <div className="border-b">
+      {/* Enhanced View Selector Tabs */}
+      <div className="border-b border-border/50">
         <Tabs
           value={activeView}
           onValueChange={setActiveView}
           className="w-full"
         >
-          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0">
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6">
             <TabsTrigger
               value="projects"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Projects
             </TabsTrigger>
             <TabsTrigger
               value="status"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Status Tracking
             </TabsTrigger>
             <TabsTrigger
               value="gantt"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Gantt Chart
             </TabsTrigger>
             <TabsTrigger
               value="dependencies"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Dependencies
             </TabsTrigger>
@@ -458,55 +489,57 @@ export function ProjectManagement() {
       {/* Main Content Area */}
       {activeView === "projects" && (
         <>
-          {/* Search & Filter Controls */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search projects..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+          {/* Enhanced Search & Filter Controls */}
+          <div className="bg-white/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects by name, description, or tags..."
+                  className="pl-9 bg-white/80 border-border/50 focus:bg-white transition-colors"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
 
-            <div className="flex flex-1 flex-col sm:flex-row gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="On Hold">On Hold</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="On Hold">On Hold</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filter by priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filter by timeframe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Timeframes</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="upcoming">Upcoming</SelectItem>
-                  <SelectItem value="past">Past</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
+                    <SelectValue placeholder="Timeframe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Timeframes</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="past">Past</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
@@ -554,6 +587,13 @@ export function ProjectManagement() {
         onSubmit={handleAddProject}
       />
 
+      <EditProjectDialog
+        open={showEditProjectDialog}
+        onOpenChange={setShowEditProjectDialog}
+        project={selectedProject}
+        onSave={handleEditProject}
+      />
+
       <DeleteProjectDialog
         open={showDeleteProjectDialog}
         onOpenChange={setShowDeleteProjectDialog}
@@ -589,14 +629,27 @@ export function ProjectManagement() {
 function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <FilterIcon className="h-6 w-6 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/50 rounded-2xl bg-gradient-to-br from-muted/20 to-muted/10">
+        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-muted to-muted/80 flex items-center justify-center mb-6">
+          <FolderPlus className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium">No projects found</h3>
-        <p className="text-muted-foreground text-sm mt-1">
-          Try adjusting your search or filters
+        <h3 className="text-xl font-semibold text-foreground mb-2">No projects found</h3>
+        <p className="text-muted-foreground text-center max-w-md mb-6">
+          No projects match your current filters. Try adjusting your search criteria or create a new project to get started.
         </p>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={() => {
+            setSearchQuery("");
+            setStatusFilter("all");
+            setPriorityFilter("all");
+            setTimeframeFilter("all");
+          }}
+        >
+          <FilterIcon className="h-4 w-4" />
+          Clear Filters
+        </Button>
       </div>
     );
   }
@@ -610,7 +663,7 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
         visible: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.3, ease: "easeInOut" }
+          transition: { duration: 0.4, ease: "easeInOut" }
         }
       }}
       key={viewMode} // This will trigger animation when view mode changes

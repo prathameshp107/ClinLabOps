@@ -375,6 +375,50 @@ export const statusOrder = {
     on_hold: 0
 };
 
+// Member role configurations
+export const memberRoleConfig = {
+    'Principal Investigator': {
+        color: 'bg-purple-100 text-purple-800 border-purple-200',
+        label: 'Principal Investigator',
+        shortLabel: 'PI'
+    },
+    'Research Scientist': {
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        label: 'Research Scientist',
+        shortLabel: 'RS'
+    },
+    'Lab Manager': {
+        color: 'bg-green-100 text-green-800 border-green-200',
+        label: 'Lab Manager',
+        shortLabel: 'LM'
+    },
+    'Lab Technician': {
+        color: 'bg-amber-100 text-amber-800 border-amber-200',
+        label: 'Lab Technician',
+        shortLabel: 'LT'
+    },
+    'Research Assistant': {
+        color: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+        label: 'Research Assistant',
+        shortLabel: 'RA'
+    },
+    'Data Analyst': {
+        color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        label: 'Data Analyst',
+        shortLabel: 'DA'
+    },
+    'Quality Control': {
+        color: 'bg-red-100 text-red-800 border-red-200',
+        label: 'Quality Control',
+        shortLabel: 'QC'
+    },
+    'Intern': {
+        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        label: 'Intern',
+        shortLabel: 'IN'
+    }
+};
+
 // Member status configurations
 export const memberStatusConfig = {
     'online': {

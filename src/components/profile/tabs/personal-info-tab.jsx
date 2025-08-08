@@ -15,8 +15,22 @@ import { cn } from "@/lib/utils"
 
 export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(personalData)
-  
+
+  // Provide default values if personalData is undefined
+  const safePersonalData = personalData || {
+    fullName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: null,
+    gender: '',
+    address: '',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelation: ''
+  }
+
+  const [formData, setFormData] = useState(safePersonalData)
+
   // Handle input change
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -25,7 +39,7 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
       [name]: value
     })
   }
-  
+
   // Handle date change
   const handleDateChange = (date) => {
     setFormData({
@@ -33,7 +47,7 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
       dateOfBirth: date
     })
   }
-  
+
   // Handle gender change
   const handleGenderChange = (value) => {
     setFormData({
@@ -41,16 +55,16 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
       gender: value
     })
   }
-  
+
   // Handle save
   const handleSave = () => {
     onUpdatePersonalData(formData)
     setIsEditing(false)
   }
-  
+
   // Handle cancel
   const handleCancel = () => {
-    setFormData(personalData)
+    setFormData(safePersonalData)
     setIsEditing(false)
   }
 
@@ -94,10 +108,10 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
                 onChange={handleInputChange}
               />
             ) : (
-              <div className="p-2 bg-muted/50 rounded-md">{personalData.fullName}</div>
+              <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.fullName || 'Not specified'}</div>
             )}
           </div>
-          
+
           {/* Email */}
           <div className="space-y-2">
             <Label htmlFor="email">Email Address</Label>
@@ -110,10 +124,10 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
                 onChange={handleInputChange}
               />
             ) : (
-              <div className="p-2 bg-muted/50 rounded-md">{personalData.email}</div>
+              <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.email || 'Not specified'}</div>
             )}
           </div>
-          
+
           {/* Phone */}
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
@@ -125,10 +139,10 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
                 onChange={handleInputChange}
               />
             ) : (
-              <div className="p-2 bg-muted/50 rounded-md">{personalData.phone}</div>
+              <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.phone || 'Not specified'}</div>
             )}
           </div>
-          
+
           {/* Date of Birth */}
           <div className="space-y-2">
             <Label htmlFor="dateOfBirth">Date of Birth</Label>
@@ -161,12 +175,12 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
               </Popover>
             ) : (
               <div className="p-2 bg-muted/50 rounded-md">
-                {personalData.dateOfBirth ? format(personalData.dateOfBirth, "PPP") : "Not specified"}
+                {safePersonalData.dateOfBirth ? format(safePersonalData.dateOfBirth, "PPP") : "Not specified"}
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Gender */}
         <div className="space-y-2">
           <Label>Gender</Label>
@@ -195,13 +209,13 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
             </RadioGroup>
           ) : (
             <div className="p-2 bg-muted/50 rounded-md capitalize">
-              {personalData.gender === "prefer-not-to-say" ? "Prefer not to say" : personalData.gender || "Not specified"}
+              {safePersonalData.gender === "prefer-not-to-say" ? "Prefer not to say" : safePersonalData.gender || "Not specified"}
             </div>
           )}
         </div>
-        
+
         <Separator />
-        
+
         {/* Address */}
         <div className="space-y-2">
           <Label htmlFor="address">Address</Label>
@@ -213,16 +227,16 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
               onChange={handleInputChange}
             />
           ) : (
-            <div className="p-2 bg-muted/50 rounded-md">{personalData.address || "Not specified"}</div>
+            <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.address || "Not specified"}</div>
           )}
         </div>
-        
+
         <Separator />
-        
+
         {/* Emergency Contact */}
         <div className="space-y-4">
           <h3 className="text-sm font-medium">Emergency Contact</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="emergencyContactName">Contact Name</Label>
@@ -234,10 +248,10 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
                   onChange={handleInputChange}
                 />
               ) : (
-                <div className="p-2 bg-muted/50 rounded-md">{personalData.emergencyContactName || "Not specified"}</div>
+                <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.emergencyContactName || "Not specified"}</div>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
               {isEditing ? (
@@ -248,10 +262,10 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
                   onChange={handleInputChange}
                 />
               ) : (
-                <div className="p-2 bg-muted/50 rounded-md">{personalData.emergencyContactPhone || "Not specified"}</div>
+                <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.emergencyContactPhone || "Not specified"}</div>
               )}
             </div>
-            
+
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="emergencyContactRelation">Relationship</Label>
               {isEditing ? (
@@ -262,7 +276,7 @@ export function PersonalInfoTab({ personalData, onUpdatePersonalData }) {
                   onChange={handleInputChange}
                 />
               ) : (
-                <div className="p-2 bg-muted/50 rounded-md">{personalData.emergencyContactRelation || "Not specified"}</div>
+                <div className="p-2 bg-muted/50 rounded-md">{safePersonalData.emergencyContactRelation || "Not specified"}</div>
               )}
             </div>
           </div>

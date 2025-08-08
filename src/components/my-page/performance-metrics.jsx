@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -23,9 +23,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function PerformanceMetrics({ data }) {
   const [timeRange, setTimeRange] = useState("month");
-  
+
   const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-  
+
+  // Provide default data structure if data is undefined
+  const safeData = data || {
+    taskCompletion: [],
+    timeTracking: [],
+    taskDistribution: [],
+    trends: [],
+    summary: {
+      completionRate: 0,
+      completionRateChange: 0,
+      onTimeRate: 0,
+      onTimeRateChange: 0,
+      efficiencyScore: 0,
+      efficiencyScoreChange: 0
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -42,7 +58,7 @@ export default function PerformanceMetrics({ data }) {
           </SelectContent>
         </Select>
       </div>
-      
+
       <Tabs defaultValue="tasks">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="tasks">Task Completion</TabsTrigger>
@@ -50,7 +66,7 @@ export default function PerformanceMetrics({ data }) {
           <TabsTrigger value="distribution">Task Distribution</TabsTrigger>
           <TabsTrigger value="trends">Trends</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="tasks" className="pt-4">
           <Card>
             <CardContent className="pt-6">
@@ -62,7 +78,7 @@ export default function PerformanceMetrics({ data }) {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data.taskCompletion}
+                    data={safeData.taskCompletion}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -79,7 +95,7 @@ export default function PerformanceMetrics({ data }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="time" className="pt-4">
           <Card>
             <CardContent className="pt-6">
@@ -91,7 +107,7 @@ export default function PerformanceMetrics({ data }) {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={data.timeTracking}
+                    data={safeData.timeTracking}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -99,18 +115,18 @@ export default function PerformanceMetrics({ data }) {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="hours" 
-                      stroke="#4f46e5" 
-                      activeDot={{ r: 8 }} 
+                    <Line
+                      type="monotone"
+                      dataKey="hours"
+                      stroke="#4f46e5"
+                      activeDot={{ r: 8 }}
                       name="Hours Worked"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="expected" 
-                      stroke="#10b981" 
-                      strokeDasharray="5 5" 
+                    <Line
+                      type="monotone"
+                      dataKey="expected"
+                      stroke="#10b981"
+                      strokeDasharray="5 5"
                       name="Expected Hours"
                     />
                   </LineChart>
@@ -119,7 +135,7 @@ export default function PerformanceMetrics({ data }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="distribution" className="pt-4">
           <Card>
             <CardContent className="pt-6">
@@ -132,7 +148,7 @@ export default function PerformanceMetrics({ data }) {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={data.taskDistribution}
+                      data={safeData.taskDistribution}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
@@ -141,7 +157,7 @@ export default function PerformanceMetrics({ data }) {
                       dataKey="value"
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     >
-                      {data.taskDistribution.map((entry, index) => (
+                      {safeData.taskDistribution.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -153,7 +169,7 @@ export default function PerformanceMetrics({ data }) {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="trends" className="pt-4">
           <Card>
             <CardContent className="pt-6">
@@ -165,7 +181,7 @@ export default function PerformanceMetrics({ data }) {
               >
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={data.trends}
+                    data={safeData.trends}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
@@ -173,22 +189,22 @@ export default function PerformanceMetrics({ data }) {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="efficiency" 
-                      stroke="#4f46e5" 
+                    <Line
+                      type="monotone"
+                      dataKey="efficiency"
+                      stroke="#4f46e5"
                       name="Efficiency Score"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="taskCompletion" 
-                      stroke="#10b981" 
+                    <Line
+                      type="monotone"
+                      dataKey="taskCompletion"
+                      stroke="#10b981"
                       name="Task Completion Rate"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="onTimeDelivery" 
-                      stroke="#f59e0b" 
+                    <Line
+                      type="monotone"
+                      dataKey="onTimeDelivery"
+                      stroke="#f59e0b"
                       name="On-time Delivery"
                     />
                   </LineChart>
@@ -198,25 +214,25 @@ export default function PerformanceMetrics({ data }) {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <MetricCard 
-          title="Task Completion Rate" 
-          value={`${data.summary.completionRate}%`} 
-          change={data.summary.completionRateChange} 
-          isPositive={data.summary.completionRateChange > 0}
+        <MetricCard
+          title="Task Completion Rate"
+          value={`${safeData.summary.completionRate}%`}
+          change={safeData.summary.completionRateChange}
+          isPositive={safeData.summary.completionRateChange > 0}
         />
-        <MetricCard 
-          title="On-time Delivery" 
-          value={`${data.summary.onTimeRate}%`} 
-          change={data.summary.onTimeRateChange} 
-          isPositive={data.summary.onTimeRateChange > 0}
+        <MetricCard
+          title="On-time Delivery"
+          value={`${safeData.summary.onTimeRate}%`}
+          change={safeData.summary.onTimeRateChange}
+          isPositive={safeData.summary.onTimeRateChange > 0}
         />
-        <MetricCard 
-          title="Efficiency Score" 
-          value={data.summary.efficiencyScore} 
-          change={data.summary.efficiencyScoreChange} 
-          isPositive={data.summary.efficiencyScoreChange > 0}
+        <MetricCard
+          title="Efficiency Score"
+          value={safeData.summary.efficiencyScore}
+          change={safeData.summary.efficiencyScoreChange}
+          isPositive={safeData.summary.efficiencyScoreChange > 0}
         />
       </div>
     </div>
