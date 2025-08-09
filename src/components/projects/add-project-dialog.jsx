@@ -73,6 +73,31 @@ import {
 } from "@/constants"
 import { getUsers } from "@/services/userService"
 
+// Available Principal Investigators
+const availablePIs = [
+  {
+    "id": "pi001",
+    "name": "Dr. Sarah Thompson",
+    "email": "sarah.thompson@biocorelab.com",
+    "department": "Pharmacology",
+    "institution": "BioCore Research Institute"
+  },
+  {
+    "id": "pi002",
+    "name": "Dr. Emily Davis",
+    "email": "Emily.Davis@gmail.com",
+    "department": "Biochemistry",
+    "institution": "University of Medicine "
+  },
+  {
+    "id": "pi003",
+    "name": "Dr. Michael Wilson",
+    "email": "Michael.wilson@reval.com",
+    "department": "Department of Chemistry",
+    "institution": "University of California, San Diego"
+  }
+]
+
 // Rich text editor toolbar component
 const EditorMenuBar = ({ editor }) => {
   if (!editor) {
@@ -204,31 +229,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     requiredEquipment: [],
     relatedDocuments: [],
     // Additional new fields
-    principalInvestigator:
-      [
-        {
-          "id": "pi001",
-          "name": "Dr. Sarah Thompson",
-          "email": "sarah.thompson@biocorelab.com",
-          "department": "Pharmacology",
-          "institution": "BioCore Research Institute"
-        },
-        {
-          "id": "pi002",
-          "name": "Dr. Emily Davis",
-          "email": "Emily.Davis@gmail.com",
-          "department": "Biochemistry",
-          "institution": "University of Medicine "
-        },
-        {
-          "id": "pi003",
-          "name": "Dr. Michael Wilson",
-          "email": "Michael.wilson@reval.com",
-          "department": "Department of Chemistry",
-          "institution": "University of California, San Diego"
-        }
-      ]
-    ,
+    principalInvestigator: null,
     researchArea: "",
     studyType: "",
     documents: {
@@ -547,7 +548,21 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           department: "",
           externalCollaborators: [],
           requiredEquipment: [],
-          relatedDocuments: []
+          relatedDocuments: [],
+          principalInvestigator: null,
+          researchArea: "",
+          studyType: "",
+          documents: {
+            protocol: null,
+            ethics: null,
+            other: []
+          },
+          experimentDetails: {
+            numberOfExperiments: 1,
+            numberOfGroups: 2,
+            dataCollectionFrequency: "Weekly",
+            studyType: "In vitro"
+          }
         })
         setFormErrors({})
         setActiveTab("details")
@@ -925,7 +940,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       <Select
                         value={projectData.principalInvestigator?.id}
                         onValueChange={(value) => {
-                          const selectedPI = projectData.principalInvestigator.find(pi => pi.id === value);
+                          const selectedPI = availablePIs.find(pi => pi.id === value);
                           setProjectData(prev => ({
                             ...prev,
                             principalInvestigator: selectedPI
@@ -937,7 +952,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             {projectData.principalInvestigator?.name ? (
                               <div className="flex items-center gap-2">
                                 <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
-                                  {projectData.principalInvestigator.name.split(' ').map(n => n[0]).join('')}
+                                  {projectData.principalInvestigator.name?.split(' ').map(n => n[0]).join('') || 'PI'}
                                 </div>
                                 <div className="flex flex-col items-start">
                                   <span className="font-medium">{projectData.principalInvestigator.name}</span>
@@ -952,29 +967,25 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {projectData.principalInvestigator && Array.isArray(projectData.principalInvestigator) ? (
-                            projectData.principalInvestigator.map(pi => (
-                              <SelectItem
-                                key={pi.id}
-                                value={pi.id}
-                                className="py-2"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
-                                    {pi.name.split(' ').map(n => n[0]).join('')}
-                                  </div>
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{pi.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {pi.department} • {pi.institution}
-                                    </span>
-                                  </div>
+                          {availablePIs.map(pi => (
+                            <SelectItem
+                              key={pi.id}
+                              value={pi.id}
+                              className="py-2"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                  {pi.name.split(' ').map(n => n[0]).join('')}
                                 </div>
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="no-pi">No Principal Investigators Available</SelectItem>
-                          )}
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{pi.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {pi.department} • {pi.institution}
+                                  </span>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

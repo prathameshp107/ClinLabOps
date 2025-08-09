@@ -19,7 +19,7 @@ exports.getAllProjects = async (req, res) => {
 
 exports.getProjectById = async (req, res) => {
     try {
-        
+
         const project = await Project.findById(req.params.id);
         if (!project) return res.status(404).json({ error: 'Project not found' });
         res.json(project);
@@ -31,9 +31,29 @@ exports.getProjectById = async (req, res) => {
 // Create new project
 exports.createProject = async (req, res) => {
     try {
-        // Get the current count of projects
-        const count = await Project.countDocuments();
-        const projectCode = `PRJ-${String(count + 1).padStart(5, '0')}`;
+        let projectCode;
+        let isUnique = false;
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        // Generate a unique project code
+        while (!isUnique && attempts < maxAttempts) {
+            const count = await Project.countDocuments();
+            projectCode = `PRJ-${String(count + 1 + attempts).padStart(5, '0')}`;
+
+            // Check if this code already exists
+            const existingProject = await Project.findOne({ projectCode });
+            if (!existingProject) {
+                isUnique = true;
+            } else {
+                attempts++;
+            }
+        }
+
+        if (!isUnique) {
+            // Fallback to timestamp-based code if we can't find a unique sequential one
+            projectCode = `PRJ-${Date.now()}`;
+        }
 
         // Create the project with the generated code
         const project = new Project({
