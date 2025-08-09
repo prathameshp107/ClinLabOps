@@ -23,17 +23,26 @@ export function TaskFiles({ task }) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Guard clause for when task is undefined
+  if (!task) {
+    return (
+      <div className="flex items-center justify-center h-32 text-muted-foreground">
+        <p>No task selected</p>
+      </div>
+    );
+  }
+
   useEffect(() => {
-    if (!task.id) return;
+    if (!task?.id) return;
     getTaskAttachments(task.id)
       .then(setFiles)
       .catch(() => setFiles([]));
-  }, [task.id]);
+  }, [task?.id]);
 
   const onDrop = (acceptedFiles) => {
     acceptedFiles.forEach(async (file) => {
       try {
-        const uploaded = await addTaskAttachment(task.id, file, "Current User");
+        const uploaded = await addTaskAttachment(task?.id, file, "Current User");
         setFiles(prev => [...prev, uploaded]);
       } catch { }
     });
@@ -48,7 +57,7 @@ export function TaskFiles({ task }) {
 
   const handleDeleteFile = async (id) => {
     try {
-      await removeTaskAttachment(task.id, id);
+      await removeTaskAttachment(task?.id, id);
       setFiles(files.filter(file => file.id !== id));
     } catch { }
   };
