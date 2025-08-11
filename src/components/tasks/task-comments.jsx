@@ -34,6 +34,7 @@ export const TaskComments = ({
   users = [],
   currentUserId = null
 }) => {
+  console.log('TaskComments received taskId:', taskId);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [files, setFiles] = useState([]);
@@ -59,7 +60,7 @@ export const TaskComments = ({
 
   // Fetch comments from backend
   useEffect(() => {
-    if (!taskId) return;
+    if (!taskId || taskId === 'unknown') return;
     setLoading(true);
     getTaskComments(taskId)
       .then(setComments)
@@ -142,6 +143,11 @@ export const TaskComments = ({
   // Submit a new comment
   const handleSubmitComment = async () => {
     if (commentText.trim() === "" && files.length === 0) return;
+    if (!taskId || taskId === 'unknown') {
+      setError(`Invalid task ID: "${taskId}". Please refresh the page.`);
+      console.error('TaskComments received invalid taskId:', taskId);
+      return;
+    }
     try {
       const newComment = await addTaskComment(taskId, {
         text: commentText,
@@ -158,6 +164,10 @@ export const TaskComments = ({
 
   // Edit comment
   const handleEditComment = async (commentId, newText) => {
+    if (!taskId || taskId === 'unknown') {
+      setError('Invalid task ID');
+      return;
+    }
     try {
       const updated = await updateTaskComment(taskId, commentId, { text: newText });
       setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: updated.text } : c));
@@ -168,6 +178,10 @@ export const TaskComments = ({
 
   // Delete comment
   const handleDeleteComment = async (commentId) => {
+    if (!taskId || taskId === 'unknown') {
+      setError('Invalid task ID');
+      return;
+    }
     try {
       await removeTaskComment(taskId, commentId);
       setComments(prev => prev.filter(c => c.id !== commentId));

@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 
-import { FileText, Edit2, Save, X, Calendar, Clock, User, Flag } from "lucide-react";
+import { FileText, Edit2, Save, X, Calendar, User, Flag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,7 +29,7 @@ export function TaskOverview({ task = {
   tags: ["design", "frontend", "urgent"]
 } }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [description, setDescription] = useState(task.description);
+  const [description, setDescription] = useState(task?.description || '');
 
   // Helper function to safely format dates
   const formatDate = (date) => {
@@ -48,7 +47,7 @@ export function TaskOverview({ task = {
   };
 
   const handleCancel = () => {
-    setDescription(task.description);
+    setDescription(task?.description || '');
     setIsEditing(false);
   };
 
@@ -66,6 +65,12 @@ export function TaskOverview({ task = {
           bgColor: 'bg-amber-50 dark:bg-amber-950',
           icon: '⚡'
         };
+      case 'low':
+        return {
+          textColor: 'text-green-600',
+          bgColor: 'bg-green-50 dark:bg-green-950',
+          icon: '📋'
+        };
       default:
         return {
           textColor: 'text-blue-600',
@@ -75,7 +80,7 @@ export function TaskOverview({ task = {
     }
   };
 
-  const priorityConfig = getPriorityConfig(task.priority);
+  const priorityConfig = getPriorityConfig(task?.priority || 'medium');
 
   return (
     <div className="relative">
@@ -91,7 +96,7 @@ export function TaskOverview({ task = {
                   Task Overview
                 </CardTitle>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {task.title}
+                  {task?.title || 'Untitled Task'}
                 </p>
               </div>
             </div>
@@ -154,7 +159,7 @@ export function TaskOverview({ task = {
               </div>
 
               {/* Tags section */}
-              {task.tags && task.tags.length > 0 && (
+              {task?.tags && task.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {task.tags.map((tag, index) => (
                     <span
@@ -177,17 +182,17 @@ export function TaskOverview({ task = {
                   </div>
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8 ring-2 ring-white dark:ring-gray-800 shadow-md">
-                      <AvatarImage src={task.createdBy.avatar} alt={task.createdBy.name} />
+                      <AvatarImage src={task?.createdBy?.avatar} alt={task?.createdBy?.name} />
                       <AvatarFallback className="bg-indigo-500 text-white text-xs">
-                        {task.createdBy.name.split(' ').map(n => n[0]).join('')}
+                        {task?.createdBy?.name?.split(' ').map(n => n[0]).join('') || '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {task.createdBy.name}
+                        {task?.createdBy?.name || 'Unknown'}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {task.createdBy.role}
+                        {task?.createdBy?.role || 'Unknown Role'}
                       </p>
                     </div>
                   </div>
@@ -202,13 +207,13 @@ export function TaskOverview({ task = {
                   <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${priorityConfig.bgColor}`}>
                     <span className="text-sm">{priorityConfig.icon}</span>
                     <span className={`text-sm font-semibold capitalize ${priorityConfig.textColor}`}>
-                      {task.priority}
+                      {task?.priority || 'medium'}
                     </span>
                   </div>
                 </div>
 
                 {/* Assignee info */}
-                {task.assignee && (
+                {task?.assignee && (
                   <div className="p-4 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                       <User className="h-3 w-3" />
@@ -216,17 +221,17 @@ export function TaskOverview({ task = {
                     </div>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8 ring-2 ring-white dark:ring-gray-800 shadow-md">
-                        <AvatarImage src={task.assignee.avatar} alt={task.assignee.name} />
+                        <AvatarImage src={task.assignee?.avatar} alt={task.assignee?.name} />
                         <AvatarFallback className="bg-green-500 text-white text-xs">
-                          {task.assignee.name.split(' ').map(n => n[0]).join('')}
+                          {task.assignee?.name?.split(' ').map(n => n[0]).join('') || '?'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {task.assignee.name}
+                          {task.assignee?.name || 'Unknown'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {task.assignee.role}
+                          {task.assignee?.role || 'Unknown Role'}
                         </p>
                       </div>
                     </div>
@@ -242,7 +247,7 @@ export function TaskOverview({ task = {
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-orange-500"></div>
                     <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {formatDate(task.dueDate)}
+                      {formatDate(task?.dueDate) || 'No due date'}
                     </span>
                   </div>
                 </div>

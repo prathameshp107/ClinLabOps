@@ -40,7 +40,7 @@ export function TaskActivityLog({ taskId }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!taskId) return;
+    if (!taskId || taskId === 'unknown') return;
     setLoading(true);
     getTaskActivityLog(taskId)
       .then(setActivities)

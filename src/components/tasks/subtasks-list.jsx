@@ -281,7 +281,7 @@ export function SubtasksList({ task, setTask }) {
             <span className={cn(
               subtask.status === "completed" && "line-through text-muted-foreground"
             )}>
-              {subtask.title}
+              {subtask.title || 'Untitled Subtask'}
             </span>
           </div>
         )}
@@ -333,7 +333,7 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {priorities.map(p => (
+              {subtaskPriorities.map(p => (
                 <SelectItem key={p} value={p}>
                   <Badge variant="outline" className={getPriorityColor(p)}>
                     {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -343,8 +343,8 @@ export function SubtasksList({ task, setTask }) {
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="outline" className={getPriorityColor(subtask.priority)}>
-            {subtask.priority.charAt(0).toUpperCase() + subtask.priority.slice(1)}
+          <Badge variant="outline" className={getPriorityColor(subtask.priority || 'medium')}>
+            {(subtask.priority || 'medium').charAt(0).toUpperCase() + (subtask.priority || 'medium').slice(1)}
           </Badge>
         )}
       </TableCell>
@@ -359,7 +359,7 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {statuses.map(s => (
+              {subtaskStatuses.map(s => (
                 <SelectItem key={s} value={s}>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(s)}
@@ -370,10 +370,10 @@ export function SubtasksList({ task, setTask }) {
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="outline" className={getStatusColor(subtask.status)}>
+          <Badge variant="outline" className={getStatusColor(subtask.status || 'not_started')}>
             <div className="flex items-center gap-1">
-              {getStatusIcon(subtask.status)}
-              {subtask.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              {getStatusIcon(subtask.status || 'not_started')}
+              {(subtask.status || 'not_started').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </div>
           </Badge>
         )}

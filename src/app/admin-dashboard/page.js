@@ -54,6 +54,7 @@ import { PendingApprovals } from "@/components/dashboard/PendingApprovals";
 
 // Utility functions for task status
 const getStatusColor = (status) => {
+  if (!status) return { bg: 'bg-gray-500', text: 'text-gray-800', border: 'border-gray-200' };
   switch (status.toLowerCase()) {
     case 'completed':
       return { bg: 'bg-green-500', text: 'text-green-800', border: 'border-green-200' };
@@ -69,6 +70,7 @@ const getStatusColor = (status) => {
 };
 
 const getStatusIcon = (status, className = '') => {
+  if (!status) return <CircleDotIcon className={className} />;
   const statusLower = status.toLowerCase();
   if (statusLower.includes('complete')) return <CircleCheckIcon className={className} />;
   if (statusLower.includes('progress')) return <CirclePlayIcon className={className} />;
@@ -78,6 +80,7 @@ const getStatusIcon = (status, className = '') => {
 };
 
 const getStatusVariant = (status) => {
+  if (!status) return 'default';
   switch (status.toLowerCase()) {
     case 'completed':
       return 'success';
@@ -554,8 +557,8 @@ export default function DashboardPage() {
                                   Due {new Date(task.dueDate).toLocaleDateString()}
                                 </p>
                               </div>
-                              <Badge variant={getStatusVariant(task.status).variant} className="text-xs">
-                                {task.status}
+                              <Badge variant={getStatusVariant(task.status)} className="text-xs">
+                                {task.status || 'Unknown'}
                               </Badge>
                             </div>
                           ))}
