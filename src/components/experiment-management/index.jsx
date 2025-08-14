@@ -78,14 +78,7 @@ import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
 import { ExperimentChart } from "./experiment-chart"
-import {
-  getExperiments,
-  createExperiment,
-  updateExperimentVersion,
-  deleteExperiment
-} from "@/lib/api/experiments"
-import { isAuthenticated, getCurrentUser, logout } from "@/lib/api/auth"
-import { LoginForm } from "@/components/auth/login-form"
+
 
 export function ExperimentManagement() {
   const router = useRouter()
@@ -288,14 +281,7 @@ export function ExperimentManagement() {
     setSortOrder("desc")
   }
 
-  // If not logged in, show login form
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <LoginForm onLoginSuccess={handleLoginSuccess} />
-      </div>
-    )
-  }
+
 
   return (
     <div className="space-y-6">
