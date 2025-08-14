@@ -1,29 +1,29 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog"
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -55,7 +55,7 @@ const templateFormSchema = z.object({
 export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmit, users, categories }) => {
   const [tags, setTags] = useState([]);
   const [currentTag, setCurrentTag] = useState("");
-  
+
   // Initialize form with React Hook Form and Zod validation
   const form = useForm({
     resolver: zodResolver(templateFormSchema),
@@ -68,7 +68,7 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
       categoryTags: [],
     },
   });
-  
+
   // Reset form when dialog opens/closes or when template changes
   useEffect(() => {
     if (open) {
@@ -95,7 +95,7 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
       }
     }
   }, [open, mode, template, form]);
-  
+
   // Handle form submission
   const handleSubmit = (data) => {
     // Format the template data
@@ -103,16 +103,16 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
       ...data,
       categoryTags: tags,
     };
-    
+
     // If editing, add the id
     if (mode === "edit" && template) {
       formattedTemplate.id = template.id;
     }
-    
+
     // Submit the template
     onSubmit(formattedTemplate);
   };
-  
+
   // Handle adding a new tag
   const handleAddTag = () => {
     if (currentTag.trim() !== "" && !tags.includes(currentTag.trim())) {
@@ -120,24 +120,24 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
       setCurrentTag("");
     }
   };
-  
+
   // Handle removing a tag
   const handleRemoveTag = (tagToRemove) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>{mode === "create" ? "Create New Template" : "Edit Template"}</DialogTitle>
           <DialogDescription>
-            {mode === "create" 
+            {mode === "create"
               ? "Create a reusable template for similar lab tasks."
               : "Update the details of this template."}
           </DialogDescription>
         </DialogHeader>
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -153,7 +153,7 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -161,10 +161,10 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 <FormItem>
                   <FormLabel>Description*</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter template description" 
-                      className="min-h-[100px]" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Enter template description"
+                      className="min-h-[100px]"
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription>
@@ -174,7 +174,7 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -182,8 +182,8 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default Priority*</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       value={field.value}
                     >
@@ -203,15 +203,15 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="defaultStatus"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default Status*</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       value={field.value}
                     >
@@ -221,9 +221,10 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="todo">To Do</SelectItem>
                         <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="review">Review</SelectItem>
+                        <SelectItem value="done">Done</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -231,15 +232,15 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="defaultAssigneeRole"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Default Assignee Role</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     value={field.value}
                   >
@@ -263,18 +264,18 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 </FormItem>
               )}
             />
-            
+
             <div className="space-y-2">
               <Label>Category Tags</Label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {tags.map((tag, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1"
                   >
                     <span>{tag}</span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => handleRemoveTag(tag)}
                       className="text-secondary-foreground/70 hover:text-secondary-foreground"
                     >
@@ -284,9 +285,9 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 ))}
               </div>
               <div className="flex gap-2">
-                <Input 
-                  placeholder="Add a tag" 
-                  value={currentTag} 
+                <Input
+                  placeholder="Add a tag"
+                  value={currentTag}
                   onChange={(e) => setCurrentTag(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -295,9 +296,9 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                     }
                   }}
                 />
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="icon"
                   onClick={handleAddTag}
                 >
@@ -308,11 +309,11 @@ export const TaskTemplateDialog = ({ open, onOpenChange, template, mode, onSubmi
                 Add tags to categorize this template
               </FormDescription>
             </div>
-            
+
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel

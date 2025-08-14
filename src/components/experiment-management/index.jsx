@@ -54,6 +54,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog"
 import {
+  AlertTriangle,
   Beaker,
   Calendar,
   ChevronDown,
@@ -77,7 +78,14 @@ import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
 import { ExperimentChart } from "./experiment-chart"
-// Experiments will be fetched from API
+import {
+  getExperiments,
+  createExperiment,
+  updateExperimentVersion,
+  deleteExperiment
+} from "@/lib/api/experiments"
+import { isAuthenticated, getCurrentUser, logout } from "@/lib/api/auth"
+import { LoginForm } from "@/components/auth/login-form"
 
 export function ExperimentManagement() {
   const router = useRouter()
@@ -92,6 +100,56 @@ export function ExperimentManagement() {
   const [selectedExperiment, setSelectedExperiment] = useState(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [error, setError] = useState(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken')
+      const user = getCurrentUser()
+
+      console.log('Checking auth - Token exists:', !!token, 'User exists:', !!user)
+
+      if (token && user) {
+        setIsLoggedIn(true)
+        setCurrentUser(user)
+        // Try to load experiments, if it fails due to auth, logout
+        try {
+          await loadExperiments()
+        } catch (error) {
+          console.error('Failed to load experiments after auth check:', error)
+          if (error.message.includes('Not authorized') || error.message.includes('token failed')) {
+            // Token is invalid, logout and show login form
+            console.log('Token is invalid, logging out')
+            handleLogout()
+          } else {
+            setError('Failed to load experiments. Please try again.')
+          }
+        }
+      } else {
+        console.log('No valid auth found, showing login form')
+        setIsLoggedIn(false)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  // Load experiments from API
+  const loadExperiments = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const data = await getExperiments()
+      setExperiments(data)
+    } catch (error) {
+      console.error('Failed to load experiments:', error)
+      setError('Failed to load experiments. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Filter and sort experiments
   useEffect(() => {
@@ -181,10 +239,17 @@ export function ExperimentManagement() {
   }
 
   // Handle experiment deletion
-  const handleDeleteExperiment = (id) => {
-    setExperiments(experiments.filter(exp => exp.id !== id))
-    setSelectedExperiment(null)
-    setIsDetailsDialogOpen(false)
+  const handleDeleteExperiment = async (id) => {
+    try {
+      setError(null)
+      await deleteExperiment(id)
+      setExperiments(experiments.filter(exp => exp._id !== id && exp.id !== id))
+      setSelectedExperiment(null)
+      setIsDetailsDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to delete experiment:', error)
+      setError('Failed to delete experiment. Please try again.')
+    }
   }
 
   // Handle experiment selection for viewing details
@@ -193,12 +258,43 @@ export function ExperimentManagement() {
     setIsDetailsDialogOpen(true)
   }
 
+  // Handle login success
+  const handleLoginSuccess = async (authData) => {
+    console.log('Login successful, loading experiments...')
+    setIsLoggedIn(true)
+    setCurrentUser(authData.user)
+    try {
+      await loadExperiments()
+    } catch (error) {
+      console.error('Failed to load experiments after login:', error)
+      setError('Failed to load experiments after login. Please try again.')
+    }
+  }
+
+  // Handle logout
+  const handleLogout = () => {
+    logout()
+    setIsLoggedIn(false)
+    setCurrentUser(null)
+    setExperiments([])
+    setFilteredExperiments([])
+  }
+
   // Reset filters
   const resetFilters = () => {
     setSearchQuery("")
     setStatusFilter("all")
     setSortBy("updatedAt")
     setSortOrder("desc")
+  }
+
+  // If not logged in, show login form
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoginForm onLoginSuccess={handleLoginSuccess} />
+      </div>
+    )
   }
 
   return (
@@ -288,7 +384,20 @@ export function ExperimentManagement() {
           </div>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto justify-between md:justify-end">
+        <div className="flex gap-2 w-full md:w-auto justify-between md:justify-end items-center">
+          {/* User info and logout */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Welcome, {currentUser?.name}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="h-8 px-2 text-xs"
+            >
+              Logout
+            </Button>
+          </div>
+
           <div className="flex border rounded-md p-1">
             <Button
               variant={view === "grid" ? "secondary" : "ghost"}
@@ -368,6 +477,24 @@ export function ExperimentManagement() {
           </Button>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-md mb-4">
+          <div className="flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <span>{error}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto h-auto p-1 text-destructive hover:bg-destructive/10"
+              onClick={() => setError(null)}
+            >
+              ×
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Experiments Display */}
       {isLoading ? (

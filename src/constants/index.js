@@ -117,19 +117,69 @@ export const commonTags = [
     'Follow-up'
 ];
 
+import { CheckCircle2, Clock, AlertCircle, XCircle, Flag, AlertTriangle } from "lucide-react";
+
 // Task dialog constants
 export const statusOptions = [
-    { value: 'not_started', label: 'Not Started' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'blocked', label: 'Blocked' }
+    {
+        value: 'todo',
+        label: 'To Do',
+        icon: Clock,
+        bgColor: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+        borderColor: 'border-gray-300 dark:border-gray-600'
+    },
+    {
+        value: 'in-progress',
+        label: 'In Progress',
+        icon: AlertCircle,
+        bgColor: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        borderColor: 'border-blue-300 dark:border-blue-600'
+    },
+    {
+        value: 'review',
+        label: 'Review',
+        icon: CheckCircle2,
+        bgColor: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        borderColor: 'border-yellow-300 dark:border-yellow-600'
+    },
+    {
+        value: 'done',
+        label: 'Done',
+        icon: CheckCircle2,
+        bgColor: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+        borderColor: 'border-green-300 dark:border-green-600'
+    }
 ];
 
 export const priorityOptions = [
-    { value: 'low', label: 'Low' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'high', label: 'High' },
-    { value: 'urgent', label: 'Urgent' }
+    {
+        value: 'low',
+        label: 'Low',
+        icon: Flag,
+        bgColor: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+        borderColor: 'border-gray-300 dark:border-gray-600'
+    },
+    {
+        value: 'medium',
+        label: 'Medium',
+        icon: Flag,
+        bgColor: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+        borderColor: 'border-yellow-300 dark:border-yellow-600'
+    },
+    {
+        value: 'high',
+        label: 'High',
+        icon: AlertTriangle,
+        bgColor: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+        borderColor: 'border-orange-300 dark:border-orange-600'
+    },
+    {
+        value: 'urgent',
+        label: 'Urgent',
+        icon: AlertTriangle,
+        bgColor: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        borderColor: 'border-red-300 dark:border-red-600'
+    }
 ];
 
 export const dialogTaskTemplates = [

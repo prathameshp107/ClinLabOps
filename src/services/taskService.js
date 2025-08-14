@@ -16,6 +16,14 @@ api.interceptors.request.use((config) => {
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Add user info for activity logging
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user.id) {
+        config.headers['x-user-id'] = user.id;
+        config.headers['x-user-name'] = user.name || user.username || 'Unknown User';
+    }
+
     return config;
 });
 
@@ -270,11 +278,20 @@ export async function removeTaskAttachment(taskId, attachmentId) {
  */
 export async function getTaskActivityLog(taskId) {
     try {
+        // Try frontend API first (which will proxy to backend)
+        const frontendResponse = await fetch(`/api/tasks/${taskId}/activity`);
+        if (frontendResponse.ok) {
+            const result = await frontendResponse.json();
+            return result.data || [];
+        }
+
+        // Fallback to direct backend API
         const response = await api.get(`/tasks/${taskId}/activity`);
         return response.data;
     } catch (error) {
         console.error('Error fetching activity log:', error);
-        throw error;
+        // Return empty array instead of throwing to prevent UI crashes
+        return [];
     }
 }
 

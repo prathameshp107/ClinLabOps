@@ -99,6 +99,9 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
       tags: data.tags
         ? data.tags.split(",").map(tag => tag.trim())
         : [],
+      // Convert dates to ISO strings if they exist
+      startDate: data.startDate ? data.startDate.toISOString() : null,
+      endDate: data.endDate ? data.endDate.toISOString() : null,
     }
 
     onSubmit(processedData)

@@ -166,9 +166,15 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                       <h2 className="text-2xl font-bold tracking-tight">{experiment.title}</h2>
                       <div className="flex items-center text-sm text-muted-foreground mt-1.5">
                         <Clock className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
-                        <span>Created {format(parseISO(experiment.createdAt), "MMMM d, yyyy")}</span>
-                        <span className="mx-2">•</span>
-                        <span>Updated {format(parseISO(experiment.updatedAt), "MMMM d, yyyy")}</span>
+                        {experiment.createdAt && typeof experiment.createdAt === 'string' && (
+                          <span>Created {format(parseISO(experiment.createdAt), "MMMM d, yyyy")}</span>
+                        )}
+                        {experiment.createdAt && experiment.updatedAt && typeof experiment.createdAt === 'string' && typeof experiment.updatedAt === 'string' && (
+                          <span className="mx-2">•</span>
+                        )}
+                        {experiment.updatedAt && typeof experiment.updatedAt === 'string' && (
+                          <span>Updated {format(parseISO(experiment.updatedAt), "MMMM d, yyyy")}</span>
+                        )}
                       </div>
                     </div>
 
@@ -215,13 +221,13 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                             <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
                             <span className="font-medium">Duration</span>
                           </div>
-                          {experiment.startDate ? (
+                          {experiment.startDate && typeof experiment.startDate === 'string' ? (
                             <div className="text-sm space-y-2">
                               <div className="flex items-center">
                                 <span className="text-muted-foreground w-16">Start:</span>
                                 <span className="font-medium">{format(parseISO(experiment.startDate), "MMMM d, yyyy")}</span>
                               </div>
-                              {experiment.endDate && (
+                              {experiment.endDate && typeof experiment.endDate === 'string' && (
                                 <div className="flex items-center">
                                   <span className="text-muted-foreground w-16">End:</span>
                                   <span className="font-medium">{format(parseISO(experiment.endDate), "MMMM d, yyyy")}</span>
@@ -373,7 +379,10 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                                   {version.version === experiment.version ? "Current Version" : `Version ${version.version}`}
                                 </div>
                                 <div className="text-sm text-muted-foreground">
-                                  {format(parseISO(version.updatedAt), "MMMM d, yyyy")}
+                                  {version.updatedAt && typeof version.updatedAt === 'string'
+                                    ? format(parseISO(version.updatedAt), "MMMM d, yyyy")
+                                    : 'Date not available'
+                                  }
                                 </div>
                               </div>
                               <div className="text-sm text-muted-foreground mb-2">

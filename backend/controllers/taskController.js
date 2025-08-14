@@ -228,7 +228,13 @@ exports.getActivityLog = async (req, res) => {
         const { id } = req.params;
         const task = await Task.findById(id);
         if (!task) return res.status(404).json({ error: 'Task not found' });
-        res.json(task.activity);
+
+        // Sort activities by timestamp (newest first)
+        const sortedActivities = task.activity.sort((a, b) =>
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        res.json(sortedActivities);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }

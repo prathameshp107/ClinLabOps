@@ -136,6 +136,7 @@ import { TaskComments } from "./task-comments"
 import { TaskFiles } from "./task-files"
 import { statusOptions, priorityOptions, dialogTaskTemplates } from "@/constants"
 import { getUserById } from '@/services/userService'
+import { getTaskComments } from '@/services/taskService'
 
 // Helper function to format date
 const formatDate = (dateString) => {
