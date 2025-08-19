@@ -206,26 +206,44 @@ exports.updateExperiment = async (req, res) => {
  */
 exports.deleteExperiment = async (req, res) => {
   try {
+    console.log('Attempting to delete experiment with ID:', req.params.id);
+
+    // Validate ObjectId format
+    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      return res.status(400).json({ msg: 'Invalid experiment ID format' });
+    }
+
     const experiment = await Experiment.findById(req.params.id);
 
     if (!experiment) {
+      console.log('Experiment not found with ID:', req.params.id);
       return res.status(404).json({ msg: 'Experiment not found' });
     }
+
+    console.log('Found experiment:', experiment.title);
 
     // Make sure user owns experiment (skip check in development)
     if (req.user && experiment.createdBy && experiment.createdBy.toString() !== (req.user._id || req.user.id).toString()) {
+      console.log('User not authorized to delete experiment');
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    await experiment.remove();
+    // Try to delete the experiment using deleteOne method
+    const deleteResult = await Experiment.deleteOne({ _id: req.params.id });
 
-    res.json({ msg: 'Experiment removed' });
+    if (deleteResult.deletedCount === 0) {
+      console.log('Failed to delete experiment - no documents deleted');
+      return res.status(404).json({ msg: 'Experiment not found during deletion' });
+    }
+
+    console.log('Successfully deleted experiment. Deleted count:', deleteResult.deletedCount);
+    res.json({ msg: 'Experiment removed', deletedCount: deleteResult.deletedCount });
   } catch (err) {
-    console.error(err.message);
+    console.error('Delete experiment error:', err);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Experiment not found' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error', error: err.message });
   }
 };
 

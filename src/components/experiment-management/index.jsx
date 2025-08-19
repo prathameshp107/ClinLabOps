@@ -174,13 +174,16 @@ export function ExperimentManagement() {
   const handleDeleteExperiment = async (id) => {
     try {
       setError(null)
-      await deleteExperiment(id)
+      console.log('Attempting to delete experiment with ID:', id)
+      const result = await deleteExperiment(id)
+      console.log('Delete result:', result)
       setExperiments(experiments.filter(exp => exp._id !== id && exp.id !== id))
       setSelectedExperiment(null)
       setIsDetailsDialogOpen(false)
     } catch (error) {
       console.error('Failed to delete experiment:', error)
-      setError('Failed to delete experiment. Please try again.')
+      const errorMessage = error.response?.data?.msg || error.message || 'Failed to delete experiment. Please try again.'
+      setError(errorMessage)
     }
   }
 
