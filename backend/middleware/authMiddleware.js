@@ -51,8 +51,17 @@ exports.protect = async (req, res, next) => {
             res.status(401).json({ message: 'Not authorized, token failed' });
         }
     } else {
-        console.log('No authorization header found, allowing request for development');
-        // For development, allow requests without authentication
+        console.log('No authorization header found, using default user for development');
+        // For development, create a default user context
+        try {
+            const defaultUser = await User.findOne({ email: 'admin@labtasker.com' });
+            if (defaultUser) {
+                req.user = defaultUser;
+                console.log('Using default user:', defaultUser.email);
+            }
+        } catch (error) {
+            console.error('Error finding default user:', error);
+        }
         // In production, uncomment the line below
         // return res.status(401).json({ message: 'Not authorized, no token' });
         next();

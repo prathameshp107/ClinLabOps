@@ -3,18 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs"
-import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle
+  CardHeader
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,29 +18,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -56,32 +30,30 @@ import {
 import {
   AlertTriangle,
   Beaker,
-  Calendar,
   ChevronDown,
-  Clock,
-  Download,
-  Edit,
   Filter,
-  GitBranch,
   Grid,
   List,
-  MoreHorizontal,
   Plus,
   Search,
-  SlidersHorizontal,
-  Trash2,
-  Users
+  SlidersHorizontal
 } from "lucide-react"
-import { format, parseISO } from "date-fns"
 import { ExperimentForm } from "./experiment-form"
 import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
-import { ExperimentChart } from "./experiment-chart"
+
+// Import API services
+import {
+  getExperiments,
+  createExperiment,
+  updateExperiment,
+  deleteExperiment
+} from "@/services/experimentService"
+import { getCurrentUser, logout } from "@/services/authService"
 
 
 export function ExperimentManagement() {
-  const router = useRouter()
   const [view, setView] = useState("grid")
   const [experiments, setExperiments] = useState([])
   const [filteredExperiments, setFilteredExperiments] = useState([])
@@ -94,39 +66,25 @@ export function ExperimentManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [error, setError] = useState(null)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
 
-  // Check authentication on component mount
+  // Load current user and experiments on component mount
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('authToken')
-      const user = getCurrentUser()
-
-      console.log('Checking auth - Token exists:', !!token, 'User exists:', !!user)
-
-      if (token && user) {
-        setIsLoggedIn(true)
+    const initializeComponent = async () => {
+      try {
+        const user = getCurrentUser()
         setCurrentUser(user)
-        // Try to load experiments, if it fails due to auth, logout
-        try {
+
+        if (user) {
           await loadExperiments()
-        } catch (error) {
-          console.error('Failed to load experiments after auth check:', error)
-          if (error.message.includes('Not authorized') || error.message.includes('token failed')) {
-            // Token is invalid, logout and show login form
-            console.log('Token is invalid, logging out')
-            handleLogout()
-          } else {
-            setError('Failed to load experiments. Please try again.')
-          }
         }
-      } else {
-        console.log('No valid auth found, showing login form')
-        setIsLoggedIn(false)
+      } catch (error) {
+        console.error('Failed to initialize component:', error)
+        setError('Failed to load data. Please try again.')
       }
     }
-    checkAuth()
+
+    initializeComponent()
   }, [])
 
   // Load experiments from API
@@ -184,51 +142,32 @@ export function ExperimentManagement() {
   }, [experiments, searchQuery, statusFilter, sortBy, sortOrder])
 
   // Handle experiment creation
-  const handleCreateExperiment = (experimentData) => {
-    const newExperiment = {
-      id: `exp-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      version: 1,
-      versionHistory: [
-        {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-          updatedBy: "Current User",
-          changes: "Initial version"
-        }
-      ],
-      ...experimentData
+  const handleCreateExperiment = async (experimentData) => {
+    try {
+      setError(null)
+      const newExperiment = await createExperiment(experimentData)
+      setExperiments([newExperiment, ...experiments])
+      setIsCreateDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to create experiment:', error)
+      setError('Failed to create experiment. Please try again.')
     }
-
-    setExperiments([newExperiment, ...experiments])
-    setIsCreateDialogOpen(false)
   }
 
   // Handle experiment update
-  const handleUpdateExperiment = (updatedExperiment) => {
-    // Create a new version entry
-    const newVersion = updatedExperiment.version + 1
-    const versionEntry = {
-      version: newVersion,
-      updatedAt: new Date().toISOString(),
-      updatedBy: "Current User",
-      changes: `Updated to version ${newVersion}`
+  const handleUpdateExperiment = async (updatedExperiment) => {
+    try {
+      setError(null)
+      const updated = await updateExperiment(updatedExperiment._id || updatedExperiment.id, updatedExperiment)
+      setExperiments(experiments.map(exp =>
+        (exp._id === updated._id || exp.id === updated.id) ? updated : exp
+      ))
+      setSelectedExperiment(null)
+      setIsDetailsDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to update experiment:', error)
+      setError('Failed to update experiment. Please try again.')
     }
-
-    // Update the experiment with new version info
-    const updated = {
-      ...updatedExperiment,
-      version: newVersion,
-      updatedAt: new Date().toISOString(),
-      versionHistory: [...updatedExperiment.versionHistory, versionEntry]
-    }
-
-    setExperiments(experiments.map(exp =>
-      exp.id === updated.id ? updated : exp
-    ))
-    setSelectedExperiment(null)
-    setIsDetailsDialogOpen(false)
   }
 
   // Handle experiment deletion
@@ -251,23 +190,9 @@ export function ExperimentManagement() {
     setIsDetailsDialogOpen(true)
   }
 
-  // Handle login success
-  const handleLoginSuccess = async (authData) => {
-    console.log('Login successful, loading experiments...')
-    setIsLoggedIn(true)
-    setCurrentUser(authData.user)
-    try {
-      await loadExperiments()
-    } catch (error) {
-      console.error('Failed to load experiments after login:', error)
-      setError('Failed to load experiments after login. Please try again.')
-    }
-  }
-
   // Handle logout
   const handleLogout = () => {
     logout()
-    setIsLoggedIn(false)
     setCurrentUser(null)
     setExperiments([])
     setFilteredExperiments([])
@@ -282,6 +207,23 @@ export function ExperimentManagement() {
   }
 
 
+
+  // Show loading state if no current user yet
+  if (!currentUser) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="rounded-full bg-muted p-3 mb-4 mx-auto w-fit">
+              <Beaker className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Loading Experiments</h3>
+            <p className="text-muted-foreground">Please wait while we load your data...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
