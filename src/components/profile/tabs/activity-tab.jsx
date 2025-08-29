@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 
-export function ActivityTab({ activityLogs }) {
+export function ActivityTab({ activityLogs = [] }) {
+  // Ensure activityLogs is an array
+  const safeLogs = Array.isArray(activityLogs) ? activityLogs : [];
   // Get activity type badge variant
   const getActivityVariant = (type) => {
     switch (type) {
@@ -35,16 +37,16 @@ export function ActivityTab({ activityLogs }) {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {activityLogs.map((log, index) => (
+          {safeLogs.map((log, index) => (
             <div key={index} className="relative pl-6 pb-6">
               {/* Timeline connector */}
-              {index < activityLogs.length - 1 && (
+              {index < safeLogs.length - 1 && (
                 <div className="absolute left-2.5 top-3 bottom-0 w-0.5 bg-border" />
               )}
-              
+
               {/* Timeline dot */}
               <div className="absolute left-0 top-2.5 h-5 w-5 rounded-full border-2 border-primary bg-background" />
-              
+
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge className={cn("font-medium", getActivityVariant(log.type))}>
@@ -54,10 +56,10 @@ export function ActivityTab({ activityLogs }) {
                     {format(new Date(log.timestamp), "MMM d, yyyy 'at' h:mm a")}
                   </span>
                 </div>
-                
+
                 <h3 className="text-base font-medium">{log.title}</h3>
                 <p className="text-sm text-muted-foreground">{log.description}</p>
-                
+
                 {log.details && (
                   <div className="mt-2 p-3 bg-muted/30 rounded-md text-sm">
                     {log.details}
@@ -66,8 +68,8 @@ export function ActivityTab({ activityLogs }) {
               </div>
             </div>
           ))}
-          
-          {activityLogs.length === 0 && (
+
+          {safeLogs.length === 0 && (
             <div className="text-center py-8 border border-dashed border-border/50 rounded-lg">
               <div className="flex flex-col items-center justify-center space-y-2">
                 <h3 className="text-lg font-medium">No activity recorded</h3>

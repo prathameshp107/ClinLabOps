@@ -73,38 +73,6 @@ export default function ProfilePage() {
     })
   }
 
-  // Handle adding a new skill
-  const handleAddSkill = (newSkill) => {
-    if (!userData.skills.includes(newSkill)) {
-      const updatedSkills = [...userData.skills, newSkill]
-      setUserData({
-        ...userData,
-        skills: updatedSkills
-      })
-
-      toast({
-        title: "Skill added",
-        description: `"${newSkill}" has been added to your skills.`,
-        variant: "success",
-      })
-    }
-  }
-
-  // Handle removing a skill
-  const handleRemoveSkill = (skillToRemove) => {
-    const updatedSkills = userData.skills.filter(skill => skill !== skillToRemove)
-    setUserData({
-      ...userData,
-      skills: updatedSkills
-    })
-
-    toast({
-      title: "Skill removed",
-      description: `"${skillToRemove}" has been removed from your skills.`,
-      variant: "success",
-    })
-  }
-
   if (loading) {
     return <div className="flex justify-center items-center h-96">Loading profile...</div>
   }
@@ -124,10 +92,11 @@ export default function ProfilePage() {
           onUpdateProfilePicture={handleUpdateProfilePicture}
         />
         <ProfileTabs
-          userData={userData}
+          userData={{
+            ...userData,
+            activityLogs: userData?.activityLogs || []
+          }}
           onUpdateUserData={handleUpdateUserData}
-          onAddSkill={handleAddSkill}
-          onRemoveSkill={handleRemoveSkill}
         />
       </div>
     </DashboardLayout>
