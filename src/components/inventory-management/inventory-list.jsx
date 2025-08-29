@@ -569,7 +569,8 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div classNremove the new task button and also the remove the New project button for the
+ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="location" className="text-sm font-medium">Storage Location *</label>
                       <Input

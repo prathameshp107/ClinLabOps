@@ -9,9 +9,7 @@ import {
   FileText,
   Filter,
   Folder,
-  FolderPlus,
   ListTodo,
-  PlusCircle,
   User,
   Bell,
   Activity,
@@ -32,9 +30,7 @@ import { useTheme } from "next-themes";
 import TaskList from "@/components/my-page/task-list";
 import ProjectGrid from "@/components/my-page/project-grid";
 import ActivityTimeline from "@/components/my-page/activity-timeline";
-import PerformanceMetrics from "@/components/my-page/performance-metrics";
 import NotificationsPanel from "@/components/my-page/notifications-panel";
-import UpcomingDeadlines from "@/components/my-page/upcoming-deadlines";
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import UserAvatar from "@/components/tasks/user-avatar";
 
@@ -44,9 +40,7 @@ import { getProjects } from "@/services/projectService"
 import { getCurrentUser } from "@/services/authService"
 import {
   getUserDashboardActivities,
-  getUserDashboardNotifications,
-  getUserDashboardUpcomingDeadlines,
-  getUserDashboardPerformance
+  getUserDashboardNotifications
 } from "@/services/dashboardService"
 
 export default function MyPage() {
@@ -61,8 +55,6 @@ export default function MyPage() {
   const [ownedProjects, setOwnedProjects] = useState([]);
   const [activities, setActivities] = useState([]);
   const [notifications, setNotifications] = useState([]);
-  const [upcomingDeadlines, setUpcomingDeadlines] = useState([]);
-  const [performanceData, setPerformanceData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch data on component mount
@@ -75,17 +67,13 @@ export default function MyPage() {
           tasks,
           projects,
           activities,
-          notifications,
-          upcomingDeadlines,
-          performanceData
+          notifications
         ] = await Promise.all([
           getCurrentUser(),
           getTasks(),
           getProjects(),
           getUserDashboardActivities().catch(() => []),
-          getUserDashboardNotifications().catch(() => []),
-          getUserDashboardUpcomingDeadlines().catch(() => []),
-          getUserDashboardPerformance().catch(() => ({ summary: { completionRate: 0 } }))
+          getUserDashboardNotifications().catch(() => [])
         ]);
 
         // Set profile data
@@ -120,8 +108,6 @@ export default function MyPage() {
         // Set dashboard data
         setActivities(activities);
         setNotifications(notifications);
-        setUpcomingDeadlines(upcomingDeadlines);
-        setPerformanceData(performanceData);
 
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
@@ -192,11 +178,10 @@ export default function MyPage() {
 
         {/* Main dashboard tabs */}
         <Tabs defaultValue="overview" onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:w-[600px]">
+          <TabsList className="grid grid-cols-3 lg:w-[450px]">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="projects">Projects</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -231,10 +216,6 @@ export default function MyPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Button variant="default" size="sm" className="gap-1.5 h-9 px-4">
-                    <PlusCircle size={16} />
-                    <span>New Task</span>
-                  </Button>
                   <Button variant="outline" size="sm" className="gap-1.5 h-9 px-4">
                     <Calendar size={16} />
                     <span>View Calendar</span>
@@ -243,199 +224,30 @@ export default function MyPage() {
               </div>
             </motion.div>
 
+            {/* Notifications and Activity Timeline */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Quick Stats - Improved with hover effects */}
-              {/* Redesigned Stats Dashboard */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="col-span-1 md:col-span-2 relative"
-              >
-                <div className="absolute inset-0 bg-primary/5 rounded-xl -z-10"></div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-                  {/* Left side - 3D Stats Card */}
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Activity className="h-5 w-5 text-primary" />
-                      Performance Overview
-                    </h3>
-
-                    <div className="relative h-[180px] w-full perspective-[1000px] group cursor-pointer">
-                      <motion.div
-                        className="absolute inset-0 rounded-xl bg-blue-500/80 shadow-xl transform-style-3d rotate-y-[-5deg] rotate-x-[5deg] group-hover:rotate-y-0 group-hover:rotate-x-0 transition-transform duration-500"
-                        whileHover={{ scale: 1.02 }}
-                      >
-                        <div className="absolute inset-0 bg-black/10 rounded-xl"></div>
-                        <div className="absolute inset-0 p-6 text-white flex flex-col justify-between">
-                          <div>
-                            <h4 className="text-xl font-bold">Task Completion</h4>
-                            <p className="text-white/80 text-sm">This week's progress</p>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center text-sm">
-                              <span>Progress</span>
-                              <span className="font-medium">{performanceData?.summary?.completionRate || 0}%</span>
-                            </div>
-                            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-white rounded-full"
-                                style={{ width: `${performanceData?.summary?.completionRate || 0}%` }}
-                              ></div>
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-1.5">
-                                <div className="h-3 w-3 rounded-full bg-white/90"></div>
-                                <span className="text-xs">Completed</span>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <div className="h-3 w-3 rounded-full bg-white/30"></div>
-                                <span className="text-xs">Remaining</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-background/80 backdrop-blur-sm border-muted hover:bg-primary/5 hover:border-primary/20 transition-all duration-300 flex items-center justify-center gap-2 py-2.5 rounded-xl shadow-sm hover:shadow-md"
-                      >
-                        <BarChart2 className="h-4 w-4 text-primary" />
-                        <span className="font-medium">Weekly Report</span>
-                      </Button>
-
-                    </div>
-                  </div>
-
-                  {/* Right side - Stat Tiles */}
-                  <div className="space-y-6">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <ListTodo className="h-5 w-5 text-primary" />
-                      Task Statistics
-                    </h3>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Active Tasks Tile */}
-                      <motion.div
-                        whileHover={{ y: -5 }}
-                        className="relative overflow-hidden rounded-xl p-4 bg-blue-500/10 border border-blue-200 dark:border-blue-900/30 shadow-sm"
-                      >
-                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                          <ListTodo className="h-12 w-12 text-blue-500" />
-                        </div>
-                        <div className="relative">
-                          <p className="text-sm text-muted-foreground">Active Tasks</p>
-                          <h3 className="text-2xl font-bold mt-1 text-blue-600 dark:text-blue-400">
-                            {assignedTasks.filter(t => t.status !== "Completed").length}
-                          </h3>
-                          <div className="mt-2 inline-flex items-center text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
-                            +2 this week
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      {/* Projects Tile */}
-                      <motion.div
-                        whileHover={{ y: -5 }}
-                        className="relative overflow-hidden rounded-xl p-4 bg-purple-500/10 border border-purple-200 dark:border-purple-900/30 shadow-sm"
-                      >
-                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                          <Folder className="h-12 w-12 text-purple-500" />
-                        </div>
-                        <div className="relative">
-                          <p className="text-sm text-muted-foreground">Projects</p>
-                          <h3 className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">
-                            {memberProjects.length}
-                          </h3>
-                          <div className="mt-2 inline-flex items-center text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
-                            Active
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      {/* Completed Tile */}
-                      <motion.div
-                        whileHover={{ y: -5 }}
-                        className="relative overflow-hidden rounded-xl p-4 bg-green-500/10 border border-green-200 dark:border-green-900/30 shadow-sm"
-                      >
-                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                          <CheckCircle2 className="h-12 w-12 text-green-500" />
-                        </div>
-                        <div className="relative">
-                          <p className="text-sm text-muted-foreground">Completed</p>
-                          <h3 className="text-2xl font-bold mt-1 text-green-600 dark:text-green-400">
-                            {assignedTasks.filter(t => t.status === "Completed").length}
-                          </h3>
-                          <div className="mt-2 inline-flex items-center text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-0.5 rounded-full">
-                            +5 this week
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      {/* Overdue Tile */}
-                      <motion.div
-                        whileHover={{ y: -5 }}
-                        className="relative overflow-hidden rounded-xl p-4 bg-amber-500/10 border border-amber-200 dark:border-amber-900/30 shadow-sm"
-                      >
-                        <div className="absolute top-0 right-0 p-2 opacity-10">
-                          <Clock className="h-12 w-12 text-amber-500" />
-                        </div>
-                        <div className="relative">
-                          <p className="text-sm text-muted-foreground">Overdue</p>
-                          <h3 className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">
-                            {assignedTasks.filter(t => t.status === "Overdue").length}
-                          </h3>
-                          <div className="mt-2 inline-flex items-center text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
-                            -1 this week
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
               {/* Notifications Panel */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                <NotificationsPanel notifications={notifications} />
-              </motion.div>
-            </div>
-
-            {/* Second row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Upcoming Deadlines */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
                 className="col-span-1"
               >
-                <UpcomingDeadlines deadlines={upcomingDeadlines} />
+                <NotificationsPanel notifications={notifications} />
               </motion.div>
 
               {/* Activity Timeline */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
                 className="col-span-1 md:col-span-2"
               >
                 <ActivityTimeline activities={activities} />
               </motion.div>
             </div>
 
-            {/* Third row - Improved with better spacing and hover effects */}
+            {/* Second row - Recent tasks and projects */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Tasks */}
               <motion.div
@@ -576,65 +388,7 @@ export default function MyPage() {
               </motion.div>
             </div>
 
-            {/* Fourth row - New Weekly Summary */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.7 }}
-            >
-              <Card className="overflow-hidden border-none shadow-md">
-                <CardHeader className="pb-3 bg-muted/50">
-                  <CardTitle className="text-lg font-medium flex items-center gap-2">
-                    <BarChart2 className="h-5 w-5 text-primary" />
-                    Weekly Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="col-span-2">
-                      <div className="h-[200px] w-full">
-                        {/* This would be a chart in a real implementation */}
-                        <div className="h-full w-full bg-gradient-to-r from-primary/5 to-primary/20 rounded-lg flex items-center justify-center">
-                          <p className="text-muted-foreground">Task completion chart would go here</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-sm">This Week's Highlights</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                            <CheckCircle2 className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Productivity up 12%</p>
-                            <p className="text-xs text-muted-foreground">Compared to last week</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                            <Activity className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">5 tasks completed</p>
-                            <p className="text-xs text-muted-foreground">2 more than average</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                            <Clock className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">On-time delivery: 95%</p>
-                            <p className="text-xs text-muted-foreground">3% improvement</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+
           </TabsContent>
 
           {/* Tasks Tab */}
@@ -649,16 +403,10 @@ export default function MyPage() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle>Tasks Assigned to Me</CardTitle>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Filter size={16} />
-                          <span>Filter</span>
-                        </Button>
-                        <Button size="sm" className="gap-1">
-                          <PlusCircle size={16} />
-                          <span>New Task</span>
-                        </Button>
-                      </div>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <Filter size={16} />
+                        <span>Filter</span>
+                      </Button>
                     </div>
                     <CardDescription>
                       Manage and track all tasks assigned to you
@@ -674,16 +422,10 @@ export default function MyPage() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle>Tasks Created by Me</CardTitle>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Filter size={16} />
-                          <span>Filter</span>
-                        </Button>
-                        <Button size="sm" className="gap-1">
-                          <PlusCircle size={16} />
-                          <span>New Task</span>
-                        </Button>
-                      </div>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <Filter size={16} />
+                        <span>Filter</span>
+                      </Button>
                     </div>
                     <CardDescription>
                       View and manage all tasks you've created
@@ -728,16 +470,10 @@ export default function MyPage() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <CardTitle>Projects Created by Me</CardTitle>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="gap-1">
-                          <Filter size={16} />
-                          <span>Filter</span>
-                        </Button>
-                        <Button size="sm" className="gap-1">
-                          <FolderPlus size={16} />
-                          <span>New Project</span>
-                        </Button>
-                      </div>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <Filter size={16} />
+                        <span>Filter</span>
+                      </Button>
                     </div>
                     <CardDescription>
                       Projects you've created and own
@@ -751,20 +487,7 @@ export default function MyPage() {
             </Tabs>
           </TabsContent>
 
-          {/* Performance Tab */}
-          <TabsContent value="performance" className="space-y-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Metrics</CardTitle>
-                <CardDescription>
-                  Track your productivity and task completion metrics
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PerformanceMetrics data={performanceData} />
-              </CardContent>
-            </Card>
-          </TabsContent>
+
         </Tabs>
       </div>
     </DashboardLayout>

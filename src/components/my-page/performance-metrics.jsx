@@ -26,8 +26,8 @@ export default function PerformanceMetrics({ data }) {
 
   const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-  // Provide default data structure if data is undefined
-  const safeData = data || {
+  // Provide default data structure if data is undefined or incomplete
+  const defaultData = {
     taskCompletion: [],
     timeTracking: [],
     taskDistribution: [],
@@ -39,6 +39,21 @@ export default function PerformanceMetrics({ data }) {
       onTimeRateChange: 0,
       efficiencyScore: 0,
       efficiencyScoreChange: 0
+    }
+  };
+
+  const safeData = {
+    taskCompletion: data?.taskCompletion || defaultData.taskCompletion,
+    timeTracking: data?.timeTracking || defaultData.timeTracking,
+    taskDistribution: data?.taskDistribution || defaultData.taskDistribution,
+    trends: data?.trends || defaultData.trends,
+    summary: {
+      completionRate: data?.summary?.completionRate ?? defaultData.summary.completionRate,
+      completionRateChange: data?.summary?.completionRateChange ?? defaultData.summary.completionRateChange,
+      onTimeRate: data?.summary?.onTimeRate ?? defaultData.summary.onTimeRate,
+      onTimeRateChange: data?.summary?.onTimeRateChange ?? defaultData.summary.onTimeRateChange,
+      efficiencyScore: data?.summary?.efficiencyScore ?? defaultData.summary.efficiencyScore,
+      efficiencyScoreChange: data?.summary?.efficiencyScoreChange ?? defaultData.summary.efficiencyScoreChange
     }
   };
 
