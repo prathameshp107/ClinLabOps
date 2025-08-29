@@ -40,12 +40,14 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
   const [currentLocation, setCurrentLocation] = useState(null)
   const [newLocation, setNewLocation] = useState({
     name: "",
-    description: "",
-    type: "room",
+    location: "",
     capacity: "",
+    type: "room",
+    manager: "",
+    contact: "",
     temperature: "",
     humidity: "",
-    accessLevel: "standard",
+    securityLevel: "Medium",
     notes: "",
     status: "Active"
   })
@@ -60,7 +62,26 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
   const handleEditLocation = () => {
     if (!currentLocation) return
 
-    onUpdateLocation(currentLocation)
+    // Validate required fields
+    const requiredFields = [
+      { field: 'name', label: 'Warehouse name' },
+      { field: 'location', label: 'Physical location' },
+      { field: 'capacity', label: 'Capacity' }
+    ]
+
+    for (const { field, label } of requiredFields) {
+      if (!currentLocation[field]?.toString().trim()) {
+        alert(`${label} is required`)
+        return
+      }
+    }
+
+    const locationToUpdate = {
+      ...currentLocation,
+      capacity: parseInt(currentLocation.capacity) || 0
+    }
+
+    onUpdateLocation(locationToUpdate)
     setIsEditDialogOpen(false)
     setCurrentLocation(null)
   }
@@ -68,13 +89,22 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
   // Handle adding new location
   const handleAddLocation = () => {
     // Validate required fields
-    if (!newLocation.name.trim()) {
-      alert('Location name is required')
-      return
+    const requiredFields = [
+      { field: 'name', label: 'Warehouse name' },
+      { field: 'location', label: 'Physical location' },
+      { field: 'capacity', label: 'Capacity' }
+    ]
+
+    for (const { field, label } of requiredFields) {
+      if (!newLocation[field]?.toString().trim()) {
+        alert(`${label} is required`)
+        return
+      }
     }
 
     const locationToAdd = {
       ...newLocation,
+      capacity: parseInt(newLocation.capacity) || 0,
       status: "Active"
     }
 
@@ -82,12 +112,14 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
     setIsAddDialogOpen(false)
     setNewLocation({
       name: "",
-      description: "",
-      type: "room",
+      location: "",
       capacity: "",
+      type: "room",
+      manager: "",
+      contact: "",
       temperature: "",
       humidity: "",
-      accessLevel: "standard",
+      securityLevel: "Medium",
       notes: "",
       status: "Active"
     })
@@ -152,23 +184,47 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                   <h3 className="text-lg font-semibold border-b pb-2">Basic Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label htmlFor="name" className="text-sm font-medium">Location Name *</label>
+                      <label htmlFor="name" className="text-sm font-medium">Warehouse Name *</label>
                       <Input
                         id="name"
                         value={newLocation.name}
                         onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
-                        placeholder="e.g., Lab Room A, Cold Storage 1"
+                        placeholder="e.g., Chemical Storage, Main Warehouse"
                         className="border-2"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="type" className="text-sm font-medium">Location Type *</label>
+                      <label htmlFor="location" className="text-sm font-medium">Physical Location *</label>
+                      <Input
+                        id="location"
+                        value={newLocation.location}
+                        onChange={(e) => setNewLocation({ ...newLocation, location: e.target.value })}
+                        placeholder="e.g., Building A, Floor 2"
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="capacity" className="text-sm font-medium">Capacity *</label>
+                      <Input
+                        id="capacity"
+                        type="number"
+                        min="1"
+                        value={newLocation.capacity}
+                        onChange={(e) => setNewLocation({ ...newLocation, capacity: e.target.value })}
+                        placeholder="e.g., 1000"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="type" className="text-sm font-medium">Storage Type</label>
                       <Select
                         value={newLocation.type}
                         onValueChange={(value) => setNewLocation({ ...newLocation, type: value })}
                       >
                         <SelectTrigger id="type" className="border-2">
-                          <SelectValue placeholder="Select location type" />
+                          <SelectValue placeholder="Select storage type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="room">
@@ -205,8 +261,80 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                       </Select>
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="securityLevel" className="text-sm font-medium">Security Level</label>
+                      <Select
+                        value={newLocation.securityLevel}
+                        onValueChange={(value) => setNewLocation({ ...newLocation, securityLevel: value })}
+                      >
+                        <SelectTrigger id="securityLevel" className="border-2">
+                          <SelectValue placeholder="Select security level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Low">Low Security</SelectItem>
+                          <SelectItem value="Medium">Medium Security</SelectItem>
+                          <SelectItem value="High">High Security</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="manager" className="text-sm font-medium">Manager</label>
+                      <Input
+                        id="manager"
+                        value={newLocation.manager}
+                        onChange={(e) => setNewLocation({ ...newLocation, manager: e.target.value })}
+                        placeholder="e.g., Storage Manager"
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="contact" className="text-sm font-medium">Contact</label>
+                      <Input
+                        id="contact"
+                        value={newLocation.contact}
+                        onChange={(e) => setNewLocation({ ...newLocation, contact: e.target.value })}
+                        placeholder="e.g., storage@lab.com"
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Environmental Conditions */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Environmental Conditions</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="temperature" className="text-sm font-medium">Temperature</label>
+                      <Input
+                        id="temperature"
+                        value={newLocation.temperature}
+                        onChange={(e) => setNewLocation({ ...newLocation, temperature: e.target.value })}
+                        placeholder="e.g., 18-22°C"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="humidity" className="text-sm font-medium">Humidity</label>
+                      <Input
+                        id="humidity"
+                        value={newLocation.humidity}
+                        onChange={(e) => setNewLocation({ ...newLocation, humidity: e.target.value })}
+                        placeholder="e.g., 30-50%"
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold border-b pb-2">Additional Information</h3>
                   <div className="space-y-2">
-                    <label htmlFor="description" className="text-sm font-medium">Description</label>
+                    <label htmlFor="notes" className="text-sm font-medium">Notes</label>
                     <Textarea
                       id="description"
                       value={newLocation.description}
@@ -218,76 +346,7 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                   </div>
                 </div>
 
-                {/* Specifications */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">Specifications</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label htmlFor="capacity" className="text-sm font-medium">Capacity</label>
-                      <Input
-                        id="capacity"
-                        type="number"
-                        value={newLocation.capacity}
-                        onChange={(e) => setNewLocation({ ...newLocation, capacity: e.target.value })}
-                        placeholder="Storage capacity"
-                        className="border-2"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="temperature" className="text-sm font-medium">Temperature (°C)</label>
-                      <Input
-                        id="temperature"
-                        value={newLocation.temperature}
-                        onChange={(e) => setNewLocation({ ...newLocation, temperature: e.target.value })}
-                        placeholder="e.g., 4°C, Room temp"
-                        className="border-2"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="humidity" className="text-sm font-medium">Humidity (%)</label>
-                      <Input
-                        id="humidity"
-                        value={newLocation.humidity}
-                        onChange={(e) => setNewLocation({ ...newLocation, humidity: e.target.value })}
-                        placeholder="e.g., 45-65%"
-                        className="border-2"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="accessLevel" className="text-sm font-medium">Access Level</label>
-                    <Select
-                      value={newLocation.accessLevel}
-                      onValueChange={(value) => setNewLocation({ ...newLocation, accessLevel: value })}
-                    >
-                      <SelectTrigger className="border-2">
-                        <SelectValue placeholder="Select access level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="public">Public Access</SelectItem>
-                        <SelectItem value="standard">Standard Access</SelectItem>
-                        <SelectItem value="restricted">Restricted Access</SelectItem>
-                        <SelectItem value="secure">Secure Access</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
-                {/* Additional Information */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold border-b pb-2">Additional Information</h3>
-                  <div className="space-y-2">
-                    <label htmlFor="notes" className="text-sm font-medium">Notes</label>
-                    <Textarea
-                      id="notes"
-                      value={newLocation.notes}
-                      onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
-                      placeholder="Special instructions, restrictions, or additional notes..."
-                      className="border-2"
-                      rows={3}
-                    />
-                  </div>
-                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
@@ -508,94 +567,101 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                 <h3 className="text-lg font-semibold border-b pb-2">Basic Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label htmlFor="edit-name" className="text-sm font-medium">Location Name *</label>
+                    <label htmlFor="edit-name" className="text-sm font-medium">Warehouse Name *</label>
                     <Input
                       id="edit-name"
-                      value={currentLocation.name}
+                      value={currentLocation.name || ""}
                       onChange={(e) => setCurrentLocation({ ...currentLocation, name: e.target.value })}
-                      placeholder="Location name"
+                      placeholder="Warehouse name"
                       className="border-2"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="edit-type" className="text-sm font-medium">Location Type *</label>
+                    <label htmlFor="edit-location" className="text-sm font-medium">Physical Location *</label>
+                    <Input
+                      id="edit-location"
+                      value={currentLocation.location || ""}
+                      onChange={(e) => setCurrentLocation({ ...currentLocation, location: e.target.value })}
+                      placeholder="e.g., Building A, Floor 2"
+                      className="border-2"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="edit-capacity" className="text-sm font-medium">Capacity *</label>
+                    <Input
+                      id="edit-capacity"
+                      type="number"
+                      min="1"
+                      value={currentLocation.capacity || ""}
+                      onChange={(e) => setCurrentLocation({ ...currentLocation, capacity: e.target.value })}
+                      placeholder="e.g., 1000"
+                      className="border-2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="edit-securityLevel" className="text-sm font-medium">Security Level</label>
                     <Select
-                      value={currentLocation.type || "room"}
-                      onValueChange={(value) => setCurrentLocation({ ...currentLocation, type: value })}
+                      value={currentLocation.securityLevel || "Medium"}
+                      onValueChange={(value) => setCurrentLocation({ ...currentLocation, securityLevel: value })}
                     >
-                      <SelectTrigger id="edit-type" className="border-2">
-                        <SelectValue placeholder="Select location type" />
+                      <SelectTrigger id="edit-securityLevel" className="border-2">
+                        <SelectValue placeholder="Select security level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="room">
-                          <div className="flex items-center gap-2">
-                            <Home className="h-4 w-4" />
-                            <span>Room</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="cabinet">
-                          <div className="flex items-center gap-2">
-                            <FileBox className="h-4 w-4" />
-                            <span>Cabinet</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="shelf">
-                          <div className="flex items-center gap-2">
-                            <Archive className="h-4 w-4" />
-                            <span>Shelf</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="refrigerator">
-                          <div className="flex items-center gap-2">
-                            <Refrigerator className="h-4 w-4" />
-                            <span>Refrigerator</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="freezer">
-                          <div className="flex items-center gap-2">
-                            <Thermometer className="h-4 w-4" />
-                            <span>Freezer</span>
-                          </div>
-                        </SelectItem>
+                        <SelectItem value="Low">Low Security</SelectItem>
+                        <SelectItem value="Medium">Medium Security</SelectItem>
+                        <SelectItem value="High">High Security</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="edit-description" className="text-sm font-medium">Description</label>
-                  <Textarea
-                    id="edit-description"
-                    value={currentLocation.description || ""}
-                    onChange={(e) => setCurrentLocation({ ...currentLocation, description: e.target.value })}
-                    placeholder="Location description"
-                    className="border-2"
-                    rows={2}
-                  />
-                </div>
-              </div>
-
-              {/* Specifications */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold border-b pb-2">Specifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label htmlFor="edit-capacity" className="text-sm font-medium">Capacity</label>
+                    <label htmlFor="edit-manager" className="text-sm font-medium">Manager</label>
                     <Input
-                      id="edit-capacity"
-                      type="number"
-                      value={currentLocation.capacity || ""}
-                      onChange={(e) => setCurrentLocation({ ...currentLocation, capacity: e.target.value })}
-                      placeholder="Storage capacity"
+                      id="edit-manager"
+                      value={currentLocation.manager || ""}
+                      onChange={(e) => setCurrentLocation({ ...currentLocation, manager: e.target.value })}
+                      placeholder="e.g., Storage Manager"
                       className="border-2"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="edit-temperature" className="text-sm font-medium">Temperature (°C)</label>
+                    <label htmlFor="edit-contact" className="text-sm font-medium">Contact</label>
+                    <Input
+                      id="edit-contact"
+                      value={currentLocation.contact || ""}
+                      onChange={(e) => setCurrentLocation({ ...currentLocation, contact: e.target.value })}
+                      placeholder="e.g., storage@lab.com"
+                      className="border-2"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Environmental Conditions */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold border-b pb-2">Environmental Conditions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="edit-temperature" className="text-sm font-medium">Temperature</label>
                     <Input
                       id="edit-temperature"
                       value={currentLocation.temperature || ""}
                       onChange={(e) => setCurrentLocation({ ...currentLocation, temperature: e.target.value })}
-                      placeholder="e.g., 4°C, Room temp"
+                      placeholder="e.g., 18-22°C"
+                      className="border-2"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="edit-humidity" className="text-sm font-medium">Humidity</label>
+                    <Input
+                      id="edit-humidity"
+                      value={currentLocation.humidity || ""}
+                      onChange={(e) => setCurrentLocation({ ...currentLocation, humidity: e.target.value })}
+                      placeholder="e.g., 30-50%"
                       className="border-2"
                     />
                   </div>
@@ -662,14 +728,15 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                   />
                 </div>
               </div>
-            </div>
-          )}
+            </div >
+          )
+          }
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleEditLocation} className="bg-green-600 hover:bg-green-700">Save Changes</Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+        </DialogContent >
+      </Dialog >
+    </div >
   )
 }

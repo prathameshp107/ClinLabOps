@@ -49,6 +49,7 @@ const WarehouseSchema = new mongoose.Schema({
     name: { type: String, required: true },
     location: { type: String, required: true },
     capacity: { type: Number, required: true },
+    type: { type: String, enum: ['room', 'cabinet', 'shelf', 'refrigerator', 'freezer'], default: 'room' },
     currentUtilization: { type: Number, default: 0 },
     manager: { type: String },
     contact: { type: String },
