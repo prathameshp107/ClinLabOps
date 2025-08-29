@@ -100,9 +100,14 @@ export function ProtocolFormDialog({
           : (protocol.steps || '');
 
         const materialsText = Array.isArray(protocol.materials)
-          ? protocol.materials.map(material =>
-            typeof material === 'string' ? material : material.name || ''
-          ).join('\n')
+          ? protocol.materials.map(material => {
+            if (typeof material === 'string') {
+              return material;
+            } else if (typeof material === 'object' && material.name) {
+              return material.quantity ? `${material.name} - ${material.quantity}` : material.name;
+            }
+            return '';
+          }).filter(Boolean).join('\n')
           : (protocol.materials || '');
 
         const referencesText = Array.isArray(protocol.references)
@@ -154,24 +159,31 @@ export function ProtocolFormDialog({
           number: index + 1,
           instructions: step.trim()
         })) : [],
-        // Convert string to array of material strings
-        materials: data.materials ? data.materials.split('\n').filter(material => material.trim()) : [],
+        // Convert string to array of material objects
+        materials: data.materials ? data.materials.split('\n').filter(material => material.trim()).map((material) => {
+          const trimmed = material.trim();
+          // Check if material includes quantity (format: "Material Name - Quantity")
+          const parts = trimmed.split(' - ');
+          return {
+            name: parts[0].trim(),
+            quantity: parts.length > 1 ? parts[1].trim() : '',
+            notes: ''
+          };
+        }) : [],
         safetyNotes: data.safetyNotes || '',
         // Convert string to array of reference strings
         references: data.references ? data.references.split('\n').filter(ref => ref.trim()) : [],
         status: data.status || 'Draft',
         isPublic: data.isPublic || false,
         tags: [], // Can be added to the form if needed
-        files: files.length > 0 ? files.map(file => ({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          url: file.url,
-          uploadedAt: file.uploadedAt || new Date().toISOString()
-        })) : []
+        files: files.length > 0 ? files.map(file => file.name) : []
       };
 
       console.log('Submitting protocol data:', protocolData);
+      console.log('Materials structure:', protocolData.materials);
+      console.log('Steps structure:', protocolData.steps);
+      console.log('Files structure:', protocolData.files);
+      console.log('Original files array:', files);
 
       // Submit the protocol
       await onSubmit(protocolData);

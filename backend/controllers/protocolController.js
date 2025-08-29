@@ -388,10 +388,74 @@ const updateProtocol = asyncHandler(async (req, res) => {
   if (category) protocol.category = category;
   if (version) protocol.version = version;
   if (status) protocol.status = status;
-  if (steps) protocol.steps = steps;
-  if (materials) protocol.materials = materials;
+
+  // Handle steps transformation
+  if (steps) {
+    if (Array.isArray(steps)) {
+      // If steps is already an array of objects, use as is
+      if (steps.length > 0 && typeof steps[0] === 'object' && steps[0].instructions) {
+        protocol.steps = steps;
+      }
+      // If steps is an array of strings, convert to step objects
+      else if (steps.length > 0 && typeof steps[0] === 'string') {
+        protocol.steps = steps.map((step, index) => ({
+          number: index + 1,
+          instructions: step.trim()
+        }));
+      }
+      // If steps is an empty array
+      else {
+        protocol.steps = [];
+      }
+    } else if (typeof steps === 'string') {
+      // If steps is a string, split and convert to step objects
+      protocol.steps = steps.split('\n').filter(step => step.trim()).map((step, index) => ({
+        number: index + 1,
+        instructions: step.trim()
+      }));
+    }
+  }
+
+  // Handle materials transformation
+  if (materials) {
+    if (Array.isArray(materials)) {
+      // If materials is already an array of objects with name property, use as is
+      if (materials.length > 0 && typeof materials[0] === 'object' && materials[0].name) {
+        protocol.materials = materials;
+      }
+      // If materials is an array of strings, convert to material objects
+      else if (materials.length > 0 && typeof materials[0] === 'string') {
+        protocol.materials = materials.map(material => ({
+          name: material.trim(),
+          quantity: '',
+          notes: ''
+        }));
+      }
+      // If materials is an empty array
+      else {
+        protocol.materials = [];
+      }
+    } else if (typeof materials === 'string') {
+      // If materials is a string, split and convert to material objects
+      protocol.materials = materials.split('\n').filter(material => material.trim()).map(material => ({
+        name: material.trim(),
+        quantity: '',
+        notes: ''
+      }));
+    }
+  }
+
   if (safetyNotes) protocol.safetyNotes = safetyNotes;
-  if (references) protocol.references = references;
+
+  // Handle references transformation
+  if (references) {
+    if (Array.isArray(references)) {
+      protocol.references = references.filter(ref => ref && ref.trim());
+    } else if (typeof references === 'string') {
+      protocol.references = references.split('\n').filter(ref => ref.trim());
+    }
+  }
+
   if (files) protocol.files = files;
   if (isPublic !== undefined) protocol.isPublic = isPublic;
   if (tags) protocol.tags = tags;

@@ -283,9 +283,12 @@ export function ProtocolDetailDialog({
                           <FileUp className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">{file.name}</p>
+                          <p className="font-medium">{typeof file === 'string' ? file : file.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {(file.size / 1024).toFixed(2)} KB • Uploaded {formatDate(file.uploadedAt)}
+                            {typeof file === 'object' && file.size ?
+                              `${(file.size / 1024).toFixed(2)} KB • Uploaded ${formatDate(file.uploadedAt)}` :
+                              'File attachment'
+                            }
                           </p>
                         </div>
                       </div>
