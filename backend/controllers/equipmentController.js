@@ -93,12 +93,12 @@ exports.getMaintenanceHistory = async (req, res) => {
     if (!equipment) {
       return res.status(404).json({ error: 'Equipment not found' });
     }
-    
+
     // Sort maintenance history by date (most recent first)
-    const sortedHistory = equipment.maintenanceHistory.sort((a, b) => 
+    const sortedHistory = equipment.maintenanceHistory.sort((a, b) =>
       new Date(b.performedDate) - new Date(a.performedDate)
     );
-    
+
     res.json(sortedHistory);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -113,10 +113,10 @@ exports.addMaintenanceRecord = async (req, res) => {
     if (!equipment) {
       return res.status(404).json({ error: 'Equipment not found' });
     }
-    
+
     // Generate a unique ID for the maintenance record
     const recordId = `MR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
+
     const maintenanceRecord = {
       id: recordId,
       type: req.body.type || 'maintenance',
@@ -130,9 +130,9 @@ exports.addMaintenanceRecord = async (req, res) => {
       partsReplaced: req.body.partsReplaced || [],
       downtime: req.body.downtime || 0,
     };
-    
+
     equipment.maintenanceHistory.push(maintenanceRecord);
-    
+
     // Update last maintenance date if this is a completed maintenance
     if (maintenanceRecord.status === 'completed') {
       equipment.lastMaintenanceDate = maintenanceRecord.performedDate;
@@ -140,7 +140,7 @@ exports.addMaintenanceRecord = async (req, res) => {
         equipment.nextMaintenanceDate = maintenanceRecord.nextDueDate;
       }
     }
-    
+
     await equipment.save();
     res.status(201).json(maintenanceRecord);
   } catch (err) {

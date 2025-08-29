@@ -9,7 +9,8 @@ import { LocationsList } from "@/components/inventory-management/locations-list"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { getInventoryItems, getSuppliers, getWarehouses } from "@/services/inventoryService"
 
-import { Package, Users, MapPin, Loader2 } from "lucide-react";
+import { Package, Users, MapPin, Loader2, TrendingUp, AlertTriangle, DollarSign, Archive, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 export default function InventoryPage() {
@@ -122,47 +123,61 @@ export default function InventoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="w-full px-8 py-6 space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-primary">
-            <Package className="inline-block mr-2 h-8 w-8" /> Inventory Management
-          </h1>
-          <p className="text-lg text-muted-foreground">Manage laboratory inventory, suppliers, and storage locations</p>
+      <div className="w-full px-4 md:px-8 py-4 md:py-6 space-y-4 md:space-y-6">
+        <div className="space-y-6">
+          {/* Header Section */}
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight text-primary">
+              <Package className="inline-block mr-3 h-10 w-10" /> Inventory Management
+            </h1>
+            <p className="text-lg text-muted-foreground">Comprehensive laboratory inventory, suppliers, and storage locations management</p>
+          </div>
+
+          {/* Statistics Cards */}
+
         </div>
 
-        <div className="bg-card rounded-lg shadow-lg p-6">
+        <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 md:p-8">
           <Tabs defaultValue="inventory" className="space-y-6">
-            <TabsList className="mb-6 bg-muted/50 p-1 rounded-lg">
-              <TabsTrigger value="inventory" className="text-base px-6">
-                <Package className="mr-2 h-4 w-4" />
-                Inventory
-              </TabsTrigger>
-              <TabsTrigger value="suppliers" className="text-base px-6">
-                <Users className="mr-2 h-4 w-4" />
-                Suppliers
-              </TabsTrigger>
-              <TabsTrigger value="locations" className="text-base px-6">
-                <MapPin className="mr-2 h-4 w-4" />
-                Storage Locations
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto">
+              <TabsList className="mb-6 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border inline-flex min-w-full md:grid md:grid-cols-3 gap-1">
+                <TabsTrigger value="inventory" className="flex-shrink-0 text-sm md:text-base px-3 md:px-6 py-3 rounded-lg data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all whitespace-nowrap">
+                  <Package className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  <span className="hidden sm:inline">Inventory Items</span>
+                  <span className="sm:hidden">Items</span>
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full">{inventory.length}</span>
+                </TabsTrigger>
+                <TabsTrigger value="suppliers" className="flex-shrink-0 text-sm md:text-base px-3 md:px-6 py-3 rounded-lg data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all whitespace-nowrap">
+                  <Users className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  <span className="hidden sm:inline">Suppliers</span>
+                  <span className="sm:hidden">Suppliers</span>
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-purple-100 text-purple-800 rounded-full">{suppliers.length}</span>
+                </TabsTrigger>
+                <TabsTrigger value="locations" className="flex-shrink-0 text-sm md:text-base px-3 md:px-6 py-3 rounded-lg data-[state=active]:bg-green-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all whitespace-nowrap">
+                  <MapPin className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  <span className="hidden sm:inline">Storage Locations</span>
+                  <span className="sm:hidden">Locations</span>
+                  <span className="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-800 rounded-full">{locations.length}</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <div className="bg-background rounded-lg p-4">
-              <TabsContent value="inventory" className="mt-0">
+            <div className="bg-white dark:bg-gray-900 rounded-xl p-3 md:p-6 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <TabsContent value="inventory" className="mt-0 overflow-hidden">
                 <InventoryList
                   inventoryItems={inventory}
                   onUpdateItem={handleUpdateItem}
                   onDeleteItem={handleDeleteItem}
                 />
               </TabsContent>
-              <TabsContent value="suppliers" className="mt-0">
+              <TabsContent value="suppliers" className="mt-0 overflow-hidden">
                 <SuppliersList
                   suppliers={suppliers}
                   onUpdateSupplier={handleUpdateSupplier}
                   onDeleteSupplier={handleDeleteSupplier}
                 />
               </TabsContent>
-              <TabsContent value="locations" className="mt-0">
+              <TabsContent value="locations" className="mt-0 overflow-hidden">
                 <LocationsList
                   locations={locations}
                   onUpdateLocation={handleUpdateLocation}

@@ -10,6 +10,7 @@ import {
   TableRow
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -39,6 +40,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowUpDown,
   Scan, // Changed from BarcodeScan to Scan
   Check,
@@ -50,7 +52,9 @@ import {
   Plus,
   Search,
   Trash2,
-  Upload
+  Upload,
+  MapPin,
+  Users
 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 
@@ -307,402 +311,557 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex flex-1 items-center space-x-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by name, SKU, or ID..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+    <div className="space-y-6">
+      {/* Enhanced Header Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 md:p-6 border border-blue-100 dark:border-blue-800">
+        <div className="flex flex-col lg:flex-row justify-between gap-4 md:gap-6">
+          {/* Search and Basic Filters */}
+          <div className="flex flex-col sm:flex-row flex-1 gap-4">
+            <div className="relative flex-1 min-w-[250px] md:min-w-[300px]">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search by name, SKU, ID, or supplier..."
+                className="pl-10 h-10 md:h-12 text-sm md:text-base border-2 border-blue-200 focus:border-blue-400 bg-white"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="flex gap-2 md:gap-3">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[150px] md:w-[200px] h-10 md:h-12 border-2 border-blue-200 bg-white text-xs md:text-sm">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category === "all" ? "All Categories" : category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[120px] md:w-[180px] h-10 md:h-12 border-2 border-blue-200 bg-white text-xs md:text-sm">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="low">Low Stock</SelectItem>
+                  <SelectItem value="in-stock">In Stock</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map(category => (
-                <SelectItem key={category} value={category}>
-                  {category === "all" ? "All Categories" : category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <Dialog open={isMoreFiltersOpen} onOpenChange={setIsMoreFiltersOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="default" className="h-10 md:h-12 border-2 border-blue-200 hover:bg-blue-50 px-3 md:px-4">
+                  <Filter className="h-4 w-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Advanced Filters</span>
+                  <span className="sm:hidden">Filters</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle className="text-xl">Advanced Inventory Filters</DialogTitle>
+                  <DialogDescription>
+                    Apply detailed filters to find specific inventory items.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Supplier</label>
+                      <Select
+                        value={advancedFilters.supplier}
+                        onValueChange={(value) => setAdvancedFilters({ ...advancedFilters, supplier: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select supplier" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {suppliers.map(supplier => (
+                            <SelectItem key={supplier} value={supplier}>
+                              {supplier === "all" ? "All Suppliers" : supplier}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="low">Low Stock</SelectItem>
-              <SelectItem value="in-stock">In Stock</SelectItem>
-            </SelectContent>
-          </Select>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Last Restocked</label>
+                      <Select
+                        value={advancedFilters.lastRestocked}
+                        onValueChange={(value) => setAdvancedFilters({ ...advancedFilters, lastRestocked: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select time period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any Time</SelectItem>
+                          <SelectItem value="7days">Last 7 Days</SelectItem>
+                          <SelectItem value="30days">Last 30 Days</SelectItem>
+                          <SelectItem value="90days">Last 90 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Min Price ($)</label>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={advancedFilters.minPrice}
+                        onChange={(e) => setAdvancedFilters({ ...advancedFilters, minPrice: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Max Price ($)</label>
+                      <Input
+                        type="number"
+                        placeholder="1000.00"
+                        value={advancedFilters.maxPrice}
+                        onChange={(e) => setAdvancedFilters({ ...advancedFilters, maxPrice: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setAdvancedFilters({
+                    supplier: "all",
+                    minPrice: "",
+                    maxPrice: "",
+                    lastRestocked: "all"
+                  })}>Reset All</Button>
+                  <Button onClick={() => setIsMoreFiltersOpen(false)}>Apply Filters</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+
+
+            <Button variant="outline" size="default" className="h-10 md:h-12 border-2 border-orange-200 hover:bg-orange-50 text-orange-700 px-3 md:px-4">
+              <Download className="h-4 w-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Export</span>
+              <span className="sm:hidden">Export</span>
+            </Button>
+
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="default" className="h-10 md:h-12 bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6">
+                  <Plus className="h-4 w-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Add New Item</span>
+                  <span className="sm:hidden">Add Item</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[700px]">
+                <DialogHeader>
+                  <DialogTitle className="text-xl">Add New Inventory Item</DialogTitle>
+                  <DialogDescription>
+                    Create a new inventory item with complete details.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 py-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="text-sm font-medium">Item Name *</label>
+                      <Input
+                        id="name"
+                        value={newItem.name}
+                        onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                        placeholder="Enter item name"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="category" className="text-sm font-medium">Category *</label>
+                      <Input
+                        id="category"
+                        value={newItem.category}
+                        onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                        placeholder="e.g., Chemicals, Equipment"
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="currentStock" className="text-sm font-medium">Current Stock *</label>
+                      <Input
+                        id="currentStock"
+                        type="number"
+                        min="0"
+                        value={newItem.currentStock}
+                        onChange={(e) => setNewItem({ ...newItem, currentStock: parseInt(e.target.value) || 0 })}
+                        placeholder="0"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="minStockLevel" className="text-sm font-medium">Min Stock Level *</label>
+                      <Input
+                        id="minStockLevel"
+                        type="number"
+                        min="0"
+                        value={newItem.minStockLevel}
+                        onChange={(e) => setNewItem({ ...newItem, minStockLevel: parseInt(e.target.value) || 0 })}
+                        placeholder="5"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="unitPrice" className="text-sm font-medium">Unit Price ($) *</label>
+                      <Input
+                        id="unitPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={newItem.unitPrice}
+                        onChange={(e) => setNewItem({ ...newItem, unitPrice: parseFloat(e.target.value) || 0 })}
+                        placeholder="0.00"
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label htmlFor="location" className="text-sm font-medium">Storage Location</label>
+                      <Input
+                        id="location"
+                        value={newItem.location}
+                        onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
+                        placeholder="e.g., Lab Room A, Shelf 3"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="supplier" className="text-sm font-medium">Supplier</label>
+                      <Input
+                        id="supplier"
+                        value={newItem.supplier}
+                        onChange={(e) => setNewItem({ ...newItem, supplier: e.target.value })}
+                        placeholder="Supplier name"
+                        className="border-2"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="unit" className="text-sm font-medium">Unit</label>
+                      <Input
+                        id="unit"
+                        value={newItem.unit}
+                        onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
+                        placeholder="pcs, kg, L, etc."
+                        className="border-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={handleAddItem} className="bg-blue-600 hover:bg-blue-700">Add Item</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Dialog open={isMoreFiltersOpen} onOpenChange={setIsMoreFiltersOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                More Filters
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Advanced Filters</DialogTitle>
-                <DialogDescription>
-                  Apply additional filters to narrow down your inventory items.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Supplier</label>
-                  <Select
-                    value={advancedFilters.supplier}
-                    onValueChange={(value) => setAdvancedFilters({ ...advancedFilters, supplier: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select supplier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers.map(supplier => (
-                        <SelectItem key={supplier} value={supplier}>
-                          {supplier === "all" ? "All Suppliers" : supplier}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Min Price ($)</label>
-                    <Input
-                      type="number"
-                      placeholder="Min price"
-                      value={advancedFilters.minPrice}
-                      onChange={(e) => setAdvancedFilters({ ...advancedFilters, minPrice: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Max Price ($)</label>
-                    <Input
-                      type="number"
-                      placeholder="Max price"
-                      value={advancedFilters.maxPrice}
-                      onChange={(e) => setAdvancedFilters({ ...advancedFilters, maxPrice: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Last Restocked</label>
-                  <Select
-                    value={advancedFilters.lastRestocked}
-                    onValueChange={(value) => setAdvancedFilters({ ...advancedFilters, lastRestocked: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select time period" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Any Time</SelectItem>
-                      <SelectItem value="7days">Last 7 Days</SelectItem>
-                      <SelectItem value="30days">Last 30 Days</SelectItem>
-                      <SelectItem value="90days">Last 90 Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setAdvancedFilters({
-                  supplier: "all",
-                  minPrice: "",
-                  maxPrice: "",
-                  lastRestocked: "all"
-                })}>Reset</Button>
-                <Button onClick={() => setIsMoreFiltersOpen(false)}>Apply Filters</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={isScanDialogOpen} onOpenChange={setIsScanDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Scan className="h-4 w-4 mr-2" />
-                Scan
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Scan Barcode</DialogTitle>
-                <DialogDescription>
-                  Scan a barcode to find an item in inventory.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
-                  <Scan className="h-12 w-12 mb-4 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground text-center">
-                    Position the barcode in front of your camera
-                  </p>
-                </div>
-                <Input placeholder="Or enter barcode manually..." />
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsScanDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleScan}>Scan</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Button variant="outline" size="sm">
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Item
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add New Inventory Item</DialogTitle>
-                <DialogDescription>
-                  Enter the details for the new inventory item.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">Name</label>
-                    <Input
-                      id="name"
-                      value={newItem.name}
-                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Item name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="category" className="text-sm font-medium">Category</label>
-                    <Input
-                      id="category"
-                      value={newItem.category}
-                      onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                      placeholder="Category"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="currentStock" className="text-sm font-medium">Current Stock</label>
-                    <Input
-                      id="currentStock"
-                      type="number"
-                      value={newItem.currentStock}
-                      onChange={(e) => setNewItem({ ...newItem, currentStock: parseInt(e.target.value) })}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="minStockLevel" className="text-sm font-medium">Min Stock Level</label>
-                    <Input
-                      id="minStockLevel"
-                      type="number"
-                      value={newItem.minStockLevel}
-                      onChange={(e) => setNewItem({ ...newItem, minStockLevel: parseInt(e.target.value) })}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="unitPrice" className="text-sm font-medium">Unit Price ($)</label>
-                    <Input
-                      id="unitPrice"
-                      type="number"
-                      value={newItem.unitPrice}
-                      onChange={(e) => setNewItem({ ...newItem, unitPrice: parseFloat(e.target.value) })}
-                      placeholder="0.00"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="location" className="text-sm font-medium">Location</label>
-                    <Input
-                      id="location"
-                      value={newItem.location}
-                      onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                      placeholder="Storage location"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="supplier" className="text-sm font-medium">Supplier</label>
-                    <Input
-                      id="supplier"
-                      value={newItem.supplier}
-                      onChange={(e) => setNewItem({ ...newItem, supplier: e.target.value })}
-                      placeholder="Supplier name"
-                    />
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleAddItem}>Add Item</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+        {/* Quick Stats */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-100">
+            <div className="text-sm font-medium text-blue-600">Total Items</div>
+            <div className="text-2xl font-bold">{sortedItems.length}</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-amber-100">
+            <div className="text-sm font-medium text-amber-600">Low Stock</div>
+            <div className="text-2xl font-bold">{sortedItems.filter(item => item.isLowStock).length}</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-green-100">
+            <div className="text-sm font-medium text-green-600">In Stock</div>
+            <div className="text-2xl font-bold">{sortedItems.filter(item => !item.isLowStock).length}</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-100">
+            <div className="text-sm font-medium text-purple-600">Value</div>
+            <div className="text-2xl font-bold">${sortedItems.reduce((total, item) => total + (item.currentStock * item.unitPrice), 0).toLocaleString()}</div>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40px]">
-                <Checkbox
-                  checked={selectedItems.length === sortedItems.length && sortedItems.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                  aria-label="Select all"
-                />
-              </TableHead>
-              <TableHead className="w-[100px]">
-                <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent" onClick={() => requestSort("id")}>
-                    <span>ID</span>
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </TableHead>
-              <TableHead className="min-w-[150px]">
-                <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent" onClick={() => requestSort("name")}>
-                    <span>Name</span>
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>
-                <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent" onClick={() => requestSort("currentStock")}>
-                    <span>Stock</span>
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </TableHead>
-              <TableHead>
-                <div className="flex items-center space-x-1">
-                  <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent" onClick={() => requestSort("unitPrice")}>
-                    <span>Price</span>
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedItems.length > 0 ? (
-              sortedItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedItems.includes(item.id)}
-                      onCheckedChange={() => toggleItemSelection(item.id)}
-                      aria-label={`Select ${item.name}`}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{item?.id || 'N/A'}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{item?.name || 'Unknown Item'}</div>
-                      <div className="text-xs text-muted-foreground">SKU: {item?.sku || 'N/A'}</div>
+      {/* Enhanced Inventory Table */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <Table className="min-w-[1000px]">
+            <TableHeader className="bg-gray-50 dark:bg-gray-800">
+              <TableRow className="border-b-2 border-gray-200 dark:border-gray-700">
+                <TableHead className="w-[50px] py-4">
+                  <Checkbox
+                    checked={selectedItems.length === sortedItems.length && sortedItems.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all"
+                    className="border-2"
+                  />
+                </TableHead>
+                <TableHead className="w-[120px] py-4">
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("id")}>
+                      <span>Item ID</span>
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableHead>
+                <TableHead className="min-w-[200px] py-4">
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("name")}>
+                      <span>Item Details</span>
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableHead>
+                <TableHead className="py-4">
+                  <span className="font-semibold">Category</span>
+                </TableHead>
+                <TableHead className="py-4">
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("currentStock")}>
+                      <span>Stock Level</span>
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableHead>
+                <TableHead className="py-4">
+                  <div className="flex items-center space-x-1">
+                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("unitPrice")}>
+                      <span>Unit Price</span>
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableHead>
+                <TableHead className="py-4">
+                  <span className="font-semibold">Location & Supplier</span>
+                </TableHead>
+                <TableHead className="py-4">
+                  <span className="font-semibold">Status</span>
+                </TableHead>
+                <TableHead className="text-right py-4">
+                  <span className="font-semibold">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sortedItems.length > 0 ? (
+                sortedItems.map((item, index) => (
+                  <TableRow key={item.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
+                    <TableCell className="py-4">
+                      <Checkbox
+                        checked={selectedItems.includes(item.id)}
+                        onCheckedChange={() => toggleItemSelection(item.id)}
+                        aria-label={`Select ${item.name}`}
+                        className="border-2"
+                      />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm py-4">
+                      <div className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md inline-block">
+                        {item?.id || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="space-y-1">
+                        <div className="font-semibold text-gray-900 dark:text-gray-100">{item?.name || 'Unknown Item'}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">SKU: {item?.sku || 'N/A'}</span>
+                          {item?.barcode && (
+                            <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded flex items-center gap-1">
+                              <Scan className="h-3 w-3" />
+                              {item.barcode.slice(-6)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                        {item?.category || 'Uncategorized'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-lg">{item?.currentStock || 0}</span>
+                          <span className="text-sm text-muted-foreground">{item?.unit || 'units'}</span>
+                          {item?.isLowStock && (
+                            <AlertCircle className="h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${item?.isLowStock ? 'bg-red-500' :
+                              (item?.currentStock || 0) > (item?.minStockLevel || 0) * 2 ? 'bg-green-500' : 'bg-yellow-500'
+                              }`}
+                            style={{
+                              width: `${Math.min(100, ((item?.currentStock || 0) / Math.max((item?.minStockLevel || 0) * 3, 1)) * 100)}%`
+                            }}
+                          ></div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Min: {item?.minStockLevel || 0} {item?.unit || 'units'}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="text-right">
+                        <div className="font-semibold text-lg text-green-600 dark:text-green-400">
+                          ${(item?.unitPrice || 0).toFixed(2)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Total: ${((item?.currentStock || 0) * (item?.unitPrice || 0)).toFixed(2)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 text-sm">
+                          <MapPin className="h-3 w-3 text-blue-500" />
+                          <span className="font-medium">{item?.location || 'Unknown'}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Users className="h-3 w-3" />
+                          <span>{item?.supplier || 'No supplier'}</span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="space-y-2">
+                        <Badge
+                          variant={item.isLowStock ? "destructive" : "default"}
+                          className={`${item.isLowStock
+                            ? "bg-red-100 text-red-800 border-red-200 hover:bg-red-200"
+                            : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+                            } font-medium`}
+                        >
+                          {item.isLowStock ? (
+                            <><AlertTriangle className="h-3 w-3 mr-1" />Low Stock</>
+                          ) : (
+                            <><Check className="h-3 w-3 mr-1" />In Stock</>
+                          )}
+                        </Badge>
+                        {item?.lastRestocked && (
+                          <div className="text-xs text-muted-foreground">
+                            Last: {format(parseISO(item.lastRestocked), 'MMM dd')}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right py-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuLabel className="font-semibold">Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => openEditDialog(item)} className="cursor-pointer">
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit Item</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openStockUpdateDialog(item)} className="cursor-pointer">
+                            <Package className="mr-2 h-4 w-4" />
+                            <span>Update Stock</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteItem(item.id)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete Item</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={9} className="h-32 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3 text-muted-foreground">
+                      <Package className="h-12 w-12 text-gray-300" />
+                      <div>
+                        <p className="text-lg font-medium">No inventory items found</p>
+                        <p className="text-sm">Add some items to get started or adjust your filters</p>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{item?.category || 'Uncategorized'}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <span className="mr-2">{item?.currentStock || 0} {item?.unit || 'units'}</span>
-                      {item?.isLowStock && (
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>${(item?.unitPrice || 0).toFixed(2)}</TableCell>
-                  <TableCell>{item?.location || 'Unknown'}</TableCell>
-                  <TableCell>
-                    <Badge variant={item.isLowStock ? "outline" : "secondary"} className={item.isLowStock ? "text-amber-500 border-amber-200 bg-amber-50" : ""}>
-                      {item.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => openEditDialog(item)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openStockUpdateDialog(item)}>
-                          <Package className="mr-2 h-4 w-4" />
-                          <span>Update Stock</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center">
-                  No items found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
+      {/* Enhanced Bulk Actions */}
       {selectedItems.length > 0 && (
-        <div className="flex items-center justify-between bg-muted p-2 rounded-md">
-          <div className="text-sm">
-            {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm" onClick={handleBulkUpdateStock}>
-              <Package className="h-4 w-4 mr-2" />
-              Update Stock
-            </Button>
-            <Button variant="outline" size="sm" className="text-destructive" onClick={handleDeleteSelected}>
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete Selected
-            </Button>
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border border-blue-200 dark:border-blue-700 rounded-xl p-4 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-500 text-white rounded-full h-8 w-8 flex items-center justify-center text-sm font-bold">
+                {selectedItems.length}
+              </div>
+              <div>
+                <div className="font-semibold text-blue-900 dark:text-blue-100">
+                  {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-300">
+                  {selectedItems.map(id => {
+                    const item = inventoryItems.find(item => item.id === id);
+                    return item?.name;
+                  }).filter(Boolean).slice(0, 3).join(', ')}
+                  {selectedItems.length > 3 && ` and ${selectedItems.length - 3} more`}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleBulkUpdateStock}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Bulk Update Stock
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-orange-200 text-orange-700 hover:bg-orange-50"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Selected
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-red-200 text-red-700 hover:bg-red-50"
+                onClick={handleDeleteSelected}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Selected
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedItems([])}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Clear Selection
+              </Button>
+            </div>
           </div>
         </div>
       )}
