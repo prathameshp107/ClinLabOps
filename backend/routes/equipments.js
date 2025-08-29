@@ -23,4 +23,10 @@ router.delete('/:id', auth.protect, equipmentController.deleteEquipment);
 // Upload a file to equipment
 router.post('/:id/files', auth.protect, upload.single('file'), equipmentController.uploadEquipmentFile);
 
+// Get maintenance history for equipment
+router.get('/:id/maintenance-history', auth.protect, equipmentController.getMaintenanceHistory);
+
+// Add maintenance record to equipment
+router.post('/:id/maintenance-history', auth.protect, equipmentController.addMaintenanceRecord);
+
 module.exports = router; 

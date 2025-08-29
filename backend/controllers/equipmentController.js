@@ -83,4 +83,67 @@ exports.uploadEquipmentFile = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+// Get maintenance history for equipment
+exports.getMaintenanceHistory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const equipment = await Equipment.findOne({ id });
+    if (!equipment) {
+      return res.status(404).json({ error: 'Equipment not found' });
+    }
+    
+    // Sort maintenance history by date (most recent first)
+    const sortedHistory = equipment.maintenanceHistory.sort((a, b) => 
+      new Date(b.performedDate) - new Date(a.performedDate)
+    );
+    
+    res.json(sortedHistory);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Add maintenance record to equipment
+exports.addMaintenanceRecord = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const equipment = await Equipment.findOne({ id });
+    if (!equipment) {
+      return res.status(404).json({ error: 'Equipment not found' });
+    }
+    
+    // Generate a unique ID for the maintenance record
+    const recordId = `MR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const maintenanceRecord = {
+      id: recordId,
+      type: req.body.type || 'maintenance',
+      description: req.body.description,
+      performedBy: req.body.performedBy,
+      performedDate: req.body.performedDate || new Date(),
+      cost: req.body.cost || 0,
+      notes: req.body.notes || '',
+      nextDueDate: req.body.nextDueDate,
+      status: req.body.status || 'completed',
+      partsReplaced: req.body.partsReplaced || [],
+      downtime: req.body.downtime || 0,
+    };
+    
+    equipment.maintenanceHistory.push(maintenanceRecord);
+    
+    // Update last maintenance date if this is a completed maintenance
+    if (maintenanceRecord.status === 'completed') {
+      equipment.lastMaintenanceDate = maintenanceRecord.performedDate;
+      if (maintenanceRecord.nextDueDate) {
+        equipment.nextMaintenanceDate = maintenanceRecord.nextDueDate;
+      }
+    }
+    
+    await equipment.save();
+    res.status(201).json(maintenanceRecord);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }; 

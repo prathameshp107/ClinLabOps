@@ -7,6 +7,21 @@ const FileSchema = new mongoose.Schema({
   uploadedAt: String,
 });
 
+const MaintenanceRecordSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  type: { type: String, required: true }, // 'preventive', 'corrective', 'calibration', etc.
+  description: { type: String, required: true },
+  performedBy: { type: String, required: true },
+  performedDate: { type: Date, required: true },
+  cost: { type: Number, default: 0 },
+  notes: String,
+  nextDueDate: Date,
+  status: { type: String, enum: ['completed', 'scheduled', 'overdue'], default: 'completed' },
+  partsReplaced: [String],
+  downtime: Number, // in hours
+  createdAt: { type: Date, default: Date.now }
+});
+
 const EquipmentSchema = new mongoose.Schema({
   id: { type: String, unique: true },
   name: { type: String, required: true },
@@ -22,6 +37,7 @@ const EquipmentSchema = new mongoose.Schema({
   assignedTo: String,
   notes: String,
   files: [FileSchema],
+  maintenanceHistory: [MaintenanceRecordSchema],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Equipment', EquipmentSchema); 

@@ -6,6 +6,7 @@ import { EquipmentList } from "@/components/equipment-management/equipment-list"
 import { EquipmentFormDialog } from "@/components/equipment-management/equipment-form-dialog"
 import { EquipmentDetailDialog } from "@/components/equipment-management/equipment-detail-dialog"
 import { DataTable } from "@/components/tasks-v2/data-table"
+import { EquipmentDataTableToolbar } from "@/components/equipment-management/equipment-data-table-toolbar"
 import { createEquipmentColumns } from "@/components/equipment-management/equipment-columns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -507,6 +508,7 @@ export default function EquipmentsPage() {
                       columns={columns}
                       data={sortedEquipment}
                       onRowClick={handleViewEquipment}
+                      Toolbar={EquipmentDataTableToolbar}
                     />
                   </motion.div>
                 )}
