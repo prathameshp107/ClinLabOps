@@ -12,31 +12,39 @@ import { toast } from "@/components/ui/use-toast"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
-import { getEnquiries } from "@/services/enquiryService"
+import EditEnquiryDialog from "@/components/enquiries/EditEnquiryDialog"
+import { getEnquiries, enquiryService } from "@/services/enquiryService"
 
 function EnquiriesPage() {
   const router = useRouter()
   const [enquiries, setEnquiries] = useState([])
   const [selectedEnquiry, setSelectedEnquiry] = useState(null)
   const [showQuickView, setShowQuickView] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [editingEnquiry, setEditingEnquiry] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showNewEnquiry, setShowNewEnquiry] = useState(false)
 
   // Fetch enquiries from API
-  useEffect(() => {
-    const fetchEnquiries = async () => {
-      try {
-        setIsLoading(true)
-        const enquiriesData = await getEnquiries()
-        setEnquiries(Array.isArray(enquiriesData) ? enquiriesData : [])
-      } catch (error) {
-        console.error('Failed to fetch enquiries:', error)
-        setEnquiries([])
-      } finally {
-        setIsLoading(false)
-      }
+  const fetchEnquiries = async () => {
+    try {
+      setIsLoading(true)
+      const enquiriesData = await getEnquiries()
+      setEnquiries(Array.isArray(enquiriesData) ? enquiriesData : [])
+    } catch (error) {
+      console.error('Failed to fetch enquiries:', error)
+      setEnquiries([])
+      toast({
+        title: "Error",
+        description: "Failed to load enquiries. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchEnquiries()
   }, [])
 
@@ -48,7 +56,8 @@ function EnquiriesPage() {
         setShowQuickView(true)
         break
       case "edit":
-        router.push(`/enquiries/${enquiry.id}/edit`)
+        setEditingEnquiry(enquiry)
+        setShowEditDialog(true)
         break
       case "message":
         toast({
@@ -63,12 +72,8 @@ function EnquiriesPage() {
         })
         break
       case "delete":
-        if (confirm(`Are you sure you want to delete enquiry ${enquiry.id}?`)) {
-          setEnquiries(prev => prev.filter(e => e.id !== enquiry.id))
-          toast({
-            title: "Enquiry deleted",
-            description: `Enquiry ${enquiry.id} has been deleted`,
-          })
+        if (confirm(`Are you sure you want to delete enquiry for ${enquiry.customerName}?`)) {
+          handleDeleteEnquiry(enquiry._id || enquiry.id)
         }
         break
       default:
@@ -80,6 +85,55 @@ function EnquiriesPage() {
   const handleRowClick = (enquiry) => {
     setSelectedEnquiry(enquiry)
     setShowQuickView(true)
+  }
+
+  // Handle edit enquiry
+  const handleEditEnquiry = (enquiry) => {
+    setEditingEnquiry(enquiry)
+    setShowEditDialog(true)
+  }
+
+  // Handle edit enquiry success
+  const handleEditEnquirySuccess = (updatedEnquiry) => {
+    if (updatedEnquiry) {
+      setEnquiries(prev => prev.map(e =>
+        (e._id || e.id) === (updatedEnquiry._id || updatedEnquiry.id) ? updatedEnquiry : e
+      ))
+    }
+    fetchEnquiries() // Refresh the list to get the latest data
+    setShowEditDialog(false)
+    setEditingEnquiry(null)
+  }
+
+  // Handle delete enquiry
+  const handleDeleteEnquiry = async (id) => {
+    try {
+      const success = await enquiryService.delete(id)
+      if (success) {
+        setEnquiries(prev => prev.filter(e => (e._id || e.id) !== id))
+        toast({
+          title: "Enquiry deleted",
+          description: "Enquiry has been deleted successfully",
+        })
+      } else {
+        throw new Error('Delete operation failed')
+      }
+    } catch (error) {
+      console.error('Error deleting enquiry:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete enquiry. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Handle new enquiry success
+  const handleNewEnquirySuccess = (newEnquiry) => {
+    if (newEnquiry) {
+      setEnquiries(prev => [newEnquiry, ...prev])
+    }
+    fetchEnquiries() // Refresh the list to get the latest data
   }
 
   // Handle add new enquiry (open modal)
@@ -137,6 +191,7 @@ function EnquiriesPage() {
     <EnquiryToolbar
       table={table}
       onExport={handleExport}
+      onNewEnquirySuccess={handleNewEnquirySuccess}
     />
   )
 
@@ -187,9 +242,18 @@ function EnquiriesPage() {
                 setShowQuickView(false)
                 setSelectedEnquiry(null)
               }}
+              onEdit={handleEditEnquiry}
             />
           )}
         </AnimatePresence>
+
+        {/* Edit Enquiry Dialog */}
+        <EditEnquiryDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          enquiry={editingEnquiry}
+          onSuccess={handleEditEnquirySuccess}
+        />
       </div>
     </DashboardLayout>
   )

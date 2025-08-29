@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"
-import { ArrowLeft, Upload, Send, User, Building, Mail, Phone } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Save, User, Building, Mail, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { toast } from "sonner"
+import { toast } from "@/components/ui/use-toast"
 import { getUsers } from "@/services/userService"
 import { enquiryService } from "@/services/enquiryService"
 
-export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
+export default function EditEnquiryDialog({ open, onOpenChange, enquiry, onSuccess }) {
     // Form state
     const [customerName, setCustomerName] = useState("");
     const [companyName, setCompanyName] = useState("");
@@ -23,10 +21,27 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
     const [subject, setSubject] = useState("");
     const [details, setDetails] = useState("");
     const [priority, setPriority] = useState("");
+    const [status, setStatus] = useState("");
     const [assignedTo, setAssignedTo] = useState("");
-    const [sendConfirmation, setSendConfirmation] = useState(true);
-    const [submitStatus, setSubmitStatus] = useState(null);
+    const [sendNotification, setSendNotification] = useState(false);
+    const [updateStatus, setUpdateStatus] = useState(null);
     const [teamMembers, setTeamMembers] = useState([]);
+
+    // Populate form when enquiry prop changes
+    useEffect(() => {
+        if (enquiry) {
+            setCustomerName(enquiry.customerName || "");
+            setCompanyName(enquiry.companyName || "");
+            setEmail(enquiry.email || "");
+            setPhone(enquiry.phone || "");
+            setSubject(enquiry.subject || "");
+            setDetails(enquiry.details || "");
+            setPriority(enquiry.priority || "");
+            setStatus(enquiry.status || "");
+            setAssignedTo(enquiry.assignedTo || "");
+            setSendNotification(false);
+        }
+    }, [enquiry]);
 
     // Fetch team members when component mounts
     useEffect(() => {
@@ -52,7 +67,7 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!customerName || !email || !subject || !details || !priority || !assignedTo) {
+        if (!customerName || !email || !subject || !details || !priority || !status || !assignedTo) {
             toast({
                 title: "Missing Information",
                 description: "Please fill in all required fields.",
@@ -61,10 +76,10 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
             return;
         }
 
-        setSubmitStatus("loading");
+        setUpdateStatus("loading");
 
         try {
-            const enquiryData = {
+            const updatedData = {
                 customerName,
                 companyName,
                 email,
@@ -72,51 +87,44 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
                 subject,
                 details,
                 priority,
+                status,
                 assignedTo,
-                status: 'Pending'
+                updatedAt: new Date().toISOString()
             };
 
-            const newEnquiry = await enquiryService.create(enquiryData);
+            const updatedEnquiry = await enquiryService.update(enquiry._id || enquiry.id, updatedData);
 
-            setSubmitStatus("success");
+            setUpdateStatus("success");
             toast({
-                title: "Enquiry Created",
-                description: "New enquiry has been created successfully.",
+                title: "Enquiry Updated",
+                description: "Enquiry has been updated successfully.",
             });
 
-            if (onSuccess) onSuccess(newEnquiry);
+            if (onSuccess) onSuccess(updatedEnquiry);
 
             setTimeout(() => {
                 onOpenChange(false);
-                // Reset form
-                setCustomerName("");
-                setCompanyName("");
-                setEmail("");
-                setPhone("");
-                setSubject("");
-                setDetails("");
-                setPriority("");
-                setAssignedTo("");
-                setSendConfirmation(true);
-                setSubmitStatus(null);
+                setUpdateStatus(null);
             }, 1000);
         } catch (error) {
-            console.error('Error creating enquiry:', error);
-            setSubmitStatus(null);
+            console.error('Error updating enquiry:', error);
+            setUpdateStatus(null);
             toast({
                 title: "Error",
-                description: "Failed to create enquiry. Please try again.",
+                description: "Failed to update enquiry. Please try again.",
                 variant: "destructive",
             });
         }
     };
+
+    if (!enquiry) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl w-full p-0 overflow-hidden">
                 <form onSubmit={handleSubmit} className="space-y-6 p-6">
                     <DialogHeader>
-                        <DialogTitle>Create New Enquiry</DialogTitle>
+                        <DialogTitle>Edit Enquiry - {enquiry.subject}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <h3 className="text-lg font-medium">Customer Information</h3>
@@ -162,7 +170,7 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
                             <Label htmlFor="details">Details <span className="text-red-500">*</span></Label>
                             <Textarea id="details" placeholder="Enter detailed description of the enquiry" className="min-h-[100px]" value={details} onChange={(e) => setDetails(e.target.value)} required />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="priority">Priority <span className="text-red-500">*</span></Label>
                                 <Select value={priority} onValueChange={setPriority} required>
@@ -173,6 +181,21 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
                                         <SelectItem value="High">High</SelectItem>
                                         <SelectItem value="Medium">Medium</SelectItem>
                                         <SelectItem value="Low">Low</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
+                                <Select value={status} onValueChange={setStatus} required>
+                                    <SelectTrigger id="status">
+                                        <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Pending">Pending</SelectItem>
+                                        <SelectItem value="In Progress">In Progress</SelectItem>
+                                        <SelectItem value="Completed">Completed</SelectItem>
+                                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                        <SelectItem value="On Hold">On Hold</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -196,27 +219,27 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
                     <Separator />
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                            <Label htmlFor="sendConfirmation">Send Confirmation Email</Label>
+                            <Label htmlFor="sendNotification">Send Update Notification</Label>
                             <p className="text-sm text-muted-foreground">
-                                Notify the customer that their enquiry has been received
+                                Notify the customer about the changes made to their enquiry
                             </p>
                         </div>
-                        <Switch id="sendConfirmation" checked={sendConfirmation} onCheckedChange={setSendConfirmation} />
+                        <Switch id="sendNotification" checked={sendNotification} onCheckedChange={setSendNotification} />
                     </div>
                     <div className="flex justify-end space-x-2 pt-4">
                         <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={submitStatus === "loading"} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                            {submitStatus === "loading" ? (
+                        <Button type="submit" disabled={updateStatus === "loading"} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                            {updateStatus === "loading" ? (
                                 <>
                                     <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                                    Creating...
+                                    Updating...
                                 </>
                             ) : (
                                 <>
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Create Enquiry
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save Changes
                                 </>
                             )}
                         </Button>

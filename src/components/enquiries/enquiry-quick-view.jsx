@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { format, parseISO } from "date-fns"
-import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -26,7 +25,6 @@ import {
   AlertCircle,
   User,
   Mail,
-  Eye,
   Pencil,
   Phone,
   Building,
@@ -35,8 +33,7 @@ import {
   X
 } from "lucide-react"
 
-export function EnquiryQuickView({ enquiry, onClose }) {
-  const router = useRouter();
+export function EnquiryQuickView({ enquiry, onClose, onEdit }) {
   const [activeTab, setActiveTab] = useState("details");
   if (!enquiry) return null;
 
@@ -86,14 +83,8 @@ export function EnquiryQuickView({ enquiry, onClose }) {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => {
-              onClose();
-              router.push(`/enquiries/${enquiry.id}`);
-            }}>
-              <Eye className="h-4 w-4 mr-1" /> View Full
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => {
-              onClose();
-              router.push(`/enquiries/${enquiry.id}/edit`);
+              onClose(); // Close the quick view first
+              if (onEdit) onEdit(enquiry);
             }}>
               <Pencil className="h-4 w-4 mr-1" /> Edit
             </Button>
