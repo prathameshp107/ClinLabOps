@@ -35,9 +35,12 @@ export function ProtocolDetailDialog({
   protocol,
   onEdit
 }) {
+  // All hooks must be called before any conditional returns
   const [activeTab, setActiveTab] = useState("overview")
-
-  if (!protocol) return null
+  const [auditTrail, setAuditTrail] = useState([])
+  const [comments, setComments] = useState([])
+  const [isLoadingAudit, setIsLoadingAudit] = useState(false)
+  const [isLoadingComments, setIsLoadingComments] = useState(false)
 
   // Status badge variants
   const getStatusVariant = (status) => {
@@ -64,32 +67,46 @@ export function ProtocolDetailDialog({
     }
   }
 
-  const [auditTrail, setAuditTrail] = useState([])
-  const [comments, setComments] = useState([])
-  const [isLoadingAudit, setIsLoadingAudit] = useState(false)
-  const [isLoadingComments, setIsLoadingComments] = useState(false)
-
   // Fetch audit trail and comments when dialog opens
   useEffect(() => {
     if (open && protocol?._id) {
+      // For now, just set empty arrays since the backend endpoints may not be implemented yet
+      // TODO: Enable when audit trail and comments endpoints are available
+      setAuditTrail([])
+      setComments([])
+      setIsLoadingAudit(false)
+      setIsLoadingComments(false)
+
+      /* 
+      // Uncomment this when the backend endpoints are ready
       const fetchData = async () => {
+        // Try to fetch audit trail, but don't fail if endpoint doesn't exist
         try {
           setIsLoadingAudit(true)
           const auditData = await getProtocolAuditTrail(protocol._id)
           setAuditTrail(auditData || [])
         } catch (error) {
-          console.error('Failed to fetch audit trail:', error)
+          // Silently handle 404 errors for audit trail (endpoint may not be implemented)
+          const is404 = error?.response?.status === 404 || error?.status === 404 || error?.code === 404
+          if (!is404) {
+            console.error('Failed to fetch audit trail:', error)
+          }
           setAuditTrail([])
         } finally {
           setIsLoadingAudit(false)
         }
 
+        // Try to fetch comments, but don't fail if endpoint doesn't exist
         try {
           setIsLoadingComments(true)
           const commentsData = await getProtocolComments(protocol._id)
           setComments(commentsData || [])
         } catch (error) {
-          console.error('Failed to fetch comments:', error)
+          // Silently handle 404 errors for comments (endpoint may not be implemented)
+          const is404 = error?.response?.status === 404 || error?.status === 404 || error?.code === 404
+          if (!is404) {
+            console.error('Failed to fetch comments:', error)
+          }
           setComments([])
         } finally {
           setIsLoadingComments(false)
@@ -97,8 +114,12 @@ export function ProtocolDetailDialog({
       }
 
       fetchData()
+      */
     }
   }, [open, protocol?._id])
+
+  // Early return after all hooks are defined
+  if (!protocol) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -291,58 +312,82 @@ export function ProtocolDetailDialog({
               <div>
                 <h3 className="text-lg font-medium mb-2">Audit Trail</h3>
                 <div className="space-y-3">
-                  {auditTrail.map((entry, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start border-l-2 border-primary/30 pl-4 py-1"
-                    >
-                      <div className="bg-muted/50 p-1.5 rounded-full mr-3">
-                        <History className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{entry.action}</p>
-                        <p className="text-xs text-muted-foreground">
-                          By {entry.user} on {formatDate(entry.date)}
-                        </p>
-                        {entry.details && (
-                          <p className="text-xs mt-1">{entry.details}</p>
-                        )}
-                      </div>
+                  {isLoadingAudit ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                      Loading audit trail...
                     </div>
-                  ))}
+                  ) : auditTrail.length > 0 ? (
+                    auditTrail.map((entry, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start border-l-2 border-primary/30 pl-4 py-1"
+                      >
+                        <div className="bg-muted/50 p-1.5 rounded-full mr-3">
+                          <History className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{entry.action}</p>
+                          <p className="text-xs text-muted-foreground">
+                            By {entry.user} on {formatDate(entry.date)}
+                          </p>
+                          {entry.details && (
+                            <p className="text-xs mt-1">{entry.details}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <History className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>No audit trail available for this protocol.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div>
                 <h3 className="text-lg font-medium mb-2">Comments</h3>
                 <div className="space-y-3">
-                  {comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="bg-muted/30 rounded-lg p-3 text-sm"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-medium mr-2">
-                            {comment.user.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="font-medium">{comment.user}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(comment.date)}
-                            </p>
-                          </div>
-                        </div>
-                        {comment.resolved && (
-                          <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3" />
-                            Resolved
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="ml-10">{comment.content}</p>
+                  {isLoadingComments ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                      Loading comments...
                     </div>
-                  ))}
+                  ) : comments.length > 0 ? (
+                    comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="bg-muted/30 rounded-lg p-3 text-sm"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center">
+                            <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-medium mr-2">
+                              {comment.user.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-medium">{comment.user}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(comment.date)}
+                              </p>
+                            </div>
+                          </div>
+                          {comment.resolved && (
+                            <Badge className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1">
+                              <CheckCircle className="h-3 w-3" />
+                              Resolved
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="ml-10">{comment.content}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>No comments available for this protocol.</p>
+                    </div>
+                  )}
 
                   <div className="mt-4 flex items-center gap-2">
                     <Button variant="outline" className="w-full">

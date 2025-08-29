@@ -149,20 +149,26 @@ export function ProtocolFormDialog({
         description: data.description,
         category: data.category,
         version: data.version,
-        steps: data.steps, // Backend will handle string to array conversion
-        materials: data.materials, // Backend will handle string to array conversion
+        // Convert string to array of step objects
+        steps: data.steps ? data.steps.split('\n').filter(step => step.trim()).map((step, index) => ({
+          number: index + 1,
+          instructions: step.trim()
+        })) : [],
+        // Convert string to array of material strings
+        materials: data.materials ? data.materials.split('\n').filter(material => material.trim()) : [],
         safetyNotes: data.safetyNotes || '',
-        references: data.references, // Backend will handle string to array conversion
+        // Convert string to array of reference strings
+        references: data.references ? data.references.split('\n').filter(ref => ref.trim()) : [],
         status: data.status || 'Draft',
         isPublic: data.isPublic || false,
         tags: [], // Can be added to the form if needed
-        files: files.map(file => ({
+        files: files.length > 0 ? files.map(file => ({
           name: file.name,
           size: file.size,
           type: file.type,
           url: file.url,
           uploadedAt: file.uploadedAt || new Date().toISOString()
-        }))
+        })) : []
       };
 
       console.log('Submitting protocol data:', protocolData);

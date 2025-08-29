@@ -170,8 +170,8 @@ export default function ProtocolsPage() {
 
   // Handle viewing a protocol
   const handleViewProtocol = (protocol) => {
-    // Navigate to protocol detail page instead of using dialog
-    router.push(`/protocols/${protocol._id}`)
+    setSelectedProtocol(protocol)
+    setDetailDialogOpen(true)
   }
 
   // Handle duplicating a protocol
@@ -315,7 +315,8 @@ export default function ProtocolsPage() {
 
   // Handle success modal actions
   const handleViewCreatedProtocol = (protocol) => {
-    router.push(`/protocols/${protocol._id}`)
+    setSelectedProtocol(protocol)
+    setDetailDialogOpen(true)
   }
 
   const handleGoToMyProtocols = () => {
