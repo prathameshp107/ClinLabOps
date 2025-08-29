@@ -40,6 +40,22 @@ export async function getProtocols(params = {}) {
 }
 
 /**
+ * Fetch user's own protocols (both public and private)
+ * @param {Object} params - Query parameters (page, limit, category, search)
+ * @returns {Promise<Object>} Response with user's protocols data and pagination info
+ */
+export async function getMyProtocols(params = {}) {
+  try {
+    // Use the dedicated endpoint for user's own protocols
+    const response = await api.get('/protocols/my-protocols', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching my protocols:', error);
+    throw error.response?.data || error.message;
+  }
+}
+
+/**
  * Fetch a protocol by ID
  * @param {string} id - Protocol ID
  * @returns {Promise<Object>} Protocol object
@@ -61,10 +77,13 @@ export async function getProtocolById(id) {
  */
 export async function createProtocol(protocol) {
   try {
+    console.log('Creating protocol with data:', protocol);
     const response = await api.post('/protocols', protocol);
+    console.log('Protocol created successfully:', response.data);
     return response.data.data;
   } catch (error) {
     console.error('Error creating protocol:', error);
+    console.error('Error response:', error.response?.data);
     throw error.response?.data || error.message;
   }
 }
@@ -107,14 +126,8 @@ export async function deleteProtocol(id) {
  */
 export async function duplicateProtocol(id) {
   try {
-    const protocol = await getProtocolById(id);
-    const { _id, ...protocolData } = protocol;
-    const newProtocol = {
-      ...protocolData,
-      name: `${protocol.name} (Copy)`,
-      isPublic: false
-    };
-    return createProtocol(newProtocol);
+    const response = await api.post(`/protocols/${id}/duplicate`);
+    return response.data.data;
   } catch (error) {
     console.error(`Error duplicating protocol ${id}:`, error);
     throw error.response?.data || error.message;
@@ -128,7 +141,7 @@ export async function duplicateProtocol(id) {
  */
 export async function archiveProtocol(id) {
   try {
-    const response = await api.patch(`/protocols/${id}/archive`);
+    const response = await api.put(`/protocols/${id}/archive`);
     return response.data.data;
   } catch (error) {
     console.error(`Error archiving protocol ${id}:`, error);
@@ -143,7 +156,7 @@ export async function archiveProtocol(id) {
  */
 export async function restoreProtocol(id) {
   try {
-    const response = await api.patch(`/protocols/${id}/restore`);
+    const response = await api.put(`/protocols/${id}/restore`);
     return response.data.data;
   } catch (error) {
     console.error(`Error restoring protocol ${id}:`, error);

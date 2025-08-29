@@ -8,6 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 const createDefaultUser = async () => {
     try {
         const userCount = await User.countDocuments();
+        console.log('Current user count in database:', userCount);
         if (userCount === 0) {
             console.log('No users found, creating default admin user...');
             const hashedPassword = await bcrypt.hash('password123', 10);
@@ -20,7 +21,17 @@ const createDefaultUser = async () => {
                 status: 'Active'
             });
             await defaultUser.save();
-            console.log('Default admin user created: admin@labtasker.com / password123');
+            console.log('Default admin user created successfully:', defaultUser._id);
+            console.log('Email: admin@labtasker.com / Password: password123');
+        } else {
+            console.log('Users exist in database, skipping default user creation');
+            // Verify the admin user exists
+            const adminUser = await User.findOne({ email: 'admin@labtasker.com' });
+            if (adminUser) {
+                console.log('Admin user found with ID:', adminUser._id);
+            } else {
+                console.log('Warning: Admin user not found in database!');
+            }
         }
     } catch (error) {
         console.error('Error creating default user:', error);
@@ -45,10 +56,10 @@ exports.protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'Not authorized, user not found' });
             }
             console.log('User authenticated:', req.user.email);
-            next();
+            return next();
         } catch (error) {
             console.log('Token verification failed:', error.message);
-            res.status(401).json({ message: 'Not authorized, token failed' });
+            return res.status(401).json({ message: 'Not authorized, token failed' });
         }
     } else {
         console.log('No authorization header found, using default user for development');
@@ -57,14 +68,16 @@ exports.protect = async (req, res, next) => {
             const defaultUser = await User.findOne({ email: 'admin@labtasker.com' });
             if (defaultUser) {
                 req.user = defaultUser;
-                console.log('Using default user:', defaultUser.email);
+                console.log('Using default user:', defaultUser.email, 'ID:', defaultUser._id);
+                return next();
+            } else {
+                console.log('Default user not found, cannot proceed');
+                return res.status(401).json({ message: 'Not authorized, no authentication provided' });
             }
         } catch (error) {
             console.error('Error finding default user:', error);
+            return res.status(500).json({ message: 'Internal server error during authentication' });
         }
-        // In production, uncomment the line below
-        // return res.status(401).json({ message: 'Not authorized, no token' });
-        next();
     }
 };
 

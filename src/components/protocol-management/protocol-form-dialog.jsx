@@ -37,33 +37,30 @@ import { cn } from "@/lib/utils"
 
 // Define form schema with Zod
 const protocolFormSchema = z.object({
-  title: z.string().min(3, {
-    message: "Title must be at least 3 characters.",
+  name: z.string().min(3, {
+    message: "Protocol name must be at least 3 characters.",
   }),
-  id: z.string().optional(),
+  description: z.string().min(10, {
+    message: "Description must be at least 10 characters.",
+  }),
   category: z.string({
     required_error: "Please select a category.",
+  }).min(1, {
+    message: "Please select a category.",
   }),
   version: z.string().min(1, {
     message: "Version is required.",
   }),
-  author: z.string().min(3, {
-    message: "Author name must be at least 3 characters.",
-  }),
-  objectives: z.string().min(10, {
-    message: "Objectives must be at least 10 characters.",
+  steps: z.string().min(10, {
+    message: "Steps must be at least 10 characters.",
   }),
   materials: z.string().min(10, {
     message: "Materials must be at least 10 characters.",
   }),
-  procedure: z.string().min(10, {
-    message: "Procedure must be at least 10 characters.",
-  }),
-  outcomes: z.string().min(10, {
-    message: "Expected outcomes must be at least 10 characters.",
-  }),
+  safetyNotes: z.string().optional(),
   references: z.string().optional(),
   status: z.string().default("Draft"),
+  isPublic: z.boolean().default(false),
 });
 
 export function ProtocolFormDialog({
@@ -80,17 +77,16 @@ export function ProtocolFormDialog({
   const form = useForm({
     resolver: zodResolver(protocolFormSchema),
     defaultValues: {
-      title: "",
-      id: "",
+      name: "",
+      description: "",
       category: "",
       version: "1.0",
-      author: "",
-      objectives: "",
+      steps: "",
       materials: "",
-      procedure: "",
-      outcomes: "",
+      safetyNotes: "",
       references: "",
       status: "Draft",
+      isPublic: false,
     },
   });
 
@@ -98,33 +94,46 @@ export function ProtocolFormDialog({
   useEffect(() => {
     if (open) {
       if (mode === "edit" && protocol) {
+        // Map backend protocol data to frontend form fields
+        const stepsText = Array.isArray(protocol.steps)
+          ? protocol.steps.map(step => step.instructions || step.description || '').join('\n')
+          : (protocol.steps || '');
+
+        const materialsText = Array.isArray(protocol.materials)
+          ? protocol.materials.map(material =>
+            typeof material === 'string' ? material : material.name || ''
+          ).join('\n')
+          : (protocol.materials || '');
+
+        const referencesText = Array.isArray(protocol.references)
+          ? protocol.references.join('\n')
+          : (protocol.references || '');
+
         form.reset({
-          title: protocol.title || "",
-          id: protocol.id || "",
+          name: protocol.name || "",
+          description: protocol.description || "",
           category: protocol.category || "",
           version: protocol.version || "1.0",
-          author: protocol.author || "",
-          objectives: protocol.objectives || "",
-          materials: protocol.materials || "",
-          procedure: protocol.procedure || "",
-          outcomes: protocol.outcomes || "",
-          references: protocol.references || "",
+          steps: stepsText,
+          materials: materialsText,
+          safetyNotes: protocol.safetyNotes || "",
+          references: referencesText,
           status: protocol.status || "Draft",
+          isPublic: protocol.isPublic || false,
         });
         setFiles(protocol.files || []);
       } else {
         form.reset({
-          title: "",
-          id: `PROT-${Date.now()}`,
+          name: "",
+          description: "",
           category: "",
           version: "1.0",
-          author: "",
-          objectives: "",
+          steps: "",
           materials: "",
-          procedure: "",
-          outcomes: "",
+          safetyNotes: "",
           references: "",
           status: "Draft",
+          isPublic: false,
         });
         setFiles([]);
       }
@@ -136,20 +145,16 @@ export function ProtocolFormDialog({
     try {
       // Format the data to match the backend model
       const protocolData = {
-        name: data.title,
-        description: data.objectives,
+        name: data.name,
+        description: data.description,
         category: data.category,
         version: data.version,
-        steps: data.procedure.split('\n').filter(step => step.trim() !== '').map((step, index) => ({
-          stepNumber: index + 1,
-          description: step.trim(),
-          notes: ''
-        })),
-        materials: data.materials.split('\n').filter(item => item.trim() !== ''),
-        safetyNotes: data.outcomes,
-        references: data.references ? data.references.split('\n').filter(ref => ref.trim() !== '') : [],
+        steps: data.steps, // Backend will handle string to array conversion
+        materials: data.materials, // Backend will handle string to array conversion
+        safetyNotes: data.safetyNotes || '',
+        references: data.references, // Backend will handle string to array conversion
         status: data.status || 'Draft',
-        isPublic: false, // Default to private
+        isPublic: data.isPublic || false,
         tags: [], // Can be added to the form if needed
         files: files.map(file => ({
           name: file.name,
@@ -160,9 +165,11 @@ export function ProtocolFormDialog({
         }))
       };
 
+      console.log('Submitting protocol data:', protocolData);
+
       // Submit the protocol
       await onSubmit(protocolData);
-      
+
       // Close the dialog on successful submission
       onOpenChange(false);
     } catch (error) {
@@ -183,7 +190,7 @@ export function ProtocolFormDialog({
         uploadedAt: new Date().toISOString(),
         file // Keep the actual file object for upload
       }));
-      
+
       setFiles([...files, ...newFiles]);
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -263,40 +270,34 @@ export function ProtocolFormDialog({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <FormField
                       control={form.control}
-                      name="title"
+                      name="name"
                       render={({ field }) => (
                         <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
-                          <FormLabel className="text-sm font-medium">Protocol Title</FormLabel>
+                          <FormLabel className="text-sm font-medium">Protocol Name</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Enter protocol title" 
-                              {...field} 
+                            <Input
+                              placeholder="Enter protocol name"
+                              {...field}
                               className="mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
                             />
                           </FormControl>
-                          <FormMessage className="text-xs mt-1.5" />
                         </FormItem>
                       )}
                     />
 
                     <FormField
                       control={form.control}
-                      name="id"
+                      name="version"
                       render={({ field }) => (
                         <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
-                          <FormLabel className="text-sm font-medium">Protocol ID</FormLabel>
+                          <FormLabel className="text-sm font-medium">Version</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="Auto-generated" 
-                              {...field} 
-                              disabled 
-                              className="mt-1.5 bg-muted/50 border-border/40"
+                            <Input
+                              placeholder="e.g., 1.0"
+                              {...field}
+                              className="mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
                             />
                           </FormControl>
-                          <FormDescription className="text-xs mt-1.5">
-                            Automatically generated ID
-                          </FormDescription>
-                          <FormMessage className="text-xs mt-0.5" />
                         </FormItem>
                       )}
                     />
@@ -309,8 +310,8 @@ export function ProtocolFormDialog({
                       render={({ field }) => (
                         <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
                           <FormLabel className="text-sm font-medium">Category / Study Type</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                             value={field.value}
                           >
@@ -320,6 +321,10 @@ export function ProtocolFormDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="Molecular Biology">Molecular Biology</SelectItem>
+                              <SelectItem value="Cell Culture">Cell Culture</SelectItem>
+                              <SelectItem value="Protein">Protein</SelectItem>
+                              <SelectItem value="DNA/RNA">DNA/RNA</SelectItem>
                               <SelectItem value="Pharmacokinetics">Pharmacokinetics</SelectItem>
                               <SelectItem value="Toxicology">Toxicology</SelectItem>
                               <SelectItem value="Efficacy">Efficacy</SelectItem>
@@ -329,7 +334,6 @@ export function ProtocolFormDialog({
                               <SelectItem value="Other">Other</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage className="text-xs mt-1.5" />
                         </FormItem>
                       )}
                     />
@@ -341,35 +345,18 @@ export function ProtocolFormDialog({
                         <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
                           <FormLabel className="text-sm font-medium">Version Number</FormLabel>
                           <FormControl>
-                            <Input 
-                              placeholder="e.g., 1.0" 
-                              {...field} 
+                            <Input
+                              placeholder="e.g., 1.0"
+                              {...field}
                               className="mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
                             />
                           </FormControl>
-                          <FormMessage className="text-xs mt-1.5" />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <FormField
-                    control={form.control}
-                    name="author"
-                    render={({ field }) => (
-                      <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
-                        <FormLabel className="text-sm font-medium">Author / Team Members</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter author names" 
-                            {...field} 
-                            className="mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
-                          />
-                        </FormControl>
-                        <FormMessage className="text-xs mt-1.5" />
-                      </FormItem>
-                    )}
-                  />
+
 
                   <FormField
                     control={form.control}
@@ -377,8 +364,8 @@ export function ProtocolFormDialog({
                     render={({ field }) => (
                       <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
                         <FormLabel className="text-sm font-medium">Status</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           defaultValue={field.value}
                           value={field.value}
                         >
@@ -414,7 +401,6 @@ export function ProtocolFormDialog({
                             </SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage className="text-xs mt-1.5" />
                       </FormItem>
                     )}
                   />
@@ -423,18 +409,17 @@ export function ProtocolFormDialog({
                 <TabsContent value="details" className="space-y-5 mt-2">
                   <FormField
                     control={form.control}
-                    name="objectives"
+                    name="description"
                     render={({ field }) => (
                       <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
-                        <FormLabel className="text-sm font-medium">Objectives / Purpose</FormLabel>
+                        <FormLabel className="text-sm font-medium">Description / Purpose</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Describe the objectives of this protocol" 
+                          <Textarea
+                            placeholder="Describe the purpose and overview of this protocol"
                             className="min-h-[120px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
-                        <FormMessage className="text-xs mt-1.5" />
                       </FormItem>
                     )}
                   />
@@ -444,33 +429,34 @@ export function ProtocolFormDialog({
                     name="materials"
                     render={({ field }) => (
                       <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
-                        <FormLabel className="text-sm font-medium">Materials and Methods</FormLabel>
+                        <FormLabel className="text-sm font-medium">Materials and Equipment</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="List all required materials and methods" 
+                          <Textarea
+                            placeholder="List all required materials and equipment (one per line)"
                             className="min-h-[120px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
-                        <FormMessage className="text-xs mt-1.5" />
+                        <FormDescription className="text-xs mt-1.5">
+                          Enter each material on a separate line. Backend will format them properly.
+                        </FormDescription>
                       </FormItem>
                     )}
                   />
 
                   <FormField
                     control={form.control}
-                    name="outcomes"
+                    name="safetyNotes"
                     render={({ field }) => (
                       <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
-                        <FormLabel className="text-sm font-medium">Expected Outcomes</FormLabel>
+                        <FormLabel className="text-sm font-medium">Safety Notes</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Describe the expected outcomes" 
+                          <Textarea
+                            placeholder="Important safety considerations and precautions"
                             className="min-h-[120px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
-                        <FormMessage className="text-xs mt-1.5" />
                       </FormItem>
                     )}
                   />
@@ -479,21 +465,20 @@ export function ProtocolFormDialog({
                 <TabsContent value="procedure" className="space-y-5 mt-2">
                   <FormField
                     control={form.control}
-                    name="procedure"
+                    name="steps"
                     render={({ field }) => (
                       <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
                         <FormLabel className="text-sm font-medium">Step-by-Step Procedure</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Provide detailed step-by-step instructions" 
+                          <Textarea
+                            placeholder="Provide detailed step-by-step instructions (one step per line)"
                             className="min-h-[300px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormDescription className="text-xs mt-1.5">
-                          Describe each step in detail, including timing, measurements, and safety precautions.
+                          Enter each step on a separate line. Backend will format them with step numbers automatically.
                         </FormDescription>
-                        <FormMessage className="text-xs mt-0.5" />
                       </FormItem>
                     )}
                   />
@@ -505,13 +490,12 @@ export function ProtocolFormDialog({
                       <FormItem className="bg-card/30 p-4 rounded-lg border border-border/30 shadow-sm">
                         <FormLabel className="text-sm font-medium">References</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="List any references or supporting literature" 
+                          <Textarea
+                            placeholder="List any references or supporting literature"
                             className="min-h-[100px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
-                        <FormMessage className="text-xs mt-1.5" />
                       </FormItem>
                     )}
                   />
@@ -552,8 +536,8 @@ export function ProtocolFormDialog({
                       </h4>
                       <div className="space-y-2.5">
                         {files.map((file, index) => (
-                          <div 
-                            key={index} 
+                          <div
+                            key={index}
                             className="flex items-center justify-between bg-background/70 rounded-lg p-3 text-sm border border-border/20 hover:border-border/40 transition-colors"
                           >
                             <div className="flex items-center">
@@ -586,6 +570,39 @@ export function ProtocolFormDialog({
             </div>
 
             <DialogFooter className="px-6 py-4 border-t border-border/30 gap-2 bg-muted/20">
+              {/* Validation Summary */}
+              {Object.keys(form.formState.errors).length > 0 && (
+                <div className="w-full mb-4">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg p-3.5">
+                    <div className="flex items-start gap-3">
+                      <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-red-800 dark:text-red-200 mb-2.5">
+                          Please fix the following errors:
+                        </h4>
+                        <div className="space-y-1.5">
+                          {Object.entries(form.formState.errors).map(([field, error]) => (
+                            <div key={field} className="flex items-start gap-2 text-sm">
+                              <span className="text-red-500 mt-0.5 text-xs">•</span>
+                              <span className="text-red-700 dark:text-red-300 leading-relaxed">
+                                <span className="font-medium">
+                                  {field === 'safetyNotes' ? 'Safety Notes' :
+                                    field === 'isPublic' ? 'Public Status' :
+                                      field.replace(/([A-Z])/g, ' $1').trim()}:
+                                </span>{' '}
+                                {error.message}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center mr-auto">
                 <div className="flex items-center justify-center">
                   <div className="flex space-x-1">
@@ -647,5 +664,5 @@ export function ProtocolFormDialog({
         </Form>
       </DialogContent>
     </Dialog>
-    );
+  );
 }

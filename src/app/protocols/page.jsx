@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProtocolFormDialog } from "@/components/protocol-management/protocol-form-dialog"
 import { ProtocolDetailDialog } from "@/components/protocol-management/protocol-detail-dialog"
+import { ProtocolSuccessModal } from "@/components/protocol-management/protocol-success-modal"
 import { DataTable } from "@/components/tasks-v2/data-table"
 import { createProtocolColumns } from "@/components/protocol-management/protocol-columns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PlusCircle, Search, SlidersHorizontal, BookOpen, LayoutGrid, Table as TableIcon, Loader2 } from "lucide-react"
+import { PlusCircle, Search, SlidersHorizontal, BookOpen, LayoutGrid, Table as TableIcon, Loader2, User, Globe } from "lucide-react"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { cn } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
@@ -18,10 +19,11 @@ import { Select } from "@/components/ui/select"
 import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ProtocolCard } from "@/components/protocol-management/protocol-card"
 import { useToast } from "@/components/ui/use-toast"
-import { 
-  getProtocols, 
-  createProtocol as createProtocolApi, 
-  updateProtocol as updateProtocolApi, 
+import {
+  getProtocols,
+  getMyProtocols,
+  createProtocol as createProtocolApi,
+  updateProtocol as updateProtocolApi,
   deleteProtocol as deleteProtocolApi,
   duplicateProtocol as duplicateProtocolApi,
   archiveProtocol as archiveProtocolApi,
@@ -31,19 +33,23 @@ import {
 export default function ProtocolsPage() {
   const router = useRouter()
   const { toast } = useToast()
-  
+
   const [protocols, setProtocols] = useState([])
+  const [myProtocols, setMyProtocols] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [successModalOpen, setSuccessModalOpen] = useState(false)
   const [selectedProtocol, setSelectedProtocol] = useState(null)
+  const [createdProtocol, setCreatedProtocol] = useState(null)
   const [formMode, setFormMode] = useState("create")
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState("grid") // "grid" or "table"
+  const [activeTab, setActiveTab] = useState("all") // "all" or "my"
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
@@ -55,19 +61,33 @@ export default function ProtocolsPage() {
   // Fetch protocols on component mount and when filters change
   useEffect(() => {
     setSidebarOpen(isDesktop)
+    if (activeTab === "all") {
+      fetchProtocols()
+    } else {
+      fetchMyProtocols()
+    }
+  }, [isDesktop, pagination.page, pagination.limit, categoryFilter, statusFilter, activeTab])
+
+  // Initial fetch of both protocol lists
+  useEffect(() => {
     fetchProtocols()
-  }, [isDesktop, pagination.page, pagination.limit, categoryFilter, statusFilter])
+    fetchMyProtocols()
+  }, [])
 
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchQuery || categoryFilter !== "all" || statusFilter !== "all") {
-        fetchProtocols()
+        if (activeTab === "all") {
+          fetchProtocols()
+        } else {
+          fetchMyProtocols()
+        }
       }
     }, 500)
-    
+
     return () => clearTimeout(timer)
-  }, [searchQuery, categoryFilter, statusFilter])
+  }, [searchQuery, categoryFilter, statusFilter, activeTab])
 
   const fetchProtocols = async () => {
     try {
@@ -79,7 +99,7 @@ export default function ProtocolsPage() {
         category: categoryFilter !== "all" ? categoryFilter : undefined,
         status: statusFilter !== "all" ? statusFilter : undefined
       }
-      
+
       const response = await getProtocols(params)
       setProtocols(response.data)
       setPagination(prev => ({
@@ -99,8 +119,39 @@ export default function ProtocolsPage() {
     }
   }
 
+  const fetchMyProtocols = async () => {
+    try {
+      setIsLoading(true)
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+        search: searchQuery || undefined,
+        category: categoryFilter !== "all" ? categoryFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined
+      }
+
+      const response = await getMyProtocols(params)
+      setMyProtocols(response.data)
+      setPagination(prev => ({
+        ...prev,
+        total: response?.pagination?.total,
+        totalPages: response?.pagination?.totalPages
+      }))
+    } catch (error) {
+      console.error('Error fetching my protocols:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch your protocols. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Get unique categories and statuses for filter
-  const categories = ["all", ...new Set(protocols.map(protocol => protocol.category).filter(Boolean))]
+  const currentProtocols = activeTab === "all" ? protocols : myProtocols
+  const categories = ["all", ...new Set(currentProtocols.map(protocol => protocol.category).filter(Boolean))]
   const statuses = ["all", "Draft", "Active", "Archived"] // Predefined statuses for consistency
 
   // Handle creating a new protocol
@@ -128,7 +179,9 @@ export default function ProtocolsPage() {
     try {
       setIsLoading(true)
       const duplicated = await duplicateProtocolApi(protocol._id)
+      // Add to both lists since it's created by current user
       setProtocols([duplicated, ...protocols])
+      setMyProtocols([duplicated, ...myProtocols])
       toast({
         title: "Success",
         description: "Protocol duplicated successfully",
@@ -150,14 +203,18 @@ export default function ProtocolsPage() {
     try {
       setIsLoading(true)
       const isArchiving = protocol.status !== "Archived"
-      const updatedProtocol = isArchiving 
+      const updatedProtocol = isArchiving
         ? await archiveProtocolApi(protocol._id)
         : await restoreProtocolApi(protocol._id)
-      
-      setProtocols(protocols.map(p => 
+
+      // Update in both lists
+      setProtocols(protocols.map(p =>
         p._id === updatedProtocol._id ? updatedProtocol : p
       ))
-      
+      setMyProtocols(myProtocols.map(p =>
+        p._id === updatedProtocol._id ? updatedProtocol : p
+      ))
+
       toast({
         title: isArchiving ? "Archived" : "Restored",
         description: `Protocol has been ${isArchiving ? 'archived' : 'restored'} successfully`,
@@ -179,11 +236,13 @@ export default function ProtocolsPage() {
     if (!confirm('Are you sure you want to delete this protocol? This action cannot be undone.')) {
       return
     }
-    
+
     try {
       setIsLoading(true)
       await deleteProtocolApi(protocolId)
+      // Remove from both lists
       setProtocols(protocols.filter(protocol => protocol._id !== protocolId))
+      setMyProtocols(myProtocols.filter(protocol => protocol._id !== protocolId))
       toast({
         title: "Success",
         description: "Protocol deleted successfully",
@@ -205,26 +264,41 @@ export default function ProtocolsPage() {
     try {
       setIsLoading(true)
       let updatedProtocol
-      
+
       if (formMode === "create") {
-        updatedProtocol = await createProtocolApi(protocolData)
-        setProtocols([updatedProtocol, ...protocols])
-        toast({
-          title: "Success",
-          description: "Protocol created successfully",
-        })
+        // Ensure new protocols are created with isPublic: false for review
+        const protocolWithReviewStatus = {
+          ...protocolData,
+          isPublic: false
+        }
+
+        updatedProtocol = await createProtocolApi(protocolWithReviewStatus)
+
+        // Add to myProtocols list since it's created by current user and in review
+        setMyProtocols([updatedProtocol, ...myProtocols])
+
+        // Store the created protocol for the success modal
+        setCreatedProtocol(updatedProtocol)
+        setFormDialogOpen(false)
+        setSuccessModalOpen(true)
+
+        // Don't show toast here as the modal will handle the success message
       } else {
         updatedProtocol = await updateProtocolApi(selectedProtocol._id, protocolData)
+        // Update in both lists
         setProtocols(protocols.map(protocol =>
+          protocol._id === updatedProtocol._id ? updatedProtocol : protocol
+        ))
+        setMyProtocols(myProtocols.map(protocol =>
           protocol._id === updatedProtocol._id ? updatedProtocol : protocol
         ))
         toast({
           title: "Success",
           description: "Protocol updated successfully",
         })
+        setFormDialogOpen(false)
       }
-      
-      setFormDialogOpen(false)
+
       return updatedProtocol
     } catch (error) {
       console.error(`Error ${formMode === 'create' ? 'creating' : 'updating'} protocol:`, error)
@@ -237,6 +311,15 @@ export default function ProtocolsPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Handle success modal actions
+  const handleViewCreatedProtocol = (protocol) => {
+    router.push(`/protocols/${protocol._id}`)
+  }
+
+  const handleGoToMyProtocols = () => {
+    setActiveTab("my")
   }
 
   // Create columns with action handlers
@@ -271,14 +354,27 @@ export default function ProtocolsPage() {
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
                 <Badge className="bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                  {protocols.length} Total Protocols
+                  {currentProtocols.length} {activeTab === "all" ? "Total" : "My"} Protocols
                 </Badge>
-                <Badge className="bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                  {protocols.filter(p => p.status === "Active").length} Active
-                </Badge>
-                <Badge className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                  {protocols.filter(p => p.status === "Draft").length} Drafts
-                </Badge>
+                {activeTab === "my" ? (
+                  <>
+                    <Badge className="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {myProtocols.filter(p => !p.isPublic).length} In Review
+                    </Badge>
+                    <Badge className="bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {myProtocols.filter(p => p.isPublic).length} Published
+                    </Badge>
+                  </>
+                ) : (
+                  <>
+                    <Badge className="bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {protocols.filter(p => p.status === "Active").length} Active
+                    </Badge>
+                    <Badge className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {protocols.filter(p => p.status === "Draft").length} Drafts
+                    </Badge>
+                  </>
+                )}
               </div>
             </div>
             <Button
@@ -288,6 +384,45 @@ export default function ProtocolsPage() {
             >
               <PlusCircle className="mr-2 h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
               New Protocol
+            </Button>
+          </motion.div>
+
+          {/* Tabs */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="flex items-center gap-2 mb-6 bg-muted/30 rounded-lg p-1 w-fit"
+          >
+            <Button
+              variant={activeTab === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("all")}
+              className={cn(
+                "transition-all duration-200",
+                activeTab === "all" ? "shadow-sm" : "hover:bg-muted/50"
+              )}
+            >
+              <Globe className="h-4 w-4 mr-2" />
+              All Protocols
+              <Badge className="ml-2 bg-background/50 text-foreground/70">
+                {protocols.length}
+              </Badge>
+            </Button>
+            <Button
+              variant={activeTab === "my" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveTab("my")}
+              className={cn(
+                "transition-all duration-200",
+                activeTab === "my" ? "shadow-sm" : "hover:bg-muted/50"
+              )}
+            >
+              <User className="h-4 w-4 mr-2" />
+              My Protocols on Review
+              <Badge className="ml-2 bg-background/50 text-foreground/70">
+                {myProtocols.length}
+              </Badge>
             </Button>
           </motion.div>
 
@@ -390,9 +525,11 @@ export default function ProtocolsPage() {
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-muted-foreground">Loading protocols...</span>
+                <span className="ml-2 text-muted-foreground">
+                  Loading {activeTab === "all" ? "protocols" : "your protocols"}...
+                </span>
               </div>
-            ) : protocols.length === 0 ? (
+            ) : currentProtocols.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -424,7 +561,7 @@ export default function ProtocolsPage() {
                 transition={{ duration: 0.5 }}
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 w-full"
               >
-                {protocols.map(protocol => (
+                {currentProtocols.map(protocol => (
                   <ProtocolCard
                     key={protocol._id}
                     protocol={protocol}
@@ -445,7 +582,7 @@ export default function ProtocolsPage() {
               >
                 <DataTable
                   columns={columns}
-                  data={protocols}
+                  data={currentProtocols}
                   onRowClick={handleViewProtocol}
                   pagination={{
                     currentPage: pagination.page,
@@ -472,6 +609,15 @@ export default function ProtocolsPage() {
             onOpenChange={setDetailDialogOpen}
             protocol={selectedProtocol}
             onEdit={handleEditProtocol}
+          />
+
+          {/* Protocol Success Modal */}
+          <ProtocolSuccessModal
+            open={successModalOpen}
+            onOpenChange={setSuccessModalOpen}
+            protocol={createdProtocol}
+            onViewProtocol={handleViewCreatedProtocol}
+            onViewMyProtocols={handleGoToMyProtocols}
           />
         </div>
       </div>

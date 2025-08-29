@@ -54,7 +54,7 @@ const formatDate = (dateString) => {
 
 export const createProtocolColumns = (actions) => [
     {
-        accessorKey: "id",
+        accessorKey: "_id",
         header: ({ column }) => {
             return (
                 <div className="flex items-center gap-2">
@@ -64,16 +64,16 @@ export const createProtocolColumns = (actions) => [
             )
         },
         cell: ({ row }) => {
-            const protocolId = row.getValue("id")
+            const protocolId = row.getValue("_id")
             return (
                 <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 font-mono text-xs">
-                    {protocolId}
+                    {protocolId?.substring(0, 8) + '...'}
                 </Badge>
             )
         },
     },
     {
-        accessorKey: "title",
+        accessorKey: "name",
         header: ({ column }) => {
             return (
                 <div className="flex items-center gap-2">
@@ -89,10 +89,10 @@ export const createProtocolColumns = (actions) => [
                     <FileText className="h-4 w-4 text-primary/70" />
                     <div className="flex flex-col">
                         <span className="font-semibold text-[15px] group-hover:text-primary transition-colors duration-200">
-                            {protocol.title}
+                            {protocol.name}
                         </span>
-                        <span className="text-xs text-muted-foreground font-mono">
-                            {protocol.id}
+                        <span className="text-xs text-muted-foreground">
+                            v{protocol.version}
                         </span>
                     </div>
                 </div>
@@ -124,7 +124,7 @@ export const createProtocolColumns = (actions) => [
         },
     },
     {
-        accessorKey: "author",
+        accessorKey: "createdBy",
         header: ({ column }) => {
             return (
                 <div className="flex items-center gap-2">
@@ -134,17 +134,17 @@ export const createProtocolColumns = (actions) => [
             )
         },
         cell: ({ row }) => {
-            const author = row.getValue("author")
+            const createdBy = row.getValue("createdBy")
             return (
                 <div className="flex items-center gap-2">
                     <UserRound className="h-4 w-4 text-primary/60" />
-                    <span className="text-sm">{author}</span>
+                    <span className="text-sm">{createdBy?.name || 'Unknown'}</span>
                 </div>
             )
         },
     },
     {
-        accessorKey: "updatedAt",
+        accessorKey: "lastModified",
         header: ({ column }) => {
             return (
                 <div className="flex items-center gap-2">
@@ -154,11 +154,11 @@ export const createProtocolColumns = (actions) => [
             )
         },
         cell: ({ row }) => {
-            const updatedAt = row.getValue("updatedAt")
+            const lastModified = row.getValue("lastModified") || row.original.updatedAt
             return (
                 <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-primary/60" />
-                    <span className="text-sm">{formatDate(updatedAt)}</span>
+                    <span className="text-sm">{formatDate(lastModified)}</span>
                 </div>
             )
         },

@@ -71,11 +71,11 @@ export function ProtocolDetailDialog({
 
   // Fetch audit trail and comments when dialog opens
   useEffect(() => {
-    if (open && protocol?.id) {
+    if (open && protocol?._id) {
       const fetchData = async () => {
         try {
           setIsLoadingAudit(true)
-          const auditData = await getProtocolAuditTrail(protocol.id)
+          const auditData = await getProtocolAuditTrail(protocol._id)
           setAuditTrail(auditData || [])
         } catch (error) {
           console.error('Failed to fetch audit trail:', error)
@@ -86,7 +86,7 @@ export function ProtocolDetailDialog({
 
         try {
           setIsLoadingComments(true)
-          const commentsData = await getProtocolComments(protocol.id)
+          const commentsData = await getProtocolComments(protocol._id)
           setComments(commentsData || [])
         } catch (error) {
           console.error('Failed to fetch comments:', error)
@@ -98,7 +98,7 @@ export function ProtocolDetailDialog({
 
       fetchData()
     }
-  }, [open, protocol?.id])
+  }, [open, protocol?._id])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -135,12 +135,12 @@ export function ProtocolDetailDialog({
             </div>
           </div>
           <DialogTitle className="text-xl font-semibold mt-2">
-            {protocol.title}
+            {protocol.name}
           </DialogTitle>
           <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
             <div className="flex items-center text-sm text-muted-foreground">
               <FileText className="h-3.5 w-3.5 mr-1.5" />
-              <span>{protocol.id}</span>
+              <span>{protocol._id}</span>
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Tag className="h-3.5 w-3.5 mr-1.5" />
@@ -148,7 +148,7 @@ export function ProtocolDetailDialog({
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <User className="h-3.5 w-3.5 mr-1.5" />
-              <span>{protocol.author}</span>
+              <span>{protocol.createdBy?.name || 'Unknown'}</span>
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Clock className="h-3.5 w-3.5 mr-1.5" />
@@ -156,7 +156,7 @@ export function ProtocolDetailDialog({
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <Calendar className="h-3.5 w-3.5 mr-1.5" />
-              <span>Updated {formatDate(protocol.updatedAt)}</span>
+              <span>Updated {formatDate(protocol.lastModified || protocol.updatedAt)}</span>
             </div>
           </div>
         </DialogHeader>
@@ -172,23 +172,36 @@ export function ProtocolDetailDialog({
 
             <TabsContent value="overview" className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium mb-2">Objectives</h3>
+                <h3 className="text-lg font-medium mb-2">Description</h3>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-line">
-                  {protocol.objectives || "No objectives provided."}
+                  {protocol.description || "No description provided."}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-medium mb-2">Materials and Methods</h3>
-                <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-line">
-                  {protocol.materials || "No materials provided."}
+                <h3 className="text-lg font-medium mb-2">Materials</h3>
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  {Array.isArray(protocol.materials) ? (
+                    <ul className="list-disc list-inside space-y-1">
+                      {protocol.materials.map((material, index) => (
+                        <li key={index}>
+                          {typeof material === 'string' ? material : material.name}
+                          {typeof material === 'object' && material.quantity && (
+                            <span className="text-muted-foreground"> - {material.quantity}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="whitespace-pre-line">{protocol.materials || "No materials provided."}</div>
+                  )}
                 </div>
               </div>
 
               <div>
-                <h3 className="text-lg font-medium mb-2">Expected Outcomes</h3>
+                <h3 className="text-lg font-medium mb-2">Safety Notes</h3>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-line">
-                  {protocol.outcomes || "No expected outcomes provided."}
+                  {protocol.safetyNotes || "No safety notes provided."}
                 </div>
               </div>
             </TabsContent>
@@ -196,15 +209,42 @@ export function ProtocolDetailDialog({
             <TabsContent value="procedure" className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium mb-2">Step-by-Step Procedure</h3>
-                <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-line">
-                  {protocol.procedure || "No procedure steps provided."}
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  {Array.isArray(protocol.steps) ? (
+                    <ol className="list-decimal list-inside space-y-2">
+                      {protocol.steps.map((step, index) => (
+                        <li key={index} className="mb-2">
+                          <strong>{step.title || `Step ${step.number || index + 1}`}:</strong>
+                          <div className="ml-4 mt-1">
+                            {step.instructions || step.description}
+                            {step.duration && (
+                              <div className="text-muted-foreground text-xs mt-1">Duration: {step.duration}</div>
+                            )}
+                            {step.notes && (
+                              <div className="text-muted-foreground text-xs mt-1">Notes: {step.notes}</div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <div className="whitespace-pre-line">{protocol.steps || "No procedure steps provided."}</div>
+                  )}
                 </div>
               </div>
 
               <div>
                 <h3 className="text-lg font-medium mb-2">References</h3>
-                <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-line">
-                  {protocol.references || "No references provided."}
+                <div className="bg-muted/30 rounded-lg p-4 text-sm">
+                  {Array.isArray(protocol.references) ? (
+                    <ul className="list-disc list-inside space-y-1">
+                      {protocol.references.map((reference, index) => (
+                        <li key={index}>{reference}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="whitespace-pre-line">{protocol.references || "No references provided."}</div>
+                  )}
                 </div>
               </div>
             </TabsContent>

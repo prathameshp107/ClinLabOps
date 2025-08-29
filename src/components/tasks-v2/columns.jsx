@@ -48,10 +48,11 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Task ID" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px] font-mono text-sm">{row.getValue("customId") || row.getValue("id")}</div>
+      <div className="w-[100px] font-mono text-sm">{row.getValue("customId") || row.getValue("id")}</div>
     ),
     enableSorting: true,
     enableHiding: false,
+    size: 100,
   },
   {
     accessorKey: "title",
@@ -61,7 +62,7 @@ export const columns = [
     cell: ({ row }) => {
       return (
         <div className="flex space-x-2">
-          <span className="max-w-[500px] truncate font-medium">
+          <span className="max-w-[250px] truncate font-medium">
             {row.getValue("title")}
           </span>
         </div>
@@ -69,6 +70,7 @@ export const columns = [
     },
     enableSorting: true,
     enableHiding: false,
+    size: 250,
   },
   {
     accessorKey: "description",
@@ -76,11 +78,13 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Description" />
     ),
     cell: ({ row }) => (
-      <div className="max-w-[300px] truncate text-sm text-muted-foreground">
+      <div className="max-w-[200px] truncate text-sm text-muted-foreground">
         {row.getValue("description")}
       </div>
     ),
     enableSorting: false,
+    enableHiding: true,
+    size: 200,
   },
   {
     accessorKey: "status",
@@ -98,7 +102,7 @@ export const columns = [
       const statusColor = statusIcons[status.value]?.color || "text-muted-foreground"
 
       return (
-        <div className="flex w-[120px] items-center">
+        <div className="flex w-[130px] items-center">
           <StatusIcon className={`mr-2 h-3.5 w-3.5 ${statusColor}`} />
           <span>{status.label}</span>
         </div>
@@ -108,6 +112,7 @@ export const columns = [
       return value.includes(row.getValue(id))
     },
     enableSorting: true,
+    size: 130,
   },
   {
     accessorKey: "priority",
@@ -122,7 +127,7 @@ export const columns = [
       if (!priority) return null
 
       return (
-        <div className="flex items-center">
+        <div className="flex items-center w-[100px]">
           {priority.icon && (
             <priority.icon className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
           )}
@@ -134,6 +139,7 @@ export const columns = [
       return value.includes(row.getValue(id))
     },
     enableSorting: true,
+    size: 100,
   },
   {
     accessorKey: "dueDate",
@@ -152,7 +158,7 @@ export const columns = [
       const isOverdue = date < today && row.getValue("status") !== "completed"
 
       return (
-        <div className="flex items-center">
+        <div className="flex items-center w-[110px]">
           <span className={isOverdue ? "text-destructive font-medium" : ""}>
             {formattedDate}
           </span>
@@ -160,6 +166,7 @@ export const columns = [
       )
     },
     enableSorting: true,
+    size: 110,
   },
   {
     accessorKey: "assignedTo",
@@ -169,17 +176,18 @@ export const columns = [
     cell: ({ row }) => {
       const assignedTo = row.getValue("assignedTo")
       return (
-        <div className="flex items-center">
+        <div className="flex items-center w-[150px]">
           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center mr-2">
             <span className="text-xs font-medium">
               {assignedTo?.name?.charAt(0) || '?'}
             </span>
           </div>
-          <span>{assignedTo?.name || 'Unassigned'}</span>
+          <span className="truncate">{assignedTo?.name || 'Unassigned'}</span>
         </div>
       )
     },
     enableSorting: true,
+    size: 150,
   },
   {
     accessorKey: "project",
@@ -187,13 +195,16 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Project" />
     ),
     cell: ({ row }) => (
-      <span>{row.getValue("project")?.name || '-'}</span>
+      <div className="w-[120px]">
+        <span className="truncate">{row.getValue("project")?.name || '-'}</span>
+      </div>
     ),
     filterFn: (row, id, value) => {
       return row.getValue(id)?.name === value
     },
     enableSorting: false,
     enableHiding: true,
+    size: 120,
   },
   {
     id: "actions",

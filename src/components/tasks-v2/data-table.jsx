@@ -62,7 +62,7 @@ export function DataTable({
   return (
     <div className="space-y-4">
       <ToolbarComponent table={table} />
-      <div className="rounded-2xl border shadow-lg bg-white dark:bg-gray-950 overflow-hidden">
+      <div className="w-full">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-white dark:bg-gray-950">
             {table.getHeaderGroups().map((headerGroup) => (

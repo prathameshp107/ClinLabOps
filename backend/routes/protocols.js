@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getProtocols,
+  getMyProtocols,
   getProtocol,
   createProtocol,
   updateProtocol,
@@ -14,20 +15,19 @@ const { protect } = require('../middleware/authMiddleware');
 
 // Public routes (with optional auth for public/private handling)
 router.get('/', getProtocols);
+router.get('/my-protocols', protect, getMyProtocols);
 router.get('/:id', getProtocol);
 
 // Protected routes (require authentication)
-// router.use(protect);
-
 router.route('/')
-  .post(createProtocol);
+  .post(protect, createProtocol);
 
 router.route('/:id')
-  .put(updateProtocol)
-  .delete(deleteProtocol);
+  .put(protect, updateProtocol)
+  .delete(protect, deleteProtocol);
 
-router.route('/:id/archive').put(archiveProtocol);
-router.route('/:id/restore').put(restoreProtocol);
-router.route('/:id/duplicate').post(duplicateProtocol);
+router.route('/:id/archive').put(protect, archiveProtocol);
+router.route('/:id/restore').put(protect, restoreProtocol);
+router.route('/:id/duplicate').post(protect, duplicateProtocol);
 
 module.exports = router;

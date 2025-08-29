@@ -533,22 +533,26 @@ export default function TasksPage() {
             </div>
 
             {/* Content */}
-            <div className="w-full overflow-x-auto">
-              <div className="flex justify-between items-center">
+            <div className="w-full">
+              <div className="flex justify-between items-center mb-4">
                 <div className="text-sm text-muted-foreground">
                   {filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} found
                 </div>
               </div>
 
               {viewMode === 'table' ? (
-                <div className="cursor-pointer">
-                  <DataTable
-                    columns={tableColumns}
-                    data={filteredTasks}
-                    onRowSelectionChange={setSelectedTasks}
-                    selectedRows={selectedTasks}
-                    onRowClick={handleTaskClick}
-                  />
+                <div className="w-full overflow-hidden rounded-2xl border shadow-lg bg-white dark:bg-gray-950">
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[1200px]"> {/* Minimum width to prevent column squashing */}
+                      <DataTable
+                        columns={tableColumns}
+                        data={filteredTasks}
+                        onRowSelectionChange={setSelectedTasks}
+                        selectedRows={selectedTasks}
+                        onRowClick={handleTaskClick}
+                      />
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <TaskGrid
