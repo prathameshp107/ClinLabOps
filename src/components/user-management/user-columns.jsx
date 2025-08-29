@@ -87,7 +87,10 @@ export function userColumns(onUserAction) {
         {
             accessorKey: "id",
             header: "User ID",
-            cell: ({ row }) => <span className="font-mono text-xs text-gray-500 dark:text-gray-400">{row.original.id}</span>,
+            cell: ({ row }) => {
+                const userId = row.original._id || row.original.id;
+                return <span className="font-mono text-xs text-gray-500 dark:text-gray-400">{userId}</span>;
+            },
         },
         {
             accessorKey: "name",
@@ -131,12 +134,15 @@ export function userColumns(onUserAction) {
         {
             accessorKey: "role",
             header: "Role",
-            cell: ({ row }) => (
-                <Badge variant={getRoleBadgeVariant(row.original.role)} className="gap-1 flex items-center">
-                    {getRoleIcon(row.original.role)}
-                    {row.original.role}
-                </Badge>
-            ),
+            cell: ({ row }) => {
+                const userRole = Array.isArray(row.original.roles) ? row.original.roles[0] : row.original.role;
+                return (
+                    <Badge variant={getRoleBadgeVariant(userRole)} className="gap-1 flex items-center">
+                        {getRoleIcon(userRole)}
+                        {userRole}
+                    </Badge>
+                );
+            },
         },
         {
             accessorKey: "lastLogin",

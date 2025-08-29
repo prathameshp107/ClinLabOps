@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { motion } from "framer-motion"
-import { 
-  Search, Filter, RefreshCw, UserPlus, Settings, UserCog, 
+import {
+  Search, Filter, RefreshCw, UserPlus, Settings, UserCog,
   ShieldAlert, Lock, UserX, UserCheck, FilterX
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -19,112 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
-// Sample user activity data
-const activityLogsData = [
-  {
-    id: "log1",
-    timestamp: "2025-03-22T20:15:22",
-    user: {
-      id: "u1",
-      name: "Dr. Sarah Johnson",
-      email: "sarah.johnson@labtasker.com",
-    },
-    actionType: "create",
-    action: "Created new user account",
-    target: {
-      id: "u5",
-      name: "Olivia Taylor",
-      type: "user"
-    },
-    details: "Added Olivia Taylor as Scientist in Microbiology department"
-  },
-  {
-    id: "log2",
-    timestamp: "2025-03-21T14:32:10",
-    user: {
-      id: "u1",
-      name: "Dr. Sarah Johnson",
-      email: "sarah.johnson@labtasker.com",
-    },
-    actionType: "update",
-    action: "Updated user role",
-    target: {
-      id: "u3",
-      name: "Dr. Emily Chen",
-      type: "user"
-    },
-    details: "Changed role from Scientist to Reviewer"
-  },
-  {
-    id: "log3",
-    timestamp: "2025-03-20T09:45:33",
-    user: {
-      id: "u1",
-      name: "Dr. Sarah Johnson",
-      email: "sarah.johnson@labtasker.com",
-    },
-    actionType: "security",
-    action: "Reset user password",
-    target: {
-      id: "u4",
-      name: "James Rodriguez",
-      type: "user"
-    },
-    details: "Sent password reset link via email"
-  },
-  {
-    id: "log4",
-    timestamp: "2025-03-18T16:20:45",
-    user: {
-      id: "u1",
-      name: "Dr. Sarah Johnson",
-      email: "sarah.johnson@labtasker.com",
-    },
-    actionType: "security",
-    action: "Enabled 2FA",
-    target: {
-      id: "u3",
-      name: "Dr. Emily Chen",
-      type: "user"
-    },
-    details: "Enabled two-factor authentication"
-  },
-  {
-    id: "log5",
-    timestamp: "2025-03-15T11:05:12",
-    user: {
-      id: "u1",
-      name: "Dr. Sarah Johnson",
-      email: "sarah.johnson@labtasker.com",
-    },
-    actionType: "deactivate",
-    action: "Deactivated user",
-    target: {
-      id: "u6",
-      name: "Robert Kim",
-      type: "user"
-    },
-    details: "Deactivated account due to extended leave"
-  },
-  {
-    id: "log6",
-    timestamp: "2025-03-10T13:25:30",
-    user: {
-      id: "u1",
-      name: "Dr. Sarah Johnson",
-      email: "sarah.johnson@labtasker.com",
-    },
-    actionType: "update",
-    action: "Updated user information",
-    target: {
-      id: "u2",
-      name: "Mark Williams",
-      type: "user"
-    },
-    details: "Updated department from Chemistry to Biochemistry"
-  }
-]
+import { getUserActivities } from "@/services/userActivityService"
+import { toast } from "@/components/ui/use-toast"
 
 export function UserActivityLogs() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -133,9 +29,77 @@ export function UserActivityLogs() {
       create: true,
       update: true,
       security: true,
-      deactivate: true
+      deactivate: true,
+      activate: true,
+      delete: true
     }
   })
+  const [activities, setActivities] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0
+  })
+
+  // Fetch activities from backend
+  useEffect(() => {
+    fetchActivities()
+  }, [searchQuery, activeFilters])
+
+  const fetchActivities = async () => {
+    try {
+      setIsLoading(true)
+
+      // Build query parameters
+      const params = {
+        category: 'user_management',
+        page: pagination.currentPage,
+        limit: 20
+      }
+
+      if (searchQuery) {
+        params.search = searchQuery
+      }
+
+      // Add action type filters
+      const enabledTypes = Object.keys(activeFilters.actionType).filter(
+        key => activeFilters.actionType[key]
+      )
+      if (enabledTypes.length > 0 && enabledTypes.length < Object.keys(activeFilters.actionType).length) {
+        // If not all types are selected, add type filter
+        params.actionType = enabledTypes.join(',')
+      }
+
+      console.log('Fetching activities with params:', params)
+      const response = await getUserActivities(params)
+      console.log('Received response:', response)
+
+      setActivities(response.activities || [])
+      setPagination({
+        currentPage: response.currentPage || 1,
+        totalPages: response.totalPages || 1,
+        total: response.total || 0
+      })
+
+      console.log('Set activities:', response.activities?.length || 0, 'activities')
+    } catch (error) {
+      console.error('Failed to fetch activities:', error)
+      toast({
+        title: "Error loading activities",
+        description: "Failed to load user activity logs.",
+        variant: "destructive"
+      })
+      setActivities([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Refresh data
+  const handleRefresh = () => {
+    fetchActivities()
+  }
 
   // Count active filters
   const filterCount = Object.values(activeFilters.actionType).filter(Boolean).length
@@ -158,28 +122,30 @@ export function UserActivityLogs() {
         create: true,
         update: true,
         security: true,
-        deactivate: true
+        deactivate: true,
+        activate: true,
+        delete: true
       }
     })
     setSearchQuery("")
   }
 
-  // Filter logs based on search query and active filters
-  const filteredLogs = activityLogsData.filter(log => {
+  // Filter logs based on search query and active filters (for local filtering)
+  const filteredLogs = activities.filter(log => {
     // Action type filter
     if (!activeFilters.actionType[log.actionType]) {
       return false
     }
 
-    // Search filter
+    // Search filter (additional local filtering)
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
       return (
-        log.user.name.toLowerCase().includes(query) ||
-        log.user.email.toLowerCase().includes(query) ||
-        log.action.toLowerCase().includes(query) ||
-        log.details.toLowerCase().includes(query) ||
-        log.target.name.toLowerCase().includes(query)
+        log.user?.name?.toLowerCase().includes(query) ||
+        log.user?.email?.toLowerCase().includes(query) ||
+        log.action?.toLowerCase().includes(query) ||
+        log.details?.toLowerCase().includes(query) ||
+        log.target?.name?.toLowerCase().includes(query)
       )
     }
 
@@ -200,6 +166,16 @@ export function UserActivityLogs() {
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-2">
@@ -216,71 +192,101 @@ export function UserActivityLogs() {
               <DropdownMenuLabel>Filter Logs</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => updateFilter("create", !activeFilters.actionType.create)}
                   className="flex items-center gap-2"
                 >
                   <div className="flex items-center justify-center w-4 h-4">
-                    <input 
-                      type="checkbox" 
-                      checked={activeFilters.actionType.create} 
-                      onChange={() => {}} 
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.actionType.create}
+                      onChange={() => { }}
                       className="rounded"
                     />
                   </div>
                   <UserPlus className="h-4 w-4 mr-1" />
                   User Creation
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => updateFilter("update", !activeFilters.actionType.update)}
                   className="flex items-center gap-2"
                 >
                   <div className="flex items-center justify-center w-4 h-4">
-                    <input 
-                      type="checkbox" 
-                      checked={activeFilters.actionType.update} 
-                      onChange={() => {}} 
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.actionType.update}
+                      onChange={() => { }}
                       className="rounded"
                     />
                   </div>
                   <UserCog className="h-4 w-4 mr-1" />
                   User Updates
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => updateFilter("security", !activeFilters.actionType.security)}
                   className="flex items-center gap-2"
                 >
                   <div className="flex items-center justify-center w-4 h-4">
-                    <input 
-                      type="checkbox" 
-                      checked={activeFilters.actionType.security} 
-                      onChange={() => {}} 
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.actionType.security}
+                      onChange={() => { }}
                       className="rounded"
                     />
                   </div>
                   <Lock className="h-4 w-4 mr-1" />
                   Security Actions
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => updateFilter("deactivate", !activeFilters.actionType.deactivate)}
                   className="flex items-center gap-2"
                 >
                   <div className="flex items-center justify-center w-4 h-4">
-                    <input 
-                      type="checkbox" 
-                      checked={activeFilters.actionType.deactivate} 
-                      onChange={() => {}} 
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.actionType.deactivate}
+                      onChange={() => { }}
                       className="rounded"
                     />
                   </div>
                   <UserX className="h-4 w-4 mr-1" />
                   Deactivation
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => updateFilter("activate", !activeFilters.actionType.activate)}
+                  className="flex items-center gap-2"
+                >
+                  <div className="flex items-center justify-center w-4 h-4">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.actionType.activate}
+                      onChange={() => { }}
+                      className="rounded"
+                    />
+                  </div>
+                  <UserCheck className="h-4 w-4 mr-1" />
+                  Activation
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => updateFilter("delete", !activeFilters.actionType.delete)}
+                  className="flex items-center gap-2"
+                >
+                  <div className="flex items-center justify-center w-4 h-4">
+                    <input
+                      type="checkbox"
+                      checked={activeFilters.actionType.delete}
+                      onChange={() => { }}
+                      className="rounded"
+                    />
+                  </div>
+                  <UserX className="h-4 w-4 mr-1" />
+                  User Deletion
+                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="w-full justify-start gap-2 px-2"
                 onClick={resetFilters}
               >
@@ -289,23 +295,28 @@ export function UserActivityLogs() {
               </Button>
             </DropdownMenuContent>
           </DropdownMenu>
-          
+
           <Button variant="outline" size="icon" onClick={resetFilters} disabled={!searchQuery && filterCount === Object.keys(activeFilters.actionType).length}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
       </div>
-      
-      {filteredLogs.length === 0 ? (
+
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4"></div>
+          <p className="text-sm text-muted-foreground">Loading activity logs...</p>
+        </div>
+      ) : filteredLogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
             <FilterX className="h-6 w-6 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium">No matching logs found</h3>
           <p className="text-muted-foreground mt-1">Try adjusting your search or filter criteria</p>
-          <Button 
-            variant="outline" 
-            className="mt-4" 
+          <Button
+            variant="outline"
+            className="mt-4"
             onClick={resetFilters}
           >
             Reset Filters
@@ -314,7 +325,7 @@ export function UserActivityLogs() {
       ) : (
         <div className="space-y-4 mt-6">
           {filteredLogs.map((log, index) => (
-            <motion.div 
+            <motion.div
               key={log.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -325,13 +336,41 @@ export function UserActivityLogs() {
           ))}
         </div>
       )}
-      
-      {filteredLogs.length > 0 && (
-        <div className="flex justify-center mt-6">
-          <Button variant="outline" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Load More Logs
-          </Button>
+
+      {!isLoading && filteredLogs.length > 0 && (
+        <div className="flex items-center justify-between mt-6">
+          <p className="text-sm text-muted-foreground">
+            Showing {filteredLogs.length} of {pagination.total} activities
+          </p>
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPagination(prev => ({ ...prev, currentPage: Math.max(1, prev.currentPage - 1) }))
+                  fetchActivities()
+                }}
+                disabled={pagination.currentPage <= 1}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground px-2">
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setPagination(prev => ({ ...prev, currentPage: Math.min(prev.totalPages, prev.currentPage + 1) }))
+                  fetchActivities()
+                }}
+                disabled={pagination.currentPage >= pagination.totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -357,6 +396,16 @@ function ActivityLogItem({ log }) {
           icon: <ShieldAlert className="h-4 w-4" />,
           color: 'bg-amber-500/15 text-amber-600 dark:bg-amber-500/25 dark:text-amber-400'
         }
+      case 'activate':
+        return {
+          icon: <UserCheck className="h-4 w-4" />,
+          color: 'bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400'
+        }
+      case 'delete':
+        return {
+          icon: <UserX className="h-4 w-4" />,
+          color: 'bg-red-500/15 text-red-600 dark:bg-red-500/25 dark:text-red-400'
+        }
       case 'deactivate':
         return {
           icon: <UserX className="h-4 w-4" />,
@@ -378,7 +427,7 @@ function ActivityLogItem({ log }) {
       <div className={`w-10 h-10 rounded-full mr-4 flex items-center justify-center ${styles.color}`}>
         {styles.icon}
       </div>
-      
+
       <div className="flex-1 space-y-1 overflow-hidden">
         <div className="flex items-start justify-between">
           <div className="font-medium truncate">{log.action}</div>
@@ -386,11 +435,11 @@ function ActivityLogItem({ log }) {
             {formattedTime}
           </div>
         </div>
-        
+
         <div className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">{log.user.name}</span> performed action on <span className="font-medium text-foreground">{log.target.name}</span>
         </div>
-        
+
         <div className="text-sm text-muted-foreground truncate">
           {log.details}
         </div>

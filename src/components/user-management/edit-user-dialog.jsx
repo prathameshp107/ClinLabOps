@@ -26,8 +26,10 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
+import { toast } from "@/components/ui/use-toast"
+import { updateUser } from "@/services/userService"
 
-export function EditUserDialog({ user, open, onOpenChange }) {
+export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -59,24 +61,51 @@ export function EditUserDialog({ user, open, onOpenChange }) {
 
   const handleSubmit = async (e) => {
     e?.preventDefault()
-    
+
     if (!formData.name || !formData.email || !formData.role) {
-      // Form validation would go here
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
     try {
-      // In a real app, this would call an API to update the user
-      console.log("Updating user:", user.id, formData)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+      // Prepare update data for backend
+      const updateData = {
+        name: formData.name,
+        email: formData.email,
+        roles: [formData.role], // Backend expects array
+        department: formData.department,
+        status: formData.status,
+        twoFactorEnabled: formData.enable2FA,
+      };
+
+      // Update user via API
+      const updatedUser = await updateUser(user._id || user.id, updateData);
+
+      // Notify parent component to refresh data
+      if (onUserUpdated) {
+        onUserUpdated(updatedUser);
+      }
+
+      toast({
+        title: "User updated successfully",
+        description: `${formData.name}'s profile has been updated.`,
+      });
+
       onOpenChange(false)
     } catch (error) {
       console.error("Error updating user:", error)
+      const errorMessage = error.response?.data?.error || error.message || "An unexpected error occurred";
+      toast({
+        title: "Error updating user",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false)
     }
@@ -92,20 +121,20 @@ export function EditUserDialog({ user, open, onOpenChange }) {
               Update user information, role, and security settings.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Tabs defaultValue="details" className="mt-4">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details">User Details</TabsTrigger>
               <TabsTrigger value="security">Security Settings</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="details" className="space-y-4 pt-4">
               {user && (
                 <div className="bg-muted/50 rounded-md p-3 mb-4">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex items-center gap-2">
                       <h4 className="font-medium text-sm">User ID</h4>
-                      <p className="text-xs text-muted-foreground">{user.id}</p>
+                      <p className="text-xs text-muted-foreground">{user._id || user.id}</p>
                     </div>
                     {user.lastLogin && (
                       <div className="text-right">
@@ -118,7 +147,16 @@ export function EditUserDialog({ user, open, onOpenChange }) {
                   </div>
                 </div>
               )}
-              
+
+              {formData.role && (
+                <div className="grid gap-2">
+                  <Label>Current Role</Label>
+                  <Badge variant="outline" className="w-fit">
+                    {formData.role}
+                  </Badge>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="edit-name" className="required">Full Name</Label>
@@ -144,11 +182,11 @@ export function EditUserDialog({ user, open, onOpenChange }) {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
                   <Label htmlFor="edit-role" className="required">Role</Label>
-                  <Select 
+                  <Select
                     required
                     value={formData.role}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
@@ -183,7 +221,7 @@ export function EditUserDialog({ user, open, onOpenChange }) {
                   />
                 </div>
               </div>
-              
+
               <div className="grid gap-2">
                 <Label>Status</Label>
                 <div className="flex items-center justify-between rounded-md border p-3">
@@ -192,25 +230,25 @@ export function EditUserDialog({ user, open, onOpenChange }) {
                       {formData.status === "Active" ? "Active" : "Inactive"}
                     </Label>
                     <div className="text-sm text-muted-foreground">
-                      {formData.status === "Active" 
-                        ? "User can log in and use the system" 
+                      {formData.status === "Active"
+                        ? "User can log in and use the system"
                         : "User cannot log in until activated"}
                     </div>
                   </div>
                   <Switch
                     id="user-status"
                     checked={formData.status === "Active"}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        status: checked ? "Active" : "Inactive" 
+                    onCheckedChange={(checked) =>
+                      setFormData(prev => ({
+                        ...prev,
+                        status: checked ? "Active" : "Inactive"
                       }))
                     }
                   />
                 </div>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="security" className="space-y-4 pt-4">
               <div className="grid gap-2">
                 <Label>Two-Factor Authentication (2FA)</Label>
@@ -233,21 +271,21 @@ export function EditUserDialog({ user, open, onOpenChange }) {
                       )}
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {formData.enable2FA 
-                        ? "User is required to use an authenticator app" 
+                      {formData.enable2FA
+                        ? "User is required to use an authenticator app"
                         : "User can log in with just a password"}
                     </div>
                   </div>
                   <Switch
                     id="enable2FA"
                     checked={formData.enable2FA}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       setFormData(prev => ({ ...prev, enable2FA: checked }))
                     }
                   />
                 </div>
               </div>
-              
+
               <div className="rounded-md border p-3 bg-muted/50">
                 <div className="space-y-2">
                   <h3 className="font-medium">Security Actions</h3>
@@ -272,7 +310,7 @@ export function EditUserDialog({ user, open, onOpenChange }) {
               </div>
             </TabsContent>
           </Tabs>
-          
+
           <DialogFooter className="mt-6">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

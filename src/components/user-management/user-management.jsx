@@ -153,18 +153,20 @@ export function UserManagement() {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
+        const userRole = Array.isArray(user.roles) ? user.roles[0] : user.role; // Handle both formats
         if (
           !user.name.toLowerCase().includes(query) &&
           !user.email.toLowerCase().includes(query) &&
-          !user.role.toLowerCase().includes(query) &&
+          !userRole?.toLowerCase().includes(query) &&
           !user.department?.toLowerCase().includes(query)
         ) {
           return false
         }
       }
 
-      // Role filter
-      if (!activeFilters.role[user.role]) {
+      // Role filter - handle both array and string formats
+      const userRole = Array.isArray(user.roles) ? user.roles[0] : user.role;
+      if (!activeFilters.role[userRole]) {
         return false
       }
 
@@ -190,19 +192,56 @@ export function UserManagement() {
     })
   }, [searchQuery, activeFilters, users])
 
-  // Add user handler: ensures unique numeric ID
-  const handleAddUser = (userData) => {
-    // Find the lowest unused positive integer
-    const usedIds = new Set(users.map(u => u.id));
-    let newId = 1;
-    while (usedIds.has(newId)) newId++;
-    const newUser = {
-      ...userData,
-      id: newId,
-      twoFactorEnabled: !!userData.enable2FA,
-      lastLogin: null,
-    };
-    setUsers(prev => [...prev, newUser]);
+  // Add user handler: refetch users from API and add to state
+  const handleAddUser = async (userData) => {
+    // User is already created via API in AddUserDialog, just refresh the list
+    await refreshUsers();
+  };
+
+  // Refresh users from API
+  const refreshUsers = async () => {
+    try {
+      setIsLoading(true);
+      const usersData = await getUsers();
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (error) {
+      console.error('Failed to refresh users:', error);
+      toast({
+        title: "Error refreshing users",
+        description: "Failed to load updated user list.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle user updated
+  const handleUserUpdated = async (updatedUser) => {
+    // Update the user in local state and refresh from API
+    setUsers(prev => prev.map(user =>
+      (user._id || user.id) === (updatedUser._id || updatedUser.id)
+        ? updatedUser
+        : user
+    ));
+    // Also refresh to ensure we have the latest data
+    await refreshUsers();
+  };
+
+  // Handle user deleted
+  const handleUserDeleted = async (deletedUserId) => {
+    // Remove user from local state and refresh from API
+    setUsers(prev => prev.filter(user =>
+      (user._id || user.id) !== deletedUserId
+    ));
+    // Also refresh to ensure we have the latest data
+    await refreshUsers();
+  };
+
+  // Handle password reset
+  const handlePasswordReset = async (userId) => {
+    // For password reset, we don't need to update the user list
+    // Just show success message (already handled in ResetPasswordDialog)
   };
 
   // Handle user actions
@@ -235,12 +274,12 @@ export function UserManagement() {
   // Export users to CSV/Excel
   const handleExport = (format = "xlsx") => {
     const exportData = filteredUsers.map(u => ({
-      ID: u.id,
+      ID: u._id || u.id,
       Name: u.name,
       Email: u.email,
       Phone: u.phone || "N/A",
       "Power User": u.isPowerUser ? "Yes" : "No",
-      Role: u.role,
+      Role: Array.isArray(u.roles) ? u.roles[0] : u.role, // Handle both formats
       Department: u.department || "N/A",
       Status: u.status,
       "Last Login": u.lastLogin ? formatDate(u.lastLogin) : "Never",
@@ -553,6 +592,7 @@ export function UserManagement() {
             open={showAddUserDialog}
             onOpenChange={setShowAddUserDialog}
             onAddUser={handleAddUser}
+            onUserCreated={refreshUsers}
           />
         )}
 
@@ -561,6 +601,7 @@ export function UserManagement() {
             open={showEditUserDialog}
             onOpenChange={setShowEditUserDialog}
             user={selectedUser}
+            onUserUpdated={handleUserUpdated}
           />
         )}
 
@@ -569,6 +610,7 @@ export function UserManagement() {
             open={showResetPasswordDialog}
             onOpenChange={setShowResetPasswordDialog}
             user={selectedUser}
+            onPasswordReset={handlePasswordReset}
           />
         )}
 
@@ -577,6 +619,7 @@ export function UserManagement() {
             open={showDeleteUserDialog}
             onOpenChange={setShowDeleteUserDialog}
             user={selectedUser}
+            onUserDeleted={handleUserDeleted}
           />
         )}
       </AnimatePresence>

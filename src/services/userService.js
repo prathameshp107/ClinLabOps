@@ -13,9 +13,10 @@ const api = axios.create({
 // Add auth token to requests if available
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (token && token !== 'null' && token !== 'undefined') {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    // Don't add Authorization header if no valid token - let backend use default user
     return config;
 });
 

@@ -12,27 +12,45 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { toast } from "@/components/ui/use-toast"
+import { deleteUser } from "@/services/userService"
 
-export function DeleteUserDialog({ user, open, onOpenChange }) {
+export function DeleteUserDialog({ user, open, onOpenChange, onUserDeleted }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmText, setConfirmText] = useState("")
   const isConfirmValid = confirmText.toLowerCase() === "delete"
 
   const handleDelete = async () => {
     if (!isConfirmValid) return;
-    
+
     setIsSubmitting(true)
-    
+
     try {
-      // In a real app, this would call an API to delete the user
-      console.log(`Deleting user: ${user.id}`)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      onOpenChange(false)
+      // Delete user via API
+      const success = await deleteUser(user._id || user.id);
+
+      if (success) {
+        toast({
+          title: "User deleted successfully",
+          description: `${user.name} has been removed from the system.`,
+        });
+
+        // Notify parent component to refresh data
+        if (onUserDeleted) {
+          onUserDeleted(user._id || user.id);
+        }
+
+        onOpenChange(false)
+        setConfirmText("") // Reset confirmation text
+      }
     } catch (error) {
       console.error("Error deleting user:", error)
+      const errorMessage = error.response?.data?.error || error.message || "An unexpected error occurred";
+      toast({
+        title: "Error deleting user",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false)
     }
@@ -50,14 +68,14 @@ export function DeleteUserDialog({ user, open, onOpenChange }) {
             Are you sure you want to delete the account for <span className="font-medium">{user?.name}</span>?
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="py-4 space-y-4">
           {user && (
             <div className="bg-muted/50 rounded-md p-4">
               <div className="grid grid-cols-2 gap-y-3">
                 <div>
                   <h4 className="text-sm font-medium">User ID</h4>
-                  <p className="text-xs text-muted-foreground">{user.id}</p>
+                  <p className="text-xs text-muted-foreground">{user._id || user.id}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium">Email</h4>
@@ -73,7 +91,7 @@ export function DeleteUserDialog({ user, open, onOpenChange }) {
                 <div>
                   <h4 className="text-sm font-medium">Status</h4>
                   <p className="text-xs">
-                    <Badge 
+                    <Badge
                       variant={user.status === "Active" ? "outline" : "secondary"}
                       className={user.status === "Active" ? "text-xs bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800" : "text-xs"}
                     >
@@ -84,7 +102,7 @@ export function DeleteUserDialog({ user, open, onOpenChange }) {
               </div>
             </div>
           )}
-          
+
           <div className="bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300 p-4 rounded-md flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
             <div className="text-sm">
@@ -97,7 +115,7 @@ export function DeleteUserDialog({ user, open, onOpenChange }) {
               </ul>
             </div>
           </div>
-          
+
           <div className="border rounded-md p-4">
             <p className="text-sm font-medium mb-2">Confirm deletion</p>
             <p className="text-sm text-muted-foreground mb-3">
@@ -114,13 +132,13 @@ export function DeleteUserDialog({ user, open, onOpenChange }) {
             </div>
           </div>
         </div>
-        
+
         <DialogFooter className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={handleDelete}
             disabled={isSubmitting || !isConfirmValid}
             className="gap-2"

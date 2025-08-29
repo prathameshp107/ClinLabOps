@@ -288,28 +288,89 @@ exports.getUserStats = async (req, res) => {
 // Get user activity logs
 exports.getUserActivityLogs = async (req, res) => {
     try {
-        const { page = 1, limit = 20 } = req.query;
+        const { page = 1, limit = 20, actionType, search } = req.query;
+        const Activity = require('../models/Activity');
 
-        // This would typically come from an Activity model
-        // For now, return mock data structure
-        const activities = [
-            {
-                id: '1',
-                userId: req.params.id,
-                action: 'Login',
-                timestamp: new Date(),
-                details: 'User logged in successfully',
-                ipAddress: '192.168.1.1'
-            }
-        ];
+        // Build filter for user-specific activities
+        const filter = {
+            'meta.category': 'user_management'
+        };
+
+        // Filter by specific user if userId is provided
+        if (req.params.id) {
+            filter.$or = [
+                { 'meta.targetUserId': req.params.id }, // Activities performed on this user
+                { user: req.params.id } // Activities performed by this user
+            ];
+        }
+
+        // Filter by action type
+        if (actionType) {
+            filter.type = actionType;
+        }
+
+        // Search filter
+        if (search) {
+            filter.$or = [
+                { description: { $regex: search, $options: 'i' } },
+                { 'meta.details': { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const activities = await Activity.find(filter)
+            .populate('user', 'name email')
+            .sort({ createdAt: -1 })
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        const total = await Activity.countDocuments(filter);
+
+        // Transform activities to match frontend format
+        const transformedActivities = activities.map(activity => ({
+            id: activity._id,
+            timestamp: activity.createdAt,
+            user: {
+                id: activity.user._id,
+                name: activity.user.name,
+                email: activity.user.email
+            },
+            actionType: getActionTypeFromActivityType(activity.type),
+            action: activity.description,
+            target: {
+                id: activity.meta.targetUserId,
+                name: activity.meta.targetUserName,
+                type: 'user'
+            },
+            details: activity.meta.details || activity.description
+        }));
 
         res.json({
-            activities,
-            totalPages: 1,
+            activities: transformedActivities,
+            totalPages: Math.ceil(total / limit),
             currentPage: parseInt(page),
-            total: activities.length
+            total
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Helper function to map activity types to frontend action types
+function getActionTypeFromActivityType(type) {
+    const typeMap = {
+        'user_created': 'create',
+        'user_invited': 'create',
+        'user_updated': 'update',
+        'profile_updated': 'update',
+        'role_changed': 'update',
+        'user_deleted': 'delete',
+        'password_reset': 'security',
+        'two_fa_enabled': 'security',
+        'two_fa_disabled': 'security',
+        'user_locked': 'security',
+        'user_unlocked': 'security',
+        'user_activated': 'activate',
+        'user_deactivated': 'deactivate'
+    };
+    return typeMap[type] || 'other';
+}

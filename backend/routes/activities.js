@@ -1,17 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const activityController = require('../controllers/activityController');
+const auth = require('../middleware/authMiddleware');
+
+// Get activity statistics
+router.get('/stats', auth.protect, activityController.getActivityStats);
 
 // Get all activities
-router.get('/', activityController.getActivities);
+router.get('/', auth.protect, activityController.getAllActivities);
+
+// Debug endpoint to check activities without auth (temporary)
+router.get('/debug', activityController.getAllActivities);
 
 // Get activity by ID
-router.get('/:id', activityController.getActivityById);
+router.get('/:id', auth.protect, activityController.getActivityById);
 
 // Create a new activity
-router.post('/', activityController.createActivity);
-
-// Delete an activity
-router.delete('/:id', activityController.deleteActivity);
+router.post('/', auth.protect, activityController.createActivity);
 
 module.exports = router; 
