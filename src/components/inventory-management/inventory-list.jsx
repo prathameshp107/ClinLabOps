@@ -89,12 +89,20 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
   const [newItem, setNewItem] = useState({
     name: "",
     category: "",
+    type: "",
     currentStock: 0,
-    minStockLevel: 0,
-    unitPrice: 0,
+    minStock: 0,
+    maxStock: 100,
+    unit: "pcs",
     location: "",
     supplier: "",
-    unit: "pcs"
+    cost: 0,
+    expiryDate: "",
+    batchNumber: "",
+    notes: "",
+    barcode: "",
+    hazardous: false,
+    storageConditions: ""
   })
 
   // Get unique suppliers for filter
@@ -115,13 +123,13 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
   // Filter and sort items
   const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = (item?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item?.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item?.id || '').toLowerCase().includes(searchQuery.toLowerCase())
+      (item?.barcode || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item?._id || '').toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesCategory = selectedCategory === "all" || item?.category === selectedCategory
     const matchesStatus = selectedStatus === "all" ||
-      (selectedStatus === "low" && item?.isLowStock) ||
-      (selectedStatus === "in-stock" && !item?.isLowStock)
+      (selectedStatus === "low" && item?.currentStock <= item?.minStock) ||
+      (selectedStatus === "in-stock" && item?.currentStock > item?.minStock)
 
     return matchesSearch && matchesCategory && matchesStatus
   })
@@ -150,23 +158,35 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
     if (selectedItems.length === sortedItems.length) {
       setSelectedItems([])
     } else {
-      setSelectedItems(sortedItems.map(item => item.id))
+      setSelectedItems(sortedItems.map(item => item._id))
     }
   }
 
   // Handle adding new item
   const handleAddItem = () => {
-    // Generate a new ID
-    const newId = `INV-${String(inventoryItems.length + 1).padStart(4, '0')}`
+    // Validate required fields
+    const requiredFields = [
+      { field: 'name', label: 'Item name' },
+      { field: 'category', label: 'Category' },
+      { field: 'type', label: 'Type' },
+      { field: 'unit', label: 'Unit' },
+      { field: 'location', label: 'Storage location' }
+    ]
+
+    for (const { field, label } of requiredFields) {
+      if (!newItem[field]?.trim()) {
+        alert(`${label} is required`)
+        return
+      }
+    }
 
     const itemToAdd = {
       ...newItem,
-      id: newId,
-      sku: `SKU-${String(Math.floor(Math.random() * 10000)).padStart(5, '0')}`,
-      barcode: `${Math.floor(Math.random() * 10000000000000)}`,
-      isLowStock: newItem.currentStock <= newItem.minStockLevel,
-      lastRestocked: new Date().toISOString(),
-      status: newItem.currentStock <= newItem.minStockLevel ? "Low Stock" : "In Stock"
+      currentStock: parseInt(newItem.currentStock) || 0,
+      minStock: parseInt(newItem.minStock) || 0,
+      maxStock: parseInt(newItem.maxStock) || 100,
+      cost: parseFloat(newItem.cost) || 0,
+      expiryDate: newItem.expiryDate ? new Date(newItem.expiryDate) : null
     }
 
     onUpdateItem(itemToAdd)
@@ -174,12 +194,20 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
     setNewItem({
       name: "",
       category: "",
+      type: "",
       currentStock: 0,
-      minStockLevel: 0,
-      unitPrice: 0,
+      minStock: 0,
+      maxStock: 100,
+      unit: "pcs",
       location: "",
       supplier: "",
-      unit: "pcs"
+      cost: 0,
+      expiryDate: "",
+      batchNumber: "",
+      notes: "",
+      barcode: "",
+      hazardous: false,
+      storageConditions: ""
     })
   }
 
@@ -189,8 +217,11 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
     const updatedItem = {
       ...currentEditItem,
-      isLowStock: currentEditItem.currentStock <= currentEditItem.minStockLevel,
-      status: currentEditItem.currentStock <= currentEditItem.minStockLevel ? "Low Stock" : "In Stock"
+      currentStock: parseInt(currentEditItem.currentStock) || 0,
+      minStock: parseInt(currentEditItem.minStock) || 0,
+      maxStock: parseInt(currentEditItem.maxStock) || 100,
+      cost: parseFloat(currentEditItem.cost) || 0,
+      expiryDate: currentEditItem.expiryDate ? new Date(currentEditItem.expiryDate) : null
     }
 
     onUpdateItem(updatedItem)
@@ -224,15 +255,13 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
   // Handle updating stock for selected items
   const handleBulkUpdateStock = () => {
-    const selectedItemsData = inventoryItems.filter(item => selectedItems.includes(item.id))
+    const selectedItemsData = inventoryItems.filter(item => selectedItems.includes(item._id))
 
     selectedItemsData.forEach(item => {
       const updatedItem = {
         ...item,
         currentStock: item.currentStock + 5, // Add 5 to current stock as an example
-        lastRestocked: new Date().toISOString(),
-        isLowStock: (item.currentStock + 5) <= item.minStockLevel,
-        status: (item.currentStock + 5) <= item.minStockLevel ? "Low Stock" : "In Stock"
+        lastRestocked: new Date().toISOString()
       }
 
       onUpdateItem(updatedItem)
@@ -257,9 +286,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
     const updatedItem = {
       ...stockUpdateItem,
       currentStock: newStock,
-      lastRestocked: new Date().toISOString(),
-      isLowStock: newStock <= stockUpdateItem.minStockLevel,
-      status: newStock <= stockUpdateItem.minStockLevel ? "Low Stock" : "In Stock"
+      lastRestocked: new Date().toISOString()
     }
 
     onUpdateItem(updatedItem)
@@ -469,7 +496,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-6 py-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="name" className="text-sm font-medium">Item Name *</label>
                       <Input
@@ -490,6 +517,16 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                         className="border-2"
                       />
                     </div>
+                    <div className="space-y-2">
+                      <label htmlFor="type" className="text-sm font-medium">Type *</label>
+                      <Input
+                        id="type"
+                        value={newItem.type}
+                        onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
+                        placeholder="e.g., Reagent, Instrument"
+                        className="border-2"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -506,26 +543,26 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="minStockLevel" className="text-sm font-medium">Min Stock Level *</label>
+                      <label htmlFor="minStock" className="text-sm font-medium">Min Stock Level *</label>
                       <Input
-                        id="minStockLevel"
+                        id="minStock"
                         type="number"
                         min="0"
-                        value={newItem.minStockLevel}
-                        onChange={(e) => setNewItem({ ...newItem, minStockLevel: parseInt(e.target.value) || 0 })}
+                        value={newItem.minStock}
+                        onChange={(e) => setNewItem({ ...newItem, minStock: parseInt(e.target.value) || 0 })}
                         placeholder="5"
                         className="border-2"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="unitPrice" className="text-sm font-medium">Unit Price ($) *</label>
+                      <label htmlFor="cost" className="text-sm font-medium">Unit Price ($) *</label>
                       <Input
-                        id="unitPrice"
+                        id="cost"
                         type="number"
                         min="0"
                         step="0.01"
-                        value={newItem.unitPrice}
-                        onChange={(e) => setNewItem({ ...newItem, unitPrice: parseFloat(e.target.value) || 0 })}
+                        value={newItem.cost}
+                        onChange={(e) => setNewItem({ ...newItem, cost: parseFloat(e.target.value) || 0 })}
                         placeholder="0.00"
                         className="border-2"
                       />
@@ -534,7 +571,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <label htmlFor="location" className="text-sm font-medium">Storage Location</label>
+                      <label htmlFor="location" className="text-sm font-medium">Storage Location *</label>
                       <Input
                         id="location"
                         value={newItem.location}
@@ -554,7 +591,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="unit" className="text-sm font-medium">Unit</label>
+                      <label htmlFor="unit" className="text-sm font-medium">Unit *</label>
                       <Input
                         id="unit"
                         value={newItem.unit}
@@ -582,15 +619,15 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-amber-100">
             <div className="text-sm font-medium text-amber-600">Low Stock</div>
-            <div className="text-2xl font-bold">{sortedItems.filter(item => item.isLowStock).length}</div>
+            <div className="text-2xl font-bold">{sortedItems.filter(item => item.currentStock <= item.minStock).length}</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-green-100">
             <div className="text-sm font-medium text-green-600">In Stock</div>
-            <div className="text-2xl font-bold">{sortedItems.filter(item => !item.isLowStock).length}</div>
+            <div className="text-2xl font-bold">{sortedItems.filter(item => item.currentStock > item.minStock).length}</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-100">
             <div className="text-sm font-medium text-purple-600">Value</div>
-            <div className="text-2xl font-bold">${sortedItems.reduce((total, item) => total + (item.currentStock * item.unitPrice), 0).toLocaleString()}</div>
+            <div className="text-2xl font-bold">${sortedItems.reduce((total, item) => total + (item.currentStock * (item.cost || 0)), 0).toLocaleString()}</div>
           </div>
         </div>
       </div>
@@ -611,7 +648,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                 </TableHead>
                 <TableHead className="w-[120px] py-4">
                   <div className="flex items-center space-x-1">
-                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("id")}>
+                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("_id")}>
                       <span>Item ID</span>
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
@@ -638,7 +675,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                 </TableHead>
                 <TableHead className="py-4">
                   <div className="flex items-center space-x-1">
-                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("unitPrice")}>
+                    <Button variant="ghost" size="sm" className="-ml-3 h-8 data-[state=open]:bg-accent font-semibold" onClick={() => requestSort("cost")}>
                       <span>Unit Price</span>
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
@@ -658,25 +695,25 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
             <TableBody>
               {sortedItems.length > 0 ? (
                 sortedItems.map((item, index) => (
-                  <TableRow key={item.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
+                  <TableRow key={item._id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
                     <TableCell className="py-4">
                       <Checkbox
-                        checked={selectedItems.includes(item.id)}
-                        onCheckedChange={() => toggleItemSelection(item.id)}
+                        checked={selectedItems.includes(item._id)}
+                        onCheckedChange={() => toggleItemSelection(item._id)}
                         aria-label={`Select ${item.name}`}
                         className="border-2"
                       />
                     </TableCell>
                     <TableCell className="font-mono text-sm py-4">
                       <div className="bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-md inline-block">
-                        {item?.id || 'N/A'}
+                        {item?._id?.slice(-8) || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="space-y-1">
                         <div className="font-semibold text-gray-900 dark:text-gray-100">{item?.name || 'Unknown Item'}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-2">
-                          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">SKU: {item?.sku || 'N/A'}</span>
+                          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">Type: {item?.type || 'N/A'}</span>
                           {item?.barcode && (
                             <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded flex items-center gap-1">
                               <Scan className="h-3 w-3" />
@@ -696,32 +733,32 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-lg">{item?.currentStock || 0}</span>
                           <span className="text-sm text-muted-foreground">{item?.unit || 'units'}</span>
-                          {item?.isLowStock && (
+                          {(item?.currentStock <= item?.minStock) && (
                             <AlertCircle className="h-4 w-4 text-amber-500" />
                           )}
                         </div>
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full transition-all ${item?.isLowStock ? 'bg-red-500' :
-                              (item?.currentStock || 0) > (item?.minStockLevel || 0) * 2 ? 'bg-green-500' : 'bg-yellow-500'
+                            className={`h-2 rounded-full transition-all ${(item?.currentStock <= item?.minStock) ? 'bg-red-500' :
+                              (item?.currentStock || 0) > (item?.minStock || 0) * 2 ? 'bg-green-500' : 'bg-yellow-500'
                               }`}
                             style={{
-                              width: `${Math.min(100, ((item?.currentStock || 0) / Math.max((item?.minStockLevel || 0) * 3, 1)) * 100)}%`
+                              width: `${Math.min(100, ((item?.currentStock || 0) / Math.max((item?.minStock || 0) * 3, 1)) * 100)}%`
                             }}
                           ></div>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Min: {item?.minStockLevel || 0} {item?.unit || 'units'}
+                          Min: {item?.minStock || 0} {item?.unit || 'units'}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="py-4">
                       <div className="text-right">
                         <div className="font-semibold text-lg text-green-600 dark:text-green-400">
-                          ${(item?.unitPrice || 0).toFixed(2)}
+                          ${(item?.cost || 0).toFixed(2)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Total: ${((item?.currentStock || 0) * (item?.unitPrice || 0)).toFixed(2)}
+                          Total: ${((item?.currentStock || 0) * (item?.cost || 0)).toFixed(2)}
                         </div>
                       </div>
                     </TableCell>
@@ -740,13 +777,13 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                     <TableCell className="py-4">
                       <div className="space-y-2">
                         <Badge
-                          variant={item.isLowStock ? "destructive" : "default"}
-                          className={`${item.isLowStock
+                          variant={(item?.currentStock <= item?.minStock) ? "destructive" : "default"}
+                          className={`${(item?.currentStock <= item?.minStock)
                             ? "bg-red-100 text-red-800 border-red-200 hover:bg-red-200"
                             : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
                             } font-medium`}
                         >
-                          {item.isLowStock ? (
+                          {(item?.currentStock <= item?.minStock) ? (
                             <><AlertTriangle className="h-3 w-3 mr-1" />Low Stock</>
                           ) : (
                             <><Check className="h-3 w-3 mr-1" />In Stock</>
@@ -754,7 +791,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                         </Badge>
                         {item?.lastRestocked && (
                           <div className="text-xs text-muted-foreground">
-                            Last: {format(parseISO(item.lastRestocked), 'MMM dd')}
+                            Last: {format(new Date(item.lastRestocked), 'MMM dd')}
                           </div>
                         )}
                       </div>
@@ -778,7 +815,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                             <span>Update Stock</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteItem(item.id)}>
+                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteItem(item._id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete Item</span>
                           </DropdownMenuItem>
@@ -819,7 +856,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                 </div>
                 <div className="text-sm text-blue-600 dark:text-blue-300">
                   {selectedItems.map(id => {
-                    const item = inventoryItems.find(item => item.id === id);
+                    const item = inventoryItems.find(item => item._id === id);
                     return item?.name;
                   }).filter(Boolean).slice(0, 3).join(', ')}
                   {selectedItems.length > 3 && ` and ${selectedItems.length - 3} more`}
@@ -909,22 +946,22 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="edit-minStockLevel" className="text-sm font-medium">Min Stock Level</label>
+                  <label htmlFor="edit-minStock" className="text-sm font-medium">Min Stock Level</label>
                   <Input
-                    id="edit-minStockLevel"
+                    id="edit-minStock"
                     type="number"
-                    value={currentEditItem.minStockLevel}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, minStockLevel: parseInt(e.target.value) })}
+                    value={currentEditItem.minStock}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, minStock: parseInt(e.target.value) })}
                     placeholder="0"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="edit-unitPrice" className="text-sm font-medium">Unit Price ($)</label>
+                  <label htmlFor="edit-cost" className="text-sm font-medium">Unit Price ($)</label>
                   <Input
-                    id="edit-unitPrice"
+                    id="edit-cost"
                     type="number"
-                    value={currentEditItem.unitPrice}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, unitPrice: parseFloat(e.target.value) })}
+                    value={currentEditItem.cost}
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, cost: parseFloat(e.target.value) })}
                     placeholder="0.00"
                   />
                 </div>

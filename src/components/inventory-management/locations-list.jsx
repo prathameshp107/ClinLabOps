@@ -67,12 +67,14 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
 
   // Handle adding new location
   const handleAddLocation = () => {
-    // Generate a new ID
-    const newId = `LOC-${String(locations.length + 1).padStart(4, '0')}`
+    // Validate required fields
+    if (!newLocation.name.trim()) {
+      alert('Location name is required')
+      return
+    }
 
     const locationToAdd = {
       ...newLocation,
-      id: newId,
       status: "Active"
     }
 
@@ -352,10 +354,10 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
             <TableBody>
               {locations.length > 0 ? (
                 locations.map((location, index) => (
-                  <TableRow key={location.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
+                  <TableRow key={location._id || location.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
                     <TableCell className="font-mono text-sm py-4">
                       <div className="bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md inline-block">
-                        {location?.id || 'N/A'}
+                        {location?._id?.slice(-8) || location?.id || 'N/A'}
                       </div>
                     </TableCell>
 
@@ -463,7 +465,7 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                             <span>Show on Map</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteLocation(location.id)}>
+                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteLocation(location._id || location.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete Location</span>
                           </DropdownMenuItem>

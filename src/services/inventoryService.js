@@ -65,6 +65,11 @@ export async function createInventoryItem(item) {
         return response.data;
     } catch (error) {
         console.error('Error creating inventory item:', error);
+        // Extract validation error message if available
+        if (error.response?.data?.error) {
+            const errorMessage = error.response.data.error;
+            throw new Error(errorMessage);
+        }
         throw error;
     }
 }

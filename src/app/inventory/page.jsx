@@ -7,7 +7,20 @@ import { SuppliersList } from "@/components/inventory-management/suppliers-list"
 import { LocationsList } from "@/components/inventory-management/locations-list"
 
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
-import { getInventoryItems, getSuppliers, getWarehouses } from "@/services/inventoryService"
+import {
+  getInventoryItems,
+  getSuppliers,
+  getWarehouses,
+  createInventoryItem,
+  updateInventoryItem,
+  deleteInventoryItem,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
+  createWarehouse,
+  updateWarehouse,
+  deleteWarehouse
+} from "@/services/inventoryService"
 
 import { Package, Users, MapPin, Loader2, TrendingUp, AlertTriangle, DollarSign, Archive, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,60 +57,133 @@ export default function InventoryPage() {
   }, [])
 
   // Handle updating an inventory item
-  const handleUpdateItem = (updatedItem) => {
-    setInventory(prev => {
-      const index = prev.findIndex(item => item.id === updatedItem.id)
-      if (index !== -1) {
-        const newInventory = [...prev]
-        newInventory[index] = updatedItem
-        return newInventory
+  const handleUpdateItem = async (updatedItem) => {
+    try {
+      let result;
+      if (updatedItem._id) {
+        // Update existing item
+        result = await updateInventoryItem(updatedItem._id, updatedItem)
       } else {
-        return [...prev, updatedItem]
+        // Create new item
+        result = await createInventoryItem(updatedItem)
       }
-    })
+
+      if (result) {
+        setInventory(prev => {
+          const index = prev.findIndex(item => item._id === result._id)
+          if (index !== -1) {
+            const newInventory = [...prev]
+            newInventory[index] = result
+            return newInventory
+          } else {
+            return [...prev, result]
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Failed to update item:', error)
+      const errorMessage = error.message || 'Failed to update item. Please try again.'
+      alert(errorMessage)
+    }
   }
 
   // Handle deleting an inventory item
-  const handleDeleteItem = (itemId) => {
-    setInventory(prev => prev.filter(item => item.id !== itemId))
+  const handleDeleteItem = async (itemId) => {
+    try {
+      const success = await deleteInventoryItem(itemId)
+      if (success) {
+        setInventory(prev => prev.filter(item => item._id !== itemId))
+      }
+    } catch (error) {
+      console.error('Failed to delete item:', error)
+      alert('Failed to delete item. Please try again.')
+    }
   }
 
   // Handle updating a supplier
-  const handleUpdateSupplier = (updatedSupplier) => {
-    setSuppliers(prev => {
-      const index = prev.findIndex(supplier => supplier.id === updatedSupplier.id)
-      if (index !== -1) {
-        const newSuppliers = [...prev]
-        newSuppliers[index] = updatedSupplier
-        return newSuppliers
+  const handleUpdateSupplier = async (updatedSupplier) => {
+    try {
+      let result;
+      if (updatedSupplier._id) {
+        // Update existing supplier
+        result = await updateSupplier(updatedSupplier._id, updatedSupplier)
       } else {
-        return [...prev, updatedSupplier]
+        // Create new supplier
+        result = await createSupplier(updatedSupplier)
       }
-    })
+
+      if (result) {
+        setSuppliers(prev => {
+          const index = prev.findIndex(supplier => supplier._id === result._id)
+          if (index !== -1) {
+            const newSuppliers = [...prev]
+            newSuppliers[index] = result
+            return newSuppliers
+          } else {
+            return [...prev, result]
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Failed to update supplier:', error)
+      alert('Failed to update supplier. Please try again.')
+    }
   }
 
   // Handle deleting a supplier
-  const handleDeleteSupplier = (supplierId) => {
-    setSuppliers(prev => prev.filter(supplier => supplier.id !== supplierId))
+  const handleDeleteSupplier = async (supplierId) => {
+    try {
+      const success = await deleteSupplier(supplierId)
+      if (success) {
+        setSuppliers(prev => prev.filter(supplier => supplier._id !== supplierId))
+      }
+    } catch (error) {
+      console.error('Failed to delete supplier:', error)
+      alert('Failed to delete supplier. Please try again.')
+    }
   }
 
   // Handle updating a location
-  const handleUpdateLocation = (updatedLocation) => {
-    setLocations(prev => {
-      const index = prev.findIndex(location => location.id === updatedLocation.id)
-      if (index !== -1) {
-        const newLocations = [...prev]
-        newLocations[index] = updatedLocation
-        return newLocations
+  const handleUpdateLocation = async (updatedLocation) => {
+    try {
+      let result;
+      if (updatedLocation._id) {
+        // Update existing location
+        result = await updateWarehouse(updatedLocation._id, updatedLocation)
       } else {
-        return [...prev, updatedLocation]
+        // Create new location
+        result = await createWarehouse(updatedLocation)
       }
-    })
+
+      if (result) {
+        setLocations(prev => {
+          const index = prev.findIndex(location => location._id === result._id)
+          if (index !== -1) {
+            const newLocations = [...prev]
+            newLocations[index] = result
+            return newLocations
+          } else {
+            return [...prev, result]
+          }
+        })
+      }
+    } catch (error) {
+      console.error('Failed to update location:', error)
+      alert('Failed to update location. Please try again.')
+    }
   }
 
   // Handle deleting a location
-  const handleDeleteLocation = (locationId) => {
-    setLocations(prev => prev.filter(location => location.id !== locationId))
+  const handleDeleteLocation = async (locationId) => {
+    try {
+      const success = await deleteWarehouse(locationId)
+      if (success) {
+        setLocations(prev => prev.filter(location => location._id !== locationId))
+      }
+    } catch (error) {
+      console.error('Failed to delete location:', error)
+      alert('Failed to delete location. Please try again.')
+    }
   }
 
   if (isLoading) {

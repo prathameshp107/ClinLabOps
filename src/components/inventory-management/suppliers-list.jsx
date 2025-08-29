@@ -66,12 +66,14 @@ export function SuppliersList({ suppliers, onUpdateSupplier, onDeleteSupplier })
 
   // Handle adding new supplier
   const handleAddSupplier = () => {
-    // Generate a new ID
-    const newId = `SUP-${String(suppliers.length + 1).padStart(4, '0')}`
+    // Validate required fields
+    if (!newSupplier.name.trim()) {
+      alert('Company name is required')
+      return
+    }
 
     const supplierToAdd = {
       ...newSupplier,
-      id: newId,
       status: "Active"
     }
 
@@ -296,10 +298,10 @@ export function SuppliersList({ suppliers, onUpdateSupplier, onDeleteSupplier })
             <TableBody>
               {suppliers.length > 0 ? (
                 suppliers.map((supplier, index) => (
-                  <TableRow key={supplier.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
+                  <TableRow key={supplier._id || supplier.id} className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-25 dark:bg-gray-850'}`}>
                     <TableCell className="font-mono text-sm py-4">
                       <div className="bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded-md inline-block">
-                        {supplier.id}
+                        {supplier._id?.slice(-8) || supplier.id || 'N/A'}
                       </div>
                     </TableCell>
 
@@ -425,7 +427,7 @@ export function SuppliersList({ suppliers, onUpdateSupplier, onDeleteSupplier })
                             <span>Call Supplier</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteSupplier(supplier.id)}>
+                          <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => onDeleteSupplier(supplier._id || supplier.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete Supplier</span>
                           </DropdownMenuItem>

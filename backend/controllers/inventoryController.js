@@ -56,10 +56,19 @@ exports.updateInventoryItem = async (req, res) => {
 
 exports.deleteInventoryItem = async (req, res) => {
     try {
+        // Check if the ID is a valid ObjectId format
+        if (!req.params.id || req.params.id === 'undefined' || req.params.id === 'null') {
+            return res.status(400).json({ error: 'Invalid item ID' });
+        }
+
         const item = await InventoryItem.findByIdAndDelete(req.params.id);
         if (!item) return res.status(404).json({ error: 'Item not found' });
         res.json({ message: 'Item deleted successfully' });
     } catch (err) {
+        // Handle invalid ObjectId format
+        if (err.name === 'CastError') {
+            return res.status(400).json({ error: 'Invalid item ID format' });
+        }
         res.status(500).json({ error: err.message });
     }
 };
@@ -159,10 +168,19 @@ exports.updateSupplier = async (req, res) => {
 
 exports.deleteSupplier = async (req, res) => {
     try {
+        // Check if the ID is a valid ObjectId format
+        if (!req.params.id || req.params.id === 'undefined' || req.params.id === 'null') {
+            return res.status(400).json({ error: 'Invalid supplier ID' });
+        }
+
         const supplier = await Supplier.findByIdAndDelete(req.params.id);
         if (!supplier) return res.status(404).json({ error: 'Supplier not found' });
         res.json({ message: 'Supplier deleted successfully' });
     } catch (err) {
+        // Handle invalid ObjectId format
+        if (err.name === 'CastError') {
+            return res.status(400).json({ error: 'Invalid supplier ID format' });
+        }
         res.status(500).json({ error: err.message });
     }
 };
@@ -209,10 +227,19 @@ exports.updateWarehouse = async (req, res) => {
 
 exports.deleteWarehouse = async (req, res) => {
     try {
+        // Check if the ID is a valid ObjectId format
+        if (!req.params.id || req.params.id === 'undefined' || req.params.id === 'null') {
+            return res.status(400).json({ error: 'Invalid warehouse ID' });
+        }
+
         const warehouse = await Warehouse.findByIdAndDelete(req.params.id);
         if (!warehouse) return res.status(404).json({ error: 'Warehouse not found' });
         res.json({ message: 'Warehouse deleted successfully' });
     } catch (err) {
+        // Handle invalid ObjectId format
+        if (err.name === 'CastError') {
+            return res.status(400).json({ error: 'Invalid warehouse ID format' });
+        }
         res.status(500).json({ error: err.message });
     }
 };
