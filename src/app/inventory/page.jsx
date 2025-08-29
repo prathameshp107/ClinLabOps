@@ -5,11 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InventoryList } from "@/components/inventory-management/inventory-list"
 import { SuppliersList } from "@/components/inventory-management/suppliers-list"
 import { LocationsList } from "@/components/inventory-management/locations-list"
-import { ReportsList } from "@/components/inventory-management/reports-list"
+
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { getInventoryItems, getSuppliers, getWarehouses } from "@/services/inventoryService"
 
-import { Package, Users, MapPin, BarChart, Loader2 } from "lucide-react";
+import { Package, Users, MapPin, Loader2 } from "lucide-react";
 
 
 export default function InventoryPage() {
@@ -145,10 +145,6 @@ export default function InventoryPage() {
                 <MapPin className="mr-2 h-4 w-4" />
                 Storage Locations
               </TabsTrigger>
-              <TabsTrigger value="reports" className="text-base px-6">
-                <BarChart className="mr-2 h-4 w-4" />
-                Reports
-              </TabsTrigger>
             </TabsList>
 
             <div className="bg-background rounded-lg p-4">
@@ -172,9 +168,6 @@ export default function InventoryPage() {
                   onUpdateLocation={handleUpdateLocation}
                   onDeleteLocation={handleDeleteLocation}
                 />
-              </TabsContent>
-              <TabsContent value="reports" className="mt-0">
-                <ReportsList inventory={inventory} />
               </TabsContent>
             </div>
           </Tabs>
