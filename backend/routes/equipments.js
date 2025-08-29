@@ -8,6 +8,15 @@ const upload = multer({ dest: 'uploads/' });
 // Get all equipments
 router.get('/', auth.protect, equipmentController.getAllEquipments);
 
+// Get maintenance history for equipment (must come before /:id route)
+router.get('/:id/maintenance-history', auth.protect, equipmentController.getMaintenanceHistory);
+
+// Add maintenance record to equipment
+router.post('/:id/maintenance-history', auth.protect, equipmentController.addMaintenanceRecord);
+
+// Upload a file to equipment
+router.post('/:id/files', auth.protect, upload.single('file'), equipmentController.uploadEquipmentFile);
+
 // Get equipment by ID
 router.get('/:id', auth.protect, equipmentController.getEquipmentById);
 
@@ -19,14 +28,5 @@ router.put('/:id', auth.protect, equipmentController.updateEquipment);
 
 // Delete equipment
 router.delete('/:id', auth.protect, equipmentController.deleteEquipment);
-
-// Upload a file to equipment
-router.post('/:id/files', auth.protect, upload.single('file'), equipmentController.uploadEquipmentFile);
-
-// Get maintenance history for equipment
-router.get('/:id/maintenance-history', auth.protect, equipmentController.getMaintenanceHistory);
-
-// Add maintenance record to equipment
-router.post('/:id/maintenance-history', auth.protect, equipmentController.addMaintenanceRecord);
 
 module.exports = router; 
