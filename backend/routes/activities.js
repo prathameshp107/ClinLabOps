@@ -9,8 +9,7 @@ router.get('/stats', auth.protect, activityController.getActivityStats);
 // Get all activities
 router.get('/', auth.protect, activityController.getAllActivities);
 
-// Debug endpoint to check activities without auth (temporary)
-router.get('/debug', activityController.getAllActivities);
+// Debug endpoint removed for production security
 
 // Get activity by ID
 router.get('/:id', auth.protect, activityController.getActivityById);

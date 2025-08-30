@@ -2,7 +2,12 @@ const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    console.error('❌ JWT_SECRET environment variable is required for authentication');
+    process.exit(1);
+}
 
 exports.register = async (req, res) => {
     try {
@@ -15,11 +20,11 @@ exports.register = async (req, res) => {
             return res.status(409).json({ message: 'Email already in use' });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ 
-            name, 
-            email, 
-            password: hashedPassword, 
-            roles: Array.isArray(roles) ? roles : [] 
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            roles: Array.isArray(roles) ? roles : []
         });
         await user.save();
         res.status(201).json({ message: 'User registered successfully' });

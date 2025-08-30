@@ -135,7 +135,7 @@ const sampleWarehouses = [
         capacity: 500,
         currentUtilization: 80,
         manager: 'Chemical Safety Officer',
-        contact: config.development?.storage?.chemicalManagerEmail || 'chemical@labtasker.com',
+        contact: seedConfig.storage.chemicalManagerEmail,
         status: 'Active',
         temperature: '18-22°C',
         humidity: '30-50%',
@@ -324,10 +324,10 @@ async function seedDatabase() {
 
         console.log('Database seeding completed successfully!');
         console.log('\nSample login credentials:');
-        console.log(`Admin: ${config.development?.testUsers?.admin?.email || 'admin@labtasker.com'} / ${config.development?.testUsers?.admin?.password || 'password123'}`);
-        console.log(`Scientist: ${config.development?.testUsers?.scientist?.email || 'scientist@labtasker.com'} / ${config.development?.testUsers?.scientist?.password || 'password123'}`);
-        console.log(`Technician: ${config.development?.testUsers?.technician?.email || 'technician@labtasker.com'} / ${config.development?.testUsers?.technician?.password || 'password123'}`);
-        console.log(`Reviewer: ${config.development?.testUsers?.reviewer?.email || 'reviewer@labtasker.com'} / ${config.development?.testUsers?.reviewer?.password || 'password123'}`);
+        console.log(`Admin: ${seedConfig.testUsers.admin.email} / ${seedConfig.testUsers.admin.password}`);
+        console.log(`Scientist: ${seedConfig.testUsers.scientist.email} / ${seedConfig.testUsers.scientist.password}`);
+        console.log(`Technician: ${seedConfig.testUsers.technician.email} / ${seedConfig.testUsers.technician.password}`);
+        console.log(`Reviewer: ${seedConfig.testUsers.reviewer.email} / ${seedConfig.testUsers.reviewer.password}`);
 
     } catch (error) {
         console.error('Error seeding database:', error);

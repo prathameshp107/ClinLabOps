@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
         const { id } = params;
 
         // Try to fetch from backend API first
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+        const backendUrl = process.env.BACKEND_URL;
 
         try {
             const response = await fetch(`${backendUrl}/api/tasks/${id}`, {
@@ -95,7 +95,7 @@ export async function PUT(request, { params }) {
 
         // In a real app, you would update in your database
         // For now, we'll make a request to your backend API
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+        const backendUrl = process.env.BACKEND_URL;
 
         const response = await fetch(`${backendUrl}/api/tasks/${id}`, {
             method: 'PUT',
@@ -138,7 +138,7 @@ export async function DELETE(request, { params }) {
 
         // In a real app, you would delete from your database
         // For now, we'll make a request to your backend API
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+        const backendUrl = process.env.BACKEND_URL;
 
         const response = await fetch(`${backendUrl}/api/tasks/${id}`, {
             method: 'DELETE',

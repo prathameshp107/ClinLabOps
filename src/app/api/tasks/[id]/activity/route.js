@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
         const { id } = params;
 
         // Try to fetch from backend API first
-        const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+        const backendUrl = process.env.BACKEND_URL;
 
         try {
             const response = await fetch(`${backendUrl}/api/tasks/${id}/activity`, {

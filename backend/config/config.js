@@ -1,7 +1,20 @@
 require('dotenv').config();
 
 // Validate required environment variables
-const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
+const requiredEnvVars = [
+    'MONGODB_URI',
+    'JWT_SECRET',
+    'PORT',
+    'NODE_ENV',
+    'DB_NAME',
+    'JWT_EXPIRES_IN',
+    'APP_NAME',
+    'APP_VERSION',
+    'CORS_ORIGIN',
+    'BCRYPT_ROUNDS',
+    'RATE_LIMIT_WINDOW_MS',
+    'RATE_LIMIT_MAX'
+];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
 if (missingEnvVars.length > 0) {
@@ -18,34 +31,34 @@ if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET.length < 32)
 
 const config = {
     // Server Configuration
-    port: parseInt(process.env.PORT) || 5000,
-    nodeEnv: process.env.NODE_ENV || 'development',
+    port: parseInt(process.env.PORT),
+    nodeEnv: process.env.NODE_ENV,
 
     // Database Configuration
     mongodbUri: process.env.MONGODB_URI,
-    dbName: process.env.DB_NAME || 'labtasker',
+    dbName: process.env.DB_NAME,
 
     // Authentication Configuration
     jwtSecret: process.env.JWT_SECRET,
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN,
 
     // Application Configuration
     app: {
-        name: process.env.APP_NAME || 'LabTasker',
-        version: process.env.APP_VERSION || '1.0.0'
+        name: process.env.APP_NAME,
+        version: process.env.APP_VERSION
     },
 
     // CORS Configuration
     cors: {
-        origin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? false : 'http://localhost:3000'),
+        origin: process.env.CORS_ORIGIN,
         credentials: true
     },
 
     // Security Configuration
     security: {
-        bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS) || 12,
-        rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-        rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX) || 100 // requests per window
+        bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS),
+        rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS),
+        rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX)
     }
 };
 
@@ -56,6 +69,6 @@ console.log(`🚀 LabTasker Backend Configuration Loaded`);
 console.log(`   Environment: ${config.nodeEnv}`);
 console.log(`   Port: ${config.port}`);
 console.log(`   Database: ${config.mongodbUri ? '✅ Connected' : '❌ Not configured'}`);
-console.log(`   CORS Origin: ${config.cors.origin || 'All origins (not recommended for production)'}`);
+console.log(`   CORS Origin: ${config.cors.origin}`);
 
 module.exports = config;

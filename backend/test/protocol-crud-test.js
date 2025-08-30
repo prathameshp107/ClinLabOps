@@ -12,15 +12,20 @@ async function testProtocolCRUD() {
         });
         console.log('✅ Connected to MongoDB');
 
+        // Validate required test environment variables
+        if (!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_USER_PASSWORD || !process.env.DEFAULT_ADMIN_NAME) {
+            throw new Error('Missing required test environment variables: TEST_ADMIN_EMAIL, TEST_USER_PASSWORD, DEFAULT_ADMIN_NAME');
+        }
+
         // Find or create a test user
-        let testUser = await User.findOne({ email: process.env.TEST_ADMIN_EMAIL || 'admin@labtasker.com' });
+        let testUser = await User.findOne({ email: process.env.TEST_ADMIN_EMAIL });
         if (!testUser) {
             console.log('Creating test user...');
             const bcrypt = require('bcrypt');
-            const hashedPassword = await bcrypt.hash(process.env.TEST_USER_PASSWORD || 'password123', 10);
+            const hashedPassword = await bcrypt.hash(process.env.TEST_USER_PASSWORD, 10);
             testUser = await User.create({
-                name: process.env.DEFAULT_ADMIN_NAME || 'Test Admin',
-                email: process.env.TEST_ADMIN_EMAIL || 'admin@labtasker.com',
+                name: process.env.DEFAULT_ADMIN_NAME,
+                email: process.env.TEST_ADMIN_EMAIL,
                 password: hashedPassword,
                 roles: ['Admin', 'User'],
                 department: 'Testing',
