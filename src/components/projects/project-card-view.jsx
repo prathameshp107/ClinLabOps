@@ -122,7 +122,7 @@ export function ProjectCardView({ projects, onAction }) {
           onMouseEnter={() => setHoveredProject(project.id)}
           onMouseLeave={() => setHoveredProject(null)}
         >
-          <Card className="h-full flex flex-col shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-border/40 hover:border-primary/40 relative overflow-hidden bg-gradient-to-br from-white via-blue-50/20 to-purple-50/10 hover:from-white hover:via-blue-50/40 hover:to-purple-50/20">
+          <Card className="h-full flex flex-col shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-border/40 hover:border-primary/40 relative overflow-hidden bg-card hover:bg-card/80">
             {/* Enhanced gradient overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
@@ -143,11 +143,11 @@ export function ProjectCardView({ projects, onAction }) {
                     <div className="flex-shrink-0 mt-1">
                       <div className={cn(
                         "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-200 shadow-sm group-hover:shadow-md",
-                        project.status === "Completed" ? "bg-gradient-to-br from-green-100 to-green-200 text-green-600 group-hover:from-green-200 group-hover:to-green-300" :
-                          project.status === "In Progress" ? "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 group-hover:from-blue-200 group-hover:to-blue-300" :
-                            project.status === "On Hold" ? "bg-gradient-to-br from-orange-100 to-orange-200 text-orange-600 group-hover:from-orange-200 group-hover:to-orange-300" :
-                              project.status === "Pending" ? "bg-gradient-to-br from-yellow-100 to-yellow-200 text-yellow-600 group-hover:from-yellow-200 group-hover:to-yellow-300" :
-                                "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 group-hover:from-gray-200 group-hover:to-gray-300"
+                        project.status === "Completed" ? "bg-green-500/20 text-green-600 dark:bg-green-500/30 dark:text-green-400" :
+                          project.status === "In Progress" ? "bg-blue-500/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400" :
+                            project.status === "On Hold" ? "bg-orange-500/20 text-orange-600 dark:bg-orange-500/30 dark:text-orange-400" :
+                              project.status === "Pending" ? "bg-yellow-500/20 text-yellow-600 dark:bg-yellow-500/30 dark:text-yellow-400" :
+                                "bg-muted/50 text-muted-foreground"
                       )}>
                         <Folder className="h-5 w-5" />
                       </div>
@@ -260,15 +260,15 @@ export function ProjectCardView({ projects, onAction }) {
                   <div className="flex items-center gap-1">
                     <span className={cn(
                       "font-bold text-sm",
-                      project.progress >= 75 ? "text-green-600" :
-                        project.progress >= 50 ? "text-blue-600" :
-                          project.progress >= 25 ? "text-amber-600" :
-                            "text-red-600"
+                      project.progress >= 75 ? "text-green-600 dark:text-green-400" :
+                        project.progress >= 50 ? "text-blue-600 dark:text-blue-400" :
+                          project.progress >= 25 ? "text-amber-600 dark:text-amber-400" :
+                            "text-red-600 dark:text-red-400"
                     )}>{project.progress}%</span>
                   </div>
                 </div>
                 <div className="relative">
-                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-3 bg-muted/30 rounded-full overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-500 ease-out relative",
@@ -287,14 +287,14 @@ export function ProjectCardView({ projects, onAction }) {
               </div>
 
               {/* Enhanced Timeline with colors */}
-              <div className="flex justify-between text-xs bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-xl p-3 border border-blue-100/50">
+              <div className="flex justify-between text-xs bg-muted/20 rounded-xl p-3 border border-border/50">
                 <div className="flex items-center gap-2">
                   <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
                     <Calendar className="h-3 w-3 text-white" />
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Start</div>
-                    <span className="font-semibold text-green-700">{formatDate(project.startDate)}</span>
+                    <span className="font-semibold text-green-600 dark:text-green-400">{formatDate(project.startDate)}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -303,7 +303,7 @@ export function ProjectCardView({ projects, onAction }) {
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">End</div>
-                    <span className="font-semibold text-red-700">{formatDate(project.endDate)}</span>
+                    <span className="font-semibold text-red-600 dark:text-red-400">{formatDate(project.endDate)}</span>
                   </div>
                 </div>
               </div>
@@ -343,7 +343,7 @@ export function ProjectCardView({ projects, onAction }) {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div
-                              className={`h-8 w-8 rounded-full bg-gradient-to-br ${gradients[index % gradients.length]} text-white flex items-center justify-center text-xs font-semibold border-2 border-background hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer hover:scale-110 shadow-sm hover:shadow-md`}
+                              className={`h-8 w-8 rounded-full bg-gradient-to-br ${gradients[index % gradients.length]} text-white flex items-center justify-center text-xs font-semibold border-2 border-card hover:ring-2 hover:ring-primary/30 transition-all cursor-pointer hover:scale-110 shadow-sm hover:shadow-md`}
                               style={{ zIndex: 10 - index }}
                               onClick={(e) => e.stopPropagation()}
                             >
@@ -363,7 +363,7 @@ export function ProjectCardView({ projects, onAction }) {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <div
-                            className="h-8 w-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 text-white flex items-center justify-center text-xs font-semibold border-2 border-background hover:bg-muted/80 transition-all cursor-pointer hover:scale-110 shadow-sm hover:shadow-md"
+                            className="h-8 w-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 text-white flex items-center justify-center text-xs font-semibold border-2 border-card hover:bg-muted/80 transition-all cursor-pointer hover:scale-110 shadow-sm hover:shadow-md"
                             style={{ zIndex: 6 }}
                             onClick={(e) => e.stopPropagation()}
                           >

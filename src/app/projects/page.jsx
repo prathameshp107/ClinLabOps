@@ -33,7 +33,7 @@ export default function ProjectsPage() {
     <DashboardLayout>
       <div className="w-full px-0 py-6">
         {/* Sticky Responsive Header for Mobile */}
-        <div className="md:hidden sticky top-0 z-20 bg-gradient-to-r from-white to-gray-50/50 backdrop-blur-sm px-4 py-4 flex items-center justify-between border-b border-border/50">
+        <div className="md:hidden sticky top-0 z-20 bg-gradient-to-r from-background to-background/50 backdrop-blur-sm px-4 py-4 flex items-center justify-between border-b border-border/50">
           <div>
             <h1 className="text-xl font-bold text-foreground">Projects</h1>
             <p className="text-xs text-muted-foreground">Research & Development</p>

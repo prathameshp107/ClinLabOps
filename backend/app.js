@@ -82,6 +82,10 @@ app.use('/api/files', filesRouter);
 const reportsRouter = require('./routes/reports');
 app.use('/api/reports', reportsRouter);
 
+// Settings routes
+const settingsRouter = require('./routes/settings');
+app.use('/api/settings', settingsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     const PORT = process.env.PORT || 5000;

@@ -490,13 +490,13 @@ export function ProjectManagement() {
       {activeView === "projects" && (
         <>
           {/* Enhanced Search & Filter Controls */}
-          <div className="bg-white/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 space-y-4">
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
                 <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search projects by name, description, or tags..."
-                  className="pl-9 bg-white/80 border-border/50 focus:bg-white transition-colors"
+                  className="pl-9 bg-background/80 border-border/50 focus:bg-background transition-colors"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -504,7 +504,7 @@ export function ProjectManagement() {
 
               <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
+                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -517,7 +517,7 @@ export function ProjectManagement() {
                 </Select>
 
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
+                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
@@ -529,7 +529,7 @@ export function ProjectManagement() {
                 </Select>
 
                 <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
-                  <SelectTrigger className="w-full sm:w-[140px] bg-white/80">
+                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
                     <SelectValue placeholder="Timeframe" />
                   </SelectTrigger>
                   <SelectContent>
@@ -629,8 +629,8 @@ export function ProjectManagement() {
 function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/50 rounded-2xl bg-gradient-to-br from-muted/20 to-muted/10">
-        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-muted to-muted/80 flex items-center justify-center mb-6">
+      <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/50 rounded-2xl bg-muted/10">
+        <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-6">
           <FolderPlus className="h-8 w-8 text-muted-foreground" />
         </div>
         <h3 className="text-xl font-semibold text-foreground mb-2">No projects found</h3>

@@ -100,9 +100,9 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             icon: <Home className="h-4 w-4" />,
             items: [
                 { name: 'dashboard', label: 'Dashboard', icon: <Home className="h-5 w-5" />, path: '/admin-dashboard', badge: null },
-                { name: 'projects', label: 'Projects', icon: <ClipboardList className="h-5 w-5" />, path: '/projects', badge: { count: 12, variant: 'default' } },
-                { name: 'tasks', label: 'Tasks', icon: <ClipboardList className="h-5 w-5" />, path: '/tasks', badge: { count: 12, variant: 'default' } },
-                { name: 'experiments', label: 'Experiments', icon: <FlaskConical className="h-5 w-5" />, path: '/experiments', badge: { count: 5, variant: 'outline' } }
+                { name: 'projects', label: 'Projects', icon: <ClipboardList className="h-5 w-5" />, path: '/projects', badge: null },
+                { name: 'tasks', label: 'Tasks', icon: <ClipboardList className="h-5 w-5" />, path: '/tasks', badge: null },
+                { name: 'experiments', label: 'Experiments', icon: <FlaskConical className="h-5 w-5" />, path: '/experiments', badge: null }
             ]
         },
         {
@@ -112,7 +112,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             items: [
                 { name: 'protocols', label: 'Protocols', icon: <BookOpen className="h-5 w-5" />, path: '/protocols', badge: null },
                 { name: 'equipments', label: 'Equipments', icon: <Microscope className="h-5 w-5" />, path: '/equipments', badge: null },
-                { name: 'inventory', label: 'Inventory', icon: <Database className="h-5 w-5" />, path: '/inventory', badge: { count: 3, variant: 'destructive' } }
+                { name: 'inventory', label: 'Inventory', icon: <Database className="h-5 w-5" />, path: '/inventory', badge: null }
             ]
         },
         {
@@ -141,7 +141,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             icon: <Cog className="h-4 w-4" />,
             items: [
                 { name: 'settings', label: 'Settings', icon: <Cog className="h-5 w-5" />, path: '/settings', badge: null },
-                { name: 'compliance', label: 'Compliance', icon: <Shield className="h-5 w-5" />, path: '/compliance', badge: null },
+                // { name: 'compliance', label: 'Compliance', icon: <Shield className="h-5 w-5" />, path: '/compliance', badge: null },
                 { name: 'help', label: 'Help & Support', icon: <HelpCircle className="h-5 w-5" />, path: '/help', badge: null }
             ]
         }
@@ -237,7 +237,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             className={cn(
                 "fixed top-0 left-0 z-40 h-screen flex flex-col justify-between font-sans",
                 isCollapsed ? "w-0 opacity-0" : "w-[240px] opacity-100",
-                "transition-all duration-300 bg-[#f4f5f7] border-r border-[#e5e7eb]"
+                "transition-all duration-300 bg-background border-r border-border"
             )}
         >
             {/* New: Top Logo/Title Area */}
@@ -264,9 +264,9 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                             {/* Group Header */}
                                             <div
                                                 className={cn(
-                                                    "flex items-center gap-2 px-2 py-1 text-[11px] uppercase tracking-wider font-bold cursor-pointer select-none hover:text-[#2563eb]",
+                                                    "flex items-center gap-2 px-2 py-1 text-[11px] uppercase tracking-wider font-bold cursor-pointer select-none hover:text-primary",
                                                     isCollapsed && "justify-center px-0",
-                                                    groupIsActive(group) && !isCollapsed && "bg-[#e0e7ff] text-[#2563eb] rounded-md"
+                                                    groupIsActive(group) && !isCollapsed && "bg-primary/10 text-primary rounded-md"
                                                 )}
                                                 onClick={() => !isCollapsed && toggleGroup(group.key)}
                                             >
@@ -307,13 +307,13 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                                                                 className={cn(
                                                                                     "flex items-center gap-3 px-3 py-2 rounded-md group transition-all duration-150 text-[15px] font-medium relative",
                                                                                     isActive(item.path)
-                                                                                        ? "bg-white border-l-4 border-[#2563eb] text-[#2563eb] shadow-sm"
-                                                                                        : "hover:bg-[#e0e7ff] text-[#1e293b]"
+                                                                                        ? "bg-primary/15 border-l-4 border-primary text-primary shadow-sm font-semibold"
+                                                                                        : "hover:bg-primary/5 text-foreground hover:text-primary"
                                                                                 )}
                                                                             >
                                                                                 <span className={cn(
-                                                                                    "flex items-center justify-center h-7 w-7",
-                                                                                    isActive(item.path) ? "text-[#2563eb]" : "text-[#64748b] group-hover:text-[#2563eb]"
+                                                                                    "flex items-center justify-center h-7 w-7 transition-colors",
+                                                                                    isActive(item.path) ? "text-primary" : "text-muted-foreground group-hover:text-primary"
                                                                                 )}>
                                                                                     {item.icon}
                                                                                 </span>
@@ -330,7 +330,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                                                                         variant={isActive(item.path) ? "outline" : item.badge.variant}
                                                                                         className={cn(
                                                                                             "h-5 text-xs ml-2",
-                                                                                            isActive(item.path) && "bg-[#e0e7ff] text-[#2563eb] border-[#2563eb]"
+                                                                                            isActive(item.path) && "bg-primary/10 text-primary border-primary"
                                                                                         )}
                                                                                     >
                                                                                         {item.badge.count}
@@ -350,7 +350,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                             )}
                                             {/* Divider between groups, except last */}
                                             {idx < orderedGroups.length - 1 && (
-                                                <div className="h-px bg-[#e5e7eb] my-2 mx-2" />
+                                                <div className="h-px bg-border my-2 mx-2" />
                                             )}
                                         </div>
                                     </SortableGroup>
@@ -364,13 +364,13 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             {/* Footer */}
             {!isCollapsed && (
                 <div className={cn(
-                    "p-4 border-t border-[#e5e7eb] bg-[#f4f5f7] flex items-center justify-between gap-2",
+                    "p-4 border-t border-border bg-background flex items-center justify-between gap-2",
                     isCollapsed && "flex-col gap-3"
                 )}>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#2563eb] relative" onClick={() => router.push('/settings')}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:text-primary relative" onClick={() => router.push('/settings')}>
                                     <Settings className="h-5 w-5" />
                                     {hasSettingsNotification && (
                                         <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500" />
@@ -384,7 +384,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-9 w-9 rounded-full text-[#64748b] hover:text-[#ef4444]"
+                                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-destructive"
                                     onClick={() => router.push('/login')}
                                 >
                                     <LogOut className="h-5 w-5" />
