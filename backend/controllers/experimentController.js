@@ -181,9 +181,16 @@ exports.updateExperiment = async (req, res) => {
       return res.status(404).json({ msg: 'Experiment not found' });
     }
 
-    // Make sure user owns experiment (skip check in development)
-    if (req.user && experiment.createdBy && experiment.createdBy.toString() !== (req.user._id || req.user.id).toString()) {
-      return res.status(401).json({ msg: 'User not authorized' });
+    // Make sure user owns experiment or has admin role
+    if (!req.user) {
+      return res.status(401).json({ msg: 'Authentication required' });
+    }
+
+    const isOwner = experiment.createdBy && experiment.createdBy.toString() === (req.user._id || req.user.id).toString();
+    const isAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ msg: 'User not authorized to modify this experiment' });
     }
 
     experiment = await Experiment.findByIdAndUpdate(
@@ -222,10 +229,17 @@ exports.deleteExperiment = async (req, res) => {
 
     console.log('Found experiment:', experiment.title);
 
-    // Make sure user owns experiment (skip check in development)
-    if (req.user && experiment.createdBy && experiment.createdBy.toString() !== (req.user._id || req.user.id).toString()) {
+    // Make sure user owns experiment or has admin role
+    if (!req.user) {
+      return res.status(401).json({ msg: 'Authentication required' });
+    }
+
+    const isOwner = experiment.createdBy && experiment.createdBy.toString() === (req.user._id || req.user.id).toString();
+    const isAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+    if (!isOwner && !isAdmin) {
       console.log('User not authorized to delete experiment');
-      return res.status(401).json({ msg: 'User not authorized' });
+      return res.status(403).json({ msg: 'User not authorized to delete this experiment' });
     }
 
     // Try to delete the experiment using deleteOne method

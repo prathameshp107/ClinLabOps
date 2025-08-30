@@ -15,49 +15,34 @@ const { ComplianceItem, Audit, TrainingRecord } = require('../models/Compliance'
 const Notification = require('../models/Notification');
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/labtasker', {
+// Connect to MongoDB
+if (!process.env.MONGODB_URI) {
+    console.error('❌ MONGODB_URI environment variable is required');
+    process.exit(1);
+}
+
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
 
 // Sample data
+// Load seeding configuration
+const seedConfig = require('../config/seed-config');
+
 const sampleUsers = [
-    {
-        name: 'John Admin',
-        email: 'admin@labtasker.com',
-        password: 'password123',
-        roles: ['Admin', 'User'],
-        department: 'Administration',
-        status: 'Active',
-        phone: '+1-555-0101'
-    },
+    seedConfig.testUsers.admin,
     {
         name: 'Jane Scientist',
-        email: 'scientist@labtasker.com',
-        password: 'password123',
+        email: seedConfig.testUsers.scientist.email,
+        password: seedConfig.testUsers.scientist.password,
         roles: ['Scientist', 'User'],
         department: 'Research',
         status: 'Active',
         phone: '+1-555-0102'
     },
-    {
-        name: 'Bob Technician',
-        email: 'technician@labtasker.com',
-        password: 'password123',
-        roles: ['Technician', 'User'],
-        department: 'Laboratory',
-        status: 'Active',
-        phone: '+1-555-0103'
-    },
-    {
-        name: 'Alice Reviewer',
-        email: 'reviewer@labtasker.com',
-        password: 'password123',
-        roles: ['Reviewer', 'User'],
-        department: 'Quality Assurance',
-        status: 'Active',
-        phone: '+1-555-0104'
-    }
+    seedConfig.testUsers.technician,
+    seedConfig.testUsers.reviewer
 ];
 
 const sampleInventoryItems = [
@@ -138,7 +123,7 @@ const sampleWarehouses = [
         capacity: 1000,
         currentUtilization: 65,
         manager: 'Storage Manager',
-        contact: 'storage@labtasker.com',
+        contact: seedConfig.storage.managerEmail,
         status: 'Active',
         temperature: '20-25°C',
         humidity: '40-60%',
@@ -150,7 +135,7 @@ const sampleWarehouses = [
         capacity: 500,
         currentUtilization: 80,
         manager: 'Chemical Safety Officer',
-        contact: 'chemical@labtasker.com',
+        contact: config.development?.storage?.chemicalManagerEmail || 'chemical@labtasker.com',
         status: 'Active',
         temperature: '18-22°C',
         humidity: '30-50%',
@@ -339,10 +324,10 @@ async function seedDatabase() {
 
         console.log('Database seeding completed successfully!');
         console.log('\nSample login credentials:');
-        console.log('Admin: admin@labtasker.com / password123');
-        console.log('Scientist: scientist@labtasker.com / password123');
-        console.log('Technician: technician@labtasker.com / password123');
-        console.log('Reviewer: reviewer@labtasker.com / password123');
+        console.log(`Admin: ${config.development?.testUsers?.admin?.email || 'admin@labtasker.com'} / ${config.development?.testUsers?.admin?.password || 'password123'}`);
+        console.log(`Scientist: ${config.development?.testUsers?.scientist?.email || 'scientist@labtasker.com'} / ${config.development?.testUsers?.scientist?.password || 'password123'}`);
+        console.log(`Technician: ${config.development?.testUsers?.technician?.email || 'technician@labtasker.com'} / ${config.development?.testUsers?.technician?.password || 'password123'}`);
+        console.log(`Reviewer: ${config.development?.testUsers?.reviewer?.email || 'reviewer@labtasker.com'} / ${config.development?.testUsers?.reviewer?.password || 'password123'}`);
 
     } catch (error) {
         console.error('Error seeding database:', error);

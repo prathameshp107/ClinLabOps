@@ -98,14 +98,8 @@ const getProtocols = asyncHandler(async (req, res) => {
       ]
     };
   } else {
-    // For unauthenticated users, show protocols created by default admin + public protocols
-    // This ensures consistency with protocol creation behavior
-    accessQuery = {
-      $or: [
-        { isPublic: true },
-        { createdBy: new mongoose.Types.ObjectId('689243ab93cfdddb6059757b') } // Default admin user ID
-      ]
-    };
+    // For unauthenticated users, only show public protocols
+    accessQuery = { isPublic: true };
   }
 
   // Filter by isPublic if specified (overrides default access logic)
@@ -195,11 +189,11 @@ const getProtocol = asyncHandler(async (req, res) => {
     // Check if user is authenticated and owns the protocol
     const userOwnsProtocol = req.user && (protocol.createdBy._id.toString() === req.user._id.toString());
     // Check if user is admin
-    const userIsAdmin = req.user && req.user.role === 'admin';
-    // Check if protocol was created by default admin (for unauthenticated access)
-    const isDefaultAdminProtocol = protocol.createdBy._id.toString() === '689243ab93cfdddb6059757b';
+    const userIsAdmin = req.user && (req.user.roles && req.user.roles.includes('Admin'));
+    // Check if protocol is public
+    const isPublicProtocol = protocol.isPublic;
 
-    if (!userOwnsProtocol && !userIsAdmin && !isDefaultAdminProtocol) {
+    if (!userOwnsProtocol && !userIsAdmin && !isPublicProtocol) {
       res.status(403);
       throw new Error('Not authorized to access this protocol');
     }

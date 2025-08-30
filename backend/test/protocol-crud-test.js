@@ -13,14 +13,14 @@ async function testProtocolCRUD() {
         console.log('✅ Connected to MongoDB');
 
         // Find or create a test user
-        let testUser = await User.findOne({ email: 'admin@labtasker.com' });
+        let testUser = await User.findOne({ email: process.env.TEST_ADMIN_EMAIL || 'admin@labtasker.com' });
         if (!testUser) {
             console.log('Creating test user...');
             const bcrypt = require('bcrypt');
-            const hashedPassword = await bcrypt.hash('password123', 10);
+            const hashedPassword = await bcrypt.hash(process.env.TEST_USER_PASSWORD || 'password123', 10);
             testUser = await User.create({
-                name: 'Test Admin',
-                email: 'admin@labtasker.com',
+                name: process.env.DEFAULT_ADMIN_NAME || 'Test Admin',
+                email: process.env.TEST_ADMIN_EMAIL || 'admin@labtasker.com',
                 password: hashedPassword,
                 roles: ['Admin', 'User'],
                 department: 'Testing',

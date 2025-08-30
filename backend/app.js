@@ -8,8 +8,14 @@ const app = express();
 // Import logger middleware
 const logger = require('./middleware/logger');
 
+// Load configuration
+const config = require('./config/config');
+
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: config.cors.origin,
+    credentials: config.cors.credentials
+}));
 app.use(express.json());
 
 // Log all requests
@@ -21,12 +27,15 @@ app.get('/', (req, res) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(config.mongodbUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+    .then(() => console.log('✅ MongoDB connected successfully'))
+    .catch((err) => {
+        console.error('❌ MongoDB connection error:', err.message);
+        process.exit(1);
+    });
 
 const enquiriesRouter = require('./routes/enquiries');
 app.use('/api/enquiries', enquiriesRouter);
@@ -88,9 +97,8 @@ app.use('/api/settings', settingsRouter);
 
 // Only start the server if this file is run directly
 if (require.main === module) {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+    app.listen(config.port, () => {
+        console.log(`🚀 Server running on port ${config.port} in ${config.nodeEnv} mode`);
     });
 }
 

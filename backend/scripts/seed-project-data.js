@@ -4,8 +4,8 @@ const Project = require('../models/Project');
 // Import the dummy data
 const { dummyProjectData } = require('../data/dummy-project-data.js');
 
-// MongoDB connection string - update this with your actual connection string
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/labtasker';
+// MongoDB connection string - uses environment variable
+const MONGODB_URI = process.env.MONGODB_URI;
 
 async function seedProjectData() {
     try {
