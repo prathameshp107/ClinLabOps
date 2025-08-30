@@ -338,7 +338,7 @@ export default function ProtocolsPage() {
       setSidebarOpen={setSidebarOpen}
     >
       <div className="w-full min-h-screen bg-gradient-to-b from-background via-background/95 to-background/90">
-        <div className="px-4 py-8">
+        <div className="px-2 sm:px-4 lg:px-6 py-8 max-w-full overflow-hidden">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -428,8 +428,8 @@ export default function ProtocolsPage() {
           </motion.div>
 
           {/* Search, Filters, and View Toggle */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div className="relative flex-1 max-w-2xl">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
+            <div className="relative flex-1 max-w-full lg:max-w-2xl">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search protocols by name, category, or author..."
@@ -580,6 +580,7 @@ export default function ProtocolsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.5 }}
+                className="w-full overflow-hidden"
               >
                 <DataTable
                   columns={columns}

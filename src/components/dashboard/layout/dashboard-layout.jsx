@@ -44,6 +44,19 @@ export function DashboardLayout({ children }) {
     setIsSidebarCollapsed(collapsed)
   }
 
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true)
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Load user data from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -94,17 +107,25 @@ export function DashboardLayout({ children }) {
   return (
     <TooltipProvider>
       <div className="flex h-screen bg-background overflow-hidden">
+        {/* Mobile overlay */}
+        {!isSidebarCollapsed && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={() => setIsSidebarCollapsed(true)}
+          />
+        )}
+
         {/* Sidebar with toggle state handler */}
         <ModernSidebar
           onToggle={handleSidebarToggle}
-          className="fixed h-screen z-30"
+          className="fixed h-screen z-40 lg:z-30"
           isCollapsed={isSidebarCollapsed}
         />
 
         {/* Main content area that adjusts based on sidebar state */}
         <div className={cn(
-          "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-          isSidebarCollapsed ? "ml-0" : "ml-[240px]"
+          "flex-1 flex flex-col transition-all duration-300 ease-in-out min-w-0",
+          isSidebarCollapsed ? "ml-0" : "lg:ml-[240px]"
         )}>
           {/* Simple header instead of ModernHeader */}
           <header className="h-16 border-b border-border/40 bg-background/95 sticky top-0 z-20 px-6 flex items-center justify-between">
@@ -163,8 +184,10 @@ export function DashboardLayout({ children }) {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 overflow-auto">
-            {children}
+          <main className="flex-1 overflow-auto min-w-0">
+            <div className="w-full min-w-0">
+              {children}
+            </div>
           </main>
         </div>
 

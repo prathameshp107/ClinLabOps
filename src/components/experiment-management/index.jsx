@@ -319,14 +319,7 @@ export function ExperimentManagement() {
           {/* User info and logout */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Welcome, {currentUser?.name}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="h-8 px-2 text-xs"
-            >
-              Logout
-            </Button>
+            
           </div>
 
           <div className="flex border rounded-md p-1">

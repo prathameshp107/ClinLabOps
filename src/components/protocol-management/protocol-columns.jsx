@@ -59,7 +59,8 @@ export const createProtocolColumns = (actions) => [
             return (
                 <div className="flex items-center gap-2">
                     <Hash className="h-4 w-4 text-primary/60" />
-                    <span>Protocol ID</span>
+                    <span className="hidden sm:inline">Protocol ID</span>
+                    <span className="sm:hidden">ID</span>
                 </div>
             )
         },
@@ -71,6 +72,9 @@ export const createProtocolColumns = (actions) => [
                 </Badge>
             )
         },
+        meta: {
+            className: "w-[120px] min-w-[120px]"
+        }
     },
     {
         accessorKey: "name",
@@ -85,10 +89,10 @@ export const createProtocolColumns = (actions) => [
         cell: ({ row }) => {
             const protocol = row.original
             return (
-                <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-primary/70" />
-                    <div className="flex flex-col">
-                        <span className="font-semibold text-[15px] group-hover:text-primary transition-colors duration-200">
+                <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-4 w-4 text-primary/70 flex-shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-[15px] group-hover:text-primary transition-colors duration-200 truncate">
                             {protocol.name}
                         </span>
                         <span className="text-xs text-muted-foreground">
@@ -98,6 +102,9 @@ export const createProtocolColumns = (actions) => [
                 </div>
             )
         },
+        meta: {
+            className: "min-w-[200px] max-w-[300px]"
+        }
     },
     {
         accessorKey: "description",
@@ -105,11 +112,14 @@ export const createProtocolColumns = (actions) => [
         cell: ({ row }) => {
             const description = row.getValue("description")
             return (
-                <div className="max-w-sm truncate text-muted-foreground text-sm">
+                <div className="max-w-[200px] truncate text-muted-foreground text-sm">
                     {description || <span className="italic text-gray-400">No description</span>}
                 </div>
             )
         },
+        meta: {
+            className: "hidden lg:table-cell min-w-[150px] max-w-[200px]"
+        }
     },
     {
         accessorKey: "category",
@@ -117,11 +127,14 @@ export const createProtocolColumns = (actions) => [
         cell: ({ row }) => {
             const category = row.getValue("category")
             return (
-                <Badge className="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full font-medium">
+                <Badge className="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full font-medium text-xs">
                     {category || "General"}
                 </Badge>
             )
         },
+        meta: {
+            className: "w-[120px] min-w-[120px]"
+        }
     },
     {
         accessorKey: "createdBy",
@@ -129,19 +142,23 @@ export const createProtocolColumns = (actions) => [
             return (
                 <div className="flex items-center gap-2">
                     <UserRound className="h-4 w-4 text-primary/50" />
-                    <span>Created By</span>
+                    <span className="hidden md:inline">Created By</span>
+                    <span className="md:hidden">Author</span>
                 </div>
             )
         },
         cell: ({ row }) => {
             const createdBy = row.getValue("createdBy")
             return (
-                <div className="flex items-center gap-2">
-                    <UserRound className="h-4 w-4 text-primary/60" />
-                    <span className="text-sm">{createdBy?.name || 'Unknown'}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                    <UserRound className="h-4 w-4 text-primary/60 flex-shrink-0" />
+                    <span className="text-sm truncate">{createdBy?.name || 'Unknown'}</span>
                 </div>
             )
         },
+        meta: {
+            className: "hidden md:table-cell min-w-[120px] max-w-[150px]"
+        }
     },
     {
         accessorKey: "lastModified",
@@ -149,19 +166,23 @@ export const createProtocolColumns = (actions) => [
             return (
                 <div className="flex items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-primary/50" />
-                    <span>Last Updated</span>
+                    <span className="hidden lg:inline">Last Updated</span>
+                    <span className="lg:hidden">Updated</span>
                 </div>
             )
         },
         cell: ({ row }) => {
             const lastModified = row.getValue("lastModified") || row.original.updatedAt
             return (
-                <div className="flex items-center gap-2">
-                    <CalendarDays className="h-4 w-4 text-primary/60" />
-                    <span className="text-sm">{formatDate(lastModified)}</span>
+                <div className="flex items-center gap-2 min-w-0">
+                    <CalendarDays className="h-4 w-4 text-primary/60 flex-shrink-0" />
+                    <span className="text-sm whitespace-nowrap">{formatDate(lastModified)}</span>
                 </div>
             )
         },
+        meta: {
+            className: "hidden sm:table-cell min-w-[130px]"
+        }
     },
     {
         accessorKey: "status",
@@ -170,13 +191,16 @@ export const createProtocolColumns = (actions) => [
             const status = row.getValue("status")
             return (
                 <Badge className={cn(
-                    "rounded-full px-2.5 py-0.5 text-xs font-semibold border flex items-center gap-1.5 shadow-sm",
+                    "rounded-full px-2.5 py-0.5 text-xs font-semibold border flex items-center gap-1.5 shadow-sm whitespace-nowrap",
                     getStatusVariant(status)
                 )}>
                     {status}
                 </Badge>
             )
         },
+        meta: {
+            className: "w-[100px] min-w-[100px]"
+        }
     },
     {
         id: "actions",
@@ -191,5 +215,8 @@ export const createProtocolColumns = (actions) => [
                 onDelete={actions.onDelete}
             />
         ),
+        meta: {
+            className: "w-[60px] min-w-[60px]"
+        }
     },
 ] 

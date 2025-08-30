@@ -236,8 +236,10 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
         <aside
             className={cn(
                 "fixed top-0 left-0 z-40 h-screen flex flex-col justify-between font-sans",
-                isCollapsed ? "w-0 opacity-0" : "w-[240px] opacity-100",
-                "transition-all duration-300 bg-background border-r border-border"
+                isCollapsed ? "w-0 opacity-0 -translate-x-full" : "w-[240px] opacity-100 translate-x-0",
+                "transition-all duration-300 bg-background border-r border-border",
+                "lg:fixed lg:translate-x-0",
+                isCollapsed && "lg:-translate-x-full"
             )}
         >
             {/* New: Top Logo/Title Area */}
