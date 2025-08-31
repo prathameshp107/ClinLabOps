@@ -20,8 +20,8 @@ export default function EditEnquiryPage({ params }) {
   const router = useRouter();
   const { id } = params;
 
-  // Find the enquiry by ID
-  const enquiry = mockEnquiries.find(e => e.id === id);
+  // TODO: Fetch enquiry from API using id
+  const enquiry = null; // Will be replaced with API call
 
   // Form state
   const [customerName, setCustomerName] = useState("");

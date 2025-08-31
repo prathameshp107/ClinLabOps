@@ -295,6 +295,11 @@ async function seedDatabase() {
         const createdTrainingRecords = await TrainingRecord.insertMany(trainingWithUsers);
         console.log(`Created ${createdTrainingRecords.length} training records`);
 
+        // Create projects with comprehensive laboratory data
+        const { allProjects } = require('../data/dummy-project-data.js');
+        const createdProjects = await Project.insertMany(allProjects);
+        console.log(`Created ${createdProjects.length} laboratory projects`);
+
         // Create sample notifications
         const sampleNotifications = [
             {
@@ -317,6 +322,26 @@ async function seedDatabase() {
                     entityType: 'InventoryItem',
                     entityId: createdInventoryItems[2]._id
                 }
+            },
+            {
+                title: 'Project Milestone Due',
+                message: 'AI Models Deployment milestone is due in 3 days for Drug Discovery Platform',
+                type: 'warning',
+                priority: 'high',
+                recipient: createdUsers[1]._id,
+                category: 'project',
+                relatedEntity: {
+                    entityType: 'Project',
+                    entityId: createdProjects[1]._id
+                }
+            },
+            {
+                title: 'Equipment Calibration Required',
+                message: 'Laboratory equipment calibration is due for Environmental Monitoring System',
+                type: 'info',
+                priority: 'medium',
+                recipient: createdUsers[2]._id,
+                category: 'general'
             }
         ];
         const createdNotifications = await Notification.insertMany(sampleNotifications);

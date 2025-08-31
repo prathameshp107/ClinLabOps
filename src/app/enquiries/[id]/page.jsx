@@ -99,13 +99,14 @@ const getPriorityColor = (priority) => {
       return "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800";
     case "Low":
       return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
-    default:
+    default: 
       return "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800";
   }
 };
 
 export default function EnquiryDetailsPage({ params }) {
-  const enquiry = mockEnquiries.find(e => e.id === params.id);
+  // TODO: Fetch enquiry from API using params.id
+  const enquiry = null; // Will be replaced with API call
   const router = useRouter();
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState("overview");

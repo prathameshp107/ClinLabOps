@@ -1,9 +1,8 @@
-// Enquiries will be fetched from API
-
+// Generate static params for enquiry pages
 export async function generateStaticParams() {
-  return mockEnquiries.map((enquiry) => ({
-    id: enquiry.id,
-  }));
+  // In production, enquiries will be fetched from API
+  // Return empty array to allow dynamic generation
+  return [];
 }
 
 export default function EnquiryLayout({ children }) {

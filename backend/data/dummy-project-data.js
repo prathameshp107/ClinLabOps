@@ -1,4 +1,5 @@
-const dummyProjectData = {
+// Project 1: Laboratory Management System (LMS)
+const project1 = {
     name: "Laboratory Management System (LMS)",
     description: "A comprehensive laboratory management system designed to streamline research workflows, equipment tracking, and experiment management. This project aims to modernize our laboratory operations with real-time monitoring, automated reporting, and integrated data analysis capabilities.",
     startDate: "2024-01-15",
@@ -532,8 +533,692 @@ const getDocumentStats = (project) => {
     };
 };
 
+// Project 2: Drug Discovery Platform
+const project2 = {
+    name: "Drug Discovery Platform (DDP)",
+    description: "Advanced computational platform for accelerating drug discovery through AI-powered molecular analysis, virtual screening, and predictive modeling. This project integrates machine learning algorithms with laboratory automation to identify promising drug candidates faster and more efficiently.",
+    startDate: "2024-02-01",
+    endDate: "2025-01-31",
+    status: "In Progress",
+    priority: "Critical",
+    progress: 45,
+    isFavorite: true,
+    budget: "$500,000",
+    confidential: true,
+    complexity: 5,
+    department: "Pharmaceutical Research",
+    projectCode: "DDP-2024-002",
+    tags: ["drug-discovery", "ai", "machine-learning", "pharmaceutical", "automation", "molecular-analysis"],
+
+    team: [
+        {
+            id: "TM007",
+            name: "Dr. Maria Gonzalez",
+            role: "Principal Investigator",
+            email: "maria.gonzalez@pharmatech.com",
+            department: "Pharmaceutical Research",
+            avatar: "/avatars/maria-gonzalez.jpg",
+            status: "online"
+        },
+        {
+            id: "TM008",
+            name: "Dr. Robert Kim",
+            role: "Computational Biologist",
+            email: "robert.kim@pharmatech.com",
+            department: "Bioinformatics",
+            avatar: "/avatars/robert-kim.jpg",
+            status: "online"
+        },
+        {
+            id: "TM009",
+            name: "Jennifer Liu",
+            role: "ML Engineer",
+            email: "jennifer.liu@pharmatech.com",
+            department: "Data Science",
+            avatar: "/avatars/jennifer-liu.jpg",
+            status: "busy"
+        },
+        {
+            id: "TM010",
+            name: "Dr. Ahmed Hassan",
+            role: "Medicinal Chemist",
+            email: "ahmed.hassan@pharmatech.com",
+            department: "Chemistry",
+            avatar: "/avatars/ahmed-hassan.jpg",
+            status: "online"
+        },
+        {
+            id: "TM011",
+            name: "Rachel Green",
+            role: "Laboratory Automation Specialist",
+            email: "rachel.green@pharmatech.com",
+            department: "Automation",
+            avatar: "/avatars/rachel-green.jpg",
+            status: "away"
+        }
+    ],
+
+    tasks: [
+        {
+            id: "TASK008",
+            name: "AI Model Development",
+            status: "In Progress",
+            assignee: "Jennifer Liu",
+            assigneeId: "TM009",
+            dueDate: "2024-05-15",
+            priority: "High",
+            progress: 70,
+            description: "Develop and train machine learning models for molecular property prediction and drug-target interaction analysis."
+        },
+        {
+            id: "TASK009",
+            name: "Virtual Screening Pipeline",
+            status: "In Progress",
+            assignee: "Dr. Robert Kim",
+            assigneeId: "TM008",
+            dueDate: "2024-04-30",
+            priority: "High",
+            progress: 55,
+            description: "Build automated virtual screening pipeline for compound library analysis and hit identification."
+        },
+        {
+            id: "TASK010",
+            name: "Laboratory Automation Integration",
+            status: "Not Started",
+            assignee: "Rachel Green",
+            assigneeId: "TM011",
+            dueDate: "2024-06-30",
+            priority: "Medium",
+            progress: 0,
+            description: "Integrate robotic systems with the computational platform for automated compound synthesis and testing."
+        },
+        {
+            id: "TASK011",
+            name: "Compound Database Curation",
+            status: "Completed",
+            assignee: "Dr. Ahmed Hassan",
+            assigneeId: "TM010",
+            dueDate: "2024-03-15",
+            priority: "High",
+            progress: 100,
+            description: "Curate and standardize compound databases with chemical properties and biological activity data."
+        }
+    ],
+
+    documents: [
+        {
+            id: "DOC009",
+            name: "AI_Model_Architecture.pdf",
+            type: "pdf",
+            size: 3145728,
+            uploadedBy: "Jennifer Liu",
+            uploadedAt: "2024-03-01",
+            tags: ["ai", "architecture", "machine-learning"],
+            status: "active"
+        },
+        {
+            id: "DOC010",
+            name: "Virtual_Screening_Protocol.docx",
+            type: "docx",
+            size: 2097152,
+            uploadedBy: "Dr. Robert Kim",
+            uploadedAt: "2024-02-20",
+            tags: ["screening", "protocol", "computational"],
+            status: "active"
+        }
+    ],
+
+    milestones: [
+        {
+            id: "MIL009",
+            name: "Platform Architecture Complete",
+            date: "2024-03-31",
+            status: "Completed",
+            description: "Core platform architecture designed and approved for drug discovery workflows."
+        },
+        {
+            id: "MIL010",
+            name: "AI Models Deployed",
+            date: "2024-06-30",
+            status: "In Progress",
+            description: "Machine learning models trained and deployed for molecular analysis."
+        }
+    ],
+
+    dependencies: [
+        {
+            id: "DEP005",
+            sourceId: "TASK011",
+            sourceName: "Compound Database Curation",
+            targetId: "TASK008",
+            targetName: "AI Model Development",
+            type: "finish-to-start",
+            created: "2024-02-15"
+        }
+    ],
+
+    activityLog: [
+        {
+            id: "ACT009",
+            userId: "TM007",
+            action: "Project Created",
+            timestamp: "2024-02-01T10:00:00Z",
+            details: "Drug Discovery Platform project initiated",
+            user: "Dr. Maria Gonzalez",
+            type: "project",
+            time: "2024-02-01 10:00"
+        }
+    ]
+};
+
+// Project 3: Environmental Monitoring System
+const project3 = {
+    name: "Environmental Monitoring System (EMS)",
+    description: "Comprehensive environmental monitoring system for tracking air quality, water contamination, and soil health using IoT sensors and real-time data analytics. This project aims to provide early warning systems for environmental hazards and support regulatory compliance.",
+    startDate: "2024-03-01",
+    endDate: "2024-11-30",
+    status: "In Progress",
+    priority: "High",
+    progress: 35,
+    isFavorite: false,
+    budget: "$180,000",
+    confidential: false,
+    complexity: 3,
+    department: "Environmental Science",
+    projectCode: "EMS-2024-003",
+    tags: ["environmental", "monitoring", "iot", "sensors", "analytics", "compliance"],
+
+    team: [
+        {
+            id: "TM012",
+            name: "Dr. Elena Petrov",
+            role: "Environmental Scientist",
+            email: "elena.petrov@envirotech.com",
+            department: "Environmental Science",
+            avatar: "/avatars/elena-petrov.jpg",
+            status: "online"
+        },
+        {
+            id: "TM013",
+            name: "Marcus Johnson",
+            role: "IoT Engineer",
+            email: "marcus.johnson@envirotech.com",
+            department: "Engineering",
+            avatar: "/avatars/marcus-johnson.jpg",
+            status: "online"
+        },
+        {
+            id: "TM014",
+            name: "Dr. Yuki Tanaka",
+            role: "Data Analyst",
+            email: "yuki.tanaka@envirotech.com",
+            department: "Analytics",
+            avatar: "/avatars/yuki-tanaka.jpg",
+            status: "busy"
+        }
+    ],
+
+    tasks: [
+        {
+            id: "TASK012",
+            name: "Sensor Network Deployment",
+            status: "In Progress",
+            assignee: "Marcus Johnson",
+            assigneeId: "TM013",
+            dueDate: "2024-05-31",
+            priority: "High",
+            progress: 60,
+            description: "Deploy IoT sensors across monitoring sites for air, water, and soil quality measurements."
+        },
+        {
+            id: "TASK013",
+            name: "Data Analytics Dashboard",
+            status: "In Progress",
+            assignee: "Dr. Yuki Tanaka",
+            assigneeId: "TM014",
+            dueDate: "2024-06-15",
+            priority: "Medium",
+            progress: 40,
+            description: "Develop real-time analytics dashboard for environmental data visualization and alerts."
+        }
+    ],
+
+    documents: [
+        {
+            id: "DOC011",
+            name: "Environmental_Monitoring_Plan.pdf",
+            type: "pdf",
+            size: 1572864,
+            uploadedBy: "Dr. Elena Petrov",
+            uploadedAt: "2024-03-05",
+            tags: ["monitoring", "plan", "environmental"],
+            status: "active"
+        }
+    ],
+
+    milestones: [
+        {
+            id: "MIL011",
+            name: "Sensor Network Operational",
+            date: "2024-06-30",
+            status: "In Progress",
+            description: "Complete sensor network deployed and operational across all monitoring sites."
+        }
+    ],
+
+    dependencies: [],
+
+    activityLog: [
+        {
+            id: "ACT010",
+            userId: "TM012",
+            action: "Project Created",
+            timestamp: "2024-03-01T09:00:00Z",
+            details: "Environmental Monitoring System project started",
+            user: "Dr. Elena Petrov",
+            type: "project",
+            time: "2024-03-01 09:00"
+        }
+    ]
+};
+
+// Project 4: Genomics Research Platform
+const project4 = {
+    name: "Genomics Research Platform (GRP)",
+    description: "Next-generation genomics research platform for DNA sequencing, variant analysis, and personalized medicine research. This platform integrates high-throughput sequencing technologies with advanced bioinformatics pipelines for genomic data analysis and interpretation.",
+    startDate: "2024-01-01",
+    endDate: "2024-10-31",
+    status: "In Progress",
+    priority: "High",
+    progress: 72,
+    isFavorite: true,
+    budget: "$350,000",
+    confidential: true,
+    complexity: 4,
+    department: "Genomics",
+    projectCode: "GRP-2024-004",
+    tags: ["genomics", "dna-sequencing", "bioinformatics", "personalized-medicine", "research"],
+
+    team: [
+        {
+            id: "TM015",
+            name: "Dr. Catherine Wright",
+            role: "Genomics Lead",
+            email: "catherine.wright@genomics.com",
+            department: "Genomics",
+            avatar: "/avatars/catherine-wright.jpg",
+            status: "online"
+        },
+        {
+            id: "TM016",
+            name: "Dr. Raj Patel",
+            role: "Bioinformatics Specialist",
+            email: "raj.patel@genomics.com",
+            department: "Bioinformatics",
+            avatar: "/avatars/raj-patel.jpg",
+            status: "online"
+        },
+        {
+            id: "TM017",
+            name: "Sophie Anderson",
+            role: "Laboratory Technician",
+            email: "sophie.anderson@genomics.com",
+            department: "Laboratory",
+            avatar: "/avatars/sophie-anderson.jpg",
+            status: "away"
+        },
+        {
+            id: "TM018",
+            name: "Dr. Lin Zhang",
+            role: "Clinical Researcher",
+            email: "lin.zhang@genomics.com",
+            department: "Clinical Research",
+            avatar: "/avatars/lin-zhang.jpg",
+            status: "online"
+        }
+    ],
+
+    tasks: [
+        {
+            id: "TASK014",
+            name: "Sequencing Pipeline Optimization",
+            status: "Completed",
+            assignee: "Dr. Raj Patel",
+            assigneeId: "TM016",
+            dueDate: "2024-03-31",
+            priority: "High",
+            progress: 100,
+            description: "Optimize bioinformatics pipelines for faster and more accurate genomic variant calling."
+        },
+        {
+            id: "TASK015",
+            name: "Clinical Sample Processing",
+            status: "In Progress",
+            assignee: "Sophie Anderson",
+            assigneeId: "TM017",
+            dueDate: "2024-08-31",
+            priority: "High",
+            progress: 85,
+            description: "Process clinical samples for genomic analysis and maintain sample quality standards."
+        },
+        {
+            id: "TASK016",
+            name: "Personalized Medicine Database",
+            status: "In Progress",
+            assignee: "Dr. Lin Zhang",
+            assigneeId: "TM018",
+            dueDate: "2024-09-30",
+            priority: "Medium",
+            progress: 60,
+            description: "Build comprehensive database linking genomic variants to clinical outcomes for personalized medicine."
+        }
+    ],
+
+    documents: [
+        {
+            id: "DOC012",
+            name: "Genomics_Analysis_Protocol.pdf",
+            type: "pdf",
+            size: 2621440,
+            uploadedBy: "Dr. Catherine Wright",
+            uploadedAt: "2024-01-15",
+            tags: ["genomics", "protocol", "analysis"],
+            status: "active"
+        },
+        {
+            id: "DOC013",
+            name: "Clinical_Sample_Guidelines.docx",
+            type: "docx",
+            size: 1048576,
+            uploadedBy: "Dr. Lin Zhang",
+            uploadedAt: "2024-02-01",
+            tags: ["clinical", "samples", "guidelines"],
+            status: "active"
+        }
+    ],
+
+    milestones: [
+        {
+            id: "MIL012",
+            name: "Pipeline Validation Complete",
+            date: "2024-04-30",
+            status: "Completed",
+            description: "Bioinformatics pipelines validated and ready for clinical sample processing."
+        },
+        {
+            id: "MIL013",
+            name: "Clinical Database Launch",
+            date: "2024-10-15",
+            status: "In Progress",
+            description: "Personalized medicine database launched with initial clinical correlations."
+        }
+    ],
+
+    dependencies: [
+        {
+            id: "DEP006",
+            sourceId: "TASK014",
+            sourceName: "Sequencing Pipeline Optimization",
+            targetId: "TASK015",
+            targetName: "Clinical Sample Processing",
+            type: "finish-to-start",
+            created: "2024-01-15"
+        }
+    ],
+
+    activityLog: [
+        {
+            id: "ACT011",
+            userId: "TM015",
+            action: "Project Created",
+            timestamp: "2024-01-01T08:00:00Z",
+            details: "Genomics Research Platform project initiated",
+            user: "Dr. Catherine Wright",
+            type: "project",
+            time: "2024-01-01 08:00"
+        },
+        {
+            id: "ACT012",
+            userId: "TM016",
+            action: "Task Completed",
+            timestamp: "2024-03-31T16:00:00Z",
+            details: "Sequencing Pipeline Optimization completed successfully",
+            user: "Dr. Raj Patel",
+            task: "Sequencing Pipeline Optimization",
+            taskId: "TASK014",
+            type: "task",
+            time: "2024-03-31 16:00"
+        }
+    ]
+};
+
+// Project 5: Biomedical Device Testing
+const project5 = {
+    name: "Biomedical Device Testing (BDT)",
+    description: "Comprehensive testing and validation program for next-generation biomedical devices including wearable health monitors, implantable sensors, and diagnostic equipment. This project ensures regulatory compliance and safety standards for medical device approval.",
+    startDate: "2024-02-15",
+    endDate: "2025-02-14",
+    status: "In Progress",
+    priority: "Critical",
+    progress: 28,
+    isFavorite: false,
+    budget: "$420,000",
+    confidential: true,
+    complexity: 5,
+    department: "Biomedical Engineering",
+    projectCode: "BDT-2024-005",
+    tags: ["biomedical", "device-testing", "validation", "regulatory", "safety", "medical-devices"],
+
+    team: [
+        {
+            id: "TM019",
+            name: "Dr. Thomas Mueller",
+            role: "Biomedical Engineer",
+            email: "thomas.mueller@biomedtech.com",
+            department: "Biomedical Engineering",
+            avatar: "/avatars/thomas-mueller.jpg",
+            status: "online"
+        },
+        {
+            id: "TM020",
+            name: "Dr. Priya Sharma",
+            role: "Regulatory Affairs Specialist",
+            email: "priya.sharma@biomedtech.com",
+            department: "Regulatory Affairs",
+            avatar: "/avatars/priya-sharma.jpg",
+            status: "busy"
+        },
+        {
+            id: "TM021",
+            name: "Kevin O'Connor",
+            role: "Test Engineer",
+            email: "kevin.oconnor@biomedtech.com",
+            department: "Quality Assurance",
+            avatar: "/avatars/kevin-oconnor.jpg",
+            status: "online"
+        },
+        {
+            id: "TM022",
+            name: "Dr. Anna Kowalski",
+            role: "Clinical Validation Lead",
+            email: "anna.kowalski@biomedtech.com",
+            department: "Clinical Research",
+            avatar: "/avatars/anna-kowalski.jpg",
+            status: "away"
+        },
+        {
+            id: "TM023",
+            name: "David Chen",
+            role: "Quality Assurance Manager",
+            email: "david.chen@biomedtech.com",
+            department: "Quality Assurance",
+            avatar: "/avatars/david-chen.jpg",
+            status: "online"
+        }
+    ],
+
+    tasks: [
+        {
+            id: "TASK017",
+            name: "Device Safety Testing",
+            status: "In Progress",
+            assignee: "Kevin O'Connor",
+            assigneeId: "TM021",
+            dueDate: "2024-07-31",
+            priority: "Critical",
+            progress: 45,
+            description: "Conduct comprehensive safety testing including biocompatibility, electrical safety, and mechanical stress tests."
+        },
+        {
+            id: "TASK018",
+            name: "Regulatory Documentation",
+            status: "In Progress",
+            assignee: "Dr. Priya Sharma",
+            assigneeId: "TM020",
+            dueDate: "2024-09-30",
+            priority: "High",
+            progress: 30,
+            description: "Prepare regulatory submission documents for FDA approval including 510(k) premarket notification."
+        },
+        {
+            id: "TASK019",
+            name: "Clinical Validation Study",
+            status: "Not Started",
+            assignee: "Dr. Anna Kowalski",
+            assigneeId: "TM022",
+            dueDate: "2024-12-31",
+            priority: "High",
+            progress: 0,
+            description: "Design and execute clinical validation studies to demonstrate device efficacy and safety in real-world conditions."
+        },
+        {
+            id: "TASK020",
+            name: "Quality Management System",
+            status: "In Progress",
+            assignee: "David Chen",
+            assigneeId: "TM023",
+            dueDate: "2024-06-30",
+            priority: "Medium",
+            progress: 55,
+            description: "Implement ISO 13485 quality management system for medical device manufacturing and testing."
+        }
+    ],
+
+    documents: [
+        {
+            id: "DOC014",
+            name: "Device_Testing_Protocol.pdf",
+            type: "pdf",
+            size: 3670016,
+            uploadedBy: "Dr. Thomas Mueller",
+            uploadedAt: "2024-02-20",
+            tags: ["testing", "protocol", "biomedical"],
+            status: "active"
+        },
+        {
+            id: "DOC015",
+            name: "FDA_Submission_Draft.docx",
+            type: "docx",
+            size: 2359296,
+            uploadedBy: "Dr. Priya Sharma",
+            uploadedAt: "2024-03-10",
+            tags: ["fda", "regulatory", "submission"],
+            status: "review"
+        },
+        {
+            id: "DOC016",
+            name: "Clinical_Study_Design.pdf",
+            type: "pdf",
+            size: 1835008,
+            uploadedBy: "Dr. Anna Kowalski",
+            uploadedAt: "2024-03-15",
+            tags: ["clinical", "study", "design"],
+            status: "active"
+        }
+    ],
+
+    milestones: [
+        {
+            id: "MIL014",
+            name: "Safety Testing Complete",
+            date: "2024-08-31",
+            status: "In Progress",
+            description: "All safety and biocompatibility testing completed and documented."
+        },
+        {
+            id: "MIL015",
+            name: "FDA Submission",
+            date: "2024-10-31",
+            status: "Not Started",
+            description: "Regulatory submission package submitted to FDA for device approval."
+        },
+        {
+            id: "MIL016",
+            name: "Clinical Validation Complete",
+            date: "2025-01-31",
+            status: "Not Started",
+            description: "Clinical validation studies completed with positive efficacy results."
+        }
+    ],
+
+    dependencies: [
+        {
+            id: "DEP007",
+            sourceId: "TASK017",
+            sourceName: "Device Safety Testing",
+            targetId: "TASK018",
+            targetName: "Regulatory Documentation",
+            type: "finish-to-start",
+            created: "2024-02-20"
+        },
+        {
+            id: "DEP008",
+            sourceId: "TASK018",
+            sourceName: "Regulatory Documentation",
+            targetId: "TASK019",
+            targetName: "Clinical Validation Study",
+            type: "finish-to-start",
+            created: "2024-03-01"
+        }
+    ],
+
+    activityLog: [
+        {
+            id: "ACT013",
+            userId: "TM019",
+            action: "Project Created",
+            timestamp: "2024-02-15T11:00:00Z",
+            details: "Biomedical Device Testing project initiated",
+            user: "Dr. Thomas Mueller",
+            type: "project",
+            time: "2024-02-15 11:00"
+        },
+        {
+            id: "ACT014",
+            userId: "TM021",
+            action: "Task Started",
+            timestamp: "2024-03-01T09:30:00Z",
+            details: "Device Safety Testing commenced",
+            user: "Kevin O'Connor",
+            task: "Device Safety Testing",
+            taskId: "TASK017",
+            type: "task",
+            time: "2024-03-01 09:30"
+        }
+    ]
+};
+
+// Array of all projects for easy access
+const allProjects = [project1, project2, project3, project4, project5];
+
 module.exports = {
-    dummyProjectData,
+    project1,
+    project2,
+    project3,
+    project4,
+    project5,
+    allProjects,
+    dummyProjectData: project1, // Keep backward compatibility
     getProjectStats,
     getRecentActivity,
     getTeamWorkload,

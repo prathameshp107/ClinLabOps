@@ -5,10 +5,16 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:production": "NODE_ENV=production next build",
     "start": "next start",
+    "start:production": "NODE_ENV=production next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
     "check-routes": "node scripts/check-dynamic-routes.js",
-    "prebuild": "npm run check-routes"
+    "prebuild": "npm run check-routes",
+    "postbuild": "echo 'Build completed successfully'",
+    "analyze": "ANALYZE=true npm run build",
+    "export": "next export"
   },
   "dependencies": {
     "@dhtmlx/trial-react-gantt": "^1.1.4",
@@ -83,6 +89,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.0.15",
+    "dotenv": "^17.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
     "tailwindcss": "^3.4.17"
