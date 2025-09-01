@@ -27,6 +27,7 @@ const CommentSchema = new mongoose.Schema({
 });
 
 const EnquirySchema = new mongoose.Schema({
+  id: { type: String, unique: true },
   customerName: { type: String, required: true },
   email: { type: String, required: true },
   phone: String,
@@ -41,7 +42,17 @@ const EnquirySchema = new mongoose.Schema({
   documents: [DocumentSchema],
   activities: [ActivitySchema],
   comments: [CommentSchema],
-  progress: Number,
+  progress: { type: Number, default: 0 },
+});
+
+// Generate custom ID before saving
+EnquirySchema.pre('save', function (next) {
+  if (!this.id) {
+    const prefix = this.customerName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const timestamp = Date.now().toString().slice(-6);
+    this.id = `${prefix}${timestamp}`;
+  }
+  next();
 });
 
 module.exports = mongoose.model('Enquiry', EnquirySchema); 

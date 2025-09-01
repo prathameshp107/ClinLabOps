@@ -18,6 +18,9 @@ router.post('/', logTaskCreation, taskController.createTask);
 // Get all tasks (optionally filter by projectId)
 router.get('/', taskController.getTasks);
 
+// --- TASK ID GENERATION ---
+router.get('/project/:projectId/next-id', taskController.getNextTaskId);
+
 // Get a single task by ID
 router.get('/:id', taskController.getTaskById);
 

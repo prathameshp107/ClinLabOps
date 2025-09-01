@@ -584,49 +584,62 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[950px] max-h-[95vh] overflow-hidden p-0">
-        <DialogHeader className="px-8 pt-8 pb-6 border-b border-border/10">
-          <DialogTitle className="text-2xl font-bold text-foreground">Add New Project</DialogTitle>
-          <DialogDescription className="text-base text-muted-foreground mt-2">
+      <DialogContent
+        className="sm:max-w-[950px] w-[95vw] overflow-hidden p-0 flex flex-col"
+        style={{
+          height: 'min(90vh, 800px)',
+          maxHeight: '90vh'
+        }}
+      >
+        <DialogHeader className="px-4 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 border-b border-border/10 flex-shrink-0">
+          <DialogTitle className="text-lg sm:text-2xl font-bold text-foreground">Add New Project</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base text-muted-foreground mt-2">
             Create a new research project and assign team members
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col h-full">
-          <TabsList className="w-full justify-start border-b border-border/10 rounded-none bg-transparent p-0 h-auto mx-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1 min-h-0">
+          <TabsList className="w-full justify-start border-b border-border/10 rounded-none bg-transparent p-0 h-auto mx-4 sm:mx-8 flex-shrink-0">
             <TabsTrigger
               value="details"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-3 font-medium transition-all hover:text-primary/80"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <FileText className="h-4 w-4 mr-2" />
-              Project Details
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Project Details</span>
+              <span className="sm:hidden">Details</span>
             </TabsTrigger>
             <TabsTrigger
               value="team"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-3 font-medium transition-all hover:text-primary/80"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Team
             </TabsTrigger>
             <TabsTrigger
               value="research"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-3 font-medium transition-all hover:text-primary/80"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <Beaker className="h-4 w-4 mr-2" />
+              <Beaker className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Research
             </TabsTrigger>
             <TabsTrigger
               value="documents"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-6 py-3 font-medium transition-all hover:text-primary/80"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <FileText className="h-4 w-4 mr-2" />
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Documents
             </TabsTrigger>
           </TabsList>
 
-          <form onSubmit={handleSubmit} className="flex flex-col h-full">
-            <ScrollArea className="flex-1 px-8 py-6" style={{ maxHeight: 'calc(95vh - 280px)' }}>
-              <TabsContent value="details" className="mt-0 space-y-8 pr-4">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div
+              className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6"
+              style={{
+                maxHeight: 'calc(90vh - 200px)',
+                minHeight: '300px'
+              }}
+            >
+              <TabsContent value="details" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -925,7 +938,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 </motion.div>
               </TabsContent>
 
-              <TabsContent value="team" className="mt-0 space-y-8 pr-4">
+              <TabsContent value="team" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1139,7 +1152,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 </motion.div>
               </TabsContent>
 
-              <TabsContent value="research" className="mt-0 space-y-8 pr-4">
+              <TabsContent value="research" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1348,7 +1361,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
               </TabsContent>
 
               {/* Documents & Attachments Tab */}
-              <TabsContent value="documents" className="mt-0 space-y-8 pr-4">
+              <TabsContent value="documents" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1489,10 +1502,13 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                   </div>
                 </motion.div>
               </TabsContent>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 border-t border-border/10 px-8 pb-8 mt-8 w-full bg-background/50">
-              <div className="flex items-center">
+            <DialogFooter
+              className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-border/10 px-4 sm:px-8 pb-4 sm:pb-6 bg-background/50 flex-shrink-0"
+              style={{ minHeight: '80px' }}
+            >
+              <div className="flex items-center justify-start">
                 {activeTab !== "details" && (
                   <Button
                     type="button"
@@ -1502,9 +1518,9 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       else if (activeTab === "research") setActiveTab("team");
                       else if (activeTab === "documents") setActiveTab("research");
                     }}
-                    className="gap-2 bg-background border-border/50 shadow-sm hover:shadow-md transition-all h-11 px-6"
+                    className="gap-2 bg-background border-border/50 shadow-sm hover:shadow-md transition-all h-9 sm:h-11 px-4 sm:px-6 text-sm"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-4 sm:h-4">
                       <path d="M15 18-6-6 6-6" />
                     </svg>
                     Back
@@ -1512,7 +1528,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 )}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 justify-end">
                 {activeTab !== "documents" ? (
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button
@@ -1522,21 +1538,21 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         else if (activeTab === "team") setActiveTab("research");
                         else if (activeTab === "research") setActiveTab("documents");
                       }}
-                      className="gap-2 shadow-md hover:shadow-lg transition-all h-11 px-8 bg-primary text-primary-foreground"
+                      className="gap-2 shadow-md hover:shadow-lg transition-all h-9 sm:h-11 px-6 sm:px-8 bg-primary text-primary-foreground text-sm sm:text-base"
                     >
                       Continue
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </motion.div>
                 ) : (
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="gap-2 py-3 px-8 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-base flex items-center justify-center h-11 min-w-[160px]"
+                    className="gap-2 py-2 sm:py-3 px-6 sm:px-8 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-sm sm:text-base flex items-center justify-center h-9 sm:h-11 min-w-[140px] sm:min-w-[160px]"
                   >
                     {isSubmitting ? (
                       <>
-                        <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -1544,7 +1560,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                         Create Project
                       </>
                     )}

@@ -1,16 +1,90 @@
 const Task = require('../models/Task');
+const Project = require('../models/Project');
+
+// Helper function to generate project initials from project name
+const generateProjectInitials = (projectName) => {
+    return projectName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('');
+};
+
+// Helper function to generate custom task ID with race condition handling
+const generateCustomTaskId = async (projectId) => {
+    try {
+        // Get the project to extract name/initials
+        const project = await Project.findById(projectId);
+        if (!project) {
+            throw new Error('Project not found');
+        }
+
+        // Generate project initials from project name
+        const projectInitials = generateProjectInitials(project.name);
+
+        // Find the highest existing task number for this project
+        const existingTasks = await Task.find({
+            projectId: projectId,
+            customId: { $regex: `^${projectInitials}-\\d+$` }
+        }).sort({ customId: -1 }).limit(1);
+
+        let nextTaskNumber = 1;
+        if (existingTasks.length > 0) {
+            const lastCustomId = existingTasks[0].customId;
+            const lastNumber = parseInt(lastCustomId.split('-')[1]);
+            nextTaskNumber = lastNumber + 1;
+        }
+
+        // Generate the custom ID: ProjectInitials-TaskNumber
+        const customId = `${projectInitials}-${nextTaskNumber}`;
+
+        // Check if this ID already exists (race condition protection)
+        const existingTask = await Task.findOne({ customId });
+        if (existingTask) {
+            // If it exists, try the next number
+            return `${projectInitials}-${nextTaskNumber + 1}`;
+        }
+
+        return customId;
+    } catch (error) {
+        throw new Error(`Failed to generate custom task ID: ${error.message}`);
+    }
+};
 
 // Create a new task
 exports.createTask = async (req, res) => {
     try {
         const data = { ...req.body };
-        if (req.body.customId) {
-            data.customId = req.body.customId;
+
+        // Generate custom task ID if projectId is provided
+        if (data.projectId) {
+            let attempts = 0;
+            const maxAttempts = 5;
+
+            while (attempts < maxAttempts) {
+                try {
+                    data.customId = await generateCustomTaskId(data.projectId);
+                    const task = new Task(data);
+                    await task.save();
+                    return res.status(201).json(task);
+                } catch (saveError) {
+                    if (saveError.code === 11000 && saveError.keyPattern?.customId) {
+                        // Duplicate customId error, try again with next number
+                        attempts++;
+                        if (attempts >= maxAttempts) {
+                            throw new Error('Failed to generate unique task ID after multiple attempts');
+                        }
+                        continue;
+                    }
+                    throw saveError;
+                }
+            }
+        } else {
+            const task = new Task(data);
+            await task.save();
+            res.status(201).json(task);
         }
-        const task = new Task(data);
-        await task.save();
-        res.status(201).json(task);
     } catch (err) {
+        console.error('Error creating task:', err);
         res.status(400).json({ error: err.message });
     }
 };
@@ -248,6 +322,23 @@ exports.getRelatedTasks = async (req, res) => {
         if (!task) return res.status(404).json({ error: 'Task not found' });
         res.json(task.relatedTasks);
     } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+// Get next available task ID for a project (for preview purposes)
+exports.getNextTaskId = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        if (!projectId) {
+            return res.status(400).json({ error: 'Project ID is required' });
+        }
+
+        const nextCustomId = await generateCustomTaskId(projectId);
+        res.json({ nextTaskId: nextCustomId });
+    } catch (err) {
+        console.error('Error generating next task ID:', err);
         res.status(400).json({ error: err.message });
     }
 }; 

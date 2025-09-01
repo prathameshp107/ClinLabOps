@@ -61,6 +61,21 @@ export async function getTaskById(id) {
 }
 
 /**
+ * Get next available task ID for a project
+ * @param {string} projectId
+ * @returns {Promise<string>} Next task ID
+ */
+export async function getNextTaskId(projectId) {
+    try {
+        const response = await api.get(`/tasks/project/${projectId}/next-id`);
+        return response.data.nextTaskId;
+    } catch (error) {
+        console.error('Error getting next task ID:', error);
+        throw error;
+    }
+}
+
+/**
  * Create a new task
  * @param {Object} taskData
  * @returns {Promise<Object>} Created task

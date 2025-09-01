@@ -27,7 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { getTasks, createTask } from "@/services/taskService"
+import { getTasks, createTask, getNextTaskId } from "@/services/taskService"
 import { getProjects, getProjectById } from "@/services/projectService"
 
 export default function TasksPage() {
@@ -47,6 +47,7 @@ export default function TasksPage() {
   const [selectedProjectId, setSelectedProjectId] = React.useState("");
   const [selectedProject, setSelectedProject] = React.useState(null);
   const [team, setTeam] = React.useState([]);
+  const [nextTaskId, setNextTaskId] = React.useState("");
 
   // Helper to generate acronym from project name (letters only, no brackets)
   function getProjectAcronym(name) {
@@ -658,6 +659,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
   const [projects, setProjects] = React.useState([]);
   const [selectedProjectId, setSelectedProjectId] = React.useState("");
   const [team, setTeam] = React.useState([]);
+  const [nextTaskId, setNextTaskId] = React.useState("");
   React.useEffect(() => {
     if (open) {
       setFormData({
@@ -680,8 +682,16 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
       getProjectById(selectedProjectId).then((proj) => {
         setTeam(proj.team || []);
       });
+      // Fetch next task ID for preview
+      getNextTaskId(selectedProjectId).then((taskId) => {
+        setNextTaskId(taskId);
+      }).catch((error) => {
+        console.error('Error fetching next task ID:', error);
+        setNextTaskId('');
+      });
     } else {
       setTeam([]);
+      setNextTaskId('');
     }
   }, [selectedProjectId]);
   const handleSubmit = () => {
@@ -703,7 +713,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col">
         <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/50">
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
           <div className="relative">
@@ -721,7 +731,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
             </DialogDescription>
           </div>
         </DialogHeader>
-        <div className="px-6 py-6 space-y-6 overflow-auto">
+        <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
           {/* Project Selector */}
           <div className="space-y-3">
             <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -744,6 +754,21 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Task ID Preview */}
+          {selectedProjectId && nextTaskId && (
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                <Label className="text-sm font-medium text-indigo-700">Task ID Preview</Label>
+              </div>
+              <div className="font-mono text-lg font-semibold text-indigo-800 bg-white/70 px-3 py-2 rounded border border-indigo-200">
+                {nextTaskId}
+              </div>
+              <p className="text-xs text-indigo-600 mt-2">This ID will be automatically assigned to your task</p>
+            </div>
+          )}
+
           {/* Title Input */}
           <div className="space-y-3">
             <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -893,7 +918,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
             />
           </div>
         </div>
-        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-slate-200/50 flex justify-end">
+        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-slate-200/50 flex justify-end flex-shrink-0">
           <Button onClick={handleSubmit} disabled={!formData.title.trim() || !selectedProjectId}>
             Create Task
           </Button>

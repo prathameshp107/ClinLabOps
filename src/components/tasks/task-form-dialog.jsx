@@ -226,7 +226,7 @@ export const TaskFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto p-0 gap-0 border border-border/40 shadow-lg rounded-lg bg-background/95 backdrop-blur-sm">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden p-0 gap-0 border border-border/40 shadow-lg rounded-lg bg-background/95 backdrop-blur-sm flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/30">
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             {mode === "create" ? (
@@ -252,7 +252,7 @@ export const TaskFormDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-4">
+        <div className="px-6 py-4 overflow-y-auto flex-1 min-h-0">
           {mode === "create" && templatesArray.length > 0 && (
             <div className="mb-5 bg-muted/50 p-4 rounded-lg border border-border/30">
               <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
@@ -720,7 +720,7 @@ export const TaskFormDialog = ({
           </Tabs>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-border/30 flex justify-end gap-2">
+        <DialogFooter className="px-6 py-4 border-t border-border/30 flex justify-end gap-2 flex-shrink-0">
           <Button
             type="button"
             variant="outline"

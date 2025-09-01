@@ -82,7 +82,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col">
         {/* Header with gradient */}
         <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/50">
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
@@ -102,7 +102,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-6 space-y-6 overflow-auto">
+        <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
           {/* Title Input */}
           <div className="space-y-3">
             <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
@@ -335,7 +335,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200/50">
+        <DialogFooter className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200/50 flex-shrink-0">
           <div className="flex gap-3 w-full sm:w-auto">
             <Button
               variant="outline"
