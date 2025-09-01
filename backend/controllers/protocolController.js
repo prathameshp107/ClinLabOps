@@ -74,7 +74,7 @@ const getMyProtocols = asyncHandler(async (req, res) => {
 // @route   GET /api/protocols
 // @access  Public (with optional auth)
 const getProtocols = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, category, search, isPublic, status } = req.query;
+  const { page = 1, limit = 10, category, search, isPublic, status, excludeInReview } = req.query;
   let query = { isDeleted: { $ne: true } }; // Exclude deleted protocols
 
   // Filter by category if provided
@@ -85,6 +85,9 @@ const getProtocols = asyncHandler(async (req, res) => {
   // Filter by status if provided
   if (status && status !== 'all') {
     query.status = status;
+  } else if (excludeInReview === 'true') {
+    // Exclude "In Review" protocols when no specific status filter is applied
+    query.status = { $ne: 'In Review' };
   }
 
   // Build access control query

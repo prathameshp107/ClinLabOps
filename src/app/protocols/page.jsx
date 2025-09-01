@@ -97,7 +97,9 @@ export default function ProtocolsPage() {
         limit: pagination.limit,
         search: searchQuery || undefined,
         category: categoryFilter !== "all" ? categoryFilter : undefined,
-        status: statusFilter !== "all" ? statusFilter : undefined
+        // For All protocols section, exclude "In Review" protocols unless specifically filtered
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        excludeInReview: statusFilter === "all" // Exclude "In Review" when no specific status filter is applied
       }
 
       const response = await getProtocols(params)
@@ -351,7 +353,10 @@ export default function ProtocolsPage() {
                 Laboratory Protocols
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base mt-2">
-                Manage standardized procedures, methods, and experimental protocols
+                {activeTab === "all"
+                  ? "Browse approved and published protocols from all users"
+                  : "Manage your protocols currently under review"
+                }
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
                 <Badge className="bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
@@ -366,10 +371,13 @@ export default function ProtocolsPage() {
                 ) : (
                   <>
                     <Badge className="bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                      {protocols.filter(p => p.status === "Active").length} Active
+                      {protocols.filter(p => p.status === "Approved").length} Approved
                     </Badge>
                     <Badge className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
                       {protocols.filter(p => p.status === "Draft").length} Drafts
+                    </Badge>
+                    <Badge className="bg-gray-500/10 text-gray-500 border border-gray-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {protocols.filter(p => p.status === "Archived").length} Archived
                     </Badge>
                   </>
                 )}
