@@ -127,7 +127,7 @@ export default function ProtocolsPage() {
         limit: pagination.limit,
         search: searchQuery || undefined,
         category: categoryFilter !== "all" ? categoryFilter : undefined,
-        status: statusFilter !== "all" ? statusFilter : undefined
+        status: "In Review" // Always filter to "In Review" for My protocols on review section
       }
 
       const response = await getMyProtocols(params)
@@ -152,7 +152,7 @@ export default function ProtocolsPage() {
   // Get unique categories and statuses for filter
   const currentProtocols = activeTab === "all" ? protocols : myProtocols
   const categories = ["all", ...new Set(currentProtocols.map(protocol => protocol.category).filter(Boolean))]
-  const statuses = ["all", "Draft", "Active", "Archived"] // Predefined statuses for consistency
+  const statuses = ["all", "Draft", "In Review", "Approved", "Archived"] // Predefined statuses for consistency
 
   // Handle creating a new protocol
   const handleCreateProtocol = () => {
@@ -360,10 +360,7 @@ export default function ProtocolsPage() {
                 {activeTab === "my" ? (
                   <>
                     <Badge className="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                      {myProtocols.filter(p => !p.isPublic).length} In Review
-                    </Badge>
-                    <Badge className="bg-green-500/10 text-green-500 border border-green-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                      {myProtocols.filter(p => p.isPublic).length} Published
+                      {myProtocols.length} In Review
                     </Badge>
                   </>
                 ) : (
@@ -485,7 +482,10 @@ export default function ProtocolsPage() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 max-w-3xl mx-auto bg-card/30 backdrop-blur-sm p-4 rounded-xl border border-border/20 shadow-sm">
+                <div className={cn(
+                  "grid gap-4 mt-4 max-w-3xl mx-auto bg-card/30 backdrop-blur-sm p-4 rounded-xl border border-border/20 shadow-sm",
+                  activeTab === "all" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-2"
+                )}>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground/80">Category</label>
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -501,21 +501,31 @@ export default function ProtocolsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground/80">Status</label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="bg-background/50 border-border/30 focus:ring-primary/30">
-                        <SelectValue placeholder="Filter by status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {statuses.map(status => (
-                          <SelectItem key={status} value={status}>
-                            {status === "all" ? "All Statuses" : status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {activeTab === "all" && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/80">Status</label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="bg-background/50 border-border/30 focus:ring-primary/30">
+                          <SelectValue placeholder="Filter by status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {statuses.map(status => (
+                            <SelectItem key={status} value={status}>
+                              {status === "all" ? "All Statuses" : status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  {activeTab === "my" && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground/80">Status</label>
+                      <div className="bg-background/50 border border-border/30 rounded-md px-3 py-2 text-sm text-muted-foreground">
+                        In Review (Fixed Filter)
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
