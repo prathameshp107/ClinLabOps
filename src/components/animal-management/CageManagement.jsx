@@ -36,8 +36,8 @@ export function CageManagement() {
     const [filteredCages, setFilteredCages] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filters, setFilters] = useState({
-        type: '',
-        status: '',
+        type: '__all__',
+        status: '__all__',
         capacity: ''
     });
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -131,11 +131,11 @@ export function CageManagement() {
             );
         }
 
-        if (filters.type) {
+        if (filters.type && filters.type !== '__all__') {
             filtered = filtered.filter(cage => cage.type === filters.type);
         }
 
-        if (filters.status) {
+        if (filters.status && filters.status !== '__all__') {
             filtered = filtered.filter(cage => cage.status === filters.status);
         }
 
@@ -209,8 +209,8 @@ export function CageManagement() {
     const clearFilters = () => {
         setSearchTerm('');
         setFilters({
-            type: '',
-            status: '',
+            type: '__all__',
+            status: '__all__',
             capacity: ''
         });
     };
@@ -249,7 +249,7 @@ export function CageManagement() {
                                             <SelectValue placeholder="All types" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">All types</SelectItem>
+                                            <SelectItem value="__all__">All types</SelectItem>
                                             {CAGE_TYPES.map((type) => (
                                                 <SelectItem key={type.value} value={type.value}>
                                                     {type.label}
@@ -269,7 +269,7 @@ export function CageManagement() {
                                             <SelectValue placeholder="All statuses" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">All statuses</SelectItem>
+                                            <SelectItem value="__all__">All statuses</SelectItem>
                                             {CAGE_STATUS.map((status) => (
                                                 <SelectItem key={status.value} value={status.value}>
                                                     {status.label}
@@ -298,7 +298,7 @@ export function CageManagement() {
             </div>
 
             {/* Active Filters Bar */}
-            {(searchTerm || filters.type || filters.status) && (
+            {(searchTerm || (filters.type && filters.type !== '__all__') || (filters.status && filters.status !== '__all__')) && (
                 <div className="flex flex-wrap items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Active filters:</span>
                     {searchTerm && (
@@ -312,22 +312,22 @@ export function CageManagement() {
                             </button>
                         </Badge>
                     )}
-                    {filters.type && (
+                    {filters.type && filters.type !== '__all__' && (
                         <Badge variant="secondary" className="flex items-center gap-1">
                             Type: {getTypeLabel(filters.type)}
                             <button
-                                onClick={() => setFilters({ ...filters, type: '' })}
+                                onClick={() => setFilters({ ...filters, type: '__all__' })}
                                 className="ml-1 hover:text-red-600"
                             >
                                 ×
                             </button>
                         </Badge>
                     )}
-                    {filters.status && (
+                    {filters.status && filters.status !== '__all__' && (
                         <Badge variant="secondary" className="flex items-center gap-1">
                             Status: {CAGE_STATUS.find(s => s.value === filters.status)?.label}
                             <button
-                                onClick={() => setFilters({ ...filters, status: '' })}
+                                onClick={() => setFilters({ ...filters, status: '__all__' })}
                                 className="ml-1 hover:text-red-600"
                             >
                                 ×
