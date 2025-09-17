@@ -95,6 +95,10 @@ app.use('/api/reports', reportsRouter);
 const settingsRouter = require('./routes/settings');
 app.use('/api/settings', settingsRouter);
 
+// Animal management routes
+const animalsRouter = require('./routes/animals');
+app.use('/api/animals', animalsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     app.listen(config.port, () => {
