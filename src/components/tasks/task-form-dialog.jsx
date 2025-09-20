@@ -42,6 +42,7 @@ import { TaskSubtasks } from "./task-subtasks"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // Add DatePicker import
 import { DatePicker } from "@/components/ui/date-picker"
+import { getUsers } from "@/services/userService"
 
 // Define form schema with Zod
 const taskFormSchema = z.object({
@@ -174,15 +175,7 @@ export const TaskFormDialog = ({
   // Handle form submission
   const handleSubmit = (data) => {
     // Find the assignee user object based on the selected ID
-    const assignee = userArray.find(user => user.id === data.assigneeId) ||
-      // Fallback for hardcoded users
-      [
-        { id: 'user1', name: 'John Doe' },
-        { id: 'user2', name: 'Jane Smith' },
-        { id: 'user3', name: 'Sarah Johnson' },
-        { id: 'user4', name: 'Jenny Parker' },
-        { id: 'user5', name: 'Harry Potter' }
-      ].find(user => user.id === data.assigneeId);
+    const assignee = userArray.find(user => (user._id || user.id) === data.assigneeId);
 
     // Map form fields to expected task fields
     const formattedTask = {
@@ -233,7 +226,7 @@ export const TaskFormDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto p-0 gap-0 border border-border/40 shadow-lg rounded-lg bg-background/95 backdrop-blur-sm">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden p-0 gap-0 border border-border/40 shadow-lg rounded-lg bg-background/95 backdrop-blur-sm flex flex-col">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/30">
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             {mode === "create" ? (
@@ -259,7 +252,7 @@ export const TaskFormDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-4">
+        <div className="px-6 py-4 overflow-y-auto flex-1 min-h-0">
           {mode === "create" && templatesArray.length > 0 && (
             <div className="mb-5 bg-muted/50 p-4 rounded-lg border border-border/30">
               <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
@@ -493,8 +486,8 @@ export const TaskFormDialog = ({
                                 minDate={new Date(new Date().setHours(0, 0, 0, 0))}
                                 showTodayButton={true}
                                 showClearButton={false}
-                                // Remove the disabled prop that's causing the error
-                                // disabled={disabled}
+                              // Remove the disabled prop that's causing the error
+                              // disabled={disabled}
                               />
                             </FormControl>
                             <FormMessage className="text-xs mt-1.5" />
@@ -576,7 +569,7 @@ export const TaskFormDialog = ({
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="experimentId"
@@ -602,7 +595,7 @@ export const TaskFormDialog = ({
                                     No experiment
                                   </div>
                                 </SelectItem>
-                                
+
                                 {/* Default experiment options */}
                                 <SelectItem value="exp1">
                                   <div className="flex items-center gap-2">
@@ -622,7 +615,7 @@ export const TaskFormDialog = ({
                                     Compound C Cellular Study
                                   </div>
                                 </SelectItem>
-                                
+
                                 {/* Dynamic experiment options from props */}
                                 {experimentsArray.map((experiment) => (
                                   <SelectItem key={experiment.id} value={experiment.id}>
@@ -727,7 +720,7 @@ export const TaskFormDialog = ({
           </Tabs>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-border/30 flex justify-end gap-2">
+        <DialogFooter className="px-6 py-4 border-t border-border/30 flex justify-end gap-2 flex-shrink-0">
           <Button
             type="button"
             variant="outline"

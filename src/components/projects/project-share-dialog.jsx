@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Users, X, UserPlus, Check } from "lucide-react"
+import { Share2, Users, Mail, Copy, Check, X, Search, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { 
+import {
   Avatar,
   AvatarFallback,
   AvatarImage
@@ -27,23 +27,49 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { getUsers } from "@/services/userService"
 
 export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
   const [email, setEmail] = useState("")
   const [role, setRole] = useState("viewer")
   const [invitedUsers, setInvitedUsers] = useState([])
   const [error, setError] = useState("")
+  const [userSuggestions, setUserSuggestions] = useState([])
 
-  // Mock user suggestions
-  const userSuggestions = [
-    { id: "u7", name: "Jessica Lee", email: "j.lee@example.com", role: "Scientist" },
-    { id: "u8", name: "Thomas Miller", email: "t.miller@example.com", role: "Technician" },
-    { id: "u9", name: "Sophia Wilson", email: "s.wilson@example.com", role: "Scientist" },
-    { id: "u10", name: "Michael Brown", email: "m.brown@example.com", role: "Reviewer" },
-  ]
+  // Fetch users when component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await getUsers();
+        setUserSuggestions(users.map(user => ({
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        })));
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  const filteredSuggestions = userSuggestions.filter(user => 
-    user.email.includes(email.toLowerCase()) && 
+  const filteredSuggestions = userSuggestions.filter(user =>
+    user.email.includes(email.toLowerCase()) &&
     !invitedUsers.some(invited => invited.email === user.email) &&
     !project?.team?.some(member => member.id === user.id)
   )
@@ -55,8 +81,8 @@ export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
     }
 
     // Check if user is already a team member
-    if (project?.team?.some(member => 
-      member.email?.toLowerCase() === email.toLowerCase() || 
+    if (project?.team?.some(member =>
+      member.email?.toLowerCase() === email.toLowerCase() ||
       member.name?.toLowerCase() === email.toLowerCase()
     )) {
       setError("This user is already a team member")
@@ -75,7 +101,7 @@ export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
     )
 
     // Add the user
-    const newUser = existingUser || { 
+    const newUser = existingUser || {
       id: `temp-${Date.now()}`,
       name: email.split('@')[0],
       email: email,
@@ -124,14 +150,14 @@ export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
                   }}
                 />
                 {filteredSuggestions.length > 0 && email && (
-                  <motion.div 
+                  <motion.div
                     className="absolute top-full left-0 right-0 z-10 mt-1 bg-background border rounded-md shadow-md max-h-48 overflow-y-auto"
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     {filteredSuggestions.map(user => (
-                      <div 
+                      <div
                         key={user.id}
                         className="flex items-center gap-2 p-2 hover:bg-muted cursor-pointer"
                         onClick={() => setEmail(user.email)}
@@ -202,8 +228,8 @@ export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
                     <Badge variant="outline" className="capitalize">
                       {user.projectRole}
                     </Badge>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       className="h-8 w-8"
                       onClick={() => removeInvitedUser(user.email)}
@@ -221,8 +247,8 @@ export function ProjectShareDialog({ open, onOpenChange, project, onShare }) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleShare} 
+          <Button
+            onClick={handleShare}
             disabled={invitedUsers.length === 0}
             className="gap-2"
           >

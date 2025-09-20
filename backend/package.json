@@ -1,0 +1,35 @@
+{
+    "name": "labtasker-backend",
+    "version": "0.1.0",
+    "private": true,
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "test": "jest",
+        "seed": "node scripts/seed-project-data.js",
+        "seed:all": "node scripts/seed-all-data.js",
+        "seed:dev": "node scripts/seed-project-data.js",
+        "seed:all:dev": "node scripts/seed-all-data.js",
+        "create-admin": "node scripts/create-admin-user.js",
+        "dev": "nodemon app.js"
+    },
+    "dependencies": {
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.5",
+        "dotenv": "^17.0.0",
+        "exceljs": "^4.4.0",
+        "express": "^5.1.0",
+        "express-async-handler": "^1.2.0",
+        "express-validator": "^7.2.1",
+        "json2csv": "^6.0.0-alpha.2",
+        "jsonwebtoken": "^9.0.2",
+        "mongoose": "^8.16.1",
+        "multer": "^2.0.1",
+        "pdfkit": "^0.17.1"
+    },
+    "devDependencies": {
+        "jest": "^30.0.3",
+        "nodemon": "^3.1.10",
+        "supertest": "^7.1.1"
+    }
+}

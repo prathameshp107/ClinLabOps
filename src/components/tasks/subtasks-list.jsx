@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { 
-  Plus, 
+import {
+  Plus,
   Trash2,
   Save,
   X,
-  Edit, 
+  Edit,
   AlertCircle,
   CheckCircle2,
-  Clock, 
-  User, 
+  Clock,
+  User,
   Calendar,
   ArrowUpDown,
   Filter
@@ -20,11 +20,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -33,16 +33,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import { DataTablePagination } from "@/components/tasks-v2/data-table-pagination";
-
-const mockUsers = [
-  { id: "1", name: "Alice Johnson", avatar: "AJ" },
-  { id: "2", name: "Bob Smith", avatar: "BS" },
-  { id: "3", name: "Charlie Brown", avatar: "CB" },
-  { id: "4", name: "Diana Prince", avatar: "DP" },
-];
-
-const priorities = ["high", "medium", "low"];
-const statuses = ["not_started", "in_progress", "completed"];
+import { subtaskPriorities, subtaskStatuses } from "@/constants";
+import { addTaskSubtask, updateTaskSubtask, removeTaskSubtask } from "@/services/taskService";
+import { getUsers } from "@/services/userService";
 
 // Helper function to generate unique task ID
 const generateTaskId = (existingSubtasks) => {
@@ -129,11 +122,25 @@ export function SubtasksList({ task, setTask }) {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [users, setUsers] = useState([]);
+
+  // Fetch users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await getUsers();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Calculate progress
   const completedSubtasks = subtasks.filter(st => st.status === "completed").length;
   const progress = subtasks.length > 0 ? Math.round((completedSubtasks / subtasks.length) * 100) : 0;
-  
+
   // Sort and filter subtasks
   const sortedAndFilteredSubtasks = subtasks
     .filter(st => filterStatus === "all" || st.status === filterStatus)
@@ -142,8 +149,8 @@ export function SubtasksList({ task, setTask }) {
       let bVal = b[sortConfig.key];
 
       if (sortConfig.key === "assignee") {
-        aVal = mockUsers.find(u => u.id === a.assignee)?.name || "";
-        bVal = mockUsers.find(u => u.id === b.assignee)?.name || "";
+        aVal = users.find(u => u._id === a.assignee)?.name || "";
+        bVal = users.find(u => u._id === b.assignee)?.name || "";
       }
 
       if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -164,13 +171,17 @@ export function SubtasksList({ task, setTask }) {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
   }, [filterStatus, sortConfig]);
 
+  useEffect(() => {
+    setSubtasks(task.subtasks || []);
+  }, [task.subtasks]);
+
   // Add new subtask row
   const handleAddSubtask = () => {
     const newId = generateTaskId(subtasks);
     setNewSubtask({
       id: newId,
       title: "",
-      assignee: mockUsers[0].id,
+      assignee: users[0]?._id || "",
       priority: "medium",
       status: "not_started",
       dueDate: null,
@@ -179,19 +190,26 @@ export function SubtasksList({ task, setTask }) {
   };
 
   // Save new or edited subtask
-  const handleSave = (subtask) => {
+  const handleSave = async (subtask) => {
     if (!subtask.title.trim()) {
       alert("Subtask title is required");
       return;
     }
-
-    if (editingId === "new") {
-      setSubtasks([...subtasks, { ...subtask, title: subtask.title.trim() }]);
-      setNewSubtask(null);
-    } else {
-      setSubtasks(subtasks.map(st => st.id === subtask.id ? { ...subtask, title: subtask.title.trim() } : st));
+    try {
+      if (editingId === "new") {
+        const added = await addTaskSubtask(task.id, { ...subtask, title: subtask.title.trim() });
+        setSubtasks([...subtasks, added]);
+        setTask(prev => ({ ...prev, subtasks: [...(prev.subtasks || []), added] }));
+        setNewSubtask(null);
+      } else {
+        const updated = await updateTaskSubtask(task.id, subtask.id, { ...subtask, title: subtask.title.trim() });
+        setSubtasks(subtasks.map(st => st.id === subtask.id ? updated : st));
+        setTask(prev => ({ ...prev, subtasks: prev.subtasks.map(st => st.id === subtask.id ? updated : st) }));
+      }
+      setEditingId(null);
+    } catch (err) {
+      alert("Failed to save subtask: " + err.message);
     }
-    setEditingId(null);
   };
 
   // Edit existing subtask
@@ -208,10 +226,13 @@ export function SubtasksList({ task, setTask }) {
   };
 
   // Delete subtask
-  const handleDelete = (id) => {
-    if (confirm("Are you sure you want to delete this subtask?")) {
+  const handleDelete = async (id) => {
+    try {
+      await removeTaskSubtask(task.id, id);
       setSubtasks(subtasks.filter(st => st.id !== id));
-      if (editingId === id) handleCancel();
+      setTask(prev => ({ ...prev, subtasks: prev.subtasks.filter(st => st.id !== id) }));
+    } catch (err) {
+      alert("Failed to delete subtask: " + err.message);
     }
   };
 
@@ -222,7 +243,7 @@ export function SubtasksList({ task, setTask }) {
       direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
     }));
   };
-  
+
   // Handle date change
   const handleDateChange = (date) => {
     setNewSubtask(prev => ({ ...prev, dueDate: date }));
@@ -232,9 +253,9 @@ export function SubtasksList({ task, setTask }) {
   const renderRow = (subtask, isEditing) => (
     <motion.tr
       key={subtask.id}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
       className={cn(
         "hover:bg-muted/50 transition-colors border-b border-border/50",
         isEditing && "bg-muted/30"
@@ -242,32 +263,32 @@ export function SubtasksList({ task, setTask }) {
     >
       <TableCell className="font-mono text-sm">
         <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                        {subtask.id}
-                      </Badge>
+          {subtask.id}
+        </Badge>
       </TableCell>
 
       <TableCell className="font-medium">
-                      {isEditing ? (
-                        <Input
+        {isEditing ? (
+          <Input
             value={subtask.title}
             onChange={e => setNewSubtask({ ...subtask, title: e.target.value })}
             placeholder="Enter subtask name..."
             className="max-w-[200px]"
             autoFocus
-                        />
-                      ) : (
+          />
+        ) : (
           <div className="flex items-center gap-2">
             <span className={cn(
               subtask.status === "completed" && "line-through text-muted-foreground"
-                        )}>
-                          {subtask.title}
+            )}>
+              {subtask.title || 'Untitled Subtask'}
             </span>
-                    </div>
+          </div>
         )}
       </TableCell>
 
       <TableCell>
-                      {isEditing ? (
+        {isEditing ? (
           <Select
             value={subtask.assignee}
             onValueChange={val => setNewSubtask({ ...subtask, assignee: val })}
@@ -276,12 +297,12 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {mockUsers.map(user => (
-                <SelectItem key={user.id} value={user.id}>
+              {users.map(user => (
+                <SelectItem key={user._id} value={user._id}>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                       <AvatarFallback className="text-xs">{user.avatar}</AvatarFallback>
-                            </Avatar>
+                    </Avatar>
                     {user.name}
                   </div>
                 </SelectItem>
@@ -292,14 +313,14 @@ export function SubtasksList({ task, setTask }) {
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-xs">
-                {mockUsers.find(u => u.id === subtask.assignee)?.avatar || "?"}
+                {users.find(u => u._id === subtask.assignee)?.name?.charAt(0) || "?"}
               </AvatarFallback>
-                        </Avatar>
+            </Avatar>
             <span className="text-sm">
-              {mockUsers.find(u => u.id === subtask.assignee)?.name || "Unassigned"}
+              {users.find(u => u._id === subtask.assignee)?.name || "Unassigned"}
             </span>
-                      </div>
-                    )}
+          </div>
+        )}
       </TableCell>
 
       <TableCell>
@@ -312,7 +333,7 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {priorities.map(p => (
+              {subtaskPriorities.map(p => (
                 <SelectItem key={p} value={p}>
                   <Badge variant="outline" className={getPriorityColor(p)}>
                     {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -322,8 +343,8 @@ export function SubtasksList({ task, setTask }) {
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="outline" className={getPriorityColor(subtask.priority)}>
-            {subtask.priority.charAt(0).toUpperCase() + subtask.priority.slice(1)}
+          <Badge variant="outline" className={getPriorityColor(subtask.priority || 'medium')}>
+            {(subtask.priority || 'medium').charAt(0).toUpperCase() + (subtask.priority || 'medium').slice(1)}
           </Badge>
         )}
       </TableCell>
@@ -338,7 +359,7 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {statuses.map(s => (
+              {subtaskStatuses.map(s => (
                 <SelectItem key={s} value={s}>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(s)}
@@ -349,17 +370,17 @@ export function SubtasksList({ task, setTask }) {
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="outline" className={getStatusColor(subtask.status)}>
+          <Badge variant="outline" className={getStatusColor(subtask.status || 'not_started')}>
             <div className="flex items-center gap-1">
-              {getStatusIcon(subtask.status)}
-              {subtask.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </div>
+              {getStatusIcon(subtask.status || 'not_started')}
+              {(subtask.status || 'not_started').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </div>
           </Badge>
         )}
       </TableCell>
 
       <TableCell>
-                      {isEditing ? (
+        {isEditing ? (
           <DatePicker
             selectedDate={subtask.dueDate}
             onDateChange={handleDateChange}
@@ -367,12 +388,12 @@ export function SubtasksList({ task, setTask }) {
             className="w-[140px]"
             showClearButton={true}
             showTodayButton={true}
-                        />
-                      ) : (
+          />
+        ) : (
           <div className="flex items-center gap-1 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             {subtask.dueDate ? format(new Date(subtask.dueDate), 'MMM d, yyyy') : "No due date"}
-                    </div>
+          </div>
         )}
       </TableCell>
 
@@ -395,10 +416,10 @@ export function SubtasksList({ task, setTask }) {
             >
               <X className="h-4 w-4" />
             </Button>
-              </div>
+          </div>
         ) : (
           <div className="flex gap-1">
-            <Button 
+            <Button
               size="sm"
               variant="ghost"
               onClick={() => handleEdit(subtask.id)}
@@ -413,7 +434,7 @@ export function SubtasksList({ task, setTask }) {
               className="h-8 px-2 text-destructive hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
-              </Button>
+            </Button>
           </div>
         )}
       </TableCell>
@@ -436,7 +457,7 @@ export function SubtasksList({ task, setTask }) {
           <Plus className="h-4 w-4 mr-2" />
           Add Subtask
         </Button>
-          </div>
+      </div>
 
       {/* Progress bar */}
       {subtasks.length > 0 && (
@@ -459,8 +480,8 @@ export function SubtasksList({ task, setTask }) {
             <SelectItem value="completed">Completed</SelectItem>
           </SelectContent>
         </Select>
-        </div>
-        
+      </div>
+
       {/* Table */}
       <div className="border rounded-lg">
         <Table>
@@ -517,14 +538,14 @@ export function SubtasksList({ task, setTask }) {
                 </Button>
               </TableHead>
               <TableHead>
-              <Button 
-                variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => handleSort("dueDate")}
                   className="h-auto p-0 font-medium"
                 >
                   Due Date
                   <ArrowUpDown className="ml-2 h-4 w-4" />
-              </Button>
+                </Button>
               </TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -537,8 +558,8 @@ export function SubtasksList({ task, setTask }) {
                   : renderRow(st, false)
               )}
               {editingId === "new" && newSubtask && renderRow(newSubtask, true)}
-        </AnimatePresence>
-        
+            </AnimatePresence>
+
             {sortedAndFilteredSubtasks.length === 0 && (
               <TableRow className="border-b border-border/50">
                 <TableCell colSpan={7} className="h-24 text-center">
@@ -546,18 +567,18 @@ export function SubtasksList({ task, setTask }) {
                     <AlertCircle className="h-8 w-8" />
                     <p>No subtasks found</p>
                     <p className="text-sm">Add a subtask to get started</p>
-                </div>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-          </div>
+      </div>
 
       {/* Pagination */}
       {sortedAndFilteredSubtasks.length > 0 && (
         <DataTablePagination table={mockTable} />
-        )}
+      )}
     </div>
   );
 }

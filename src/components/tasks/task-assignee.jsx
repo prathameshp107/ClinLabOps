@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  User, 
-  ChevronDown, 
-  Mail, 
-  Phone, 
-  Clock, 
+import {
+  User,
+  ChevronDown,
+  Mail,
+  Phone,
+  Clock,
   Calendar,
   Star,
   CheckCircle2,
@@ -22,27 +22,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import "./task-assignee.css";
+import { updateTaskAssignee } from "@/services/taskService";
 
-export function TaskAssignee({ task, teamMembers }) {
+export function TaskAssignee({ task, teamMembers, onAssigneeChange }) {
   const [assignee, setAssignee] = useState(task.assignee);
   const [isOpen, setIsOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  
-  const handleAssigneeChange = (member) => {
-    // In a real app, you would update the assignee on the backend
-    setAssignee(member);
-    setIsOpen(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleAssigneeChange = async (member) => {
+    setLoading(true);
+    try {
+      await updateTaskAssignee(task.id, member);
+      setAssignee(member);
+      if (onAssigneeChange) onAssigneeChange(member);
+    } catch (err) {
+      alert("Failed to update assignee: " + err.message);
+    } finally {
+      setIsOpen(false);
+      setLoading(false);
+    }
   };
 
   // Calculate workload and performance metrics
@@ -58,12 +68,12 @@ export function TaskAssignee({ task, teamMembers }) {
     onTimeDelivery: 92,
     taskCompletion: 85
   };
-  
+
   return (
     <div className="relative">
       {/* Border Blur Effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-lg blur-xl -z-10" />
-      
+
       <Card className="relative overflow-hidden border-primary/20 bg-card/50 backdrop-blur-sm">
         <CardHeader className="pb-3 border-b border-border/50">
           <div className="flex items-center justify-between">
@@ -73,9 +83,9 @@ export function TaskAssignee({ task, teamMembers }) {
               </div>
               <span>Task Assignee</span>
             </CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowDetails(!showDetails)}
               className="text-muted-foreground hover:text-primary transition-colors"
             >
@@ -118,12 +128,12 @@ export function TaskAssignee({ task, teamMembers }) {
                   </div>
                 </div>
               </div>
-              
+
               <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="gap-2 bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-colors"
                   >
                     Reassign
@@ -251,8 +261,8 @@ export function TaskAssignee({ task, teamMembers }) {
                               <span className="text-muted-foreground">On-time Delivery</span>
                               <span className="font-medium">{performance.onTimeDelivery}%</span>
                             </div>
-                            <Progress 
-                              value={performance.onTimeDelivery} 
+                            <Progress
+                              value={performance.onTimeDelivery}
                               className="h-1.5 bg-primary/10"
                               indicatorClassName="bg-primary"
                             />
@@ -262,8 +272,8 @@ export function TaskAssignee({ task, teamMembers }) {
                               <span className="text-muted-foreground">Task Completion</span>
                               <span className="font-medium">{performance.taskCompletion}%</span>
                             </div>
-                            <Progress 
-                              value={performance.taskCompletion} 
+                            <Progress
+                              value={performance.taskCompletion}
                               className="h-1.5 bg-primary/10"
                               indicatorClassName="bg-primary"
                             />
@@ -314,8 +324,8 @@ export function TaskAssignee({ task, teamMembers }) {
                           { type: 'started', title: 'Started Task #124', time: '4 hours ago' },
                           { type: 'commented', title: 'Added comment to Task #125', time: '1 day ago' }
                         ].map((activity, index) => (
-                          <motion.div 
-                            key={index} 
+                          <motion.div
+                            key={index}
                             className="flex items-start gap-3"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}

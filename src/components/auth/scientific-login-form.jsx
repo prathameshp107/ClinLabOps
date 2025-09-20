@@ -35,6 +35,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { login } from "@/services/authService";
 
 export default function ScientificLoginForm() {
   const router = useRouter();
@@ -152,51 +153,19 @@ export default function ScientificLoginForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Reset error state
     setError("");
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock logic to check credentials
-      if (formData.email && formData.password) {
-        if (loginStage === "credentials") {
-          // Check if user has 2FA enabled (mock check)
-          const has2FA = formData.email.includes("admin");
-          if (has2FA) {
-            setLoginStage("2fa");
-            setIsLoading(false); // Important: stop loading when switching to 2FA
-            return; // Early return is fine here as we're not in the render function
-          } else {
-            // Simulate successful login
-            setLoginSuccess(true);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            // Redirect to dashboard based on role
-            router.push("/admin-dashboard");
-          }
-        } else if (loginStage === "2fa") {
-          if (formData.twoFactorCode === "123456") {
-            // Simulate successful login
-            setLoginSuccess(true);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            // Redirect to dashboard
-            router.push("/admin-dashboard");
-          } else {
-            setError("Invalid two-factor authentication code. Please try again.");
-            setShake(true);
-            setTimeout(() => setShake(false), 500);
-          }
-        }
-      } else {
-        setError("Please enter both email and password.");
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
-      }
+      await login({ email: formData.email, password: formData.password });
+      setLoginSuccess(true);
+      // It's good practice to wait for a moment for the user to see the success state
+      // before redirecting.
+      setTimeout(() => {
+        router.push("/admin-dashboard");
+      }, 1000);
     } catch (err) {
-      setError("An error occurred during login. Please try again.");
+      setError(err.response?.data?.message || err.message || "An error occurred during login. Please try again.");
       setShake(true);
       setTimeout(() => setShake(false), 500);
     } finally {

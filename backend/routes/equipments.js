@@ -1,0 +1,32 @@
+const express = require('express');
+const router = express.Router();
+const equipmentController = require('../controllers/equipmentController');
+const auth = require('../middleware/authMiddleware');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+
+// Get all equipments
+router.get('/', auth.protect, equipmentController.getAllEquipments);
+
+// Get maintenance history for equipment (must come before /:id route)
+router.get('/:id/maintenance-history', auth.protect, equipmentController.getMaintenanceHistory);
+
+// Add maintenance record to equipment
+router.post('/:id/maintenance-history', auth.protect, equipmentController.addMaintenanceRecord);
+
+// Upload a file to equipment
+router.post('/:id/files', auth.protect, upload.single('file'), equipmentController.uploadEquipmentFile);
+
+// Get equipment by ID
+router.get('/:id', auth.protect, equipmentController.getEquipmentById);
+
+// Create new equipment
+router.post('/', auth.protect, equipmentController.createEquipment);
+
+// Update equipment
+router.put('/:id', auth.protect, equipmentController.updateEquipment);
+
+// Delete equipment
+router.delete('/:id', auth.protect, equipmentController.deleteEquipment);
+
+module.exports = router; 

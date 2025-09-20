@@ -3,18 +3,10 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from "@/components/ui/tabs"
-import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
-  CardHeader,
-  CardTitle
+  CardHeader
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,65 +18,46 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
 import {
+  AlertTriangle,
   Beaker,
-  Calendar,
   ChevronDown,
-  Clock,
-  Download,
-  Edit,
   Filter,
-  GitBranch,
   Grid,
   List,
-  MoreHorizontal,
   Plus,
   Search,
-  SlidersHorizontal,
-  Trash2,
-  Users
+  SlidersHorizontal
 } from "lucide-react"
-import { format, parseISO } from "date-fns"
 import { ExperimentForm } from "./experiment-form"
 import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
-import { ExperimentChart } from "./experiment-chart"
-import { generateMockExperiments } from "@/lib/mock-data"
+
+// Import API services
+import {
+  getExperiments,
+  createExperiment,
+  updateExperiment,
+  deleteExperiment
+} from "@/services/experimentService"
+import { getCurrentUser, logout } from "@/services/authService"
+
 
 export function ExperimentManagement() {
-  const router = useRouter()
   const [view, setView] = useState("grid")
   const [experiments, setExperiments] = useState([])
   const [filteredExperiments, setFilteredExperiments] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortBy, setSortBy] = useState("updatedAt")
@@ -92,28 +65,42 @@ export function ExperimentManagement() {
   const [selectedExperiment, setSelectedExperiment] = useState(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [error, setError] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
 
-  // Fetch experiments data
+  // Load current user and experiments on component mount
   useEffect(() => {
-    // In a real app, this would be an API call
-    const fetchExperiments = async () => {
+    const initializeComponent = async () => {
       try {
-        setIsLoading(true)
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        const user = getCurrentUser()
+        setCurrentUser(user)
 
-        const data = generateMockExperiments()
-        setExperiments(data)
-        setFilteredExperiments(data)
+        if (user) {
+          await loadExperiments()
+        }
       } catch (error) {
-        console.error("Error fetching experiments:", error)
-      } finally {
-        setIsLoading(false)
+        console.error('Failed to initialize component:', error)
+        setError('Failed to load data. Please try again.')
       }
     }
 
-    fetchExperiments()
+    initializeComponent()
   }, [])
+
+  // Load experiments from API
+  const loadExperiments = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const data = await getExperiments()
+      setExperiments(data)
+    } catch (error) {
+      console.error('Failed to load experiments:', error)
+      setError('Failed to load experiments. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Filter and sort experiments
   useEffect(() => {
@@ -155,58 +142,49 @@ export function ExperimentManagement() {
   }, [experiments, searchQuery, statusFilter, sortBy, sortOrder])
 
   // Handle experiment creation
-  const handleCreateExperiment = (experimentData) => {
-    const newExperiment = {
-      id: `exp-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      version: 1,
-      versionHistory: [
-        {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-          updatedBy: "Current User",
-          changes: "Initial version"
-        }
-      ],
-      ...experimentData
+  const handleCreateExperiment = async (experimentData) => {
+    try {
+      setError(null)
+      const newExperiment = await createExperiment(experimentData)
+      setExperiments([newExperiment, ...experiments])
+      setIsCreateDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to create experiment:', error)
+      setError('Failed to create experiment. Please try again.')
     }
-
-    setExperiments([newExperiment, ...experiments])
-    setIsCreateDialogOpen(false)
   }
 
   // Handle experiment update
-  const handleUpdateExperiment = (updatedExperiment) => {
-    // Create a new version entry
-    const newVersion = updatedExperiment.version + 1
-    const versionEntry = {
-      version: newVersion,
-      updatedAt: new Date().toISOString(),
-      updatedBy: "Current User",
-      changes: `Updated to version ${newVersion}`
+  const handleUpdateExperiment = async (updatedExperiment) => {
+    try {
+      setError(null)
+      const updated = await updateExperiment(updatedExperiment._id || updatedExperiment.id, updatedExperiment)
+      setExperiments(experiments.map(exp =>
+        (exp._id === updated._id || exp.id === updated.id) ? updated : exp
+      ))
+      setSelectedExperiment(null)
+      setIsDetailsDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to update experiment:', error)
+      setError('Failed to update experiment. Please try again.')
     }
-
-    // Update the experiment with new version info
-    const updated = {
-      ...updatedExperiment,
-      version: newVersion,
-      updatedAt: new Date().toISOString(),
-      versionHistory: [...updatedExperiment.versionHistory, versionEntry]
-    }
-
-    setExperiments(experiments.map(exp =>
-      exp.id === updated.id ? updated : exp
-    ))
-    setSelectedExperiment(null)
-    setIsDetailsDialogOpen(false)
   }
 
   // Handle experiment deletion
-  const handleDeleteExperiment = (id) => {
-    setExperiments(experiments.filter(exp => exp.id !== id))
-    setSelectedExperiment(null)
-    setIsDetailsDialogOpen(false)
+  const handleDeleteExperiment = async (id) => {
+    try {
+      setError(null)
+      console.log('Attempting to delete experiment with ID:', id)
+      const result = await deleteExperiment(id)
+      console.log('Delete result:', result)
+      setExperiments(experiments.filter(exp => exp._id !== id && exp.id !== id))
+      setSelectedExperiment(null)
+      setIsDetailsDialogOpen(false)
+    } catch (error) {
+      console.error('Failed to delete experiment:', error)
+      const errorMessage = error.response?.data?.msg || error.message || 'Failed to delete experiment. Please try again.'
+      setError(errorMessage)
+    }
   }
 
   // Handle experiment selection for viewing details
@@ -215,12 +193,39 @@ export function ExperimentManagement() {
     setIsDetailsDialogOpen(true)
   }
 
+  // Handle logout
+  const handleLogout = () => {
+    logout()
+    setCurrentUser(null)
+    setExperiments([])
+    setFilteredExperiments([])
+  }
+
   // Reset filters
   const resetFilters = () => {
     setSearchQuery("")
     setStatusFilter("all")
     setSortBy("updatedAt")
     setSortOrder("desc")
+  }
+
+
+
+  // Show loading state if no current user yet
+  if (!currentUser) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="rounded-full bg-muted p-3 mb-4 mx-auto w-fit">
+              <Beaker className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold mb-1">Loading Experiments</h3>
+            <p className="text-muted-foreground">Please wait while we load your data...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -310,7 +315,13 @@ export function ExperimentManagement() {
           </div>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto justify-between md:justify-end">
+        <div className="flex gap-2 w-full md:w-auto justify-between md:justify-end items-center">
+          {/* User info and logout */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Welcome, {currentUser?.name}</span>
+            
+          </div>
+
           <div className="flex border rounded-md p-1">
             <Button
               variant={view === "grid" ? "secondary" : "ghost"}
@@ -390,6 +401,24 @@ export function ExperimentManagement() {
           </Button>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-md mb-4">
+          <div className="flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <span>{error}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto h-auto p-1 text-destructive hover:bg-destructive/10"
+              onClick={() => setError(null)}
+            >
+              ×
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Experiments Display */}
       {isLoading ? (

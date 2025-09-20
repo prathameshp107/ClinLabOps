@@ -28,8 +28,9 @@ import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "@/components/ui/use-toast"
+import { createUser, inviteUser } from "@/services/userService"
 
-export function AddUserDialog({ open, onOpenChange, onAddUser }) {
+export function AddUserDialog({ open, onOpenChange, onAddUser, onUserCreated }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -231,13 +232,25 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }) {
     setIsSubmitting(true)
 
     try {
+      // Prepare user data for backend
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password || undefined, // Let backend generate if not provided
+        roles: [formData.role], // Backend expects array
+        department: formData.department,
+        phone: formData.phone,
+        status: formData.status,
+        twoFactorEnabled: formData.enable2FA,
+        // Note: avatar upload would need separate implementation
+      };
+
+      // Create user via API
+      const newUser = await createUser(userData);
+
+      // Call parent component's handler to refresh the user list
       if (onAddUser) {
-        onAddUser({
-          ...formData,
-          avatar: avatarPreview,
-          enable2FA: formData.enable2FA,
-          isPowerUser: formData.isPowerUser,
-        });
+        onAddUser(newUser);
       }
 
       toast({
@@ -245,8 +258,7 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }) {
         description: `${formData.name} has been added to the system.`,
       });
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Reset form and close dialog
       onOpenChange(false)
       setFormData({
         name: "",
@@ -267,9 +279,10 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }) {
       setErrors({});
     } catch (error) {
       console.error("Error creating user:", error)
+      const errorMessage = error.response?.data?.error || error.message || "An unexpected error occurred";
       toast({
         title: "Error creating user",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -277,7 +290,7 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }) {
     }
   }
 
-  const handleInvite = () => {
+  const handleInvite = async () => {
     if (!formData.email || errors.email) {
       toast({
         title: "Invalid email",
@@ -287,11 +300,46 @@ export function AddUserDialog({ open, onOpenChange, onAddUser }) {
       return;
     }
 
-    toast({
-      title: "Invitation Sent",
-      description: `An invitation email was sent to ${formData.email}`
-    });
-    setFormData(prev => ({ ...prev, status: "Invited" }));
+    if (!formData.name || !formData.role) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in name and role before sending invitation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Prepare invitation data
+      const inviteData = {
+        name: formData.name,
+        email: formData.email,
+        roles: [formData.role],
+        department: formData.department
+      };
+
+      // Send invitation via API
+      await inviteUser(inviteData);
+
+      toast({
+        title: "Invitation Sent",
+        description: `An invitation email was sent to ${formData.email}`
+      });
+
+      setFormData(prev => ({ ...prev, status: "Invited" }));
+    } catch (error) {
+      console.error("Error sending invitation:", error);
+      const errorMessage = error.response?.data?.error || "Failed to send invitation";
+      toast({
+        title: "Error sending invitation",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

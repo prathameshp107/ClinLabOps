@@ -6,13 +6,7 @@ import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { Button } from "@/components/ui/button"
 import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
 import { useState, useEffect } from "react"
-
-const statusChips = [
-  { label: "All", value: "all" },
-  { label: "In Progress", value: "in-progress" },
-  { label: "On Hold", value: "on-hold" },
-  { label: "Completed", value: "completed" },
-]
+import { statusChips } from "@/constants"
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
@@ -28,37 +22,53 @@ export default function ProjectsPage() {
   }, [])
 
   if (loading) {
-    return <ProjectsLoading />
+    return (
+      <DashboardLayout>
+        <ProjectsLoading />
+      </DashboardLayout>
+    )
   }
 
   return (
     <DashboardLayout>
-      <div className="w-full px-0 py-8">
+      <div className="w-full px-0 py-6">
         {/* Sticky Responsive Header for Mobile */}
-        <div className="md:hidden sticky top-0 z-20 bg-[#f4f5f7] px-4 py-3 flex items-center justify-between border-b border-[#e5e7eb]">
-          <h1 className="text-lg font-bold text-[#1e293b]">Projects</h1>
-          <Button className="bg-[#2563eb] text-white rounded-lg px-4 py-2 flex items-center gap-2 shadow-none hover:bg-[#174ea6]">
+        <div className="md:hidden sticky top-0 z-20 bg-gradient-to-r from-background to-background/50 backdrop-blur-sm px-4 py-4 flex items-center justify-between border-b border-border/50">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Projects</h1>
+            <p className="text-xs text-muted-foreground">Research & Development</p>
+          </div>
+          <Button className="bg-primary text-primary-foreground rounded-xl px-4 py-2 flex items-center gap-2 shadow-sm hover:shadow-md transition-all">
             <Plus className="h-4 w-4" />
             New
           </Button>
         </div>
 
-        {/* Header */}
-        <div className="hidden md:flex flex-row items-center justify-between gap-4 mb-6 px-8">
-          <div>
-            <h1 className="text-2xl font-bold text-[#1e293b]">Projects</h1>
-            <p className="text-sm text-[#64748b] mt-1">
-              Manage your research projects and experiments in one centralized workspace.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 bg-primary/5 px-3 py-1.5 rounded-full text-xs text-primary">
-              <Beaker className="h-3.5 w-3.5" />
-              <span>Research Hub</span>
+        {/* Enhanced Header */}
+        <div className="hidden md:flex flex-row items-center justify-between gap-6 mb-8 px-8">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+                <Beaker className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">Projects</h1>
+                <p className="text-muted-foreground">
+                  Manage your research projects and experiments in one centralized workspace.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 rounded-full text-xs text-amber-600">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Innovation Center</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-2 rounded-full text-sm text-primary font-medium">
+                <Beaker className="h-4 w-4" />
+                <span>Research Hub</span>
+              </div>
+              <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/10 to-amber-500/5 px-4 py-2 rounded-full text-sm text-amber-600 font-medium">
+                <Sparkles className="h-4 w-4" />
+                <span>Innovation Center</span>
+              </div>
             </div>
           </div>
         </div>

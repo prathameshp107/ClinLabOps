@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
 // Dynamically import Lottie to avoid SSR issues with document/window
 import dynamic from "next/dynamic"
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
@@ -60,6 +61,8 @@ import {
   Info,
 } from "lucide-react"
 
+import { register } from "@/services/authService"
+
 // Form schema with validation
 const formSchema = z.object({
   fullName: z
@@ -100,8 +103,10 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(0)
   const [signupSuccess, setSignupSuccess] = useState(false)
-  const [formError, setFormError] = useState(false)
+  const [formError, setFormError] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const { theme } = useTheme()
+  const router = useRouter()
 
   // Animation data state
   const [animationData, setAnimationData] = useState(null)
@@ -159,33 +164,33 @@ export default function RegisterPage() {
   // Form submission handler
   const onSubmit = async (data) => {
     setIsLoading(true)
-    setFormError(false)
+    setFormError("")
+    setSuccessMessage("")
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const response = await register({
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        roles: [data.role || 'User'],
+      })
 
-      console.log("Form submitted:", data)
-      setIsLoading(false)
-      setSignupSuccess(true)
-
-      // Trigger confetti on success - only in browser environment
-      if (typeof window !== 'undefined') {
-        // Import confetti dynamically only on the client side
-        import('canvas-confetti').then((confettiModule) => {
-          const confetti = confettiModule.default;
-          confetti({
-            particleCount: 150,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: ['#4F46E5', '#10B981', '#3B82F6']
-          });
-        });
+      if (!response) {
+        setFormError("An unexpected error occurred. Please try again.")
+        setIsLoading(false)
+        return;
       }
+
+      setTimeout(() => {
+        setSuccessMessage("Registration successful! Redirecting to login...");
+        setIsLoading(false);
+        router.push("/login");
+      }, 1500);
+
     } catch (error) {
       console.error("Error submitting form:", error)
       setIsLoading(false)
-      setFormError(true)
+      setFormError(error.message || "An unexpected error occurred. Please try again.")
     }
   }
 
@@ -230,7 +235,7 @@ export default function RegisterPage() {
               Back to Home
             </Link>
           </motion.div>
-  
+
           <div className="flex flex-col items-center justify-center py-4">
             <div className="w-full max-w-5xl">
               <motion.div
@@ -249,7 +254,7 @@ export default function RegisterPage() {
                   >
                     {/* Content remains the same */}
                   </motion.div>
-  
+
                   {/* Right side - Form */}
                   <motion.div
                     initial={{ x: 50, opacity: 0 }}
@@ -261,13 +266,32 @@ export default function RegisterPage() {
                       <h2 className="text-2xl font-bold">Create Your Lab Account</h2>
                       <p className="text-muted-foreground">Join LabTasker to optimize your preclinical testing workflow</p>
                     </div>
-  
+
+                    <AnimatePresence>
+                      {formError && (
+                        <motion.div key="form-error" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                          <Alert variant="destructive" className="mb-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{formError}</AlertDescription>
+                          </Alert>
+                        </motion.div>
+                      )}
+                      {successMessage && (
+                        <motion.div key="success-message" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
+                          <Alert variant="success" className="mb-4">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <AlertDescription>{successMessage}</AlertDescription>
+                          </Alert>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <Tabs defaultValue="email" className="w-full">
                       <TabsList className="grid w-full grid-cols-2 mb-4">
                         <TabsTrigger value="email">Email</TabsTrigger>
                         <TabsTrigger value="social">Social Login</TabsTrigger>
                       </TabsList>
-                      
+
                       <AnimatePresence mode="wait">
                         <TabsContent key="email-tab" value="email" className="pt-4">
                           {/* Email form content */}
@@ -470,6 +494,21 @@ export default function RegisterPage() {
 
                       <AnimatePresence mode="wait">
                         <TabsContent value="email" className="pt-4">
+                          <AnimatePresence>
+                            {formError && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                              >
+                                <Alert variant="destructive" className="mb-4">
+                                  <AlertCircle className="h-4 w-4" />
+                                  <AlertDescription>{formError}</AlertDescription>
+                                </Alert>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                           <Form {...form}>
                             <motion.form
                               onSubmit={form.handleSubmit(onSubmit)}
@@ -785,55 +824,27 @@ export default function RegisterPage() {
 
                               {/* Submit Button */}
                               <motion.div
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.3, delay: 0.7 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.6 }}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                <Button
-                                  type="submit"
-                                  className="w-full mt-2"
-                                  size="lg"
-                                  disabled={isLoading}
-                                >
-                                  {isLoading ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Creating Account...
-                                    </>
-                                  ) : (
-                                    <>
-                                      Create Account
-                                      <motion.div
-                                        animate={{ x: [0, 5, 0] }}
-                                        transition={{ repeat: Infinity, repeatDelay: 2, duration: 1 }}
-                                      >
-                                        <ArrowRight className="ml-2 h-4 w-4" />
-                                      </motion.div>
-                                    </>
-                                  )}
-                                </Button>
-                              </motion.div>
-
-                              {/* Error message */}
-                              <AnimatePresence>
-                                {formError && (
-                                  <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.3 }}
+                                <div className="mt-6 flex justify-end">
+                                  <Button
+                                    type="submit"
+                                    className="w-full md:w-auto"
+                                    disabled={isLoading}
                                   >
-                                    <Alert variant="destructive" className="mt-4">
-                                      <AlertCircle className="h-4 w-4" />
-                                      <AlertDescription>
-                                        There was an error submitting your form. Please try again.
-                                      </AlertDescription>
-                                    </Alert>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
+                                    {isLoading ? (
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <ArrowRight className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isLoading ? "Creating Account..." : "Create Account"}
+                                  </Button>
+                                </div>
+                              </motion.div>
                             </motion.form>
                           </Form>
                         </TabsContent>
@@ -862,7 +873,7 @@ export default function RegisterPage() {
                                 <Button variant="outline" className="w-full justify-start" size="lg">
                                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                                     <path
-                                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                      d="M20.9 2H3.1C2.5 2 2 2.5 2 3.1V20.9C2 21.5 2.5 22 3.1 22H12.7V14.2H10.1V11.2H12.7V9.1C12.7 6.6 14.2 5.2 16.5 5.2C17.6 5.2 18.5 5.3 18.8 5.3V8H17.1C15.8 8 15.5 8.6 15.5 9.5V11.2H18.7L18.3 14.2H15.5V22H20.9C21.5 22 22 21.5 22 20.9V3.1C22 2.5 21.5 2 20.9 2Z"
                                       fill="#4285F4"
                                     />
                                     <path

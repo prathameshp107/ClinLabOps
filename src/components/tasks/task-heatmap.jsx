@@ -5,12 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Activity } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { weekDays } from "@/constants";
 
-export function TaskHeatmap() {
+export const TaskHeatmap = ({ tasks, year = new Date().getFullYear() }) => {
   const [activeTab, setActiveTab] = useState("week");
-  
+
   // Generate sample data for the heatmap
-  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const weekData = [
     { day: "Mon", tasks: 5, color: "bg-emerald-200 dark:bg-emerald-900" },
     { day: "Tue", tasks: 8, color: "bg-emerald-400 dark:bg-emerald-700" },
@@ -20,20 +20,20 @@ export function TaskHeatmap() {
     { day: "Sat", tasks: 2, color: "bg-emerald-100 dark:bg-emerald-950" },
     { day: "Sun", tasks: 1, color: "bg-emerald-50 dark:bg-emerald-950/50" },
   ];
-  
+
   // Generate month data - 4 weeks
   const monthData = Array.from({ length: 4 }, (_, weekIndex) => {
     return weekDays.map((day) => {
       const tasks = Math.floor(Math.random() * 10);
       let color;
-      
+
       if (tasks === 0) color = "bg-emerald-50 dark:bg-emerald-950/30";
       else if (tasks < 3) color = "bg-emerald-100 dark:bg-emerald-950";
       else if (tasks < 5) color = "bg-emerald-200 dark:bg-emerald-900";
       else if (tasks < 7) color = "bg-emerald-300 dark:bg-emerald-800";
       else if (tasks < 9) color = "bg-emerald-400 dark:bg-emerald-700";
       else color = "bg-emerald-500 dark:bg-emerald-600";
-      
+
       return {
         day,
         week: weekIndex + 1,
@@ -60,7 +60,7 @@ export function TaskHeatmap() {
             <TabsTrigger value="week">This Week</TabsTrigger>
             <TabsTrigger value="month">This Month</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="week" className="mt-0">
             <div className="space-y-4">
               <div className="grid grid-cols-7 gap-2">
@@ -68,7 +68,7 @@ export function TaskHeatmap() {
                   <div key={i} className="flex flex-col items-center">
                     <HoverCard>
                       <HoverCardTrigger asChild>
-                        <div 
+                        <div
                           className={`w-full aspect-square rounded-md ${day.color} transition-colors hover:opacity-80 cursor-pointer`}
                         />
                       </HoverCardTrigger>
@@ -85,7 +85,7 @@ export function TaskHeatmap() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
@@ -107,14 +107,14 @@ export function TaskHeatmap() {
               </div>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="month" className="mt-0">
             <div className="space-y-4">
               <div className="grid grid-cols-7 gap-1">
                 {monthData.map((day, i) => (
                   <HoverCard key={i}>
                     <HoverCardTrigger asChild>
-                      <div 
+                      <div
                         className={`w-full aspect-square rounded-sm ${day.color} transition-colors hover:opacity-80 cursor-pointer`}
                       />
                     </HoverCardTrigger>
@@ -127,14 +127,14 @@ export function TaskHeatmap() {
                   </HoverCard>
                 ))}
               </div>
-              
+
               <div className="grid grid-cols-4 mt-2 text-center">
                 <div className="text-xs text-muted-foreground">Week 1</div>
                 <div className="text-xs text-muted-foreground">Week 2</div>
                 <div className="text-xs text-muted-foreground">Week 3</div>
                 <div className="text-xs text-muted-foreground">Week 4</div>
               </div>
-              
+
               <div className="flex justify-between items-center mt-4">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">

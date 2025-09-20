@@ -54,8 +54,10 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
 
     if (!tasks || tasks.length === 0) {
         return (
-            <div className="text-center py-8 text-muted-foreground">
-                No tasks found
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <svg width="64" height="64" fill="none" viewBox="0 0 24 24" className="mb-4 opacity-60"><path d="M7 7h10M7 11h6m-6 4h10M5 5v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <div className="text-lg font-semibold">No tasks available</div>
+                <div className="text-sm mt-1">You have not created any tasks yet. Click <b>New Task</b> to get started!</div>
             </div>
         )
     }
@@ -133,6 +135,13 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
                         {/* Task Meta - improved layout and value highlighting */}
                         <div className="space-y-3 text-sm bg-gray-50 dark:bg-gray-900/30 rounded-lg px-3 py-2 mb-2 border border-gray-100 dark:border-gray-800">
                             <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                {/* Task ID */}
+                                <div className="flex items-center text-muted-foreground">
+                                    <span className="font-mono text-xs">Task ID</span>
+                                </div>
+                                <div className="flex items-center justify-end font-mono text-xs text-gray-700 dark:text-gray-200">
+                                    {task.id}
+                                </div>
                                 {/* Due */}
                                 <div className="flex items-center text-muted-foreground">
                                     <Calendar className="h-4 w-4 mr-2 opacity-70" />
@@ -168,6 +177,17 @@ export function TaskGrid({ tasks = [], selectedTasks = [], onTaskSelect, onTaskC
                                 </div>
                                 <div className="flex items-center justify-end font-semibold text-gray-800 dark:text-gray-100">
                                     <UserAvatar user={task.assignedTo} size="sm" />
+                                    <span className="ml-2">{task.assignedTo?.name || 'Unassigned'}</span>
+                                </div>
+                                {/* Status */}
+                                <div className="flex items-center text-muted-foreground">
+                                    <CheckCircle className="h-4 w-4 mr-2 opacity-70" />
+                                    <span>Status</span>
+                                </div>
+                                <div className="flex items-center justify-end font-semibold text-gray-700 dark:text-gray-200">
+                                    <span className={cn("px-2 py-1 rounded-full text-xs font-bold", getStatusColor(task.status))}>
+                                        {task.status?.replace('-', ' ') || 'No status'}
+                                    </span>
                                 </div>
                                 {/* Project */}
                                 <div className="flex items-center text-muted-foreground">

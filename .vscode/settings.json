@@ -9,9 +9,13 @@
     "typescript": "typescriptreact"
   },
   "tailwindCSS.experimental.classRegex": [
-    ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+    [
+      "cn\\(([^)]*)\\)",
+      "[\"'`]([^\"'`]*).*?[\"'`]"
+    ]
   ],
   "files.associations": {
     "*.css": "tailwindcss"
-  }
+  },
+  "kiroAgent.configureMCP": "Disabled"
 }

@@ -3,19 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Upload, UserPlus, Calendar, Settings } from "lucide-react";
 
-export default function QuickActions() {
-  const actions = [
-    { id: 1, label: 'New Task', icon: <Plus className="h-4 w-4" />, variant: 'default' },
-    { id: 2, label: 'New Project', icon: <FileText className="h-4 w-4" />, variant: 'outline' },
-    { id: 3, label: 'Upload Files', icon: <Upload className="h-4 w-4" />, variant: 'outline' },
-    { id: 4, label: 'Add Team Member', icon: <UserPlus className="h-4 w-4" />, variant: 'outline' },
-    { id: 5, label: 'Schedule', icon: <Calendar className="h-4 w-4" />, variant: 'outline' },
-    { id: 6, label: 'Settings', icon: <Settings className="h-4 w-4" />, variant: 'outline' },
-  ];
+const quickActions = [
+  { id: 1, label: 'New Task', icon: <Plus size={20} />, variant: 'outline' },
+  { id: 2, label: 'New Project', icon: <FileText size={20} />, variant: 'outline' },
+  { id: 3, label: 'Upload Files', icon: <Upload size={20} />, variant: 'outline' },
+  { id: 4, label: 'Add User', icon: <UserPlus size={20} />, variant: 'outline' },
+  { id: 5, label: 'Calendar', icon: <Calendar size={20} />, variant: 'outline' },
+  { id: 6, label: 'Settings', icon: <Settings size={20} />, variant: 'outline' },
+];
 
+export default function QuickActions() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-      {actions.map((action) => (
+      {quickActions.map((action) => (
         <Button
           key={action.id}
           variant={action.variant}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // Components
@@ -16,7 +16,7 @@ import {
   FileText as FileTextIcon,
   Plus,
   RefreshCw as RefreshCwIcon,
-  Loader2 as Loader2Icon,
+  Loader2,
   CheckCircle2 as CheckCircle2Icon,
   Clock as ClockIcon,
   AlertTriangle as AlertTriangleIcon,
@@ -35,17 +35,17 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import TeamPerformance from "@/components/dashboard/TeamPerformance";
 
-// Data
+// Services
 import {
-  tasksOverviewData,
-  taskDistributionData,
-  dashboardStats,
-  recentActivities,
-  teamPerformance,
-  reportsData,
-  reportTypes,
-  reportFormats
-} from "@/data/dashboard-data";
+  getDashboardStats,
+  getTaskDistribution,
+  getRecentActivities,
+  getTeamPerformance,
+  getReports,
+  getReportTypes,
+  getReportFormats
+} from "@/services/dashboardService";
+import { getProjects } from "@/services/projectService";
 
 // Components
 import { ReportsTab } from "@/components/dashboard/ReportsTab";
@@ -54,6 +54,7 @@ import { PendingApprovals } from "@/components/dashboard/PendingApprovals";
 
 // Utility functions for task status
 const getStatusColor = (status) => {
+  if (!status) return { bg: 'bg-gray-500', text: 'text-gray-800', border: 'border-gray-200' };
   switch (status.toLowerCase()) {
     case 'completed':
       return { bg: 'bg-green-500', text: 'text-green-800', border: 'border-green-200' };
@@ -69,6 +70,7 @@ const getStatusColor = (status) => {
 };
 
 const getStatusIcon = (status, className = '') => {
+  if (!status) return <CircleDotIcon className={className} />;
   const statusLower = status.toLowerCase();
   if (statusLower.includes('complete')) return <CircleCheckIcon className={className} />;
   if (statusLower.includes('progress')) return <CirclePlayIcon className={className} />;
@@ -78,6 +80,7 @@ const getStatusIcon = (status, className = '') => {
 };
 
 const getStatusVariant = (status) => {
+  if (!status) return 'default';
   switch (status.toLowerCase()) {
     case 'completed':
       return 'success';
@@ -123,21 +126,187 @@ const CustomTooltip = ({ active, payload }) => {
  */
 export default function DashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+
+  // Dashboard data state
+  const [dashboardStats, setDashboardStats] = useState([]);
+  const [taskDistributionData, setTaskDistributionData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [teamPerformance, setTeamPerformance] = useState([]);
+  const [reportsData, setReportsData] = useState([]);
+  const [reportTypes, setReportTypes] = useState([]);
+  const [reportFormats, setReportFormats] = useState([]);
+  const [projects, setProjects] = useState([]);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        const [
+          statsData,
+          taskDistData,
+          activitiesData,
+          teamPerfData,
+          reportsListData,
+          reportTypesData,
+          reportFormatsData,
+          projectsData
+        ] = await Promise.all([
+          getDashboardStats().catch(() => []),
+          getTaskDistribution().catch(() => []),
+          getRecentActivities().catch(() => []),
+          getTeamPerformance().catch(() => []),
+          getReports().catch(() => []),
+          getReportTypes().catch(() => []),
+          getReportFormats().catch(() => []),
+          getProjects().catch(() => [])
+        ]);
+
+        // Ensure dashboardStats is an array with fallback data
+        const processedStats = Array.isArray(statsData) ? statsData : [
+          {
+            title: "Total Tasks",
+            value: "0",
+            change: "+0%",
+            icon: "FileText",
+            trend: "up"
+          },
+          {
+            title: "Completed",
+            value: "0",
+            change: "+0%",
+            icon: "CheckCircle2",
+            trend: "up"
+          },
+          {
+            title: "In Progress",
+            value: "0",
+            change: "+0%",
+            icon: "Clock",
+            trend: "up"
+          },
+          {
+            title: "Overdue",
+            value: "0",
+            change: "+0%",
+            icon: "AlertTriangle",
+            trend: "down"
+          }
+        ];
+
+        // Ensure taskDistributionData is an array with fallback data
+        const processedTaskDist = Array.isArray(taskDistData) ? taskDistData : [
+          { name: 'Completed', value: 0, color: '#10b981' },
+          { name: 'In Progress', value: 0, color: '#3b82f6' },
+          { name: 'Pending', value: 0, color: '#f59e0b' },
+          { name: 'Overdue', value: 0, color: '#ef4444' }
+        ];
+
+        setDashboardStats(processedStats);
+        setTaskDistributionData(processedTaskDist);
+        setRecentActivities(activitiesData);
+        setTeamPerformance(teamPerfData);
+        setReportsData(reportsListData);
+        setReportTypes(reportTypesData);
+        setReportFormats(reportFormatsData);
+        setProjects(Array.isArray(projectsData) ? projectsData : []);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   /**
    * Handles the refresh action
-   * Simulates an API call with a loading state
    */
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate API call with a timeout
-    setTimeout(() => {
+    try {
+      const [
+        statsData,
+        taskDistData,
+        activitiesData,
+        teamPerfData,
+        projectsData
+      ] = await Promise.all([
+        getDashboardStats().catch(() => []),
+        getTaskDistribution().catch(() => []),
+        getRecentActivities().catch(() => []),
+        getTeamPerformance().catch(() => []),
+        getProjects().catch(() => [])
+      ]);
+
+      // Ensure dashboardStats is an array with fallback data
+      const processedStats = Array.isArray(statsData) ? statsData : [
+        {
+          title: "Total Tasks",
+          value: "0",
+          change: "+0%",
+          icon: "FileText",
+          trend: "up"
+        },
+        {
+          title: "Completed",
+          value: "0",
+          change: "+0%",
+          icon: "CheckCircle2",
+          trend: "up"
+        },
+        {
+          title: "In Progress",
+          value: "0",
+          change: "+0%",
+          icon: "Clock",
+          trend: "up"
+        },
+        {
+          title: "Overdue",
+          value: "0",
+          change: "+0%",
+          icon: "AlertTriangle",
+          trend: "down"
+        }
+      ];
+
+      // Ensure taskDistributionData is an array with fallback data
+      const processedTaskDist = Array.isArray(taskDistData) ? taskDistData : [
+        { name: 'Completed', value: 0, color: '#10b981' },
+        { name: 'In Progress', value: 0, color: '#3b82f6' },
+        { name: 'Pending', value: 0, color: '#f59e0b' },
+        { name: 'Overdue', value: 0, color: '#ef4444' }
+      ];
+
+      setDashboardStats(processedStats);
+      setTaskDistributionData(processedTaskDist);
+      setRecentActivities(activitiesData);
+      setTeamPerformance(teamPerfData);
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
+    } catch (error) {
+      console.error('Failed to refresh dashboard data:', error);
+    } finally {
       setIsRefreshing(false);
-    }, 1000);
+    }
   };
 
-  // Use tasks from tasksOverviewData
+  // Create tasksOverviewData structure for backward compatibility
+  const tasksOverviewData = {
+    recentTasks: Array.isArray(recentActivities)
+      ? recentActivities.filter(activity => activity?.type === 'task').slice(0, 5)
+      : [],
+    stats: {
+      total: dashboardStats.find(stat => stat.title === 'Total Tasks')?.value || '0',
+      completed: dashboardStats.find(stat => stat.title === 'Completed')?.value || '0',
+      inProgress: dashboardStats.find(stat => stat.title === 'In Progress')?.value || '0',
+      overdue: dashboardStats.find(stat => stat.title === 'Overdue')?.value || '0'
+    }
+  };
+
   const recentTasks = tasksOverviewData.recentTasks;
 
   // Format time for system logs
@@ -151,6 +320,21 @@ export default function DashboardPage() {
     const date = new Date(dateString);
     return date.toLocaleDateString();
   };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8 pt-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -359,6 +543,7 @@ export default function DashboardPage() {
                     <CardContent>
                       <div className="flex flex-col gap-2">
                         {recentTasks
+                          .filter(task => task?.dueDate)
                           .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
                           .slice(0, 3)
                           .map((task) => (
@@ -372,8 +557,8 @@ export default function DashboardPage() {
                                   Due {new Date(task.dueDate).toLocaleDateString()}
                                 </p>
                               </div>
-                              <Badge variant={getStatusVariant(task.status).variant} className="text-xs">
-                                {task.status}
+                              <Badge variant={getStatusVariant(task.status)} className="text-xs">
+                                {task.status || 'Unknown'}
                               </Badge>
                             </div>
                           ))}
@@ -398,7 +583,7 @@ export default function DashboardPage() {
             </TabsContent>
 
             <TabsContent value="analytics" className="space-y-6">
-              <AnalyticsTabs />
+              <AnalyticsTabs teamPerformance={teamPerformance} projects={projects} />
             </TabsContent>
 
             <TabsContent value="reports" className="space-y-6">

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import UserAvatar from "@/components/tasks/user-avatar";
+import { getRelatedTasks } from "@/services/taskService";
 
 const statusColor = (status) => {
     switch (status) {
@@ -30,16 +31,27 @@ const statusOptions = [
     { value: "completed", label: "Completed" },
 ];
 
-export function RelatedTasksCard({ relatedTasks = [] }) {
+export function RelatedTasksCard({ taskId }) {
     const [search, setSearch] = useState("");
     const [showAdd, setShowAdd] = useState(false);
-    const [tasks, setTasks] = useState(relatedTasks);
+    const [tasks, setTasks] = useState([]);
     const [form, setForm] = useState({
         title: "",
         assignee: "",
         dueDate: null,
         status: "not_started",
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!taskId || taskId === 'unknown') return;
+        setLoading(true);
+        getRelatedTasks(taskId)
+            .then(setTasks)
+            .catch(err => setError(err.message))
+            .finally(() => setLoading(false));
+    }, [taskId]);
 
     const filteredTasks = useMemo(() => {
         if (!search) return tasks;
@@ -114,14 +126,14 @@ export function RelatedTasksCard({ relatedTasks = [] }) {
                                         <UserAvatar user={relatedTask.assignee} size="lg" />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className={`inline-block h-3 w-3 rounded-full ${statusColor(relatedTask.status)}`} aria-label={relatedTask.status} />
-                                                <Badge variant="outline" className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs px-3 py-1 rounded-full">T{relatedTask.id}</Badge>
+                                                <span className={`inline-block h-3 w-3 rounded-full ${statusColor(relatedTask.status || 'not_started')}`} aria-label={relatedTask.status || 'not_started'} />
+                                                <Badge variant="outline" className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs px-3 py-1 rounded-full">T{relatedTask.id || 'Unknown'}</Badge>
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <span className="text-lg font-semibold truncate max-w-[140px] sm:max-w-[200px] text-gray-900 dark:text-gray-100 cursor-help">{relatedTask.title}</span>
+                                                            <span className="text-lg font-semibold truncate max-w-[140px] sm:max-w-[200px] text-gray-900 dark:text-gray-100 cursor-help">{relatedTask.title || 'Untitled Task'}</span>
                                                         </TooltipTrigger>
-                                                        <TooltipContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">{relatedTask.title}</TooltipContent>
+                                                        <TooltipContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">{relatedTask.title || 'Untitled Task'}</TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
                                             </div>
@@ -133,11 +145,11 @@ export function RelatedTasksCard({ relatedTasks = [] }) {
                                                     }
                                                     className="capitalize px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
                                                 >
-                                                    {relatedTask.status.replace('_', ' ')}
+                                                    {relatedTask.status?.replace('_', ' ') || 'Unknown'}
                                                 </Badge>
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-4 w-4" />
-                                                    {format(new Date(relatedTask.dueDate), 'MMM d, yyyy')}
+                                                    {relatedTask.dueDate ? format(new Date(relatedTask.dueDate), 'MMM d, yyyy') : 'No due date'}
                                                 </span>
                                                 <span className="flex items-center gap-1">
                                                     <Users className="h-4 w-4" />

@@ -12,162 +12,40 @@ import { toast } from "@/components/ui/use-toast"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
-
-// Mock data for enquiries
-const mockEnquiries = [
-  {
-    id: "e1",
-    customerName: "John Smith",
-    email: "john.smith@example.com",
-    phone: "+1 (555) 123-4567",
-    companyName: "Acme Laboratories",
-    subject: "PCR Testing Requirements",
-    details: "Need information about your PCR testing capabilities for our upcoming clinical trial.",
-    priority: "High",
-    assignedTo: "Dr. Sarah Johnson",
-    status: "Pending",
-    createdAt: "2025-03-20T10:30:00Z",
-    updatedAt: "2025-03-20T10:30:00Z",
-    documents: [
-      { id: "d1", name: "Requirements.pdf", type: "pdf", size: "1.2 MB", uploadedAt: "2025-03-20T10:30:00Z" }
-    ],
-    activities: [
-      { id: "a1", action: "Enquiry created", user: "Reception Staff", timestamp: "2025-03-20T10:30:00Z" }
-    ]
-  },
-  {
-    id: "e2",
-    customerName: "Emily Chen",
-    email: "emily.chen@biotech.com",
-    phone: "+1 (555) 987-6543",
-    companyName: "BioTech Innovations",
-    subject: "Protein Analysis Services",
-    details: "Interested in your mass spectrometry services for protein characterization.",
-    priority: "Medium",
-    assignedTo: "Dr. Michael Rodriguez",
-    status: "In Progress",
-    createdAt: "2025-03-18T14:15:00Z",
-    updatedAt: "2025-03-21T09:45:00Z",
-    documents: [
-      { id: "d2", name: "Sample_Data.xlsx", type: "xlsx", size: "3.4 MB", uploadedAt: "2025-03-18T14:15:00Z" },
-      { id: "d3", name: "Protocol_Requirements.docx", type: "docx", size: "0.8 MB", uploadedAt: "2025-03-19T11:20:00Z" }
-    ],
-    activities: [
-      { id: "a2", action: "Enquiry created", user: "Reception Staff", timestamp: "2025-03-18T14:15:00Z" },
-      { id: "a3", action: "Assigned to Dr. Michael Rodriguez", user: "Lab Manager", timestamp: "2025-03-19T09:30:00Z" },
-      { id: "a4", action: "Status updated to In Progress", user: "Dr. Michael Rodriguez", timestamp: "2025-03-21T09:45:00Z" }
-    ]
-  },
-  {
-    id: "e3",
-    customerName: "Robert Johnson",
-    email: "robert.johnson@medresearch.org",
-    phone: "+1 (555) 456-7890",
-    companyName: "Medical Research Institute",
-    subject: "Genomic Sequencing Project",
-    details: "Need a quote for whole genome sequencing of 50 samples.",
-    priority: "High",
-    assignedTo: "Dr. Lisa Wong",
-    status: "Completed",
-    createdAt: "2025-03-15T11:00:00Z",
-    updatedAt: "2025-03-22T16:30:00Z",
-    documents: [
-      { id: "d4", name: "Sample_List.csv", type: "csv", size: "0.5 MB", uploadedAt: "2025-03-15T11:00:00Z" },
-      { id: "d5", name: "Final_Report.pdf", type: "pdf", size: "4.2 MB", uploadedAt: "2025-03-22T16:30:00Z" }
-    ],
-    activities: [
-      { id: "a5", action: "Enquiry created", user: "Reception Staff", timestamp: "2025-03-15T11:00:00Z" },
-      { id: "a6", action: "Assigned to Dr. Lisa Wong", user: "Lab Manager", timestamp: "2025-03-15T14:20:00Z" },
-      { id: "a7", action: "Status updated to In Progress", user: "Dr. Lisa Wong", timestamp: "2025-03-16T09:15:00Z" },
-      { id: "a8", action: "Final report uploaded", user: "Dr. Lisa Wong", timestamp: "2025-03-22T16:30:00Z" },
-      { id: "a9", action: "Status updated to Completed", user: "Dr. Lisa Wong", timestamp: "2025-03-22T16:35:00Z" }
-    ]
-  },
-  {
-    id: "e4",
-    customerName: "Sarah Williams",
-    email: "sarah.williams@pharmaco.com",
-    phone: "+1 (555) 789-0123",
-    companyName: "PharmaCo",
-    subject: "Stability Testing for New Drug",
-    details: "Need comprehensive stability testing for our new drug formulation.",
-    priority: "Medium",
-    assignedTo: "Dr. James Peterson",
-    status: "In Progress",
-    createdAt: "2025-03-17T13:45:00Z",
-    updatedAt: "2025-03-23T10:15:00Z",
-    documents: [
-      { id: "d6", name: "Drug_Specifications.pdf", type: "pdf", size: "2.1 MB", uploadedAt: "2025-03-17T13:45:00Z" },
-      { id: "d7", name: "Testing_Parameters.xlsx", type: "xlsx", size: "1.7 MB", uploadedAt: "2025-03-17T13:45:00Z" }
-    ],
-    activities: [
-      { id: "a10", action: "Enquiry created", user: "Reception Staff", timestamp: "2025-03-17T13:45:00Z" },
-      { id: "a11", action: "Assigned to Dr. James Peterson", user: "Lab Manager", timestamp: "2025-03-18T09:00:00Z" },
-      { id: "a12", action: "Status updated to In Progress", user: "Dr. James Peterson", timestamp: "2025-03-19T11:30:00Z" },
-      { id: "a13", action: "Preliminary results added", user: "Dr. James Peterson", timestamp: "2025-03-23T10:15:00Z" }
-    ]
-  },
-  {
-    id: "e5",
-    customerName: "David Wilson",
-    email: "david.wilson@agritech.com",
-    phone: "+1 (555) 321-6540",
-    companyName: "AgriTech Solutions",
-    subject: "Soil Analysis Services",
-    details: "Looking for comprehensive soil analysis for agricultural research project.",
-    priority: "Low",
-    assignedTo: "Dr. Sarah Johnson",
-    status: "On Hold",
-    createdAt: "2025-03-19T16:20:00Z",
-    updatedAt: "2025-03-22T14:30:00Z",
-    documents: [
-      { id: "d8", name: "Soil_Samples_List.xlsx", type: "xlsx", size: "0.9 MB", uploadedAt: "2025-03-19T16:20:00Z" }
-    ],
-    activities: [
-      { id: "a14", action: "Enquiry created", user: "Reception Staff", timestamp: "2025-03-19T16:20:00Z" },
-      { id: "a15", action: "Assigned to Dr. Sarah Johnson", user: "Lab Manager", timestamp: "2025-03-20T10:15:00Z" },
-      { id: "a16", action: "Status updated to On Hold", user: "Dr. Sarah Johnson", timestamp: "2025-03-22T14:30:00Z" }
-    ]
-  },
-  {
-    id: "e6",
-    customerName: "Lisa Anderson",
-    email: "lisa.anderson@environsci.com",
-    phone: "+1 (555) 654-3210",
-    companyName: "Environmental Sciences Corp",
-    subject: "Water Quality Testing",
-    details: "Need water quality analysis for environmental impact assessment.",
-    priority: "High",
-    assignedTo: "Dr. Michael Rodriguez",
-    status: "Cancelled",
-    createdAt: "2025-03-16T09:45:00Z",
-    updatedAt: "2025-03-21T11:20:00Z",
-    documents: [
-      { id: "d9", name: "Water_Samples_Data.csv", type: "csv", size: "1.5 MB", uploadedAt: "2025-03-16T09:45:00Z" }
-    ],
-    activities: [
-      { id: "a17", action: "Enquiry created", user: "Reception Staff", timestamp: "2025-03-16T09:45:00Z" },
-      { id: "a18", action: "Assigned to Dr. Michael Rodriguez", user: "Lab Manager", timestamp: "2025-03-16T14:30:00Z" },
-      { id: "a19", action: "Status updated to Cancelled", user: "Lisa Anderson", timestamp: "2025-03-21T11:20:00Z" }
-    ]
-  }
-]
+import EditEnquiryDialog from "@/components/enquiries/EditEnquiryDialog"
+import { getEnquiries, enquiryService } from "@/services/enquiryService"
 
 function EnquiriesPage() {
   const router = useRouter()
-  const [enquiries, setEnquiries] = useState(mockEnquiries)
+  const [enquiries, setEnquiries] = useState([])
   const [selectedEnquiry, setSelectedEnquiry] = useState(null)
   const [showQuickView, setShowQuickView] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [editingEnquiry, setEditingEnquiry] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showNewEnquiry, setShowNewEnquiry] = useState(false)
 
-  // Simulate loading state
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  // Fetch enquiries from API
+  const fetchEnquiries = async () => {
+    try {
+      setIsLoading(true)
+      const enquiriesData = await getEnquiries()
+      setEnquiries(Array.isArray(enquiriesData) ? enquiriesData : [])
+    } catch (error) {
+      console.error('Failed to fetch enquiries:', error)
+      setEnquiries([])
+      toast({
+        title: "Error",
+        description: "Failed to load enquiries. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
+  }
 
-    return () => clearTimeout(timer)
+  useEffect(() => {
+    fetchEnquiries()
   }, [])
 
   // Handle enquiry actions
@@ -178,7 +56,8 @@ function EnquiriesPage() {
         setShowQuickView(true)
         break
       case "edit":
-        router.push(`/enquiries/${enquiry.id}/edit`)
+        setEditingEnquiry(enquiry)
+        setShowEditDialog(true)
         break
       case "message":
         toast({
@@ -193,12 +72,8 @@ function EnquiriesPage() {
         })
         break
       case "delete":
-        if (confirm(`Are you sure you want to delete enquiry ${enquiry.id}?`)) {
-          setEnquiries(prev => prev.filter(e => e.id !== enquiry.id))
-          toast({
-            title: "Enquiry deleted",
-            description: `Enquiry ${enquiry.id} has been deleted`,
-          })
+        if (confirm(`Are you sure you want to delete enquiry for ${enquiry.customerName}?`)) {
+          handleDeleteEnquiry(enquiry._id || enquiry.id)
         }
         break
       default:
@@ -210,6 +85,55 @@ function EnquiriesPage() {
   const handleRowClick = (enquiry) => {
     setSelectedEnquiry(enquiry)
     setShowQuickView(true)
+  }
+
+  // Handle edit enquiry
+  const handleEditEnquiry = (enquiry) => {
+    setEditingEnquiry(enquiry)
+    setShowEditDialog(true)
+  }
+
+  // Handle edit enquiry success
+  const handleEditEnquirySuccess = (updatedEnquiry) => {
+    if (updatedEnquiry) {
+      setEnquiries(prev => prev.map(e =>
+        (e._id || e.id) === (updatedEnquiry._id || updatedEnquiry.id) ? updatedEnquiry : e
+      ))
+    }
+    fetchEnquiries() // Refresh the list to get the latest data
+    setShowEditDialog(false)
+    setEditingEnquiry(null)
+  }
+
+  // Handle delete enquiry
+  const handleDeleteEnquiry = async (id) => {
+    try {
+      const success = await enquiryService.delete(id)
+      if (success) {
+        setEnquiries(prev => prev.filter(e => (e._id || e.id) !== id))
+        toast({
+          title: "Enquiry deleted",
+          description: "Enquiry has been deleted successfully",
+        })
+      } else {
+        throw new Error('Delete operation failed')
+      }
+    } catch (error) {
+      console.error('Error deleting enquiry:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete enquiry. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Handle new enquiry success
+  const handleNewEnquirySuccess = (newEnquiry) => {
+    if (newEnquiry) {
+      setEnquiries(prev => [newEnquiry, ...prev])
+    }
+    fetchEnquiries() // Refresh the list to get the latest data
   }
 
   // Handle add new enquiry (open modal)
@@ -267,6 +191,7 @@ function EnquiriesPage() {
     <EnquiryToolbar
       table={table}
       onExport={handleExport}
+      onNewEnquirySuccess={handleNewEnquirySuccess}
     />
   )
 
@@ -307,7 +232,7 @@ function EnquiriesPage() {
             onRowClick={handleRowClick}
             Toolbar={CustomToolbar}
           />
-              </motion.div>
+        </motion.div>
 
         <AnimatePresence>
           {showQuickView && selectedEnquiry && (
@@ -317,9 +242,18 @@ function EnquiriesPage() {
                 setShowQuickView(false)
                 setSelectedEnquiry(null)
               }}
+              onEdit={handleEditEnquiry}
             />
           )}
         </AnimatePresence>
+
+        {/* Edit Enquiry Dialog */}
+        <EditEnquiryDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          enquiry={editingEnquiry}
+          onSuccess={handleEditEnquirySuccess}
+        />
       </div>
     </DashboardLayout>
   )

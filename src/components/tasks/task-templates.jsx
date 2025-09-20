@@ -2,24 +2,51 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
-  Copy, 
-  Edit, 
-  Filter, 
-  MoreVertical, 
-  Plus, 
-  Search, 
-  Trash, 
-  X 
+import {
+  Plus,
+  Search,
+  Filter,
+  Calendar,
+  BarChart2,
+  Users,
+  SlidersHorizontal,
+  RefreshCw,
+  AlertCircle,
+  Clock,
+  CheckCircle2,
+  OctagonAlert,
+  List,
+  Grid,
+  PlusCircle,
+  Loader2,
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  ArrowUpDown,
+  Star,
+  StarOff,
+  Share,
+  Activity,
+  Copy,
+  Tag
 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { TaskTemplateDialog } from "./task-template-dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,23 +57,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select"
-import { TaskTemplateDialog } from "./task-template-dialog"
+// Task templates will be fetched from API or defined locally
 
 // Sample task templates data
 const sampleTemplates = [
@@ -97,7 +108,7 @@ const sampleTemplates = [
     createdAt: "2025-02-25T16:45:00Z",
     updatedAt: "2025-03-10T13:10:00Z",
     createdBy: "u1"
-  },
+  }
 ];
 
 export const TaskTemplates = ({ onApplyTemplate }) => {
@@ -106,50 +117,50 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedPriority, setSelectedPriority] = useState("");
-  
+
   // Template dialog state
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState(null);
   const [dialogMode, setDialogMode] = useState("create");
-  
+
   // Delete confirmation dialog state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState(null);
-  
+
   // Get unique categories from all templates
   const allCategories = [...new Set(templates.flatMap(template => template.categoryTags || []))];
-  
+
   // Filter templates based on search query and filters
   useEffect(() => {
     let filtered = [...templates];
-    
+
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(template => 
-        template.name.toLowerCase().includes(query) || 
+      filtered = filtered.filter(template =>
+        template.name.toLowerCase().includes(query) ||
         template.description.toLowerCase().includes(query) ||
         (template.categoryTags && template.categoryTags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
-    
+
     // Filter by category
     if (selectedCategory) {
-      filtered = filtered.filter(template => 
+      filtered = filtered.filter(template =>
         template.categoryTags && template.categoryTags.includes(selectedCategory)
       );
     }
-    
+
     // Filter by priority
     if (selectedPriority) {
-      filtered = filtered.filter(template => 
+      filtered = filtered.filter(template =>
         template.defaultPriority === selectedPriority
       );
     }
-    
+
     setFilteredTemplates(filtered);
   }, [templates, searchQuery, selectedCategory, selectedPriority]);
-  
+
   // Handle creating or updating a template
   const handleSubmitTemplate = (templateData) => {
     if (dialogMode === "create") {
@@ -161,23 +172,23 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
         updatedAt: new Date().toISOString(),
         createdBy: "u1", // Assuming current user ID
       };
-      
+
       setTemplates([...templates, newTemplate]);
     } else {
       // Update existing template
-      const updatedTemplates = templates.map(template => 
-        template.id === templateData.id 
-          ? { ...template, ...templateData, updatedAt: new Date().toISOString() } 
+      const updatedTemplates = templates.map(template =>
+        template.id === templateData.id
+          ? { ...template, ...templateData, updatedAt: new Date().toISOString() }
           : template
       );
-      
+
       setTemplates(updatedTemplates);
     }
-    
+
     // Close the dialog
     setShowTemplateDialog(false);
   };
-  
+
   // Handle deleting a template
   const handleDeleteTemplate = () => {
     if (templateToDelete) {
@@ -186,7 +197,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
       setTemplateToDelete(null);
     }
   };
-  
+
   // Handle cloning a template
   const handleCloneTemplate = (template) => {
     const clonedTemplate = {
@@ -196,47 +207,47 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    
+
     setTemplates([...templates, clonedTemplate]);
   };
-  
+
   // Handle editing a template
   const handleEditTemplate = (template) => {
     setCurrentTemplate(template);
     setDialogMode("edit");
     setShowTemplateDialog(true);
   };
-  
+
   // Open create template dialog
   const handleOpenCreateDialog = () => {
     setCurrentTemplate(null);
     setDialogMode("create");
     setShowTemplateDialog(true);
   };
-  
+
   // Handle applying a template (passes the template to the parent component)
   const handleApplyTemplate = (template) => {
     if (onApplyTemplate) {
       onApplyTemplate(template);
     }
   };
-  
+
   // Calculate all tags used across templates
   const allTags = [...new Set(templates.flatMap(template => template.categoryTags || []))];
-  
+
   // Clear all filters
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
     setSelectedPriority("");
   };
-  
+
   // Handle opening delete confirmation dialog
   const confirmDelete = (template) => {
     setTemplateToDelete(template);
     setShowDeleteDialog(true);
   };
-  
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -246,7 +257,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
           New Template
         </Button>
       </div>
-      
+
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-grow">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -265,7 +276,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
             </button>
           )}
         </div>
-        
+
         <div className="flex flex-row gap-2">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-[180px]">
@@ -283,7 +294,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
               ))}
             </SelectContent>
           </Select>
-          
+
           <Select value={selectedPriority} onValueChange={setSelectedPriority}>
             <SelectTrigger className="w-[180px]">
               <div className="flex items-center gap-2">
@@ -299,7 +310,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
               <SelectItem value="critical">Critical</SelectItem>
             </SelectContent>
           </Select>
-          
+
           {(searchQuery || selectedCategory || selectedPriority) && (
             <Button variant="outline" onClick={clearFilters}>
               <X className="h-4 w-4 mr-2" />
@@ -308,7 +319,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
           )}
         </div>
       </div>
-      
+
       {filteredTemplates.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <div className="text-xl font-medium">No templates found</div>
@@ -362,7 +373,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
                             <Copy className="h-4 w-4 mr-2" />
                             Clone
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => confirmDelete(template)}
                             className="text-destructive focus:text-destructive"
                           >
@@ -379,11 +390,11 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
                     </p>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-sm font-medium">Default Priority:</span>
-                      <Badge 
+                      <Badge
                         variant={
-                          template.defaultPriority === "low" ? "outline" : 
-                          template.defaultPriority === "medium" ? "secondary" :
-                          template.defaultPriority === "high" ? "default" : "destructive"
+                          template.defaultPriority === "low" ? "outline" :
+                            template.defaultPriority === "medium" ? "secondary" :
+                              template.defaultPriority === "high" ? "default" : "destructive"
                         }
                       >
                         {template.defaultPriority.charAt(0).toUpperCase() + template.defaultPriority.slice(1)}
@@ -417,7 +428,7 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
           </AnimatePresence>
         </div>
       )}
-      
+
       {/* Template Dialog */}
       <TaskTemplateDialog
         open={showTemplateDialog}
@@ -426,20 +437,20 @@ export const TaskTemplates = ({ onApplyTemplate }) => {
         mode={dialogMode}
         onSubmit={handleSubmitTemplate}
       />
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Template</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the template "{templateToDelete?.name}"? 
+              Are you sure you want to delete the template "{templateToDelete?.name}"?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeleteTemplate}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

@@ -23,7 +23,7 @@ import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
 
-export function EnquiryToolbar({ table, onExport }) {
+export function EnquiryToolbar({ table, onExport, onNewEnquirySuccess }) {
     const [searchQuery, setSearchQuery] = useState("")
     const [activeFilters, setActiveFilters] = useState({
         status: { Pending: true, "In Progress": true, Completed: true, Cancelled: true, "On Hold": true },
@@ -265,10 +265,12 @@ export function EnquiryToolbar({ table, onExport }) {
             <NewEnquiryDialog
                 open={showNewEnquiry}
                 onOpenChange={setShowNewEnquiry}
-                onSuccess={() => {
+                onSuccess={(newEnquiry) => {
                     toast({ title: "Enquiry Created", description: "New enquiry has been created." })
                     setShowNewEnquiry(false)
-                    // Optionally refresh the table or add the new enquiry to state
+                    if (onNewEnquirySuccess) {
+                        onNewEnquirySuccess(newEnquiry)
+                    }
                 }}
             />
         </div>

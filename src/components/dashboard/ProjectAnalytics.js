@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, BarChart3, PieChart as PieChartIcon, TrendingUp, DollarSign, Clock, CheckCircle, AlertTriangle, ChevronRight, ArrowRight, PauseCircle } from 'lucide-react';
+import { RefreshCw, BarChart3, PieChart as PieChartIcon, TrendingUp, DollarSign, Clock, CheckCircle, AlertTriangle, ChevronRight, ArrowRight, PauseCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   BarChart,
@@ -54,106 +54,106 @@ const STATUS_DESCRIPTIONS = {
 };
 
 // Mock data - in a real app, this would come from an API
-const mockProjects = [
-  {
-    id: 'p1',
-    name: 'Website Redesign',
-    status: 'on track',
-    progress: 0.65,
-    startDate: '2025-05-15',
-    endDate: '2025-07-20',
-    budget: 50000,
-    spent: 32000,
-    tasks: {
-      total: 45,
-      completed: 28,
-      inProgress: 12,
-      overdue: 5
-    },
-    risks: [
-      'Potential delay in content delivery from marketing team',
-      'Third-party API integration pending approval'
-    ]
-  },
-  {
-    id: 'p2',
-    name: 'Mobile App',
-    status: 'at risk',
-    progress: 0.35,
-    startDate: '2025-06-01',
-    endDate: '2025-08-15',
-    budget: 75000,
-    spent: 60000,
-    tasks: {
-      total: 68,
-      completed: 22,
-      inProgress: 25,
-      overdue: 8
-    },
-    risks: [
-      'Backend API performance issues',
-      'App store review process may cause delays'
-    ]
-  },
-  {
-    id: 'p3',
-    name: 'Data Migration',
-    status: 'delayed',
-    progress: 0.2,
-    startDate: '2025-05-01',
-    endDate: '2025-06-30',
-    budget: 30000,
-    spent: 28000,
-    tasks: {
-      total: 30,
-      completed: 6,
-      inProgress: 8,
-      overdue: 4
-    },
-    risks: [
-      'Data validation taking longer than expected',
-      'Legacy system compatibility issues'
-    ]
-  },
-  {
-    id: 'p4',
-    name: 'Marketing Campaign',
-    status: 'on track',
-    progress: 0.8,
-    startDate: '2025-06-10',
-    endDate: '2025-07-30',
-    budget: 45000,
-    spent: 35000,
-    tasks: {
-      total: 38,
-      completed: 31,
-      inProgress: 5,
-      overdue: 2
-    },
-    risks: [
-      'Creative assets approval pending'
-    ]
-  },
-  {
-    id: 'p5',
-    name: 'Server Upgrade',
-    status: 'on hold',
-    progress: 0.1,
-    startDate: '2025-06-20',
-    endDate: '2025-07-10',
-    budget: 20000,
-    spent: 5000,
-    tasks: {
-      total: 15,
-      completed: 2,
-      inProgress: 3,
-      overdue: 0
-    },
-    risks: [
-      'Waiting for hardware delivery'
-    ]
-  }
-];
+// const mockProjects = [
+//   {
+//     id: 'p1',
+//     name: 'Website Redesign',
+//     status: 'on track',
+//     progress: 0.65,
+//     startDate: '2025-05-15',
+//     endDate: '2025-07-20',
+//     budget: 50000,
+//     spent: 32000,
+//     tasks: {
+//       total: 45,
+//       completed: 28,
+//       inProgress: 12,
+//       overdue: 5
+//     },
+//     risks: [
+//       'Potential delay in content delivery from marketing team',
+//       'Third-party API integration pending approval'
+//     ]
+//   },
+//   {
+//     id: 'p2',
+//     name: 'Mobile App',
+//     status: 'at risk',
+//     progress: 0.35,
+//     startDate: '2025-06-01',
+//     endDate: '2025-08-15',
+//     budget: 75000,
+//     spent: 60000,
+//     tasks: {
+//       total: 68,
+//       completed: 22,
+//       inProgress: 25,
+//       overdue: 8
+//     },
+//     risks: [
+//       'Backend API performance issues',
+//       'App store review process may cause delays'
+//     ]
+//   },
+//   {
+//     id: 'p3',
+//     name: 'Data Migration',
+//     status: 'delayed',
+//     progress: 0.2,
+//     startDate: '2025-05-01',
+//     endDate: '2025-06-30',
+//     budget: 30000,
+//     spent: 28000,
+//     tasks: {
+//       total: 30,
+//       completed: 6,
+//       inProgress: 8,
+//       overdue: 4
+//     },
+//     risks: [
+//       'Data validation taking longer than expected',
+//       'Legacy system compatibility issues'
+//     ]
+//   },
+//   {
+//     id: 'p4',
+//     name: 'Marketing Campaign',
+//     status: 'on track',
+//     progress: 0.8,
+//     startDate: '2025-06-10',
+//     endDate: '2025-07-30',
+//     budget: 45000,
+//     spent: 35000,
+//     tasks: {
+//       total: 38,
+//       completed: 31,
+//       inProgress: 5,
+//       overdue: 2
+//     },
+//     risks: [
+//       'Creative assets approval pending'
+//     ]
+//   },
+//   {
+//     id: 'p5',
+//     name: 'Server Upgrade',
+//     status: 'on hold',
+//     progress: 0.1,
+//     startDate: '2025-06-20',
+//     endDate: '2025-07-10',
+//     budget: 20000,
+//     spent: 5000,
+//     tasks: {
+//       total: 15,
+//       completed: 2,
+//       inProgress: 3,
+//       overdue: 0
+//     },
+//     risks: [
+//       'Waiting for hardware delivery'
+//     ]
+//   }
+// ];
 
 // Enhanced Custom Tooltip
 const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) => {
@@ -188,12 +188,12 @@ const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) 
   return null;
 };
 
-const ProjectAnalytics = () => {
+const ProjectAnalytics = ({ projects = [] }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState('month');
 
   // Process data for charts with enhanced status information
-  const statusCounts = mockProjects.reduce((acc, project) => {
+  const statusCounts = projects.reduce((acc, project) => {
     const status = project.status;
     if (!acc[status]) {
       acc[status] = {
@@ -224,7 +224,7 @@ const ProjectAnalytics = () => {
     status: status
   }));
 
-  const progressData = mockProjects.map(project => ({
+  const progressData = projects.map(project => ({
     name: project.name,
     progress: project.progress * 100,
     status: project.status,
@@ -299,12 +299,12 @@ const ProjectAnalytics = () => {
                 <PieChart>
                   <defs>
                     {statusData.map((entry, index) => (
-                      <linearGradient 
-                        key={`gradient-${index}`} 
-                        id={`gradient-${index}`} 
-                        x1="0" 
-                        y1="0" 
-                        x2="0" 
+                      <linearGradient
+                        key={`gradient-${index}`}
+                        id={`gradient-${index}`}
+                        x1="0"
+                        y1="0"
+                        x2="0"
                         y2="1"
                       >
                         <stop offset="0%" stopColor={entry.color} stopOpacity={0.8} />
@@ -346,18 +346,18 @@ const ProjectAnalytics = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const data = payload[0].payload;
                         return (
                           <div className="bg-popover/95 backdrop-blur-sm p-4 border border-border rounded-lg shadow-xl text-sm w-64">
                             <div className="flex items-center gap-3 mb-3">
-                              <div 
+                              <div
                                 className="h-8 w-8 rounded-full flex items-center justify-center"
-                                style={{ 
-                                  backgroundColor: `${data.color}20`, 
-                                  color: data.color 
+                                style={{
+                                  backgroundColor: `${data.color}20`,
+                                  color: data.color
                                 }}
                               >
                                 {data.icon}
@@ -367,7 +367,7 @@ const ProjectAnalytics = () => {
                                 <p className="text-xs text-muted-foreground">{data.description}</p>
                               </div>
                             </div>
-                            
+
                             <div className="space-y-3">
                               <div>
                                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
@@ -377,9 +377,9 @@ const ProjectAnalytics = () => {
                                   </span>
                                 </div>
                                 <div className="h-1.5 bg-accent rounded-full overflow-hidden">
-                                  <div 
+                                  <div
                                     className="h-full rounded-full"
-                                    style={{ 
+                                    style={{
                                       width: '100%',
                                       backgroundColor: data.color,
                                       opacity: 0.2
@@ -387,7 +387,7 @@ const ProjectAnalytics = () => {
                                   />
                                 </div>
                               </div>
-                              
+
                               <div>
                                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                   <span>Task Completion</span>
@@ -396,9 +396,9 @@ const ProjectAnalytics = () => {
                                   </span>
                                 </div>
                                 <div className="h-1.5 bg-accent rounded-full overflow-hidden">
-                                  <div 
+                                  <div
                                     className="h-full rounded-full transition-all duration-500 ease-out"
-                                    style={{ 
+                                    style={{
                                       width: `${data.progress}%`,
                                       backgroundColor: data.color,
                                       backgroundImage: `linear-gradient(90deg, ${data.color} 0%, ${data.color}99 100%)`
@@ -412,11 +412,11 @@ const ProjectAnalytics = () => {
                                   </span>
                                 </div>
                               </div>
-                              
+
                               <div className="pt-2 border-t border-border">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="w-full text-xs h-8 gap-1.5"
                                 >
                                   View {data.name} Projects
@@ -430,7 +430,7 @@ const ProjectAnalytics = () => {
                       return null;
                     }}
                   />
-                  <Legend 
+                  <Legend
                     layout="horizontal"
                     verticalAlign="bottom"
                     align="center"
@@ -439,12 +439,12 @@ const ProjectAnalytics = () => {
                         {payload.map((entry, index) => {
                           const data = statusData[index];
                           return (
-                            <div 
+                            <div
                               key={`legend-${index}`}
                               className="flex items-center gap-1.5 text-xs"
                             >
-                              <div 
-                                className="w-3 h-3 rounded-full" 
+                              <div
+                                className="w-3 h-3 rounded-full"
                                 style={{ backgroundColor: data.color }}
                               />
                               <span className="text-muted-foreground">
@@ -599,9 +599,9 @@ const ProjectAnalytics = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockProjects
-                .filter(p => p.risks.length > 0)
-                .sort((a, b) => b.risks.length - a.risks.length)
+              {projects
+                .filter(p => p.risks && p.risks.length > 0)
+                .sort((a, b) => (b.risks?.length || 0) - (a.risks?.length || 0))
                 .slice(0, 3) // Show top 3 projects with most risks
                 .map(project => (
                   <div key={project.id} className="p-3 bg-muted/50 rounded-lg border border-dashed">

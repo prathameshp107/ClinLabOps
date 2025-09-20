@@ -45,6 +45,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import {
+  avatarColors,
+  taskStatusConfig,
+  taskPriorityConfig,
+  priorityOrder,
+  statusOrder
+} from "@/constants"
 
 const getInitials = (name) => {
   return name
@@ -56,77 +63,40 @@ const getInitials = (name) => {
 }
 
 const getRandomColor = (name) => {
-  const colors = [
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-purple-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-    'bg-cyan-500',
-    'bg-amber-500',
-    'bg-emerald-500',
-    'bg-violet-500',
-    'bg-rose-500'
-  ]
-
   const hash = name.split('').reduce((acc, char) => {
     return char.charCodeAt(0) + ((acc << 5) - acc)
   }, 0)
 
-  return colors[Math.abs(hash) % colors.length]
+  return avatarColors[Math.abs(hash) % avatarColors.length]
 }
 
 const TaskStatus = ({ status }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'review':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'pending':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const config = taskStatusConfig[status] || taskStatusConfig.pending;
 
   return (
-    <div className={`px-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${getStatusColor(status)}`}>
+    <div className={`px-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${config.color}`}>
       <div className="flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-current"></div>
-        {status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+        {config.label}
       </div>
     </div>
   );
 };
 
 const TaskPriority = ({ priority }) => {
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'low':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const config = taskPriorityConfig[priority] || taskPriorityConfig.medium;
 
   return (
-    <div className={`px-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${getPriorityColor(priority)}`}>
+    <div className={`px-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${config.color}`}>
       <div className="flex items-center gap-2">
         <div className="w-2 h-2 rounded-full bg-current"></div>
-        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+        {config.label}
       </div>
     </div>
   );
 };
 
-export function ProjectTasks({ tasks, team, onAddTask }) {
+export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
   const [searchQuery, setSearchQuery] = useState("")
@@ -137,12 +107,13 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
   const [sortBy, setSortBy] = useState("dueDate")
   const [sortDirection, setSortDirection] = useState("asc")
   const [selectedTasks, setSelectedTasks] = useState([])
+  const [deletingTaskId, setDeletingTaskId] = useState(null)
 
   const filteredTasks = useMemo(() => {
     return tasks?.filter(task => {
       const matchesSearch = searchQuery === "" ||
-        task.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchQuery.toLowerCase())
+        (task.title && task.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()))
       const matchesStatus = statusFilter === "all" || task.status === statusFilter
       const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter
       return matchesSearch && matchesStatus && matchesPriority
@@ -157,11 +128,9 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
           comparison = new Date(a.dueDate) - new Date(b.dueDate);
           break;
         case "priority":
-          const priorityOrder = { high: 3, medium: 2, low: 1 };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
         case "status":
-          const statusOrder = { completed: 3, in_progress: 2, pending: 1 };
           comparison = statusOrder[a.status] - statusOrder[b.status];
           break;
         default:
@@ -317,39 +286,6 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="flex rounded-xl border border-gray-200/50 bg-white/60 backdrop-blur-sm overflow-hidden shadow-sm">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={viewMode === "list" ? "secondary" : "ghost"}
-                        size="icon"
-                        className={`rounded-none h-11 w-11 ${viewMode === "list" ? 'bg-blue-50 text-blue-600' : ''}`}
-                        onClick={() => setViewMode("list")}
-                      >
-                        <ListChecks className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>List View</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={viewMode === "board" ? "secondary" : "ghost"}
-                        size="icon"
-                        className={`rounded-none h-11 w-11 border-l border-gray-200/50 ${viewMode === "board" ? 'bg-blue-50 text-blue-600' : ''}`}
-                        onClick={() => setViewMode("board")}
-                      >
-                        <LayoutGrid className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Board View</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
               <Button
                 size="sm"
                 onClick={() => setIsAddTaskModalOpen(true)}
@@ -515,9 +451,22 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                               <Edit className="h-4 w-4 mr-3 text-blue-600" />
                               Edit Task
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+                            <DropdownMenuItem
+                              className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+                              onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this task?')) {
+                                  setDeletingTaskId(task.id)
+                                  try {
+                                    await onDeleteTask?.(task.id)
+                                  } finally {
+                                    setDeletingTaskId(null)
+                                  }
+                                }
+                              }}
+                              disabled={deletingTaskId === task.id}
+                            >
                               <Trash className="h-4 w-4 mr-3" />
-                              Delete Task
+                              {deletingTaskId === task.id ? 'Deleting...' : 'Delete Task'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -546,8 +495,8 @@ export function ProjectTasks({ tasks, team, onAddTask }) {
                       onClick={() => typeof page === 'number' && goToPage(page)}
                       disabled={typeof page !== 'number'}
                       className={`h-9 w-9 p-0 rounded-lg ${page === currentPage
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
-                          : 'bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50 text-gray-600'
+                        ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                        : 'bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50 text-gray-600'
                         }`}
                     >
                       {page}

@@ -56,74 +56,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
-// Mock users for development
-const mockUsers = [
-  { id: "1", name: "John Doe", role: "Lab Manager", email: "john@example.com", avatar: "JD" },
-  { id: "2", name: "Jane Smith", role: "Senior Researcher", email: "jane@example.com", avatar: "JS" },
-  { id: "3", name: "Robert Johnson", role: "Lab Technician", email: "robert@example.com", avatar: "RJ" },
-  { id: "4", name: "Emily Davis", role: "Research Assistant", email: "emily@example.com", avatar: "ED" },
-];
-
-// Mock activity log
-const mockActivityLog = [
-  {
-    id: "act1",
-    userId: "2",
-    action: "created",
-    timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    details: "Created the task and assigned to Robert Johnson"
-  },
-  {
-    id: "act2",
-    userId: "3",
-    action: "updated",
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    details: "Changed status from 'Pending' to 'In Progress'"
-  },
-  {
-    id: "act3",
-    userId: "1",
-    action: "commented",
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    details: "Please make sure to document all findings in the shared lab notebook."
-  },
-  {
-    id: "act4",
-    userId: "3",
-    action: "updated",
-    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    details: "Completed subtask: 'Clean optical components'"
-  },
-];
-
-// Mock attachments
-const mockAttachments = [
-  {
-    id: "att1",
-    name: "Experiment Protocol.pdf",
-    type: "pdf",
-    size: "2.4 MB",
-    uploadedBy: "2",
-    uploadedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
-  },
-  {
-    id: "att2",
-    name: "Sample Images.zip",
-    type: "zip",
-    size: "14.8 MB",
-    uploadedBy: "1",
-    uploadedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000)
-  },
-  {
-    id: "att3",
-    name: "Equipment Manual.pdf",
-    type: "pdf",
-    size: "5.1 MB",
-    uploadedBy: "3",
-    uploadedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-  },
-];
-
 // Add these new imports for the date picker
 import { Calendar } from "@/components/ui/calendar"
 import {
@@ -139,6 +71,10 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+import {
+  taskStatusConfig,
+  taskPriorityConfig
+} from "@/constants"
 
 export function TaskDetails({
   taskId,
@@ -153,8 +89,8 @@ export function TaskDetails({
   const [editedTask, setEditedTask] = useState(task);
   const [newSubtask, setNewSubtask] = useState("");
   const [newComment, setNewComment] = useState("");
-  const [activityLog, setActivityLog] = useState(mockActivityLog);
-  const [attachments, setAttachments] = useState(mockAttachments);
+  const [activityLog, setActivityLog] = useState([]);
+  const [attachments, setAttachments] = useState([]);
 
   // Get related tasks (same experiment)
   const relatedTasksList = relatedTasks
@@ -164,9 +100,9 @@ export function TaskDetails({
   // Get experiment name
   const experimentName = experiments.find(e => e.id === task.experimentId)?.name || "Unknown Experiment";
 
-  // Get assignee details
-  const assignee = mockUsers.find(u => u.id === task.assigneeId) || {
-    name: "Unassigned",
+  // Get assignee details - this should be passed as props or fetched from API
+  const assignee = {
+    name: task.assignee || "Unassigned",
     role: "Not assigned",
     avatar: "UA"
   };
@@ -174,10 +110,10 @@ export function TaskDetails({
   // Handle due date change
   const handleDueDateChange = (date) => {
     if (!date) return;
-    
+
     const updatedTask = { ...task, dueDate: date.toISOString() };
     onUpdate(updatedTask);
-    
+
     // Add to activity log
     addActivityEntry("3", "updated", `Changed due date to ${format(date, "MMM d, yyyy")}`);
   };

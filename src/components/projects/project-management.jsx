@@ -1,16 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import { 
-  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, 
+import {
+  PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, LayoutGrid,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
   Users, Clock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -20,13 +20,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 import { ProjectTable } from "./project-table"
 import { ProjectCardView } from "./project-card-view"
 import { AddProjectDialog } from "./add-project-dialog"
@@ -38,145 +39,18 @@ import { ActivityLogDialog } from "./activity-log-dialog"
 import { ProjectDependencies } from "./project-dependencies"
 import { ProjectStatusTracking } from "./project-status-tracking"
 import { ProjectGanttChart } from "./project-gantt-chart"
-
-// Mock user data for activity logs
-const mockUsers = {
-  "u1": { name: "Dr. Sarah Johnson", avatar: "SJ" },
-  "u2": { name: "Mark Williams", avatar: "MW" },
-  "u3": { name: "Dr. Emily Chen", avatar: "EC" },
-  "u4": { name: "James Rodriguez", avatar: "JR" },
-  "u5": { name: "Olivia Taylor", avatar: "OT" },
-  "u6": { name: "Robert Kim", avatar: "RK" }
-};
-
-// Sample project data
-export const mockProjects = [
-  {
-    id: "p1",
-    name: "Cancer Biomarker Discovery",
-    description: "Identifying novel biomarkers for early detection of pancreatic cancer using proteomics approaches",
-    startDate: "2025-01-15",
-    endDate: "2025-07-15",
-    status: "In Progress",
-    priority: "High",
-    progress: 45,
-    isFavorite: true,
-    team: [
-      { id: "u1", name: "Dr. Sarah Johnson", role: "Principal Investigator", email: "s.johnson@example.com" },
-      { id: "u2", name: "Mark Williams", role: "Research Scientist", email: "m.williams@example.com" },
-      { id: "u4", name: "James Rodriguez", role: "Lab Technician", email: "j.rodriguez@example.com" }
-    ],
-    tags: ["Oncology", "Proteomics", "Clinical"],
-    dependencies: [
-      { id: "dep1", sourceId: "p1", sourceName: "Cancer Biomarker Discovery", targetId: "p3", targetName: "Neuroimaging Data Analysis", type: "finish-to-start", created: "2025-01-20T14:15:00Z" }
-    ],
-    activityLog: [
-      { id: "a1", userId: "u1", action: "created", timestamp: "2025-01-14T09:30:00Z", details: "Project created" },
-      { id: "a2", userId: "u1", action: "updated", timestamp: "2025-01-20T14:15:00Z", details: "Updated project description" },
-      { id: "a3", userId: "u2", action: "updated", timestamp: "2025-02-05T11:45:00Z", details: "Updated progress to 30%" },
-      { id: "a4", userId: "u1", action: "added_member", timestamp: "2025-02-10T10:00:00Z", details: "Added James Rodriguez to the team" }
-    ]
-  },
-  {
-    id: "p2",
-    name: "Antibiotic Resistance Testing",
-    description: "Evaluating resistance patterns of bacterial strains against new antibiotic compounds",
-    startDate: "2025-02-10",
-    endDate: "2025-05-10",
-    status: "In Progress",
-    priority: "Medium",
-    progress: 68,
-    isFavorite: false,
-    team: [
-      { id: "u3", name: "Dr. Emily Chen", role: "Project Lead", email: "e.chen@example.com" },
-      { id: "u5", name: "Olivia Taylor", role: "Microbiologist", email: "o.taylor@example.com" }
-    ],
-    tags: ["Microbiology", "Drug Development"],
-    dependencies: [
-      { id: "dep2", sourceId: "p2", sourceName: "Antibiotic Resistance Testing", targetId: "p6", targetName: "Lab Equipment Validation", type: "start-to-start", created: "2025-02-15T10:30:00Z" }
-    ],
-    activityLog: []
-  },
-  {
-    id: "p3",
-    name: "Neuroimaging Data Analysis",
-    description: "Processing and analyzing fMRI data from Alzheimer's patients to identify early markers",
-    startDate: "2024-11-20",
-    endDate: "2025-06-30",
-    status: "On Hold",
-    priority: "Medium",
-    progress: 32,
-    isFavorite: false,
-    team: [
-      { id: "u1", name: "Dr. Sarah Johnson", role: "Supervisor", email: "s.johnson@example.com" },
-      { id: "u2", name: "Mark Williams", role: "Data Analyst", email: "m.williams@example.com" }
-    ],
-    tags: ["Neuroscience", "Data Analysis", "Clinical"],
-    activityLog: []
-  },
-  {
-    id: "p4",
-    name: "Vaccine Stability Study",
-    description: "Evaluating long-term stability of mRNA vaccine formulations under various storage conditions",
-    startDate: "2025-03-01",
-    endDate: "2025-09-01",
-    status: "Pending",
-    priority: "High",
-    progress: 0,
-    isFavorite: false,
-    team: [
-      { id: "u6", name: "Robert Kim", role: "Equipment Specialist", email: "r.kim@example.com" },
-      { id: "u4", name: "James Rodriguez", role: "Lab Technician", email: "j.rodriguez@example.com" }
-    ],
-    tags: ["Vaccines", "Stability", "mRNA"],
-    activityLog: []
-  },
-  {
-    id: "p5",
-    name: "Genetic Screening Protocol Development",
-    description: "Developing a rapid genetic screening protocol for rare genetic disorders",
-    startDate: "2024-12-05",
-    endDate: "2025-04-15",
-    status: "Completed",
-    priority: "Medium",
-    progress: 100,
-    isFavorite: true,
-    team: [
-      { id: "u3", name: "Dr. Emily Chen", role: "Quality Control", email: "e.chen@example.com" },
-      { id: "u5", name: "Olivia Taylor", role: "Genetic Analyst", email: "o.taylor@example.com" }
-    ],
-    tags: ["Genetics", "Protocol", "Screening"],
-    activityLog: []
-  },
-  {
-    id: "p6",
-    name: "Lab Equipment Validation",
-    description: "Validation of new mass spectrometry equipment for clinical sample analysis",
-    startDate: "2025-02-20",
-    endDate: "2025-03-20",
-    status: "In Progress",
-    priority: "Low",
-    progress: 85,
-    isFavorite: false,
-    team: [
-      { id: "u6", name: "Robert Kim", role: "Lead Technician", email: "r.kim@example.com" },
-      { id: "u4", name: "James Rodriguez", role: "Assistant", email: "j.rodriguez@example.com" }
-    ],
-    tags: ["Equipment", "Validation", "Mass Spec"],
-    activityLog: []
-  }
-]
+import { getUsers } from "@/services/userService"
+import { getCurrentUser } from "@/services/authService"
+import { getProjects, createProject, updateProject, deleteProject } from "@/services/projectService"
+import { createActivity } from "@/services/activityService"
+import { ProjectsLoading } from "@/components/projects/projects-loading"
+import { ErrorState } from "@/components/ui/error-state"
 
 export function ProjectManagement() {
-  // Load projects from localStorage or use mockProjects as default
-  const [projects, setProjects] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedProjects = localStorage.getItem('projects');
-      return savedProjects ? JSON.parse(savedProjects) : mockProjects;
-    }
-    return mockProjects;
-  });
-  
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -186,15 +60,68 @@ export function ProjectManagement() {
   const [activeTab, setActiveTab] = useState("all"); // "all" or "favorites"
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
-  
+
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
+  const [showEditProjectDialog, setShowEditProjectDialog] = useState(false);
   const [showDeleteProjectDialog, setShowDeleteProjectDialog] = useState(false);
   const [showProjectDetailsDialog, setShowProjectDetailsDialog] = useState(false);
   const [showShareProjectDialog, setShowShareProjectDialog] = useState(false);
   const [showActivityLogDialog, setShowActivityLogDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [currentUser, setCurrentUser] = useState({ id: "u1", name: "Dr. Sarah Johnson" }); // Mock current user
+  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState({});
+
+  // Fetch users and current user
+  useEffect(() => {
+    const fetchUsersAndCurrentUser = async () => {
+      try {
+        const [fetchedUsers, currentUserData] = await Promise.all([
+          getUsers(),
+          getCurrentUser()
+        ]);
+
+        // Convert users array to object for easier lookup
+        const usersObj = {};
+        fetchedUsers.forEach(user => {
+          usersObj[user._id] = {
+            id: user._id,
+            name: user.name,
+            avatar: user.name.charAt(0).toUpperCase(),
+            role: user.role,
+            department: user.department,
+            email: user.email
+          };
+        });
+        setUsers(usersObj);
+        setCurrentUser(currentUserData);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+      }
+    };
+    fetchUsersAndCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true);
+        const data = await getProjects();
+        // The backend uses _id, but frontend components might expect id.
+        // We map _id to id for consistency.
+        const adaptedData = data.map(p => ({ ...p, id: p._id }));
+        setProjects(adaptedData);
+        setError(null);
+      } catch (err) {
+        setError("Failed to load projects. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   // Save projects to localStorage whenever they change
   useEffect(() => {
@@ -206,33 +133,33 @@ export function ProjectManagement() {
   // Apply filters, search, and favorites tab when they change
   useEffect(() => {
     let filtered = [...projects];
-    
+
     // Apply favorites filter if on favorites tab
     if (activeTab === "favorites") {
       filtered = filtered.filter(project => project.isFavorite);
     }
-    
+
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        project => 
-          project.name.toLowerCase().includes(query) || 
+        project =>
+          project.name.toLowerCase().includes(query) ||
           project.description.toLowerCase().includes(query) ||
           project.tags.some(tag => tag.toLowerCase().includes(query))
       );
     }
-    
+
     // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(project => project.status === statusFilter);
     }
-    
+
     // Apply priority filter
     if (priorityFilter !== "all") {
       filtered = filtered.filter(project => project.priority === priorityFilter);
     }
-    
+
     // Apply timeframe filter
     const now = new Date();
     if (timeframeFilter === "active") {
@@ -244,7 +171,7 @@ export function ProjectManagement() {
     } else if (timeframeFilter === "past") {
       filtered = filtered.filter(project => new Date(project.endDate) < now);
     }
-    
+
     setFilteredProjects(filtered);
   }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab]);
 
@@ -255,7 +182,7 @@ export function ProjectManagement() {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-    
+
     // Apply sorting
     const sortedProjects = [...filteredProjects].sort((a, b) => {
       if (a[key] < b[key]) {
@@ -266,21 +193,23 @@ export function ProjectManagement() {
       }
       return 0;
     });
-    
+
     setFilteredProjects(sortedProjects);
   };
 
   const handleProjectAction = (action, project) => {
+    console.log('Project action triggered:', action, 'for project:', project);
     setSelectedProject(project);
-    
+
     switch (action) {
       case "view":
         // Navigate to the project details page instead of opening a modal
         window.location.href = `/projects/${project.id}`;
         break;
       case "edit":
-        // Redirect to the dedicated edit page
-        window.location.href = `/projects/edit/${project.id}`;
+        // Open the edit project dialog
+        console.log('Opening edit dialog for project:', project);
+        setShowEditProjectDialog(true);
         break;
       case "delete":
         setShowDeleteProjectDialog(true);
@@ -300,73 +229,77 @@ export function ProjectManagement() {
   }
 
   const toggleProjectFavorite = (projectId) => {
-    const updatedProjects = projects.map(project => 
-      project.id === projectId 
-        ? { 
-            ...project, 
-            isFavorite: !project.isFavorite,
-            activityLog: [
-              ...project.activityLog || [],
-              {
-                id: `a${Date.now()}`,
-                userId: currentUser.id,
-                action: !project.isFavorite ? "marked_favorite" : "unmarked_favorite",
-                timestamp: new Date().toISOString(),
-                details: !project.isFavorite ? "Marked as favorite" : "Removed from favorites"
-              }
-            ] 
-          } 
+    const updatedProjects = projects.map(project =>
+      project.id === projectId
+        ? {
+          ...project,
+          isFavorite: !project.isFavorite,
+          activityLog: [
+            ...project.activityLog || [],
+            {
+              id: `a${Date.now()}`,
+              userId: currentUser.id,
+              action: !project.isFavorite ? "marked_favorite" : "unmarked_favorite",
+              timestamp: new Date().toISOString(),
+              details: !project.isFavorite ? "Marked as favorite" : "Removed from favorites"
+            }
+          ]
+        }
         : project
     );
-    
+
     setProjects(updatedProjects);
   }
 
-  const handleAddProject = (newProject) => {
-      // Clean up description if it contains HTML tags
-      const cleanedProject = {
-        ...newProject,
-        description: newProject.description?.replace(/<\/?[^>]+(>|$)/g, "") || ""
-      };
-      
-      // Add the new project to the projects array
-      const updatedProjects = [...projects, cleanedProject];
-      
-      // Update state with the new projects array
-      setProjects(updatedProjects);
-      
-      // Close the dialog
+  const handleAddProject = async (newProjectData) => {
+    try {
+      const newProject = await createProject(newProjectData);
+      const adaptedProject = { ...newProject, id: newProject._id };
+      setProjects(prev => [...prev, adaptedProject]);
       setShowAddProjectDialog(false);
-      
-      // Show a success message or notification (you can implement this later)
-      console.log("Project added successfully:", cleanedProject);
+      // Create activity for project creation
+      await createActivity({
+        type: 'project_created',
+        description: `Project '${adaptedProject.name}' was created`,
+        user: currentUser.id,
+        project: adaptedProject.id
+      });
+    } catch (error) {
+      console.error("Failed to add project:", error);
     }
+  };
 
-  const handleEditProject = (editedProject) => {
-    const updatedProjects = projects.map(project => 
-      project.id === editedProject.id 
-        ? { 
-            ...editedProject,
-            activityLog: [
-              ...project.activityLog || [],
-              {
-                id: `a${Date.now()}`,
-                userId: currentUser.id,
-                action: "updated",
-                timestamp: new Date().toISOString(),
-                details: "Project updated"
-              }
-            ]
-          } 
-        : project
-    );
-    
-    setProjects(updatedProjects);
-  }
+  const handleEditProject = async (editedProjectData) => {
+    if (!selectedProject) return;
+    try {
+      const updated = await updateProject(selectedProject.id, editedProjectData);
+      const adaptedUpdated = { ...updated, id: updated._id };
+      setProjects(prev => prev.map(p => p.id === adaptedUpdated.id ? adaptedUpdated : p));
+      setShowEditProjectDialog(false);
+      setSelectedProject(null);
+      // Create activity for project update
+      await createActivity({
+        type: 'project_updated',
+        description: `Project '${adaptedUpdated.name}' was updated`,
+        user: currentUser.id,
+        project: adaptedUpdated.id
+      });
+    } catch (error) {
+      console.error("Failed to edit project:", error);
+    }
+  };
 
-  const handleDeleteProject = (projectId) => {
-    setProjects(prev => prev.filter(project => project.id !== projectId));
-  }
+  const handleDeleteProject = async (projectId) => {
+    try {
+      await deleteProject(projectId);
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+      setShowDeleteProjectDialog(false);
+      setSelectedProject(null);
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      // Optionally, show an error message to the user
+    }
+  };
 
   const handleShareProject = (projectId, invitedUsers) => {
     const updatedProjects = projects.map(project => {
@@ -377,7 +310,7 @@ export function ProjectManagement() {
           role: user.projectRole.charAt(0).toUpperCase() + user.projectRole.slice(1),
           email: user.email
         }));
-        
+
         // Add new activity log entries
         const newActivityLogs = invitedUsers.map(user => ({
           id: `a${Date.now()}-${user.id}`,
@@ -386,7 +319,7 @@ export function ProjectManagement() {
           timestamp: new Date().toISOString(),
           details: `Added ${user.name} as ${user.projectRole}`
         }));
-        
+
         return {
           ...project,
           team: [...(project.team || []), ...newTeamMembers],
@@ -395,16 +328,16 @@ export function ProjectManagement() {
       }
       return project;
     });
-    
+
     setProjects(updatedProjects);
-  }
+  };
 
   // Update project dependencies
   const handleUpdateProjectDependencies = (dependencies) => {
     // In a real app, you would update this via an API
     // For now, we'll just update the local state
     console.log("Updated dependencies:", dependencies);
-    
+
     // For demo purposes, we'll update the first project
     const updatedProjects = projects.map(p => {
       if (p.id === "p1") {
@@ -412,7 +345,7 @@ export function ProjectManagement() {
       }
       return p;
     });
-    
+
     setProjects(updatedProjects);
   };
 
@@ -431,9 +364,9 @@ export function ProjectManagement() {
             details: `Updated status from ${p.status} to ${newStatus}`
           }
         ];
-        
-        return { 
-          ...p, 
+
+        return {
+          ...p,
           status: newStatus,
           // If completed, set progress to 100%
           progress: newStatus === "Completed" ? 100 : p.progress,
@@ -442,49 +375,110 @@ export function ProjectManagement() {
       }
       return p;
     });
-    
+
     setProjects(updatedProjects);
   };
 
+  if (loading) return <ProjectsLoading />;
+  if (error) {
+    return (
+      <ErrorState
+        title="Unable to Load Projects"
+        message="We encountered an issue while loading your projects. This might be due to a network connection or server issue."
+        error={error}
+        onRetry={() => {
+          setError(null);
+          setLoading(true);
+          // Re-fetch projects
+          const fetchProjects = async () => {
+            try {
+              const data = await getProjects();
+              const adaptedData = data.map(p => ({ ...p, id: p._id }));
+              setProjects(adaptedData);
+              setError(null);
+            } catch (err) {
+              setError("Failed to load projects. Please try again later.");
+              console.error(err);
+            } finally {
+              setLoading(false);
+            }
+          };
+          fetchProjects();
+        }}
+        onContinue={() => {
+          setError(null);
+          setProjects([]);
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="space-y-8 pb-10">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
-        <Button onClick={() => setShowAddProjectDialog(true)} className="gap-1">
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="h-8 px-3"
+            >
+              <LayoutGrid className="h-4 w-4 mr-1.5" />
+              Grid
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-8 px-3"
+            >
+              <List className="h-4 w-4 mr-1.5" />
+              List
+            </Button>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+        <Button
+          onClick={() => setShowAddProjectDialog(true)}
+          className="gap-2 bg-primary hover:bg-primary/90 shadow-sm"
+        >
           <PlusCircle className="h-4 w-4" />
           Add Project
         </Button>
       </div>
 
-      {/* View Selector Tabs */}
-      <div className="border-b">
-        <Tabs 
-          value={activeView} 
-          onValueChange={setActiveView} 
+      {/* Enhanced View Selector Tabs */}
+      <div className="border-b border-border/50">
+        <Tabs
+          value={activeView}
+          onValueChange={setActiveView}
           className="w-full"
         >
-          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0">
-            <TabsTrigger 
-              value="projects" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6">
+            <TabsTrigger
+              value="projects"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Projects
             </TabsTrigger>
-            <TabsTrigger 
-              value="status" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            <TabsTrigger
+              value="status"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Status Tracking
             </TabsTrigger>
-            <TabsTrigger 
-              value="gantt" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            <TabsTrigger
+              value="gantt"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Gantt Chart
             </TabsTrigger>
-            <TabsTrigger 
-              value="dependencies" 
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none rounded-none px-4 py-2 h-auto"
+            <TabsTrigger
+              value="dependencies"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
             >
               Dependencies
             </TabsTrigger>
@@ -495,58 +489,60 @@ export function ProjectManagement() {
       {/* Main Content Area */}
       {activeView === "projects" && (
         <>
-          {/* Search & Filter Controls */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search projects..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex flex-1 flex-col sm:flex-row gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="On Hold">On Hold</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filter by priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Filter by timeframe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Timeframes</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="upcoming">Upcoming</SelectItem>
-                  <SelectItem value="past">Past</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Enhanced Search & Filter Controls */}
+          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="relative flex-1">
+                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects by name, description, or tags..."
+                  className="pl-9 bg-background/80 border-border/50 focus:bg-background transition-colors"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="On Hold">On Hold</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
+                    <SelectValue placeholder="Timeframe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Timeframes</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="past">Past</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-          
+
           {/* Projects Display */}
           <ProjectDisplay
             projects={filteredProjects}
@@ -559,14 +555,14 @@ export function ProjectManagement() {
       )}
 
       {activeView === "status" && (
-        <ProjectStatusTracking 
+        <ProjectStatusTracking
           projects={projects}
           onUpdateProjectStatus={handleUpdateProjectStatus}
         />
       )}
 
       {activeView === "gantt" && (
-        <ProjectGanttChart 
+        <ProjectGanttChart
           projects={projects}
           dependencies={projects.reduce((acc, project) => {
             if (project.dependencies) {
@@ -578,45 +574,52 @@ export function ProjectManagement() {
       )}
 
       {activeView === "dependencies" && (
-        <ProjectDependencies 
+        <ProjectDependencies
           projects={projects}
           onUpdateProjectDependencies={handleUpdateProjectDependencies}
         />
       )}
 
       {/* Dialogs */}
-      <AddProjectDialog 
-        open={showAddProjectDialog} 
+      <AddProjectDialog
+        open={showAddProjectDialog}
         onOpenChange={setShowAddProjectDialog}
         onSubmit={handleAddProject}
       />
-      
-      <DeleteProjectDialog 
-        open={showDeleteProjectDialog} 
+
+      <EditProjectDialog
+        open={showEditProjectDialog}
+        onOpenChange={setShowEditProjectDialog}
+        project={selectedProject}
+        onSave={handleEditProject}
+      />
+
+      <DeleteProjectDialog
+        open={showDeleteProjectDialog}
         onOpenChange={setShowDeleteProjectDialog}
         project={selectedProject}
         onDelete={handleDeleteProject}
       />
-      
-      <ProjectDetailsDialog 
-        open={showProjectDetailsDialog} 
+
+      <ProjectDetailsDialog
+        open={showProjectDetailsDialog}
         onOpenChange={setShowProjectDetailsDialog}
         project={selectedProject}
         onAction={handleProjectAction}
       />
-      
+
       <ProjectShareDialog
         open={showShareProjectDialog}
         onOpenChange={setShowShareProjectDialog}
         project={selectedProject}
         onShare={handleShareProject}
       />
-      
+
       <ActivityLogDialog
         open={showActivityLogDialog}
         onOpenChange={setShowActivityLogDialog}
         project={selectedProject}
-        users={mockUsers}
+        users={users}
       />
     </div>
   );
@@ -626,41 +629,54 @@ export function ProjectManagement() {
 function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-lg">
-        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <FilterIcon className="h-6 w-6 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/50 rounded-2xl bg-muted/10">
+        <div className="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-6">
+          <FolderPlus className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium">No projects found</h3>
-        <p className="text-muted-foreground text-sm mt-1">
-          Try adjusting your search or filters
+        <h3 className="text-xl font-semibold text-foreground mb-2">No projects found</h3>
+        <p className="text-muted-foreground text-center max-w-md mb-6">
+          No projects match your current filters. Try adjusting your search criteria or create a new project to get started.
         </p>
+        <Button
+          variant="outline"
+          className="gap-2"
+          onClick={() => {
+            setSearchQuery("");
+            setStatusFilter("all");
+            setPriorityFilter("all");
+            setTimeframeFilter("all");
+          }}
+        >
+          <FilterIcon className="h-4 w-4" />
+          Clear Filters
+        </Button>
       </div>
     );
   }
-  
+
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={{
         hidden: { opacity: 0, y: 20 },
-        visible: { 
-          opacity: 1, 
+        visible: {
+          opacity: 1,
           y: 0,
-          transition: { duration: 0.3, ease: "easeInOut" }
+          transition: { duration: 0.4, ease: "easeInOut" }
         }
       }}
       key={viewMode} // This will trigger animation when view mode changes
     >
       {viewMode === "grid" ? (
-        <ProjectCardView 
-          projects={projects} 
-          onAction={handleProjectAction} 
+        <ProjectCardView
+          projects={projects}
+          onAction={handleProjectAction}
         />
       ) : (
-        <ProjectTable 
-          projects={projects} 
-          onAction={handleProjectAction} 
+        <ProjectTable
+          projects={projects}
+          onAction={handleProjectAction}
           sortConfig={sortConfig}
           requestSort={requestSort}
         />

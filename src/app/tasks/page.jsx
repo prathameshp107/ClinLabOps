@@ -3,10 +3,17 @@
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Filter, Calendar, BarChart2, Users, SlidersHorizontal, RefreshCw, AlertCircle, Clock, CheckCircle2, Search, OctagonAlert, List, Grid, PlusCircle, Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Calendar as CalendarIcon, Folder, Target, Flag, User, Sparkles } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker"
 
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DataTable } from "@/components/tasks-v2/data-table"
@@ -20,75 +27,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
-
-// Mock data for tasks
-const mockTasks = [
-  {
-    _id: '1',
-    title: 'Prepare lab equipment',
-    description: 'Ensure all lab equipment is clean and ready for use.',
-    status: 'pending',
-    priority: 'high',
-    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user1',
-    assignedToName: 'John Doe',
-    experiment: 'exp1',
-    experimentName: 'Cell Culture',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '2',
-    title: 'Analyze test results',
-    description: 'Review and interpret the latest test results from the experiment.',
-    status: 'in-progress',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user2',
-    assignedToName: 'Jane Smith',
-    experiment: 'exp2',
-    experimentName: 'DNA Sequencing',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '3',
-    title: 'Order new supplies',
-    description: 'Place an order for new chemicals and lab supplies.',
-    status: 'completed',
-    priority: 'low',
-    dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user3',
-    assignedToName: 'Alex Johnson',
-    experiment: 'exp3',
-    experimentName: 'Chemical Analysis',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '4',
-    title: 'Calibrate instruments',
-    description: 'Calibrate all measurement instruments for accuracy.',
-    status: 'pending',
-    priority: 'high',
-    dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user1',
-    assignedToName: 'John Doe',
-    experiment: 'exp1',
-    experimentName: 'Cell Culture',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    _id: '5',
-    title: 'Document procedures',
-    description: 'Update the documentation for all lab procedures performed this week.',
-    status: 'in-progress',
-    priority: 'medium',
-    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    assignedTo: 'user2',
-    assignedToName: 'Jane Smith',
-    experiment: 'exp2',
-    experimentName: 'DNA Sequencing',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-  }
-];
+import { getTasks, createTask, getNextTaskId } from "@/services/taskService"
+import { getProjects, getProjectById } from "@/services/projectService"
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
@@ -100,65 +40,75 @@ export default function TasksPage() {
   const [selectedTasks, setSelectedTasks] = React.useState([])
   const [selectedTask, setSelectedTask] = React.useState(null)
   const [showTaskDetails, setShowTaskDetails] = React.useState(false)
-  
-  const [tasks, setTasks] = React.useState(() => {
-    // Transform mockTasks to processedTasks shape
-    return mockTasks.map(task => ({
-      id: task._id,
-      title: task.title,
-      description: task.description,
-      status: task.status,
-      priority: task.priority,
-      dueDate: task.dueDate,
-      assignedTo: {
-        id: task.assignedTo,
-        name: task.assignedToName,
-        avatar: "/avatars/01.png"
-      },
-      project: {
-        id: task.experiment,
-        name: task.experimentName
-      },
-      createdAt: task.createdAt
-    }));
-  });
+  const [showAddTaskModal, setShowAddTaskModal] = React.useState(false)
+
+  const [tasks, setTasks] = React.useState([]);
+  const [projects, setProjects] = React.useState([]);
+  const [selectedProjectId, setSelectedProjectId] = React.useState("");
+  const [selectedProject, setSelectedProject] = React.useState(null);
+  const [team, setTeam] = React.useState([]);
+  const [nextTaskId, setNextTaskId] = React.useState("");
+
+  // Helper to generate acronym from project name (letters only, no brackets)
+  function getProjectAcronym(name) {
+    if (!name) return '';
+    return name
+      .replace(/[^a-zA-Z\s]/g, '') // Remove non-letters
+      .split(/\s+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  // Helper to get the next custom task number for a project
+  function getNextTaskNumberForProject(tasks, projectAcronym) {
+    const numbers = tasks
+      .filter(t => t.customId && t.customId.startsWith(projectAcronym + ' - '))
+      .map(t => parseInt(t.customId.split(' - ')[1], 10))
+      .filter(n => !isNaN(n));
+    return numbers.length ? Math.max(...numbers) + 1 : 1;
+  }
+
+  function mapTask(task, projects = [], allTasks = []) {
+    const project = projects.find(p => (p._id || p.id) === (task.projectId || task.project?._id || task.project?.id));
+    let customId = undefined;
+    if (project && project.name) {
+      const acronym = getProjectAcronym(project.name);
+      // If the task already has a customId, keep it; otherwise, generate
+      if (task.customId) {
+        customId = task.customId;
+      } else {
+        // Find the next available number for this project
+        const nextNum = getNextTaskNumberForProject(allTasks, acronym);
+        customId = `${acronym} - ${nextNum}`;
+      }
+    }
+    return {
+      ...task,
+      id: task._id || task.id,
+      customId,
+      assignedTo: task.assignee ? { name: task.assignee } : { name: 'Unassigned' },
+      project: project || { name: '-' },
+    };
+  }
 
   const fetchTasksData = React.useCallback(async () => {
     try {
       setError(null)
-
-      // Use mock data instead of API call
-      let filteredTasks = [...mockTasks];
-
-      // Apply status filter
-      if (selectedStatus !== 'all') {
-        filteredTasks = filteredTasks.filter(task => task.status === selectedStatus);
+      const [data, allProjects] = await Promise.all([
+        getTasks(selectedStatus !== 'all' ? { status: selectedStatus } : {}),
+        getProjects()
+      ]);
+      setProjects(allProjects);
+      // Map all tasks and assign customId
+      let mappedTasks = [];
+      for (const task of data) {
+        mappedTasks.push(mapTask(task, allProjects, mappedTasks));
       }
-
-      // Transform to match expected format
-      const processedTasks = filteredTasks.map(task => ({
-        id: task._id,
-        title: task.title,
-        description: task.description,
-        status: task.status,
-        priority: task.priority,
-        dueDate: task.dueDate,
-        assignedTo: {
-          id: task.assignedTo,
-          name: task.assignedToName,
-          avatar: "/avatars/01.png"
-        },
-        project: {
-          id: task.experiment,
-          name: task.experimentName
-        },
-        createdAt: task.createdAt
-      }));
-
-      setTasks(processedTasks);
+      setTasks(mappedTasks);
       setLastRefreshed(new Date());
     } catch (err) {
-      console.error("Error processing tasks:", err);
+      console.error("Error fetching tasks:", err);
       setError("Failed to load tasks. Please try again later.");
     } finally {
       setIsRefreshing(false);
@@ -298,8 +248,8 @@ export default function TasksPage() {
       console.log('Edit task:', task.id)
     } else if (action === 'statusChange') {
       // Handle status change
-      setTasks(prev => 
-        prev.map(t => 
+      setTasks(prev =>
+        prev.map(t =>
           t.id === task.id ? { ...t, status: task.status } : t
         )
       )
@@ -326,8 +276,8 @@ export default function TasksPage() {
         return {
           ...col,
           cell: ({ row }) => (
-            <DataTableRowActions 
-              row={row} 
+            <DataTableRowActions
+              row={row}
               onView={(task) => {
                 setSelectedTask(task);
                 setShowTaskDetails(true);
@@ -348,8 +298,8 @@ export default function TasksPage() {
                 }
               }}
               onStatusChange={(taskId, status) => {
-                setTasks(prev => 
-                  prev.map(t => 
+                setTasks(prev =>
+                  prev.map(t =>
                     t.id === taskId ? { ...t, status } : t
                   )
                 );
@@ -365,6 +315,56 @@ export default function TasksPage() {
       return col;
     });
   }, [setTasks, setSelectedTask, setShowTaskDetails])
+
+  const handleAddTask = async (taskData) => {
+    try {
+      let customId = undefined;
+      let project = null;
+      if (taskData.projectId) {
+        const allProjects = projects.length ? projects : await getProjects();
+        project = allProjects.find(p => (p._id || p.id) === taskData.projectId);
+        if (project && project.name) {
+          const acronym = getProjectAcronym(project.name);
+          // Use current tasks to determine next customId
+          const nextNum = getNextTaskNumberForProject(tasks, acronym);
+          customId = `${acronym} - ${nextNum}`;
+        }
+      }
+      const newTask = await createTask({ ...taskData, customId });
+      const allProjects = projects.length ? projects : await getProjects();
+      setTasks(prev => {
+        const mapped = mapTask(newTask, allProjects, prev);
+        return [...prev, mapped];
+      });
+      setShowAddTaskModal(false);
+      toast({ title: "Task created", description: `Task '${newTask.title}' was created.` });
+    } catch (err) {
+      toast({ title: "Error creating task", description: err.message, variant: "destructive" });
+    }
+  };
+
+  // Fetch all projects when modal opens
+  React.useEffect(() => {
+    if (showAddTaskModal) {
+      getProjects().then(setProjects);
+      setSelectedProjectId("");
+      setSelectedProject(null);
+      setTeam([]);
+    }
+  }, [showAddTaskModal]);
+
+  // Fetch selected project details (including team)
+  React.useEffect(() => {
+    if (selectedProjectId) {
+      getProjectById(selectedProjectId).then((proj) => {
+        setSelectedProject(proj);
+        setTeam(proj.team || []);
+      });
+    } else {
+      setSelectedProject(null);
+      setTeam([]);
+    }
+  }, [selectedProjectId]);
 
   if (error) {
     return (
@@ -392,24 +392,23 @@ export default function TasksPage() {
       <div className="flex flex-col min-h-screen w-full bg-background">
         {/* Header with Stats */}
         <div className="w-full border-b">
-          <div className="w-full px-6 py-6">
-            <div className="max-w-[2000px] mx-auto">
+          <div className="w-full px-4 sm:px-6 py-4 sm:py-6">
+            <div className="w-full">
               <div className="flex flex-col space-y-4">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-                    <p className="text-muted-foreground">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tasks</h1>
+                    <p className="text-muted-foreground text-sm sm:text-base">
                       Manage and track your laboratory tasks
                     </p>
                   </div>
-                  <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Task
+                  <Button className="w-full sm:w-auto" onClick={() => setShowAddTaskModal(true)}>
+                    <Plus className="mr-2 h-4 w-4" /> New Task
                   </Button>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {/* Stats Grid - Responsive */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                   <StatCard
                     title="Total"
                     value={taskStats.total}
@@ -447,29 +446,29 @@ export default function TasksPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 w-full px-6 py-6">
-          <div className="max-w-[2000px] mx-auto">
+        <div className="flex-1 w-full px-4 sm:px-6 py-4 sm:py-6">
+          <div className="w-full">
             {/* Toolbar */}
-            <div className="flex flex-col space-y-4 mb-6">
-              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-                <div className="flex-1"></div> {/* Spacer for left alignment */}
-                <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            <div className="flex flex-col space-y-4 mb-4 sm:mb-6">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center justify-between">
+                <div className="flex-1 hidden sm:block"></div> {/* Spacer for left alignment */}
+                <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-start sm:justify-end">
                   <div className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 shadow-sm overflow-hidden">
                     <button
                       onClick={() => setViewMode('table')}
-                      className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'table' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'} border-r border-gray-200 dark:border-gray-800`}
+                      className={`inline-flex items-center justify-center whitespace-nowrap px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'table' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'} border-r border-gray-200 dark:border-gray-800`}
                       style={{ borderTopLeftRadius: '9999px', borderBottomLeftRadius: '9999px' }}
                     >
-                      <List className="mr-2 h-4 w-4" />
-                      Table
+                      <List className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Table</span>
                     </button>
                     <button
                       onClick={() => setViewMode('grid')}
-                      className={`inline-flex items-center justify-center whitespace-nowrap px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'grid' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'}`}
+                      className={`inline-flex items-center justify-center whitespace-nowrap px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${viewMode === 'grid' ? 'bg-primary text-white shadow-md' : 'text-muted-foreground bg-transparent hover:bg-primary/10'}`}
                       style={{ borderTopRightRadius: '9999px', borderBottomRightRadius: '9999px' }}
                     >
-                      <Grid className="mr-2 h-4 w-4" />
-                      Grid
+                      <Grid className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="hidden xs:inline">Grid</span>
                     </button>
                   </div>
                   <Button
@@ -477,56 +476,56 @@ export default function TasksPage() {
                     size="sm"
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="h-10 ml-2 shadow-sm border border-gray-200 dark:border-gray-800"
+                    className="h-9 sm:h-10 px-2 sm:px-3 shadow-sm border border-gray-200 dark:border-gray-800"
                   >
                     <RefreshCw
-                      className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                      className={`mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 ${isRefreshing ? "animate-spin" : ""}`}
                     />
-                    Refresh
+                    <span className="hidden sm:inline">Refresh</span>
                   </Button>
                 </div>
               </div>
 
               {/* Bulk Actions */}
               {selectedTasks.length > 0 && (
-                <div className="flex items-center justify-between p-3 bg-accent/30 rounded-md border">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-accent/30 rounded-md border">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-medium">{selectedTasks.length} selected</span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setSelectedTasks([])}
-                      className="h-8"
+                      className="h-7 sm:h-8 px-2 text-xs sm:text-sm"
                     >
                       Clear
                     </Button>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8"
+                      className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm flex-1 sm:flex-none"
                       onClick={() => handleBulkStatusChange('in-progress')}
                     >
-                      <Loader2 className="mr-2 h-3.5 w-3.5" />
-                      Mark In Progress
+                      <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                      <span className="hidden sm:inline">Mark </span>In Progress
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8"
+                      className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm flex-1 sm:flex-none"
                       onClick={() => handleBulkStatusChange('completed')}
                     >
-                      <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-                      Mark Completed
+                      <CheckCircle2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                      <span className="hidden sm:inline">Mark </span>Completed
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      className="h-8"
+                      className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm"
                       onClick={handleBulkDelete}
                     >
-                      <Trash2 className="mr-2 h-3.5 w-3.5" />
+                      <Trash2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       Delete
                     </Button>
                   </div>
@@ -535,22 +534,24 @@ export default function TasksPage() {
             </div>
 
             {/* Content */}
-            <div className="w-full overflow-x-auto">
-              <div className="flex justify-between items-center">
-                <div className="text-sm text-muted-foreground">
+            <div className="w-full">
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   {filteredTasks.length} {filteredTasks.length === 1 ? "task" : "tasks"} found
                 </div>
               </div>
 
               {viewMode === 'table' ? (
-                <div className="cursor-pointer">
-                  <DataTable
-                    columns={tableColumns}
-                    data={filteredTasks}
-                    onRowSelectionChange={setSelectedTasks}
-                    selectedRows={selectedTasks}
-                    onRowClick={handleTaskClick}
-                  />
+                <div className="w-full overflow-hidden rounded-lg sm:rounded-2xl border shadow-lg bg-white dark:bg-gray-950">
+                  <div className="overflow-x-auto">
+                    <DataTable
+                      columns={tableColumns}
+                      data={filteredTasks}
+                      onRowSelectionChange={setSelectedTasks}
+                      selectedRows={selectedTasks}
+                      onRowClick={handleTaskClick}
+                    />
+                  </div>
                 </div>
               ) : (
                 <TaskGrid
@@ -564,7 +565,7 @@ export default function TasksPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Task Details Dialog */}
       {selectedTask && (
         <TooltipProvider>
@@ -586,6 +587,12 @@ export default function TasksPage() {
           />
         </TooltipProvider>
       )}
+
+      <AddTaskModalForTasks
+        open={showAddTaskModal}
+        onOpenChange={setShowAddTaskModal}
+        onAddTask={handleAddTask}
+      />
     </DashboardLayout>
   )
 }
@@ -600,13 +607,13 @@ function StatCard({ title, value, icon, variant = 'default' }) {
   }
 
   return (
-    <div className={`flex items-center p-4 rounded-lg border ${variantClasses[variant]}`}>
-      <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
+    <div className={`flex items-center p-3 sm:p-4 rounded-lg border ${variantClasses[variant]}`}>
+      <div className="flex-shrink-0 p-2 sm:p-3 rounded-full bg-background shadow-sm">
         {icon}
       </div>
-      <div className="ml-4">
-        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
+      <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
+        <p className="text-lg sm:text-2xl font-bold">{value}</p>
       </div>
     </div>
   )
@@ -634,4 +641,289 @@ function Trash2(props) {
       <line x1="14" x2="14" y1="11" y2="17" />
     </svg>
   )
+}
+
+// Custom AddTaskModal for tasks page (inline definition)
+function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
+  const [formData, setFormData] = React.useState({
+    title: "",
+    description: "",
+    assignee: "",
+    priority: "",
+    dueDate: null,
+    status: "todo",
+    labels: [],
+    attachments: []
+  });
+  const [focusedField, setFocusedField] = React.useState(null);
+  const [projects, setProjects] = React.useState([]);
+  const [selectedProjectId, setSelectedProjectId] = React.useState("");
+  const [team, setTeam] = React.useState([]);
+  const [nextTaskId, setNextTaskId] = React.useState("");
+  React.useEffect(() => {
+    if (open) {
+      setFormData({
+        title: "",
+        description: "",
+        assignee: "",
+        priority: "",
+        dueDate: null,
+        status: "todo",
+        labels: [],
+        attachments: []
+      });
+      setSelectedProjectId("");
+      setTeam([]);
+      getProjects().then(setProjects);
+    }
+  }, [open]);
+  React.useEffect(() => {
+    if (selectedProjectId) {
+      getProjectById(selectedProjectId).then((proj) => {
+        setTeam(proj.team || []);
+      });
+      // Fetch next task ID for preview
+      getNextTaskId(selectedProjectId).then((taskId) => {
+        setNextTaskId(taskId);
+      }).catch((error) => {
+        console.error('Error fetching next task ID:', error);
+        setNextTaskId('');
+      });
+    } else {
+      setTeam([]);
+      setNextTaskId('');
+    }
+  }, [selectedProjectId]);
+  const handleSubmit = () => {
+    if (!formData.title.trim() || !selectedProjectId) return;
+    let taskToSend = { ...formData, projectId: selectedProjectId };
+    if (formData.assignee && team.length) {
+      const member = team.find(m => m.id === formData.assignee);
+      if (member) {
+        taskToSend.assignee = member.name;
+      }
+    }
+    onAddTask(taskToSend);
+    onOpenChange(false);
+  };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && e.metaKey) {
+      handleSubmit();
+    }
+  };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col">
+        <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/50">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+          <div className="relative">
+            <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+              <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              Create New Task
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-600 mt-2 flex items-center gap-1">
+              <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">⌘</kbd>
+              <span>+</span>
+              <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">Enter</kbd>
+              <span className="ml-1">to save</span>
+            </DialogDescription>
+          </div>
+        </DialogHeader>
+        <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
+          {/* Project Selector */}
+          <div className="space-y-3">
+            <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Folder className="h-4 w-4 text-indigo-500" />
+              Project*
+            </Label>
+            <Select
+              value={selectedProjectId}
+              onValueChange={setSelectedProjectId}
+            >
+              <SelectTrigger id="task-project" className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200">
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+              <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                {projects.map((proj) => (
+                  <SelectItem key={proj.id || proj._id} value={proj.id || proj._id}>
+                    {proj.name || proj.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Task ID Preview */}
+          {selectedProjectId && nextTaskId && (
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                <Label className="text-sm font-medium text-indigo-700">Task ID Preview</Label>
+              </div>
+              <div className="font-mono text-lg font-semibold text-indigo-800 bg-white/70 px-3 py-2 rounded border border-indigo-200">
+                {nextTaskId}
+              </div>
+              <p className="text-xs text-indigo-600 mt-2">This ID will be automatically assigned to your task</p>
+            </div>
+          )}
+
+          {/* Title Input */}
+          <div className="space-y-3">
+            <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Target className="h-4 w-4 text-indigo-500" />
+              Title*
+            </Label>
+            <div className="relative">
+              <Input
+                id="task-name"
+                placeholder="What needs to be done?"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setFocusedField('title')}
+                onBlur={() => setFocusedField(null)}
+                className={cn(
+                  "h-11 text-base border-2 transition-all duration-200 bg-white/50",
+                  focusedField === 'title'
+                    ? "border-indigo-300 shadow-lg shadow-indigo-100"
+                    : "border-slate-200 hover:border-slate-300"
+                )}
+              />
+              {focusedField === 'title' && (
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-md blur-sm opacity-50"></div>
+              )}
+            </div>
+          </div>
+          {/* Description */}
+          <div className="space-y-3">
+            <Label htmlFor="task-description" className="text-sm font-medium text-slate-700">
+              Description
+            </Label>
+            <Textarea
+              id="task-description"
+              placeholder="Add more details about this task..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onFocus={() => setFocusedField('description')}
+              onBlur={() => setFocusedField(null)}
+              className={cn(
+                "min-h-[100px] resize-none border-2 transition-all duration-200 bg-white/50",
+                focusedField === 'description'
+                  ? "border-indigo-300 shadow-lg shadow-indigo-100"
+                  : "border-slate-200 hover:border-slate-300"
+              )}
+            />
+          </div>
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Assignee */}
+            <div className="space-y-3">
+              <Label htmlFor="task-assignee" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <User className="h-4 w-4 text-indigo-500" />
+                Assignee
+              </Label>
+              <Select
+                value={formData.assignee}
+                onValueChange={(value) => setFormData({ ...formData, assignee: value })}
+                disabled={!selectedProjectId || team.length === 0}
+              >
+                <SelectTrigger
+                  id="task-assignee"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                >
+                  <SelectValue placeholder={selectedProjectId ? (team.length ? "Select team member" : "No team members") : "Select project first"} />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                  {team.map((member, i) => (
+                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                          {member.name.charAt(0)}
+                        </div>
+                        {member.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Priority */}
+            <div className="space-y-3">
+              <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <Flag className="h-4 w-4 text-indigo-500" />
+                Priority
+              </Label>
+              <Select
+                value={formData.priority}
+                onValueChange={(value) => setFormData({ ...formData, priority: value })}
+              >
+                <SelectTrigger
+                  id="task-priority"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                >
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Status */}
+            <div className="space-y-3">
+              <Label htmlFor="task-status" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-indigo-500" />
+                Status
+              </Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger
+                  id="task-status"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                >
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                  <SelectItem value="todo">To Do</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {/* Due Date */}
+          <div className="space-y-3">
+            <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-indigo-500" />
+              Due Date
+            </Label>
+            <DatePicker
+              selectedDate={formData.dueDate}
+              onDateChange={(date) => setFormData({ ...formData, dueDate: date })}
+              placeholder="Pick a due date"
+              className="w-full h-11"
+              popoverClassName="min-w-[320px]"
+              disabled={false}
+              showClearButton={true}
+              showTodayButton={true}
+              enableYearNavigation={true}
+              mode="single"
+            />
+          </div>
+        </div>
+        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-slate-200/50 flex justify-end flex-shrink-0">
+          <Button onClick={handleSubmit} disabled={!formData.title.trim() || !selectedProjectId}>
+            Create Task
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

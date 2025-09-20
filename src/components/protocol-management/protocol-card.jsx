@@ -30,20 +30,23 @@ export function ProtocolCard({ protocol, onView, onEdit, onDuplicate, onArchive,
             <FlaskConical className="absolute right-4 bottom-4 w-20 h-20 text-primary/10 opacity-30 pointer-events-none select-none z-0" />
             <div className="flex items-center justify-between mb-3 z-10 relative">
                 <h3 className="font-extrabold text-xl truncate text-foreground/90 group-hover:text-primary transition-colors duration-200">
-                    {protocol.title}
+                    {protocol.name}
                 </h3>
                 <Badge className={`px-3 py-1 rounded-full border text-xs font-semibold shadow-sm ${badgeColor}`}>{protocol.status}</Badge>
             </div>
-            <div className="text-xs text-muted-foreground mb-2 font-mono tracking-tight z-10 relative">{protocol.id}</div>
+            <div className="text-xs text-muted-foreground mb-2 font-mono tracking-tight z-10 relative">{protocol._id}</div>
             <div className="mb-5 space-y-1 z-10 relative">
                 <div className="text-sm flex items-center gap-1">
                     <span className="font-medium text-foreground/80">Category:</span> {protocol.category}
                 </div>
                 <div className="text-sm flex items-center gap-1">
-                    <span className="font-medium text-foreground/80">Author:</span> {protocol.author}
+                    <span className="font-medium text-foreground/80">Version:</span> {protocol.version}
+                </div>
+                <div className="text-sm flex items-center gap-1">
+                    <span className="font-medium text-foreground/80">Created by:</span> {protocol.createdBy?.name || 'Unknown'}
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span>Updated:</span> {new Date(protocol.updatedAt || protocol.updated_at).toLocaleDateString()}
+                    <span>Updated:</span> {new Date(protocol.updatedAt || protocol.lastModified).toLocaleDateString()}
                 </div>
             </div>
             {/* Divider */}
@@ -71,14 +74,14 @@ export function ProtocolCard({ protocol, onView, onEdit, onDuplicate, onArchive,
                     <CopyPlus className="h-5 w-5" />
                 </button>
                 <button
-                    onClick={() => onArchive(protocol.id)}
+                    onClick={() => onArchive(protocol)}
                     className="p-2 rounded-full hover:bg-primary/10 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary/30"
                     title="Archive Protocol"
                 >
                     <ArchiveRestore className="h-5 w-5" />
                 </button>
                 <button
-                    onClick={() => onDelete(protocol.id)}
+                    onClick={() => onDelete(protocol._id)}
                     className="p-2 rounded-full hover:bg-red-100 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-200"
                     title="Delete Protocol"
                 >

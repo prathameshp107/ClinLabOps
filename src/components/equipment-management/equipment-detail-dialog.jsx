@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Calendar, 
-  Edit, 
-  Download, 
+import {
+  Calendar,
+  Edit,
+  Download,
   FileUp,
   Printer,
   QrCode,
@@ -28,6 +28,8 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { getEquipmentMaintenanceHistory } from "@/services/equipmentService"
+// Maintenance history will be fetched from API
 
 export function EquipmentDetailDialog({
   open,
@@ -37,6 +39,28 @@ export function EquipmentDetailDialog({
   onUpdateStatus
 }) {
   const [activeTab, setActiveTab] = useState("overview")
+  const [maintenanceHistory, setMaintenanceHistory] = useState([])
+  const [isLoadingMaintenance, setIsLoadingMaintenance] = useState(false)
+
+  // Fetch maintenance history when dialog opens
+  useEffect(() => {
+    if (open && equipment?.id) {
+      const fetchMaintenanceHistory = async () => {
+        try {
+          setIsLoadingMaintenance(true)
+          const history = await getEquipmentMaintenanceHistory(equipment.id)
+          setMaintenanceHistory(history || [])
+        } catch (error) {
+          console.error('Failed to fetch maintenance history:', error)
+          setMaintenanceHistory([])
+        } finally {
+          setIsLoadingMaintenance(false)
+        }
+      }
+
+      fetchMaintenanceHistory()
+    }
+  }, [open, equipment?.id])
 
   if (!equipment) return null
 
@@ -65,31 +89,15 @@ export function EquipmentDetailDialog({
     }
   }
 
-  // Mock maintenance history data
-  const maintenanceHistory = [
-    { 
-      date: new Date(new Date(equipment.lastMaintenanceDate).getTime() - 7776000000).toISOString(), // 90 days before last maintenance
-      type: "Preventive",
-      technician: "John Smith",
-      notes: "Regular calibration and cleaning performed. All systems functioning normally."
-    },
-    { 
-      date: equipment.lastMaintenanceDate,
-      type: "Corrective",
-      technician: "Sarah Johnson",
-      notes: "Replaced faulty sensor. Performed full system diagnostic. Equipment now functioning properly."
-    }
-  ];
-
   // Calculate days until next maintenance
   const calculateDaysUntilMaintenance = () => {
     if (!equipment.nextMaintenanceDate) return null;
-    
+
     const today = new Date();
     const nextMaintenance = new Date(equipment.nextMaintenanceDate);
     const diffTime = nextMaintenance - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays;
   };
 
@@ -204,23 +212,23 @@ export function EquipmentDetailDialog({
                           {daysUntilMaintenance !== null && (
                             <Badge className={cn(
                               daysUntilMaintenance <= 7 ? "bg-red-100 text-red-800 border-red-200" :
-                              daysUntilMaintenance <= 30 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                              "bg-green-100 text-green-800 border-green-200"
+                                daysUntilMaintenance <= 30 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+                                  "bg-green-100 text-green-800 border-green-200"
                             )}>
-                              {daysUntilMaintenance <= 0 
-                                ? "Overdue" 
+                              {daysUntilMaintenance <= 0
+                                ? "Overdue"
                                 : `${daysUntilMaintenance} days remaining`}
                             </Badge>
                           )}
                         </div>
-                        
+
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-sm text-muted-foreground">Maintenance frequency:</span>
                             <span className="text-sm font-medium ml-1">Every 90 days</span>
                           </div>
                         </div>
-                        
+
                         <div className="flex justify-between items-center">
                           <div>
                             <span className="text-sm text-muted-foreground">Maintenance provider:</span>
@@ -236,8 +244,8 @@ export function EquipmentDetailDialog({
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-2">Status Actions</h3>
                     <div className="bg-muted/30 rounded-lg p-4 grid grid-cols-2 gap-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "Available")}
                         disabled={equipment.status === "Available"}
@@ -245,8 +253,8 @@ export function EquipmentDetailDialog({
                         <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
                         Available
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "In Use")}
                         disabled={equipment.status === "In Use"}
@@ -254,8 +262,8 @@ export function EquipmentDetailDialog({
                         <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                         In Use
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "Under Maintenance")}
                         disabled={equipment.status === "Under Maintenance"}
@@ -263,8 +271,8 @@ export function EquipmentDetailDialog({
                         <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
                         Maintenance
                       </Button>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         className="w-full justify-start"
                         onClick={() => onUpdateStatus(equipment.id, "Out of Order")}
                         disabled={equipment.status === "Out of Order"}
@@ -296,79 +304,90 @@ export function EquipmentDetailDialog({
                     Log Maintenance
                   </Button>
                 </div>
-                
+
                 <div className="space-y-4">
-                  {maintenanceHistory.map((record, index) => (
-                    <div 
-                      key={index} 
-                      className="border border-border/40 rounded-lg overflow-hidden"
-                    >
-                      <div className="bg-muted/50 px-4 py-3 flex justify-between items-center border-b border-border/30">
-                        <div className="flex items-center">
-                          <div className={cn(
-                            "w-2 h-2 rounded-full mr-2",
-                            record.type === "Preventive" ? "bg-blue-500" : "bg-yellow-500"
-                          )}></div>
-                          <span className="font-medium">{record.type} Maintenance</span>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                          {formatDate(record.date)}
-                        </div>
-                      </div>
-                      <div className="p-4 space-y-3">
-                        <div className="flex items-start">
-                          <User className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-muted-foreground" />
-                          <div>
-                            <span className="text-sm text-muted-foreground">Technician:</span>
-                            <span className="text-sm font-medium ml-1">{record.technician}</span>
+                  {isLoadingMaintenance ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>Loading maintenance history...</p>
+                    </div>
+                  ) : maintenanceHistory.length > 0 ? (
+                    maintenanceHistory.map((record, index) => (
+                      <div
+                        key={index}
+                        className="border border-border/40 rounded-lg overflow-hidden"
+                      >
+                        <div className="bg-muted/50 px-4 py-3 flex justify-between items-center border-b border-border/30">
+                          <div className="flex items-center">
+                            <div className={cn(
+                              "w-2 h-2 rounded-full mr-2",
+                              record.type === "Preventive" ? "bg-blue-500" : "bg-yellow-500"
+                            )}></div>
+                            <span className="font-medium">{record.type} Maintenance</span>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                            {formatDate(record.date)}
                           </div>
                         </div>
-                        <div>
-                          <h4 className="text-sm font-medium mb-1">Notes:</h4>
-                          <p className="text-sm text-muted-foreground">{record.notes}</p>
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-start">
+                            <User className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-muted-foreground" />
+                            <div>
+                              <span className="text-sm text-muted-foreground">Technician:</span>
+                              <span className="text-sm font-medium ml-1">{record.technician}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium mb-1">Notes:</h4>
+                            <p className="text-sm text-muted-foreground">{record.notes}</p>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No maintenance history available.</p>
+                      <p className="text-sm">Maintenance records will appear here once added.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
               <div className="bg-muted/30 rounded-lg p-4">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Next scheduled maintenance:</span>
-                        <span className="text-sm font-medium ml-1">{formatDate(equipment.nextMaintenanceDate)}</span>
-                      </div>
-                      {daysUntilMaintenance !== null && (
-                        <Badge className={cn(
-                          daysUntilMaintenance <= 7 ? "bg-red-100 text-red-800 border-red-200" :
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Next scheduled maintenance:</span>
+                      <span className="text-sm font-medium ml-1">{formatDate(equipment.nextMaintenanceDate)}</span>
+                    </div>
+                    {daysUntilMaintenance !== null && (
+                      <Badge className={cn(
+                        daysUntilMaintenance <= 7 ? "bg-red-100 text-red-800 border-red-200" :
                           daysUntilMaintenance <= 30 ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
-                          "bg-green-100 text-green-800 border-green-200"
-                        )}>
-                          {daysUntilMaintenance <= 0 
-                            ? "Overdue" 
-                            : `${daysUntilMaintenance} days remaining`}
-                        </Badge>
-                      )}
+                            "bg-green-100 text-green-800 border-green-200"
+                      )}>
+                        {daysUntilMaintenance <= 0
+                          ? "Overdue"
+                          : `${daysUntilMaintenance} days remaining`}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Maintenance frequency:</span>
+                      <span className="text-sm font-medium ml-1">Every 90 days</span>
                     </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Maintenance frequency:</span>
-                        <span className="text-sm font-medium ml-1">Every 90 days</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Maintenance provider:</span>
-                        <span className="text-sm font-medium ml-1">{equipment.manufacturer} Technical Services</span>
-                      </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Maintenance provider:</span>
+                      <span className="text-sm font-medium ml-1">{equipment.manufacturer} Technical Services</span>
                     </div>
                   </div>
                 </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="documents" className="space-y-6">
@@ -380,12 +399,12 @@ export function EquipmentDetailDialog({
                     Upload File
                   </Button>
                 </div>
-                
+
                 {equipment.files && equipment.files.length > 0 ? (
                   <div className="space-y-2">
                     {equipment.files.map((file, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="flex items-center justify-between bg-muted/50 rounded-md p-3 border border-border/30"
                       >
                         <div className="flex items-center">

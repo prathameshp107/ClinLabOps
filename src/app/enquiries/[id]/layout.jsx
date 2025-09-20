@@ -1,19 +1,8 @@
-// Define the mock data in the layout file
-const mockEnquiries = [
-  {
-    id: "e1",
-    // Add other properties as needed
-  },
-  {
-    id: "e2",
-    // Add other properties as needed
-  }
-];
-
+// Generate static params for enquiry pages
 export async function generateStaticParams() {
-  return mockEnquiries.map((enquiry) => ({
-    id: enquiry.id,
-  }));
+  // In production, enquiries will be fetched from API
+  // Return empty array to allow dynamic generation
+  return [];
 }
 
 export default function EnquiryLayout({ children }) {

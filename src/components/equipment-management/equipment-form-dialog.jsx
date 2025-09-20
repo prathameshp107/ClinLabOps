@@ -143,10 +143,12 @@ export function EquipmentFormDialog({
 
   // Handle form submission
   const handleSubmit = (data) => {
-    // Add files to the data
+    // Add files and ID (for edit mode) to the data
     const formattedEquipment = {
       ...data,
       files,
+      // Include the equipment ID for edit mode
+      ...(mode === "edit" && equipment ? { id: equipment.id || equipment._id } : {})
     };
 
     // Submit the equipment
@@ -177,8 +179,8 @@ export function EquipmentFormDialog({
             {mode === "create" ? "Add New Equipment" : "Edit Equipment"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "create" 
-              ? "Add a new piece of equipment to the laboratory inventory." 
+            {mode === "create"
+              ? "Add a new piece of equipment to the laboratory inventory."
               : "Update the details of this equipment."}
           </DialogDescription>
         </DialogHeader>
@@ -186,9 +188,9 @@ export function EquipmentFormDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="px-6 py-4">
-              <Tabs 
-                defaultValue="basic" 
-                value={activeTab} 
+              <Tabs
+                defaultValue="basic"
+                value={activeTab}
                 onValueChange={setActiveTab}
                 className="w-full"
               >
@@ -220,8 +222,8 @@ export function EquipmentFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Equipment Type</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -294,8 +296,8 @@ export function EquipmentFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Location</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -453,8 +455,8 @@ export function EquipmentFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Status</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -499,10 +501,10 @@ export function EquipmentFormDialog({
                       <FormItem>
                         <FormLabel>Notes</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Enter additional notes or details" 
+                          <Textarea
+                            placeholder="Enter additional notes or details"
                             className="min-h-[100px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -539,8 +541,8 @@ export function EquipmentFormDialog({
                       <h4 className="text-sm font-medium mb-2">Uploaded Files</h4>
                       <div className="space-y-2">
                         {files.map((file, index) => (
-                          <div 
-                            key={index} 
+                          <div
+                            key={index}
                             className="flex items-center justify-between bg-muted/50 rounded-md p-2 text-sm"
                           >
                             <div className="flex items-center">

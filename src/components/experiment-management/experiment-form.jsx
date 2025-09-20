@@ -41,8 +41,12 @@ const experimentFormSchema = z.object({
   }),
   status: z.enum(["planning", "in-progress", "completed", "archived"]),
   priority: z.enum(["low", "medium", "high"]),
-  startDate: z.date().optional(),
-  endDate: z.date().optional(),
+  startDate: z.date({
+    required_error: "Start date is required",
+  }),
+  endDate: z.date({
+    required_error: "End date is required",
+  }),
   teamMembers: z.string().optional(),
   equipment: z.string().optional(),
   budget: z.string().optional(),
@@ -65,8 +69,8 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         protocol: experiment.protocol,
         status: experiment.status,
         priority: experiment.priority,
-        startDate: experiment.startDate ? new Date(experiment.startDate) : undefined,
-        endDate: experiment.endDate ? new Date(experiment.endDate) : undefined,
+        startDate: experiment.startDate ? new Date(experiment.startDate) : new Date(),
+        endDate: experiment.endDate ? new Date(experiment.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
         teamMembers: experiment.teamMembers?.join(", ") || "",
         equipment: experiment.equipment || "",
         budget: experiment.budget || "",
@@ -79,8 +83,8 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         protocol: "",
         status: "planning",
         priority: "medium",
-        startDate: undefined,
-        endDate: undefined,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
         teamMembers: "",
         equipment: "",
         budget: "",
@@ -99,6 +103,9 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
       tags: data.tags
         ? data.tags.split(",").map(tag => tag.trim())
         : [],
+      // Convert dates to ISO strings
+      startDate: data.startDate.toISOString(),
+      endDate: data.endDate.toISOString(),
     }
 
     onSubmit(processedData)

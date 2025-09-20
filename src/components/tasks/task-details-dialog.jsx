@@ -134,6 +134,9 @@ import UserAvatar from "@/components/tasks/user-avatar"
 import { TaskSubtasks } from "./task-subtasks"
 import { TaskComments } from "./task-comments"
 import { TaskFiles } from "./task-files"
+import { statusOptions, priorityOptions, dialogTaskTemplates } from "@/constants"
+import { getUserById } from '@/services/userService'
+import { getTaskComments } from '@/services/taskService'
 
 // Helper function to format date
 const formatDate = (dateString) => {
@@ -169,103 +172,6 @@ const isPastDue = (dateString) => {
   return dueDate < now;
 };
 
-// Enhanced status and priority options with icons and colors
-const statusOptions = [
-  {
-    value: 'backlog',
-    label: 'Backlog',
-    icon: CircleDashed,
-    color: 'text-muted-foreground bg-muted hover:bg-muted/80',
-    bgColor: 'bg-muted',
-    textColor: 'text-muted-foreground',
-    borderColor: 'border-muted-foreground/20'
-  },
-  {
-    value: 'todo',
-    label: 'To Do',
-    icon: Circle,
-    color: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-700',
-    borderColor: 'border-blue-200'
-  },
-  {
-    value: 'in_progress',
-    label: 'In Progress',
-    icon: Clock,
-    color: 'text-amber-600 bg-amber-50 hover:bg-amber-100',
-    bgColor: 'bg-amber-50',
-    textColor: 'text-amber-700',
-    borderColor: 'border-amber-200'
-  },
-  {
-    value: 'in_review',
-    label: 'In Review',
-    icon: Eye,
-    color: 'text-purple-600 bg-purple-50 hover:bg-purple-100',
-    bgColor: 'bg-purple-50',
-    textColor: 'text-purple-700',
-    borderColor: 'border-purple-200'
-  },
-  {
-    value: 'done',
-    label: 'Done',
-    icon: CheckCircle,
-    color: 'text-green-600 bg-green-50 hover:bg-green-100',
-    bgColor: 'bg-green-50',
-    textColor: 'text-green-700',
-    borderColor: 'border-green-200'
-  },
-];
-
-const priorityOptions = [
-  {
-    value: 'none',
-    label: 'None',
-    icon: CircleDashed,
-    color: 'text-muted-foreground bg-muted hover:bg-muted/80',
-    bgColor: 'bg-muted',
-    textColor: 'text-muted-foreground',
-    borderColor: 'border-muted-foreground/20'
-  },
-  {
-    value: 'low',
-    label: 'Low',
-    icon: ArrowDown,
-    color: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
-    bgColor: 'bg-blue-50',
-    textColor: 'text-blue-700',
-    borderColor: 'border-blue-200'
-  },
-  {
-    value: 'medium',
-    label: 'Medium',
-    icon: ArrowRight,
-    color: 'text-amber-600 bg-amber-50 hover:bg-amber-100',
-    bgColor: 'bg-amber-50',
-    textColor: 'text-amber-700',
-    borderColor: 'border-amber-200'
-  },
-  {
-    value: 'high',
-    label: 'High',
-    icon: ArrowUp,
-    color: 'text-orange-600 bg-orange-50 hover:bg-orange-100',
-    bgColor: 'bg-orange-50',
-    textColor: 'text-orange-700',
-    borderColor: 'border-orange-200'
-  },
-  {
-    value: 'urgent',
-    label: 'Urgent',
-    icon: AlertTriangle,
-    color: 'text-red-600 bg-red-50 hover:bg-red-100',
-    bgColor: 'bg-red-50',
-    textColor: 'text-red-700',
-    borderColor: 'border-red-200'
-  },
-];
-
 // Format time for display (HH:MM:SS)
 const formatTime = (seconds) => {
   const hours = Math.floor(seconds / 3600);
@@ -278,7 +184,7 @@ const formatTime = (seconds) => {
   ].join(':');
 };
 
-export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = [], experiments = [] }) => {
+export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = [], experiments = [], currentUserId }) => {
   const { toast } = useToast();
   // Refs
   const fileInputRef = useRef(null);
@@ -326,7 +232,8 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const [isLoading, setIsLoading] = useState(false);
 
   // Activity/comment state
-  const [comments, setComments] = useState(task?.comments || []);
+  const [comments, setComments] = useState([]);
+  const [allUsers, setAllUsers] = useState(users);
 
   // Mention state for comment input
   const [mentionQuery, setMentionQuery] = useState("");
@@ -959,8 +866,6 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
     }, 0);
   };
 
-
-
   // Check for unsaved changes
   const hasUnsavedChanges = task && (
     editedTitle !== task.title ||
@@ -1046,6 +951,24 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const currentStatus = statusOptions.find(s => s.value === selectedStatus) || statusOptions[0];
   const currentPriority = priorityOptions.find(p => p.value === selectedPriority) || priorityOptions[1];
 
+  // Fetch comments and ensure all comment authors are in users
+  useEffect(() => {
+    async function fetchCommentsAndAuthors() {
+      if (!task?.id) return;
+      const fetchedComments = await getTaskComments(task.id);
+      setComments(fetchedComments);
+      // Collect all unique author IDs from comments
+      const authorIds = Array.from(new Set(fetchedComments.map(c => c.author)));
+      // Find missing author IDs
+      const missingIds = authorIds.filter(id => !users.some(u => u.id === id));
+      // Fetch missing users
+      const fetchedUsers = await Promise.all(missingIds.map(id => getUserById(id)));
+      // Merge users
+      setAllUsers([...users, ...fetchedUsers.filter(Boolean)]);
+    }
+    fetchCommentsAndAuthors();
+  }, [task?.id, users]);
+
   if (!task) return null;
 
   // Handle title edit
@@ -1063,8 +986,6 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
     }
     setIsEditingDescription(!isEditingDescription);
   };
-
-  // Using the formatTime function from the top of the file
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1212,52 +1133,7 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
   const dueDateInfo = getDueDateInfo();
 
   // Task templates for quick setup
-  const taskTemplates = [
-    {
-      id: 'bug-report',
-      name: 'Bug Report',
-      icon: <Bug className="h-4 w-4" />,
-      template: {
-        title: 'Bug: [Brief description]',
-        description: '## Bug Description\n\n### Steps to Reproduce\n1. \n2. \n3. \n\n### Expected Behavior\n\n### Actual Behavior\n\n### Environment\n- OS: \n- Browser: \n- Version: \n\n### Additional Information\n',
-        type: 'bug',
-        priority: 'high'
-      }
-    },
-    {
-      id: 'feature-request',
-      name: 'Feature Request',
-      icon: <Sparkles className="h-4 w-4" />,
-      template: {
-        title: 'Feature: [Feature name]',
-        description: '## Feature Description\n\n### Problem Statement\n\n### Proposed Solution\n\n### Benefits\n\n### Implementation Notes\n\n### Acceptance Criteria\n- [ ] \n- [ ] \n- [ ] ',
-        type: 'feature',
-        priority: 'medium'
-      }
-    },
-    {
-      id: 'task-template',
-      name: 'General Task',
-      icon: <FileText className="h-4 w-4" />,
-      template: {
-        title: 'Task: [Task description]',
-        description: '## Task Overview\n\n### Objectives\n\n### Requirements\n\n### Deliverables\n\n### Timeline\n\n### Notes\n',
-        type: 'task',
-        priority: 'medium'
-      }
-    },
-    {
-      id: 'improvement',
-      name: 'Improvement',
-      icon: <Zap className="h-4 w-4" />,
-      template: {
-        title: 'Improve: [Area to improve]',
-        description: '## Current State\n\n### Issues\n\n### Proposed Improvements\n\n### Benefits\n\n### Implementation Plan\n',
-        type: 'improvement',
-        priority: 'low'
-      }
-    }
-  ];
+  const taskTemplates = dialogTaskTemplates;
 
   // Apply template
   const applyTemplate = (template) => {
@@ -1919,8 +1795,9 @@ export const TaskDetailsDialog = ({ open, onOpenChange, task, onAction, users = 
                   <TaskComments
                     taskId={task.id}
                     initialComments={comments}
-                    currentUser={currentUser}
-                    onCommentsChange={setComments}
+                    users={allUsers}
+                    currentUserId={currentUserId}
+                    onAddComment={setComments}
                     maxHeight={320}
                     className="rounded-lg border bg-background"
                   />

@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+import { motion } from "framer-motion"
 import { BarChart3, Info, TrendingUp, AlertTriangle, Clock, CheckCircle2, Zap } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell, Tooltip } from "recharts"
@@ -11,56 +13,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-
-const priorityData = [
-  { 
-    name: "Lowest", 
-    tasks: 50, 
-    color: "#10b981", 
-    gradient: "from-emerald-400 to-emerald-600",
-    icon: CheckCircle2,
-    percentage: 13.7,
-    trend: "+5%"
-  },
-  { 
-    name: "Low", 
-    tasks: 75, 
-    color: "#3b82f6", 
-    gradient: "from-blue-400 to-blue-600",
-    icon: Clock,
-    percentage: 20.5,
-    trend: "+2%"
-  },
-  { 
-    name: "Medium", 
-    tasks: 120, 
-    color: "#f59e0b", 
-    gradient: "from-amber-400 to-amber-600",
-    icon: AlertTriangle,
-    percentage: 32.9,
-    trend: "-3%"
-  },
-  { 
-    name: "High", 
-    tasks: 90, 
-    color: "#ef4444", 
-    gradient: "from-red-400 to-red-600",
-    icon: TrendingUp,
-    percentage: 24.7,
-    trend: "+8%"
-  },
-  { 
-    name: "Highest", 
-    tasks: 30, 
-    color: "#8b5cf6", 
-    gradient: "from-purple-400 to-purple-600",
-    icon: Zap,
-    percentage: 8.2,
-    trend: "+12%"
-  },
-]
-
-const totalTasks = priorityData.reduce((sum, item) => sum + item.tasks, 0)
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length > 0) {
@@ -97,7 +49,7 @@ const CustomTooltip = ({ active, payload, label }) => {
           </div>
           <div className="text-center">
             <div className="text-gray-500 dark:text-gray-400 text-xs">Total Project</div>
-            <div className="font-bold text-gray-900 dark:text-gray-100 text-lg">{totalTasks}</div>
+            <div className="font-bold text-gray-900 dark:text-gray-100 text-lg">{data.totalTasks}</div>
           </div>
         </div>
       </div>
@@ -106,10 +58,105 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export function PriorityBreakdown() {
-  const highPriorityCount = priorityData.filter(p => p.name === 'High' || p.name === 'Highest')
-    .reduce((sum, item) => sum + item.tasks, 0);
-  
+export function PriorityBreakdown({ project }) {
+  // Calculate priority breakdown from project tasks
+  const calculatePriorityBreakdown = () => {
+    if (!project?.tasks || project.tasks.length === 0) return [];
+
+    const priorityCounts = {
+      high: 0,
+      medium: 0,
+      low: 0
+    };
+
+    // Count tasks by priority
+    project.tasks.forEach(task => {
+      const priority = task.priority?.toLowerCase() || 'medium';
+      if (priorityCounts.hasOwnProperty(priority)) {
+        priorityCounts[priority]++;
+      } else {
+        priorityCounts.medium++; // Default to medium if priority is unknown
+      }
+    });
+
+    const totalTasks = project.tasks.length;
+
+    return [
+      {
+        name: 'High',
+        tasks: priorityCounts.high,
+        percentage: totalTasks > 0 ? Math.round((priorityCounts.high / totalTasks) * 100) : 0,
+        color: '#ef4444',
+        gradient: 'from-red-500 to-red-600',
+        icon: AlertTriangle,
+        trend: priorityCounts.high > 0 ? '+2 this week' : 'No tasks',
+        totalTasks
+      },
+      {
+        name: 'Medium',
+        tasks: priorityCounts.medium,
+        percentage: totalTasks > 0 ? Math.round((priorityCounts.medium / totalTasks) * 100) : 0,
+        color: '#f59e0b',
+        gradient: 'from-amber-500 to-amber-600',
+        icon: Clock,
+        trend: priorityCounts.medium > 0 ? '+5 this week' : 'No tasks',
+        totalTasks
+      },
+      {
+        name: 'Low',
+        tasks: priorityCounts.low,
+        percentage: totalTasks > 0 ? Math.round((priorityCounts.low / totalTasks) * 100) : 0,
+        color: '#10b981',
+        gradient: 'from-green-500 to-green-600',
+        icon: CheckCircle2,
+        trend: priorityCounts.low > 0 ? '+3 this week' : 'No tasks',
+        totalTasks
+      }
+    ];
+  };
+
+  const priorityData = calculatePriorityBreakdown();
+  const totalTasks = priorityData.reduce((sum, item) => sum + item.tasks, 0);
+  const highPriorityCount = priorityData.find(p => p.name === 'High')?.tasks || 0;
+
+  // Show message when no tasks are available
+  if (!project?.tasks || project.tasks.length === 0) {
+    return (
+      <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-full blur-3xl" />
+        
+        <CardHeader className="relative px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/10 backdrop-blur-sm">
+              <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text">
+                Priority Breakdown
+              </CardTitle>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                No tasks available for priority analysis
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="relative p-6">
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <BarChart3 className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Tasks Available</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md">
+              This project doesn't have any tasks yet. Add tasks with different priorities to see the priority breakdown analysis.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="relative overflow-hidden bg-gradient-to-br from-white via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 border-0 shadow-xl hover:shadow-2xl transition-all duration-500">
       {/* Background Pattern */}
@@ -160,11 +207,11 @@ export function PriorityBreakdown() {
           </div>
           <div className="flex-1 p-3 rounded-lg bg-gradient-to-r from-amber-50 to-amber-50/50 dark:from-amber-950/20 dark:to-amber-950/10 border border-amber-200/50 dark:border-amber-800/30">
             <div className="text-xs text-amber-600 dark:text-amber-400 font-medium">Medium</div>
-            <div className="text-lg font-bold text-amber-700 dark:text-amber-300">120</div>
+            <div className="text-lg font-bold text-amber-700 dark:text-amber-300">{priorityData.find(p => p.name === 'Medium')?.tasks || 0}</div>
           </div>
           <div className="flex-1 p-3 rounded-lg bg-gradient-to-r from-green-50 to-green-50/50 dark:from-green-950/20 dark:to-green-950/10 border border-green-200/50 dark:border-green-800/30">
             <div className="text-xs text-green-600 dark:text-green-400 font-medium">Low</div>
-            <div className="text-lg font-bold text-green-700 dark:text-green-300">125</div>
+            <div className="text-lg font-bold text-green-700 dark:text-green-300">{priorityData.find(p => p.name === 'Low')?.tasks || 0}</div>
           </div>
         </div>
       </CardHeader>

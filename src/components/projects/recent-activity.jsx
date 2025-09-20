@@ -5,6 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
+import { motion } from "framer-motion"
+import { TrendingUp, TrendingDown } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+// Activities and team data will be passed as props or fetched from API
 
 const ActivityIcon = ({ type }) => {
   const getIconConfig = (type) => {
@@ -104,65 +108,8 @@ const ActivityBadge = ({ type }) => {
 export function RecentActivity({ activities = [], team = [] }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  // Sample data if none provided
-  const defaultActivities = [
-    {
-      id: 1,
-      user: "Sarah Chen",
-      userId: "sarah",
-      type: "task_completed",
-      task: "API Integration",
-      time: "2 minutes ago",
-      priority: "high"
-    },
-    {
-      id: 2,
-      user: "Alex Rivera",
-      userId: "alex",
-      type: "comment_added",
-      task: "User Dashboard",
-      comment: "Looking great! Just need to adjust the spacing on mobile.",
-      time: "15 minutes ago",
-      priority: "medium"
-    },
-    {
-      id: 3,
-      user: "Maya Patel",
-      userId: "maya",
-      type: "document_uploaded",
-      document: "Design System v2.0.pdf",
-      time: "1 hour ago",
-      priority: "low"
-    },
-    {
-      id: 4,
-      user: "James Wilson",
-      userId: "james",
-      type: "member_joined",
-      time: "2 hours ago",
-      priority: "medium"
-    },
-    {
-      id: 5,
-      user: "Lisa Zhang",
-      userId: "lisa",
-      type: "task_created",
-      task: "Performance Optimization",
-      time: "3 hours ago",
-      priority: "high"
-    }
-  ];
-
-  const defaultTeam = [
-    { id: "sarah", name: "Sarah Chen", avatar: null },
-    { id: "alex", name: "Alex Rivera", avatar: null },
-    { id: "maya", name: "Maya Patel", avatar: null },
-    { id: "james", name: "James Wilson", avatar: null },
-    { id: "lisa", name: "Lisa Zhang", avatar: null }
-  ];
-
-  const activityData = activities.length > 0 ? activities : defaultActivities;
-  const teamData = team.length > 0 ? team : defaultTeam;
+  const activityData = activities || [];
+  const teamData = team || [];
 
   const getTimeColor = (time) => {
     if (time.includes('minute')) return 'text-emerald-600 bg-emerald-50';

@@ -30,49 +30,51 @@ export function DataTableToolbar({ table }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 mb-2 shadow-sm">
-        <div className="flex flex-1 items-center space-x-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-lg sm:rounded-xl px-3 sm:px-4 py-3 mb-2 shadow-sm">
+        <div className="flex flex-col sm:flex-row flex-1 gap-2 sm:gap-3 sm:items-center">
           <Input
             placeholder="Search tasks..."
             value={(table.getColumn("title")?.getFilterValue() ?? "")}
             onChange={(event) =>
               table.getColumn("title")?.setFilterValue(event.target.value)
             }
-            className="h-10 w-[200px] lg:w-[300px]"
+            className="h-9 sm:h-10 w-full sm:w-[180px] lg:w-[300px] text-sm"
           />
-          <Button
-            variant={showFilters ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-            className={
-              "h-10 border-dashed transition-colors" +
-              (showFilters ? " bg-primary/10 text-primary border-primary" : "")
-            }
-          >
-            <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Filters
-          </Button>
-          {isFiltered && (
+          <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
-              onClick={() => {
-                table.resetColumnFilters()
-                setShowFilters(false)
-              }}
-              className="h-10 px-3"
+              variant={showFilters ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={
+                "h-9 sm:h-10 px-3 text-xs sm:text-sm border-dashed transition-colors flex-1 sm:flex-none" +
+                (showFilters ? " bg-primary/10 text-primary border-primary" : "")
+              }
             >
-              Reset
-              <Cross2Icon className="ml-2 h-4 w-4" />
+              <SlidersHorizontal className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              Filters
             </Button>
-          )}
+            {isFiltered && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  table.resetColumnFilters()
+                  setShowFilters(false)
+                }}
+                className="h-9 sm:h-10 px-2 sm:px-3 text-xs sm:text-sm"
+              >
+                Reset
+                <Cross2Icon className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-end">
           <DataTableViewOptions table={table} />
         </div>
       </div>
 
       {showFilters && (
-        <div className="flex flex-col md:flex-row gap-4 rounded-xl border bg-background/70 p-4 shadow-lg">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 rounded-lg sm:rounded-xl border bg-background/70 p-3 sm:p-4 shadow-lg">
           {/* Status Filter */}
           {table.getColumn("status") && (
             <DataTableFacetedFilter

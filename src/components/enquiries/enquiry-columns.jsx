@@ -111,11 +111,26 @@ export function enquiryColumns(onEnquiryAction) {
         {
             accessorKey: "id",
             header: "Enquiry ID",
-            cell: ({ row }) => (
-                <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
-                    {row.original.id}
-                </span>
-            ),
+            cell: ({ row }) => {
+                const enquiry = row.original;
+                const id = enquiry.id || enquiry._id;
+                let displayId = 'N/A';
+
+                if (id) {
+                    if (typeof id === 'string' && id.length > 8) {
+                        // If it's a custom ID, show it as is, otherwise show last 8 chars
+                        displayId = id.match(/^[A-Z]{2}\d{6}$/) ? id : id.slice(-8).toUpperCase();
+                    } else {
+                        displayId = id.toString();
+                    }
+                }
+
+                return (
+                    <span className="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded">
+                        {displayId}
+                    </span>
+                );
+            },
         },
         {
             accessorKey: "customerName",
@@ -249,12 +264,17 @@ export function enquiryColumns(onEnquiryAction) {
                 return (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Open menu</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuItem onClick={() => onEnquiryAction("view", enquiry)} className="gap-2">
                                 <Eye className="h-4 w-4" />
                                 View Details

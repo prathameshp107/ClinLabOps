@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import {
   FileText,
@@ -16,23 +16,36 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
+import { getTaskAttachments, addTaskAttachment, removeTaskAttachment } from "@/services/taskService";
 
 export function TaskFiles({ task }) {
-  const [files, setFiles] = useState(task.files || []);
+  const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  const onDrop = (acceptedFiles) => {
-    // In a real app, you would upload these files to the backend
-    const newFiles = acceptedFiles.map(file => ({
-      id: `f${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: file.name,
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-      uploadedAt: new Date().toISOString(),
-      uploadedBy: "Current User" // In a real app, this would be the current user
-    }));
+  // Guard clause for when task is undefined
+  if (!task) {
+    return (
+      <div className="flex items-center justify-center h-32 text-muted-foreground">
+        <p>No task selected</p>
+      </div>
+    );
+  }
 
-    setFiles([...files, ...newFiles]);
+  useEffect(() => {
+    if (!task?.id) return;
+    getTaskAttachments(task.id)
+      .then(setFiles)
+      .catch(() => setFiles([]));
+  }, [task?.id]);
+
+  const onDrop = (acceptedFiles) => {
+    acceptedFiles.forEach(async (file) => {
+      try {
+        const uploaded = await addTaskAttachment(task?.id, file, "Current User");
+        setFiles(prev => [...prev, uploaded]);
+      } catch { }
+    });
     setIsDragging(false);
   };
 
@@ -42,9 +55,11 @@ export function TaskFiles({ task }) {
     onDragLeave: () => setIsDragging(false)
   });
 
-  const handleDeleteFile = (id) => {
-    // In a real app, you would delete the file from the backend
-    setFiles(files.filter(file => file.id !== id));
+  const handleDeleteFile = async (id) => {
+    try {
+      await removeTaskAttachment(task?.id, id);
+      setFiles(files.filter(file => file.id !== id));
+    } catch { }
   };
 
   const getFileIcon = (fileName) => {

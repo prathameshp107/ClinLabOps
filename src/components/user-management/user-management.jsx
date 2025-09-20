@@ -29,106 +29,8 @@ import { UserActivityLogs } from "./user-activity-logs"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import { toast } from "@/components/ui/use-toast"
-
-// Sample user data
-const initialUsers = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    email: "sarah.johnson@labtasker.com",
-    role: "Admin",
-    department: "Research & Development",
-    lastLogin: "2025-03-22T14:25:33",
-    status: "Active",
-    twoFactorEnabled: true,
-    phone: "+1 555-123-0001",
-    isPowerUser: true,
-  },
-  {
-    id: 2,
-    name: "Mark Williams",
-    email: "mark.williams@labtasker.com",
-    role: "Scientist",
-    department: "Biochemistry",
-    lastLogin: "2025-03-21T09:12:45",
-    status: "Active",
-    twoFactorEnabled: false,
-    phone: "+1 555-123-0002",
-    isPowerUser: false,
-  },
-  {
-    id: 3,
-    name: "Dr. Emily Chen",
-    email: "emily.chen@labtasker.com",
-    role: "Reviewer",
-    department: "Quality Control",
-    lastLogin: "2025-03-20T16:30:22",
-    status: "Active",
-    twoFactorEnabled: true,
-    phone: "+1 555-123-0003",
-    isPowerUser: false,
-  },
-  {
-    id: 4,
-    name: "James Rodriguez",
-    email: "james.rodriguez@labtasker.com",
-    role: "Technician",
-    department: "Laboratory Operations",
-    lastLogin: "2025-03-18T11:45:10",
-    status: "Suspended",
-    twoFactorEnabled: false,
-    phone: "+1 555-123-0004",
-    isPowerUser: false,
-  },
-  {
-    id: 5,
-    name: "Olivia Taylor",
-    email: "olivia.taylor@labtasker.com",
-    role: "Scientist",
-    department: "Microbiology",
-    lastLogin: null,
-    status: "Invited",
-    twoFactorEnabled: false,
-    phone: "",
-    isPowerUser: false,
-  },
-  {
-    id: 6,
-    name: "Robert Kim",
-    email: "robert.kim@labtasker.com",
-    role: "Technician",
-    department: "Equipment Maintenance",
-    lastLogin: "2025-02-15T10:22:37",
-    status: "Locked",
-    twoFactorEnabled: true,
-    phone: "+1 555-123-0006",
-    isPowerUser: true,
-  },
-  {
-    id: 7,
-    name: "Lisa Anderson",
-    email: "lisa.anderson@labtasker.com",
-    role: "Scientist",
-    department: "Molecular Biology",
-    lastLogin: null,
-    status: "Pending",
-    twoFactorEnabled: false,
-    phone: "+1 555-123-0007",
-    isPowerUser: false,
-  },
-  {
-    id: 8,
-    name: "David Wilson",
-    email: "david.wilson@labtasker.com",
-    role: "Technician",
-    department: "Analytical Chemistry",
-    lastLogin: "2025-01-10T14:30:00",
-    status: "Inactive",
-    twoFactorEnabled: false,
-    phone: "+1 555-123-0008",
-    isPowerUser: false,
-  }
-]
+import { getUsers } from "@/services/userService"
+// Users will be fetched from API
 
 // Helper functions for status badges (duplicated from user-columns.jsx for StatusLegend)
 function getStatusBadgeVariant(status) {
@@ -187,15 +89,24 @@ export function UserManagement() {
   const [showDeleteUserDialog, setShowDeleteUserDialog] = useState(false)
 
   // State for users
-  const [users, setUsers] = useState(initialUsers);
+  const [users, setUsers] = useState([]);
 
-  // Simulate loading state
+  // Fetch users from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    const fetchUsers = async () => {
+      try {
+        setIsLoading(true);
+        const usersData = await getUsers();
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    fetchUsers();
   }, []);
 
   // Count active filters
@@ -242,18 +153,20 @@ export function UserManagement() {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase()
+        const userRole = Array.isArray(user.roles) ? user.roles[0] : user.role; // Handle both formats
         if (
           !user.name.toLowerCase().includes(query) &&
           !user.email.toLowerCase().includes(query) &&
-          !user.role.toLowerCase().includes(query) &&
+          !userRole?.toLowerCase().includes(query) &&
           !user.department?.toLowerCase().includes(query)
         ) {
           return false
         }
       }
 
-      // Role filter
-      if (!activeFilters.role[user.role]) {
+      // Role filter - handle both array and string formats
+      const userRole = Array.isArray(user.roles) ? user.roles[0] : user.role;
+      if (!activeFilters.role[userRole]) {
         return false
       }
 
@@ -279,19 +192,56 @@ export function UserManagement() {
     })
   }, [searchQuery, activeFilters, users])
 
-  // Add user handler: ensures unique numeric ID
-  const handleAddUser = (userData) => {
-    // Find the lowest unused positive integer
-    const usedIds = new Set(users.map(u => u.id));
-    let newId = 1;
-    while (usedIds.has(newId)) newId++;
-    const newUser = {
-      ...userData,
-      id: newId,
-      twoFactorEnabled: !!userData.enable2FA,
-      lastLogin: null,
-    };
-    setUsers(prev => [...prev, newUser]);
+  // Add user handler: refetch users from API and add to state
+  const handleAddUser = async (userData) => {
+    // User is already created via API in AddUserDialog, just refresh the list
+    await refreshUsers();
+  };
+
+  // Refresh users from API
+  const refreshUsers = async () => {
+    try {
+      setIsLoading(true);
+      const usersData = await getUsers();
+      setUsers(Array.isArray(usersData) ? usersData : []);
+    } catch (error) {
+      console.error('Failed to refresh users:', error);
+      toast({
+        title: "Error refreshing users",
+        description: "Failed to load updated user list.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle user updated
+  const handleUserUpdated = async (updatedUser) => {
+    // Update the user in local state and refresh from API
+    setUsers(prev => prev.map(user =>
+      (user._id || user.id) === (updatedUser._id || updatedUser.id)
+        ? updatedUser
+        : user
+    ));
+    // Also refresh to ensure we have the latest data
+    await refreshUsers();
+  };
+
+  // Handle user deleted
+  const handleUserDeleted = async (deletedUserId) => {
+    // Remove user from local state and refresh from API
+    setUsers(prev => prev.filter(user =>
+      (user._id || user.id) !== deletedUserId
+    ));
+    // Also refresh to ensure we have the latest data
+    await refreshUsers();
+  };
+
+  // Handle password reset
+  const handlePasswordReset = async (userId) => {
+    // For password reset, we don't need to update the user list
+    // Just show success message (already handled in ResetPasswordDialog)
   };
 
   // Handle user actions
@@ -324,12 +274,12 @@ export function UserManagement() {
   // Export users to CSV/Excel
   const handleExport = (format = "xlsx") => {
     const exportData = filteredUsers.map(u => ({
-      ID: u.id,
+      ID: u._id || u.id,
       Name: u.name,
       Email: u.email,
       Phone: u.phone || "N/A",
       "Power User": u.isPowerUser ? "Yes" : "No",
-      Role: u.role,
+      Role: Array.isArray(u.roles) ? u.roles[0] : u.role, // Handle both formats
       Department: u.department || "N/A",
       Status: u.status,
       "Last Login": u.lastLogin ? formatDate(u.lastLogin) : "Never",
@@ -642,6 +592,7 @@ export function UserManagement() {
             open={showAddUserDialog}
             onOpenChange={setShowAddUserDialog}
             onAddUser={handleAddUser}
+            onUserCreated={refreshUsers}
           />
         )}
 
@@ -650,6 +601,7 @@ export function UserManagement() {
             open={showEditUserDialog}
             onOpenChange={setShowEditUserDialog}
             user={selectedUser}
+            onUserUpdated={handleUserUpdated}
           />
         )}
 
@@ -658,6 +610,7 @@ export function UserManagement() {
             open={showResetPasswordDialog}
             onOpenChange={setShowResetPasswordDialog}
             user={selectedUser}
+            onPasswordReset={handlePasswordReset}
           />
         )}
 
@@ -666,6 +619,7 @@ export function UserManagement() {
             open={showDeleteUserDialog}
             onOpenChange={setShowDeleteUserDialog}
             user={selectedUser}
+            onUserDeleted={handleUserDeleted}
           />
         )}
       </AnimatePresence>

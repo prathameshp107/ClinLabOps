@@ -58,24 +58,24 @@ export function ProfileHeader({ userData, onUpdateProfilePicture }) {
 
   return (
     <div className="mb-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="bg-gradient-to-r from-primary/10 via-primary/5 to-background rounded-xl p-6 sm:p-8 border border-border/40 relative overflow-hidden"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-        
+
         <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center relative z-10">
           <div className="relative group">
             <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-              <AvatarImage src={userData.personal.profilePicture} alt={userData.personal.fullName} />
+              <AvatarImage src={userData?.personal?.profilePicture} alt={userData?.personal?.fullName} />
               <AvatarFallback className="text-xl bg-primary/10 text-primary">
-                {getInitials(userData.personal.fullName)}
+                {userData?.personal?.fullName ? getInitials(userData.personal.fullName) : 'U'}
               </AvatarFallback>
             </Avatar>
-            
-            <button 
+
+            <button
               onClick={() => setUploadDialogOpen(true)}
               className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
             >
@@ -83,33 +83,33 @@ export function ProfileHeader({ userData, onUpdateProfilePicture }) {
               <span className="sr-only">Change profile picture</span>
             </button>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold">{userData.personal.fullName}</h1>
-              {userData.professional.isVerified && (
+              <h1 className="text-2xl sm:text-3xl font-bold">{userData?.personal?.fullName || 'User'}</h1>
+              {userData?.professional?.isVerified && (
                 <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 font-medium">
                   Verified
                 </Badge>
               )}
-              {!userData.professional.isProfileComplete && (
+              {userData?.professional?.isProfileComplete === false && (
                 <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 font-medium">
                   Incomplete Profile
                 </Badge>
               )}
             </div>
-            
-            <div className="text-lg text-muted-foreground">{userData.professional.title}</div>
-            
+
+            <div className="text-lg text-muted-foreground">{userData?.professional?.title || 'No title'}</div>
+
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-              <div>{userData.professional.department}</div>
+              <div>{userData?.professional?.department || 'Unknown Department'}</div>
               <div className="hidden sm:block h-1 w-1 rounded-full bg-muted-foreground" />
-              <div>{userData.professional.labLocation}</div>
+              <div>{userData?.professional?.labLocation || 'Unknown Location'}</div>
               <div className="hidden sm:block h-1 w-1 rounded-full bg-muted-foreground" />
-              <div>Joined {new Date(userData.professional.dateJoined).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</div>
+              <div>Joined {userData?.professional?.dateJoined ? new Date(userData.professional.dateJoined).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown'}</div>
             </div>
           </div>
-          
+
           <div className="sm:ml-auto">
             <Button className="gap-2">
               <Edit className="h-4 w-4" />
@@ -128,16 +128,16 @@ export function ProfileHeader({ userData, onUpdateProfilePicture }) {
               Upload a new profile picture. The image will be cropped to fit a square.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="flex flex-col items-center justify-center gap-4">
               <Avatar className="h-32 w-32 border-2 border-border">
-                <AvatarImage src={previewImage || userData.personal.profilePicture} />
+                <AvatarImage src={previewImage || userData?.personal?.profilePicture} />
                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                  {getInitials(userData.personal.fullName)}
+                  {userData?.personal?.fullName ? getInitials(userData.personal.fullName) : 'U'}
                 </AvatarFallback>
               </Avatar>
-              
+
               <div className="grid w-full gap-2">
                 <Label htmlFor="picture" className="text-center">Choose an image</Label>
                 <div className="flex items-center gap-2">
@@ -148,8 +148,8 @@ export function ProfileHeader({ userData, onUpdateProfilePicture }) {
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => document.getElementById('picture').click()}
                     className="w-full"
                   >
@@ -160,12 +160,12 @@ export function ProfileHeader({ userData, onUpdateProfilePicture }) {
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleUploadConfirm}
               disabled={!fileSelected}
             >

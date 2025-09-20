@@ -44,6 +44,19 @@ export function DashboardLayout({ children }) {
     setIsSidebarCollapsed(collapsed)
   }
 
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarCollapsed(true)
+      }
+    }
+
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // Load user data from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -58,6 +71,32 @@ export function DashboardLayout({ children }) {
     }
   }, [])
 
+  // Load theme from localStorage and apply it
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme') || 'light'
+      setTheme(savedTheme)
+      applyTheme(savedTheme)
+    }
+  }, [])
+
+  // Function to apply theme to DOM
+  const applyTheme = (newTheme) => {
+    const root = document.documentElement
+    if (newTheme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+    localStorage.setItem('theme', newTheme)
+  }
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
+    applyTheme(newTheme)
+  }
+
   const handleLogout = () => setShowLogoutDialog(true)
   const confirmLogout = () => {
     localStorage.removeItem('userToken')
@@ -65,27 +104,28 @@ export function DashboardLayout({ children }) {
     router.push('/login')
   }
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
-    // In a real app, you'd integrate with next-themes or similar:
-    // const { theme, setTheme } = useTheme()
-    // setTheme(theme === 'light' ? 'dark' : 'light')
-  }
-
   return (
     <TooltipProvider>
       <div className="flex h-screen bg-background overflow-hidden">
+        {/* Mobile overlay */}
+        {!isSidebarCollapsed && (
+          <div
+            className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+            onClick={() => setIsSidebarCollapsed(true)}
+          />
+        )}
+
         {/* Sidebar with toggle state handler */}
         <ModernSidebar
           onToggle={handleSidebarToggle}
-          className="fixed h-screen z-30"
+          className="fixed h-screen z-40 lg:z-30"
           isCollapsed={isSidebarCollapsed}
         />
 
         {/* Main content area that adjusts based on sidebar state */}
         <div className={cn(
-          "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-          isSidebarCollapsed ? "ml-0" : "ml-[240px]"
+          "flex-1 flex flex-col transition-all duration-300 ease-in-out min-w-0",
+          isSidebarCollapsed ? "ml-0" : "lg:ml-[240px]"
         )}>
           {/* Simple header instead of ModernHeader */}
           <header className="h-16 border-b border-border/40 bg-background/95 sticky top-0 z-20 px-6 flex items-center justify-between">
@@ -127,8 +167,8 @@ export function DashboardLayout({ children }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-9 rounded-full">
                     <UserAvatar user={{ name: "User" }} size="md" />
-                    <span className="font-semibold text-[14px] text-[#1e293b] truncate max-w-[120px] hidden md:inline">{userData?.fullName || 'User'}</span>
-                    <ChevronDown className="h-4 w-4 text-[#64748b] hidden md:inline" />
+                    <span className="font-semibold text-[14px] text-foreground truncate max-w-[120px] hidden md:inline">{userData?.fullName || 'User'}</span>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:inline" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -144,8 +184,10 @@ export function DashboardLayout({ children }) {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 overflow-auto">
-            {children}
+          <main className="flex-1 overflow-auto min-w-0">
+            <div className="w-full min-w-0">
+              {children}
+            </div>
           </main>
         </div>
 

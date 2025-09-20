@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ArrowLeft, Search, RefreshCw, Home, Clock, Sparkles } from 'lucide-react';
+import { taskSuggestions } from "@/constants";
 
 const ModernBackButton = ({ onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
@@ -47,13 +48,6 @@ const TaskNotFound = () => {
         const timer = setTimeout(() => setShowSuggestions(true), 1000);
         return () => clearTimeout(timer);
     }, []);
-
-    const suggestions = [
-        "Check your recent tasks",
-        "Browse all tasks",
-        "Create a new task",
-        "Contact support"
-    ];
 
     const handleBackClick = () => {
         window.location.href = '/tasks';

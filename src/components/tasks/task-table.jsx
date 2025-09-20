@@ -66,12 +66,14 @@ export const TaskTable = ({
   // Function to get the status badge
   const getStatusBadge = (status) => {
     switch (status) {
-      case "pending":
-        return <Badge variant="outline" className="bg-yellow-100 hover:bg-yellow-200 border-yellow-200 text-yellow-700">Pending</Badge>;
+      case "todo":
+        return <Badge variant="outline" className="bg-gray-100 hover:bg-gray-200 border-gray-200 text-gray-700">To Do</Badge>;
       case "in-progress":
         return <Badge variant="outline" className="bg-blue-100 hover:bg-blue-200 border-blue-200 text-blue-700">In Progress</Badge>;
-      case "completed":
-        return <Badge variant="outline" className="bg-green-100 hover:bg-green-200 border-green-200 text-green-700">Completed</Badge>;
+      case "review":
+        return <Badge variant="outline" className="bg-yellow-100 hover:bg-yellow-200 border-yellow-200 text-yellow-700">Review</Badge>;
+      case "done":
+        return <Badge variant="outline" className="bg-green-100 hover:bg-green-200 border-green-200 text-green-700">Done</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -170,12 +172,12 @@ export const TaskTable = ({
             </TableRow>
           ) : (
             tasks.map((task) => (
-              <TableRow 
-                key={task.id} 
+              <TableRow
+                key={task.id}
                 className="cursor-pointer hover:bg-accent/30"
               >
-                <TableCell 
-                  className="w-[30px]" 
+                <TableCell
+                  className="w-[30px]"
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -195,7 +197,7 @@ export const TaskTable = ({
                     />
                   </div>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   className="font-medium"
                   onClick={() => router.push(`/tasks/${task.id}`)}
                 >
@@ -208,7 +210,7 @@ export const TaskTable = ({
                     )}
                   </div>
                 </TableCell>
-                <TableCell 
+                <TableCell
                   onClick={() => router.push(`/tasks/${task.id}`)}
                 >{task.experimentName}</TableCell>
                 <TableCell
@@ -232,7 +234,7 @@ export const TaskTable = ({
                 >
                   <div className="flex items-center">
                     <CalendarClock className="mr-1 h-4 w-4 text-muted-foreground" />
-                    <span className={isPastDue(task.dueDate) && task.status !== "completed" ? "text-red-500 font-medium" : ""}>
+                    <span className={isPastDue(task.dueDate) && task.status !== "done" ? "text-red-500 font-medium" : ""}>
                       {formatDate(task.dueDate)}
                     </span>
                   </div>
@@ -263,14 +265,16 @@ export const TaskTable = ({
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      {task.status !== "completed" && (
+                      {task.status !== "done" && (
                         <>
                           <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
-                            const newStatus = task.status === "pending" ? "in-progress" : "completed";
+                            const newStatus = task.status === "todo" ? "in-progress" :
+                              task.status === "in-progress" ? "review" : "done";
                             onTaskClick("statusChange", { ...task, status: newStatus });
                           }}>
-                            {task.status === "pending" ? "Mark as In Progress" : "Mark as Completed"}
+                            {task.status === "todo" ? "Mark as In Progress" :
+                              task.status === "in-progress" ? "Mark as Review" : "Mark as Done"}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                         </>
