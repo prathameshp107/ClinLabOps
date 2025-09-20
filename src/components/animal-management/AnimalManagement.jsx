@@ -774,34 +774,6 @@ export function AnimalManagement() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
-                    <CardContent className="p-6 relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
-                        <div className="flex items-center justify-between relative z-10">
-                            <div>
-                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Experiments</p>
-                                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{stats.experimentsCount}</p>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/30 transition-all duration-300 transform group-hover:scale-110">
-                                <span className="text-2xl">🔬</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
-                    <CardContent className="p-6 relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
-                        <div className="flex items-center justify-between relative z-10">
-                            <div>
-                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Needs Health Check</p>
-                                <p className="text-4xl font-bold text-red-600 dark:text-red-400 tracking-tight">{stats.needsHealthCheck}</p>
-                            </div>
-                            <div className="p-4 rounded-2xl bg-red-100 dark:bg-red-900/20 group-hover:bg-red-200 dark:group-hover:bg-red-800/30 transition-all duration-300 transform group-hover:scale-110">
-                                <span className="text-2xl">🩺</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             {/* Tabs for different views */}
