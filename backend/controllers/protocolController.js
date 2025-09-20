@@ -1,6 +1,7 @@
 const Protocol = require('../models/Protocol');
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
+const ActivityService = require('../services/activityService');
 
 // @desc    Get user's own protocols (both public and private)
 // @route   GET /api/protocols/my-protocols
@@ -50,6 +51,21 @@ const getMyProtocols = asyncHandler(async (req, res) => {
     const count = await Protocol.countDocuments(query);
 
     console.log(`Found ${protocols.length} user protocols for query:`, query);
+
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'user_protocols_listed',
+        description: `${req.user.name} viewed their protocols list`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'protocol',
+          protocolCount: protocols.length,
+          filters: { category, search, status },
+          operation: 'list_user_protocols'
+        }
+      });
+    }
 
     res.json({
       success: true,
@@ -155,6 +171,21 @@ const getProtocols = asyncHandler(async (req, res) => {
 
     console.log(`Found ${protocols.length} protocols for query:`, query);
 
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'protocols_listed',
+        description: `${req.user.name} viewed protocols list`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'protocol',
+          protocolCount: protocols.length,
+          filters: { category, search, isPublic, status },
+          operation: 'list_protocols'
+        }
+      });
+    }
+
     res.json({
       success: true,
       count: protocols.length,
@@ -198,8 +229,23 @@ const getProtocol = asyncHandler(async (req, res) => {
 
     if (!userOwnsProtocol && !userIsAdmin && !isPublicProtocol) {
       res.status(403);
-      throw new Error('Not authorized to access this protocol');
+      throw new Error('Not authorized to view this protocol');
     }
+  }
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_viewed',
+      description: `${req.user.name} viewed protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'view_protocol'
+      }
+    });
   }
 
   res.json({
@@ -212,139 +258,61 @@ const getProtocol = asyncHandler(async (req, res) => {
 // @route   POST /api/protocols
 // @access  Private
 const createProtocol = asyncHandler(async (req, res) => {
-  console.log('=== CREATE PROTOCOL REQUEST ===');
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
-  console.log('Request user:', req.user ? { id: req.user._id, email: req.user.email } : 'NO USER');
-  console.log('Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  const { name, description, category, steps, isPublic = false, tags = [] } = req.body;
 
-  const {
+  // Validate required fields
+  if (!name) {
+    res.status(400);
+    throw new Error('Protocol name is required');
+  }
+
+  // Validate steps array
+  if (!Array.isArray(steps) || steps.length === 0) {
+    res.status(400);
+    throw new Error('Protocol must have at least one step');
+  }
+
+  // Validate each step
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    if (!step.title || !step.instructions) {
+      res.status(400);
+      throw new Error(`Step ${i + 1} must have both title and instructions`);
+    }
+  }
+
+  // Create protocol
+  const protocol = await Protocol.create({
     name,
     description,
     category,
-    version = '1.0',
-    status = 'Draft',
-    steps = [],
-    materials = [],
-    safetyNotes = '',
-    references = [],
-    files = [],
-    isPublic = false,
-    tags = []
-  } = req.body;
+    steps,
+    isPublic,
+    tags,
+    createdBy: req.user._id
+  });
 
-  // Validate required fields
-  if (!name || !category) {
-    res.status(400);
-    throw new Error('Please provide all required fields (name and category)');
-  }
+  await protocol.populate('createdBy', 'name email');
 
-  // Ensure user is authenticated
-  if (!req.user) {
-    console.log('No user found in request');
-    res.status(401);
-    throw new Error('User not authenticated - please log in');
-  }
-
-  if (!req.user._id) {
-    console.log('User object exists but _id is missing:', req.user);
-    res.status(401);
-    throw new Error('Invalid user session - please log in again');
-  }
-
-  console.log('Creating protocol for user:', req.user._id);
-
-  // Format steps if it's a string (from textarea)
-  let formattedSteps = [];
-  if (typeof steps === 'string') {
-    formattedSteps = steps
-      .split('\n')
-      .filter(step => step.trim() !== '')
-      .map((step, index) => ({
-        number: index + 1,
-        title: `Step ${index + 1}`,
-        instructions: step.trim(),
-        stepNumber: index + 1,
-        description: step.trim(),
-        duration: '',
-        notes: ''
-      }));
-  } else if (Array.isArray(steps)) {
-    formattedSteps = steps.map((step, index) => ({
-      ...step,
-      number: step.number || index + 1,
-      stepNumber: step.stepNumber || index + 1
-    }));
-  }
-
-  // Format materials if it's a string (from textarea)
-  let formattedMaterials = [];
-  if (typeof materials === 'string') {
-    formattedMaterials = materials
-      .split('\n')
-      .filter(item => item.trim() !== '')
-      .map(item => ({
-        name: item.trim(),
-        quantity: '',
-        notes: ''
-      }));
-  } else if (Array.isArray(materials)) {
-    formattedMaterials = materials.map(material => {
-      if (typeof material === 'string') {
-        return {
-          name: material.trim(),
-          quantity: '',
-          notes: ''
-        };
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_created',
+      description: `${req.user.name} created protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'create_protocol'
       }
-      return material;
     });
   }
 
-  // Format references
-  let formattedReferences = [];
-  if (typeof references === 'string') {
-    formattedReferences = references
-      .split('\n')
-      .filter(ref => ref.trim() !== '')
-      .map(ref => ref.trim());
-  } else if (Array.isArray(references)) {
-    formattedReferences = references.filter(ref => ref && ref.trim() !== '');
-  }
-
-  try {
-    // Create protocol
-    const protocol = await Protocol.create({
-      name,
-      description,
-      category,
-      version,
-      status,
-      steps: formattedSteps,
-      materials: formattedMaterials,
-      safetyNotes,
-      references: formattedReferences,
-      files: files || [],
-      isPublic,
-      tags,
-      createdBy: req.user._id
-    });
-
-    console.log('Protocol created successfully:', protocol._id);
-
-    // Populate the created protocol with user details
-    const populatedProtocol = await Protocol.findById(protocol._id)
-      .populate('createdBy', 'name email')
-      .lean();
-
-    res.status(201).json({
-      success: true,
-      data: populatedProtocol
-    });
-  } catch (error) {
-    console.error('Error creating protocol:', error);
-    res.status(500);
-    throw new Error(`Failed to create protocol: ${error.message}`);
-  }
+  res.status(201).json({
+    success: true,
+    data: protocol
+  });
 });
 
 // @desc    Update protocol
@@ -358,115 +326,80 @@ const updateProtocol = asyncHandler(async (req, res) => {
     throw new Error('Protocol not found');
   }
 
-  // Check if user is the owner or admin
-  if (protocol.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+  // Check if user owns the protocol or is admin
+  const userOwnsProtocol = protocol.createdBy.toString() === req.user._id.toString();
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userOwnsProtocol && !userIsAdmin) {
     res.status(403);
     throw new Error('Not authorized to update this protocol');
   }
 
-  // Update fields
-  const {
-    name,
-    description,
-    category,
-    version,
-    status,
-    steps,
-    materials,
-    safetyNotes,
-    references,
-    files,
-    isPublic,
-    tags
-  } = req.body;
+  // Prevent updating deleted protocols
+  if (protocol.isDeleted) {
+    res.status(400);
+    throw new Error('Cannot update a deleted protocol');
+  }
 
-  if (name) protocol.name = name;
-  if (description) protocol.description = description;
-  if (category) protocol.category = category;
-  if (version) protocol.version = version;
-  if (status) protocol.status = status;
+  const { name, description, category, steps, isPublic, tags, status } = req.body;
 
-  // Handle steps transformation
+  // Validate steps if provided
+  if (steps && (!Array.isArray(steps) || steps.length === 0)) {
+    res.status(400);
+    throw new Error('Protocol must have at least one step');
+  }
+
+  // Validate each step if provided
   if (steps) {
-    if (Array.isArray(steps)) {
-      // If steps is already an array of objects, use as is
-      if (steps.length > 0 && typeof steps[0] === 'object' && steps[0].instructions) {
-        protocol.steps = steps;
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      if (!step.title || !step.instructions) {
+        res.status(400);
+        throw new Error(`Step ${i + 1} must have both title and instructions`);
       }
-      // If steps is an array of strings, convert to step objects
-      else if (steps.length > 0 && typeof steps[0] === 'string') {
-        protocol.steps = steps.map((step, index) => ({
-          number: index + 1,
-          instructions: step.trim()
-        }));
-      }
-      // If steps is an empty array
-      else {
-        protocol.steps = [];
-      }
-    } else if (typeof steps === 'string') {
-      // If steps is a string, split and convert to step objects
-      protocol.steps = steps.split('\n').filter(step => step.trim()).map((step, index) => ({
-        number: index + 1,
-        instructions: step.trim()
-      }));
     }
   }
 
-  // Handle materials transformation
-  if (materials) {
-    if (Array.isArray(materials)) {
-      // If materials is already an array of objects with name property, use as is
-      if (materials.length > 0 && typeof materials[0] === 'object' && materials[0].name) {
-        protocol.materials = materials;
-      }
-      // If materials is an array of strings, convert to material objects
-      else if (materials.length > 0 && typeof materials[0] === 'string') {
-        protocol.materials = materials.map(material => ({
-          name: material.trim(),
-          quantity: '',
-          notes: ''
-        }));
-      }
-      // If materials is an empty array
-      else {
-        protocol.materials = [];
-      }
-    } else if (typeof materials === 'string') {
-      // If materials is a string, split and convert to material objects
-      protocol.materials = materials.split('\n').filter(material => material.trim()).map(material => ({
-        name: material.trim(),
-        quantity: '',
-        notes: ''
-      }));
+  // Update protocol
+  protocol = await Protocol.findByIdAndUpdate(
+    req.params.id,
+    {
+      name,
+      description,
+      category,
+      steps,
+      isPublic,
+      tags,
+      status,
+      updatedBy: req.user._id
+    },
+    {
+      new: true,
+      runValidators: true
     }
+  );
+
+  await protocol.populate('createdBy', 'name email');
+  await protocol.populate('updatedBy', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_updated',
+      description: `${req.user.name} updated protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'update_protocol'
+      }
+    });
   }
-
-  if (safetyNotes) protocol.safetyNotes = safetyNotes;
-
-  // Handle references transformation
-  if (references) {
-    if (Array.isArray(references)) {
-      protocol.references = references.filter(ref => ref && ref.trim());
-    } else if (typeof references === 'string') {
-      protocol.references = references.split('\n').filter(ref => ref.trim());
-    }
-  }
-
-  if (files) protocol.files = files;
-  if (isPublic !== undefined) protocol.isPublic = isPublic;
-  if (tags) protocol.tags = tags;
-
-  const updatedProtocol = await protocol.save();
-
-  // Populate the updated protocol with user details
-  const populatedProtocol = await Protocol.findById(updatedProtocol._id)
-    .populate('createdBy', 'name email')
-    .lean();
 
   res.json({
     success: true,
-    data: populatedProtocol
+    data: protocol
   });
 });
 
@@ -481,20 +414,38 @@ const deleteProtocol = asyncHandler(async (req, res) => {
     throw new Error('Protocol not found');
   }
 
-  // Check if user is the owner or admin
-  if (protocol.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  // Check if user owns the protocol or is admin
+  const userOwnsProtocol = protocol.createdBy.toString() === req.user._id.toString();
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userOwnsProtocol && !userIsAdmin) {
     res.status(403);
     throw new Error('Not authorized to delete this protocol');
   }
 
-  // Soft delete by setting isDeleted flag
+  // Instead of hard delete, mark as deleted
   protocol.isDeleted = true;
   protocol.deletedAt = Date.now();
+  protocol.deletedBy = req.user._id;
   await protocol.save();
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_deleted',
+      description: `${req.user.name} deleted protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolName: protocol.name,
+        operation: 'delete_protocol'
+      }
+    });
+  }
 
   res.json({
     success: true,
-    data: { id: protocol._id }
+    message: 'Protocol deleted successfully'
   });
 });
 
@@ -509,14 +460,44 @@ const archiveProtocol = asyncHandler(async (req, res) => {
     throw new Error('Protocol not found');
   }
 
-  if (protocol.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  // Check if user owns the protocol or is admin
+  const userOwnsProtocol = protocol.createdBy.toString() === req.user._id.toString();
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userOwnsProtocol && !userIsAdmin) {
     res.status(403);
     throw new Error('Not authorized to archive this protocol');
   }
 
-  protocol.isArchived = true;
+  // Prevent archiving deleted protocols
+  if (protocol.isDeleted) {
+    res.status(400);
+    throw new Error('Cannot archive a deleted protocol');
+  }
+
+  // Update protocol to archived status
+  protocol.status = 'Archived';
   protocol.archivedAt = Date.now();
+  protocol.archivedBy = req.user._id;
   await protocol.save();
+
+  await protocol.populate('createdBy', 'name email');
+  await protocol.populate('archivedBy', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_archived',
+      description: `${req.user.name} archived protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'archive_protocol'
+      }
+    });
+  }
 
   res.json({
     success: true,
@@ -535,14 +516,43 @@ const restoreProtocol = asyncHandler(async (req, res) => {
     throw new Error('Protocol not found');
   }
 
-  if (protocol.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  // Check if user owns the protocol or is admin
+  const userOwnsProtocol = protocol.createdBy.toString() === req.user._id.toString();
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userOwnsProtocol && !userIsAdmin) {
     res.status(403);
     throw new Error('Not authorized to restore this protocol');
   }
 
-  protocol.isArchived = false;
-  protocol.archivedAt = null;
+  // Prevent restoring non-archived protocols
+  if (protocol.status !== 'Archived') {
+    res.status(400);
+    throw new Error('Protocol is not archived');
+  }
+
+  // Update protocol to draft status (or previous status)
+  protocol.status = 'Draft'; // Or you could restore the previous status
+  protocol.archivedAt = undefined;
+  protocol.archivedBy = undefined;
   await protocol.save();
+
+  await protocol.populate('createdBy', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_restored',
+      description: `${req.user.name} restored protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'restore_protocol'
+      }
+    });
+  }
 
   res.json({
     success: true,
@@ -554,6 +564,65 @@ const restoreProtocol = asyncHandler(async (req, res) => {
 // @route   POST /api/protocols/:id/duplicate
 // @access  Private
 const duplicateProtocol = asyncHandler(async (req, res) => {
+  const originalProtocol = await Protocol.findById(req.params.id);
+
+  if (!originalProtocol) {
+    res.status(404);
+    throw new Error('Protocol not found');
+  }
+
+  // Check access to the original protocol
+  if (!originalProtocol.isPublic) {
+    const userOwnsProtocol = req.user && (originalProtocol.createdBy.toString() === req.user._id.toString());
+    const userIsAdmin = req.user && (req.user.roles && req.user.roles.includes('Admin'));
+
+    if (!userOwnsProtocol && !userIsAdmin) {
+      res.status(403);
+      throw new Error('Not authorized to duplicate this protocol');
+    }
+  }
+
+  // Create a copy of the protocol with "Copy" appended to the name
+  const duplicatedProtocol = await Protocol.create({
+    name: `${originalProtocol.name} (Copy)`,
+    description: originalProtocol.description,
+    category: originalProtocol.category,
+    steps: originalProtocol.steps,
+    isPublic: false, // Duplicated protocols are private by default
+    tags: originalProtocol.tags,
+    createdBy: req.user._id
+  });
+
+  await duplicatedProtocol.populate('createdBy', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_duplicated',
+      description: `${req.user.name} duplicated protocol "${originalProtocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        originalProtocolId: originalProtocol._id,
+        duplicatedProtocolId: duplicatedProtocol._id,
+        originalProtocolName: originalProtocol.name,
+        duplicatedProtocolName: duplicatedProtocol.name,
+        operation: 'duplicate_protocol'
+      }
+    });
+  }
+
+  res.status(201).json({
+    success: true,
+    data: duplicatedProtocol
+  });
+});
+
+// @desc    Add review to protocol
+// @route   POST /api/protocols/:id/reviews
+// @access  Private
+const addProtocolReview = asyncHandler(async (req, res) => {
+  const { rating, comment } = req.body;
   const protocol = await Protocol.findById(req.params.id);
 
   if (!protocol) {
@@ -561,44 +630,180 @@ const duplicateProtocol = asyncHandler(async (req, res) => {
     throw new Error('Protocol not found');
   }
 
-  // Check if user has access to the protocol
-  if (!protocol.isPublic && protocol.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    res.status(403);
-    throw new Error('Not authorized to duplicate this protocol');
+  // Check if user can review (must be different from creator)
+  if (protocol.createdBy.toString() === req.user._id.toString()) {
+    res.status(400);
+    throw new Error('Cannot review your own protocol');
   }
 
-  // Create a new protocol based on the existing one
-  const newProtocol = new Protocol({
-    ...protocol.toObject(),
-    _id: undefined, // Let MongoDB generate a new _id
-    name: `${protocol.name} (Copy)`,
-    version: '1.0',
-    isPublic: false, // Default to private when duplicating
-    createdBy: req.user._id,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    isArchived: false,
-    archivedAt: null,
-    isDeleted: false,
-    deletedAt: null
-  });
+  // Check if user already reviewed
+  const alreadyReviewed = protocol.reviews.find(
+    review => review.user.toString() === req.user._id.toString()
+  );
 
-  await newProtocol.save();
+  if (alreadyReviewed) {
+    res.status(400);
+    throw new Error('Protocol already reviewed');
+  }
+
+  const review = {
+    user: req.user._id,
+    rating: Number(rating),
+    comment
+  };
+
+  protocol.reviews.push(review);
+  protocol.averageRating = protocol.reviews.reduce((acc, review) => acc + review.rating, 0) / protocol.reviews.length;
+
+  await protocol.save();
+  await protocol.populate('reviews.user', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_review_added',
+      description: `${req.user.name} reviewed protocol "${protocol.name}" with rating ${rating}`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        rating: rating,
+        operation: 'add_review'
+      }
+    });
+  }
 
   res.status(201).json({
     success: true,
-    data: newProtocol
+    data: protocol
   });
 });
 
+// @desc    Get protocol reviews
+// @route   GET /api/protocols/:id/reviews
+// @access  Public
+const getProtocolReviews = asyncHandler(async (req, res) => {
+  const protocol = await Protocol.findById(req.params.id).populate('reviews.user', 'name email');
+
+  if (!protocol) {
+    res.status(404);
+    throw new Error('Protocol not found');
+  }
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_reviews_viewed',
+      description: `${req.user.name} viewed reviews for protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'view_reviews'
+      }
+    });
+  }
+
+  res.json({
+    success: true,
+    count: protocol.reviews.length,
+    data: protocol.reviews
+  });
+});
+
+// @desc    Export protocol
+// @route   GET /api/protocols/:id/export
+// @access  Public (with optional auth)
+const exportProtocol = asyncHandler(async (req, res) => {
+  const protocol = await Protocol.findById(req.params.id)
+    .populate('createdBy', 'name email')
+    .lean();
+
+  if (!protocol) {
+    res.status(404);
+    throw new Error('Protocol not found');
+  }
+
+  // Check access
+  if (!protocol.isPublic) {
+    if (!req.user) {
+      res.status(401);
+      throw new Error('Please log in to access this protocol');
+    }
+    const userOwnsProtocol = protocol.createdBy._id.toString() === req.user._id.toString();
+    const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+    if (!userOwnsProtocol && !userIsAdmin) {
+      res.status(403);
+      throw new Error('Not authorized to access this protocol');
+    }
+  }
+
+  const { format = 'json' } = req.query;
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_exported',
+      description: `${req.user.name} exported protocol "${protocol.name}" as ${format}`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        exportFormat: format,
+        operation: 'export_protocol'
+      }
+    });
+  }
+
+  // Prepare data for export
+  const exportData = {
+    name: protocol.name,
+    description: protocol.description,
+    category: protocol.category,
+    steps: protocol.steps,
+    tags: protocol.tags,
+    createdBy: protocol.createdBy.name,
+    createdAt: protocol.createdAt,
+    averageRating: protocol.averageRating,
+    reviewCount: protocol.reviews.length
+  };
+
+  if (format === 'pdf') {
+    // PDF export implementation would go here
+    res.json({
+      success: true,
+      message: 'PDF export functionality would be implemented here',
+      data: exportData
+    });
+  } else if (format === 'docx') {
+    // DOCX export implementation would go here
+    res.json({
+      success: true,
+      message: 'DOCX export functionality would be implemented here',
+      data: exportData
+    });
+  } else {
+    // Default JSON export
+    res.header('Content-Type', 'application/json');
+    res.attachment(`protocol_${protocol._id}.json`);
+    res.json(exportData);
+  }
+});
+
 module.exports = {
-  getProtocols,
   getMyProtocols,
+  getProtocols,
   getProtocol,
   createProtocol,
   updateProtocol,
   deleteProtocol,
   archiveProtocol,
   restoreProtocol,
-  duplicateProtocol
+  duplicateProtocol,
+  addProtocolReview,
+  getProtocolReviews,
+  exportProtocol
 };

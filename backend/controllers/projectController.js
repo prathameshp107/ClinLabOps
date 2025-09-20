@@ -4,11 +4,27 @@ const { Parser } = require('json2csv');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const stream = require('stream');
+const ActivityService = require('../services/activityService');
 
 // Get all projects
 exports.getAllProjects = async (req, res) => {
     try {
         const projects = await Project.find();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'projects_listed',
+                description: `${req.user.name} viewed projects list`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'project',
+                    projectCount: projects.length,
+                    operation: 'list'
+                }
+            });
+        }
+
         res.json(projects);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -22,6 +38,22 @@ exports.getProjectById = async (req, res) => {
 
         const project = await Project.findById(req.params.id);
         if (!project) return res.status(404).json({ error: 'Project not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_viewed',
+                description: `${req.user.name} viewed project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    operation: 'view'
+                }
+            });
+        }
+
         res.json(project);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -67,6 +99,12 @@ exports.createProject = async (req, res) => {
             category
         });
         await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logProjectActivity('created', project, req.user);
+        }
+
         res.status(201).json(project);
     } catch (err) {
         res.status(500).json({ message: 'Failed to create project', error: err.message });
@@ -83,6 +121,12 @@ exports.updateProject = async (req, res) => {
 
         const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!project) return res.status(404).json({ error: 'Project not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logProjectActivity('updated', project, req.user);
+        }
+
         res.json(project);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -94,6 +138,12 @@ exports.deleteProject = async (req, res) => {
     try {
         const project = await Project.findByIdAndDelete(req.params.id);
         if (!project) return res.status(404).json({ error: 'Project not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logProjectActivity('deleted', project, req.user);
+        }
+
         res.json({ message: 'Project deleted' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -112,6 +162,22 @@ exports.exportProject = async (req, res) => {
         const exportData = { ...project };
         delete exportData.__v;
         delete exportData._id;
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_exported',
+                description: `${req.user.name} exported project "${project.name}" as ${format}`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    exportFormat: format,
+                    operation: 'export'
+                }
+            });
+        }
 
         if (format === 'csv') {
             const parser = new Parser();
@@ -310,6 +376,28 @@ exports.addProjectTask = async (req, res) => {
         if (!project) return res.status(404).json({ error: 'Project not found' });
         project.tasks.push(newTask);
         await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logTaskActivity('created', newTask, req.user, project);
+
+            // Additional activity log for project task addition
+            await ActivityService.logActivity({
+                type: 'project_task_added',
+                description: `${req.user.name} added task "${newTask.name}" to project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    taskId: newTask.id,
+                    taskName: newTask.name,
+                    operation: 'add_task'
+                }
+            });
+        }
+
         res.status(201).json(newTask);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -331,6 +419,25 @@ exports.addProjectMember = async (req, res) => {
         if (!project) return res.status(404).json({ error: 'Project not found' });
         project.team.push(newMember);
         await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_member_added',
+                description: `${req.user.name} added member "${newMember.name}" to project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    memberId: newMember.id,
+                    memberName: newMember.name,
+                    operation: 'add_member'
+                }
+            });
+        }
+
         res.status(201).json(newMember);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -362,6 +469,25 @@ exports.uploadProjectDocument = async (req, res) => {
         if (!project) return res.status(404).json({ error: 'Project not found' });
         project.documents.push(newDoc);
         await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_document_uploaded',
+                description: `${req.user.name} uploaded document "${originalname}" to project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    documentName: originalname,
+                    documentSize: size,
+                    operation: 'upload_document'
+                }
+            });
+        }
+
         res.status(201).json(newDoc);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -378,8 +504,183 @@ exports.deleteProjectTask = async (req, res) => {
         if (taskIndex === -1) return res.status(404).json({ error: 'Task not found' });
         const [deletedTask] = project.tasks.splice(taskIndex, 1);
         await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logTaskActivity('deleted', deletedTask, req.user, project);
+
+            // Additional activity log for project task deletion
+            await ActivityService.logActivity({
+                type: 'project_task_deleted',
+                description: `${req.user.name} deleted task "${deletedTask.name}" from project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    taskId: taskId,
+                    taskName: deletedTask.name,
+                    operation: 'delete_task'
+                }
+            });
+        }
+
         res.json({ success: true, deletedTask });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-}; 
+};
+
+// Delete a member from a project
+exports.deleteProjectMember = async (req, res) => {
+    try {
+        const { id, memberId } = req.params;
+        const project = await Project.findById(id);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        const memberIndex = project.team.findIndex(m => m.id === memberId);
+        if (memberIndex === -1) return res.status(404).json({ error: 'Member not found' });
+        const [deletedMember] = project.team.splice(memberIndex, 1);
+        await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_member_deleted',
+                description: `${req.user.name} removed member "${deletedMember.name}" from project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    memberId: memberId,
+                    memberName: deletedMember.name,
+                    operation: 'delete_member'
+                }
+            });
+        }
+
+        res.json({ success: true, deletedMember });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Delete a document from a project
+exports.deleteProjectDocument = async (req, res) => {
+    try {
+        const { id, docId } = req.params;
+        const project = await Project.findById(id);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+        const docIndex = project.documents.findIndex(d => d.id === docId);
+        if (docIndex === -1) return res.status(404).json({ error: 'Document not found' });
+        const [deletedDoc] = project.documents.splice(docIndex, 1);
+        await project.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_document_deleted',
+                description: `${req.user.name} deleted document "${deletedDoc.name}" from project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    documentId: docId,
+                    documentName: deletedDoc.name,
+                    operation: 'delete_document'
+                }
+            });
+        }
+
+        res.json({ success: true, deletedDoc });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Get project statistics
+exports.getProjectStats = async (req, res) => {
+    try {
+        const totalProjects = await Project.countDocuments();
+        const activeProjects = await Project.countDocuments({ status: 'In Progress' });
+        const completedProjects = await Project.countDocuments({ status: 'Completed' });
+        const onHoldProjects = await Project.countDocuments({ status: 'On Hold' });
+
+        const stats = {
+            total: totalProjects,
+            active: activeProjects,
+            completed: completedProjects,
+            onHold: onHoldProjects,
+            completionRate: totalProjects > 0 ? ((completedProjects / totalProjects) * 100).toFixed(1) : 0
+        };
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_stats_viewed',
+                description: `${req.user.name} viewed project statistics`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'project',
+                    operation: 'view_stats'
+                }
+            });
+        }
+
+        res.json(stats);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Search projects
+exports.searchProjects = async (req, res) => {
+    try {
+        const { searchTerm, category, status } = req.query;
+
+        const filter = {};
+
+        if (searchTerm) {
+            filter.$or = [
+                { name: { $regex: searchTerm, $options: 'i' } },
+                { description: { $regex: searchTerm, $options: 'i' } },
+                { projectCode: { $regex: searchTerm, $options: 'i' } }
+            ];
+        }
+
+        if (category) {
+            filter.category = category;
+        }
+
+        if (status) {
+            filter.status = status;
+        }
+
+        const projects = await Project.find(filter);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'projects_searched',
+                description: `${req.user.name} searched projects with term "${searchTerm}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'project',
+                    searchTerm: searchTerm,
+                    categoryFilter: category,
+                    statusFilter: status,
+                    resultCount: projects.length,
+                    operation: 'search'
+                }
+            });
+        }
+
+        res.json(projects);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

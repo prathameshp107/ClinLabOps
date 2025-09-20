@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const ActivityService = require('../services/activityService');
 
 // Helper function to map activity types to frontend action types
 function getActionTypeFromActivityType(type) {
@@ -36,55 +37,19 @@ exports.getAllActivities = async (req, res) => {
       endDate
     } = req.query;
 
-    // Build filter object
-    const filter = {};
-
-    if (category) {
-      filter['meta.category'] = category;
-    }
-
-    if (type) {
-      filter.type = type;
-    }
-
-    if (userId) {
-      filter.$or = [
-        { user: userId },
-        { 'meta.targetUserId': userId }
-      ];
-    }
-
-    if (search) {
-      filter.$or = [
-        { description: { $regex: search, $options: 'i' } },
-        { type: { $regex: search, $options: 'i' } },
-        { 'meta.details': { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Date range filter
-    if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) {
-        filter.createdAt.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        filter.createdAt.$lte = new Date(endDate);
-      }
-    }
-
-    const activities = await Activity.find(filter)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Activity.countDocuments(filter);
+    // Use ActivityService to get activities
+    const result = await ActivityService.getActivities({
+      category,
+      type,
+      userId,
+      startDate,
+      endDate
+    }, page, limit);
 
     // Transform activities to match frontend format for user management activities
-    let transformedActivities = activities;
+    let transformedActivities = result.activities;
     if (category === 'user_management') {
-      transformedActivities = activities.map(activity => ({
+      transformedActivities = result.activities.map(activity => ({
         id: activity._id,
         timestamp: activity.createdAt,
         user: {
@@ -101,14 +66,10 @@ exports.getAllActivities = async (req, res) => {
         },
         details: activity.meta?.details || activity.description
       }));
+      result.activities = transformedActivities;
     }
 
-    res.json({
-      activities: transformedActivities,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page),
-      total
-    });
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -145,17 +106,17 @@ exports.createActivity = async (req, res) => {
       return res.status(400).json({ error: 'User authentication required' });
     }
 
-    const activity = new Activity({
+    // Use ActivityService to log activity
+    const activity = await ActivityService.logActivity({
       type,
       description,
-      user: userId,
+      userId,
       meta
     });
 
-    await activity.save();
-
-    // Populate user info before returning
-    await activity.populate('user', 'name email');
+    if (!activity) {
+      return res.status(500).json({ error: 'Failed to log activity' });
+    }
 
     res.status(201).json(activity);
   } catch (err) {
@@ -170,75 +131,14 @@ exports.getActivityStats = async (req, res) => {
   try {
     const { category, startDate, endDate } = req.query;
 
-    const filter = {};
-    if (category) {
-      filter['meta.category'] = category;
-    }
-
-    if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) {
-        filter.createdAt.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        filter.createdAt.$lte = new Date(endDate);
-      }
-    }
-
-    // Get total activities
-    const totalActivities = await Activity.countDocuments(filter);
-
-    // Get activities by type
-    const activitiesByType = await Activity.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: '$type',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } }
-    ]);
-
-    // Get activities by user
-    const activitiesByUser = await Activity.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: '$user',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'user'
-        }
-      },
-      {
-        $project: {
-          count: 1,
-          user: { $arrayElemAt: ['$user.name', 0] }
-        }
-      }
-    ]);
-
-    // Get recent activities
-    const recentActivities = await Activity.find(filter)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(5);
-
-    res.json({
-      totalActivities,
-      activitiesByType,
-      activitiesByUser,
-      recentActivities
+    // Use ActivityService to get statistics
+    const stats = await ActivityService.getActivityStats({
+      category,
+      startDate,
+      endDate
     });
+
+    res.json(stats);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

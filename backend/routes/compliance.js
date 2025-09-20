@@ -28,9 +28,6 @@ router.post('/training', complianceController.createTrainingRecord);
 router.put('/training/:id', complianceController.updateTrainingRecord);
 router.delete('/training/:id', complianceController.deleteTrainingRecord);
 
-// TRAINING ATTENDEE STATUS
-router.patch('/training/:id/attendees/:attendeeId', complianceController.updateAttendeeStatus);
-
 // DASHBOARD STATS
 router.get('/stats', complianceController.getComplianceStats);
 

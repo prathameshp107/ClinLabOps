@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const Project = require('../models/Project');
+const ActivityService = require('../services/activityService');
 
 // Helper function to generate project initials from project name
 const generateProjectInitials = (projectName) => {
@@ -65,6 +66,14 @@ exports.createTask = async (req, res) => {
                     data.customId = await generateCustomTaskId(data.projectId);
                     const task = new Task(data);
                     await task.save();
+
+                    // Log activity
+                    if (req.user) {
+                        // Get project for activity logging
+                        const project = await Project.findById(data.projectId);
+                        await ActivityService.logTaskActivity('created', task, req.user, project);
+                    }
+
                     return res.status(201).json(task);
                 } catch (saveError) {
                     if (saveError.code === 11000 && saveError.keyPattern?.customId) {
@@ -81,6 +90,12 @@ exports.createTask = async (req, res) => {
         } else {
             const task = new Task(data);
             await task.save();
+
+            // Log activity
+            if (req.user) {
+                await ActivityService.logTaskActivity('created', task, req.user);
+            }
+
             res.status(201).json(task);
         }
     } catch (err) {
@@ -119,6 +134,14 @@ exports.updateTask = async (req, res) => {
     try {
         const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!task) return res.status(404).json({ error: 'Task not found' });
+
+        // Log activity
+        if (req.user) {
+            // Get project for activity logging
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logTaskActivity('updated', task, req.user, project);
+        }
+
         res.json(task);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -130,6 +153,14 @@ exports.deleteTask = async (req, res) => {
     try {
         const task = await Task.findByIdAndDelete(req.params.id);
         if (!task) return res.status(404).json({ error: 'Task not found' });
+
+        // Log activity
+        if (req.user) {
+            // Get project for activity logging
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logTaskActivity('deleted', task, req.user, project);
+        }
+
         res.json({ success: true, deletedTask: task });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -145,6 +176,26 @@ exports.addSubtask = async (req, res) => {
         if (!task) return res.status(404).json({ error: 'Task not found' });
         task.subtasks.push(subtask);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'subtask_added',
+                description: `${req.user.name} added subtask "${subtask.name || subtask.title}" to task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    subtaskId: subtask.id,
+                    subtaskName: subtask.name || subtask.title,
+                    operation: 'add_subtask'
+                }
+            });
+        }
+
         res.status(201).json(subtask);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -161,6 +212,26 @@ exports.updateSubtask = async (req, res) => {
         if (!subtask) return res.status(404).json({ error: 'Subtask not found' });
         Object.assign(subtask, updates);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'subtask_updated',
+                description: `${req.user.name} updated subtask "${subtask.name || subtask.title}" in task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    subtaskId: subtask.id,
+                    subtaskName: subtask.name || subtask.title,
+                    operation: 'update_subtask'
+                }
+            });
+        }
+
         res.json(subtask);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -172,8 +243,31 @@ exports.deleteSubtask = async (req, res) => {
         const { id, subtaskId } = req.params;
         const task = await Task.findById(id);
         if (!task) return res.status(404).json({ error: 'Task not found' });
+        const subtask = task.subtasks.id(subtaskId) || task.subtasks.find(st => st.id === subtaskId);
+        if (!subtask) return res.status(404).json({ error: 'Subtask not found' });
+        const subtaskName = subtask.name || subtask.title;
         task.subtasks = task.subtasks.filter(st => st.id !== subtaskId);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'subtask_deleted',
+                description: `${req.user.name} deleted subtask "${subtaskName}" from task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    subtaskId: subtaskId,
+                    subtaskName: subtaskName,
+                    operation: 'delete_subtask'
+                }
+            });
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -189,6 +283,25 @@ exports.addComment = async (req, res) => {
         if (!task) return res.status(404).json({ error: 'Task not found' });
         task.comments.push(comment);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'comment_added',
+                description: `${req.user.name} added a comment to task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    commentId: comment.id,
+                    operation: 'add_comment'
+                }
+            });
+        }
+
         res.status(201).json(comment);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -216,6 +329,25 @@ exports.updateComment = async (req, res) => {
         if (!comment) return res.status(404).json({ error: 'Comment not found' });
         Object.assign(comment, updates);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'comment_updated',
+                description: `${req.user.name} updated a comment in task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    commentId: commentId,
+                    operation: 'update_comment'
+                }
+            });
+        }
+
         res.json(comment);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -229,6 +361,25 @@ exports.deleteComment = async (req, res) => {
         if (!task) return res.status(404).json({ error: 'Task not found' });
         task.comments = task.comments.filter(c => c.id !== commentId);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'comment_deleted',
+                description: `${req.user.name} deleted a comment from task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    commentId: commentId,
+                    operation: 'delete_comment'
+                }
+            });
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -253,6 +404,26 @@ exports.addFile = async (req, res) => {
         if (!task) return res.status(404).json({ error: 'Task not found' });
         task.files.push(file);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'file_added_to_task',
+                description: `${req.user.name} uploaded file "${originalname}" to task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    fileName: originalname,
+                    fileSize: size,
+                    operation: 'add_file'
+                }
+            });
+        }
+
         res.status(201).json(file);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -275,8 +446,30 @@ exports.deleteFile = async (req, res) => {
         const { id, fileId } = req.params;
         const task = await Task.findById(id);
         if (!task) return res.status(404).json({ error: 'Task not found' });
+        const file = task.files.find(f => f.id === fileId);
+        const fileName = file ? file.name : 'Unknown file';
         task.files = task.files.filter(f => f.id !== fileId);
         await task.save();
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'file_deleted_from_task',
+                description: `${req.user.name} deleted file "${fileName}" from task "${task.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    fileName: fileName,
+                    fileId: fileId,
+                    operation: 'delete_file'
+                }
+            });
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -290,6 +483,25 @@ exports.updateAssignee = async (req, res) => {
         const { assignee } = req.body;
         const task = await Task.findByIdAndUpdate(id, { assignee }, { new: true });
         if (!task) return res.status(404).json({ error: 'Task not found' });
+
+        // Log activity
+        if (req.user) {
+            const project = task.projectId ? await Project.findById(task.projectId) : null;
+            await ActivityService.logActivity({
+                type: 'task_assignee_updated',
+                description: `${req.user.name} assigned task "${task.name}" to ${assignee || 'unassigned'}`,
+                userId: req.user._id || req.user.id,
+                projectId: task.projectId,
+                meta: {
+                    category: 'task',
+                    taskId: task._id,
+                    taskName: task.name,
+                    assignee: assignee,
+                    operation: 'update_assignee'
+                }
+            });
+        }
+
         res.json(task);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -341,4 +553,4 @@ exports.getNextTaskId = async (req, res) => {
         console.error('Error generating next task ID:', err);
         res.status(400).json({ error: err.message });
     }
-}; 
+};

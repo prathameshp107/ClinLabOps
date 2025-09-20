@@ -33,8 +33,6 @@ router.get('/orders/:id', inventoryController.getOrderById);
 router.post('/orders', inventoryController.createOrder);
 router.put('/orders/:id', inventoryController.updateOrder);
 router.delete('/orders/:id', inventoryController.deleteOrder);
-router.patch('/orders/:id/approve', inventoryController.approveOrder);
-router.patch('/orders/:id/receive', inventoryController.receiveOrder);
 
 // DASHBOARD STATS
 router.get('/stats', inventoryController.getInventoryStats);

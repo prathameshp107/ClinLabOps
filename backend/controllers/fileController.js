@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const ActivityService = require('../services/activityService');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -61,7 +62,7 @@ exports.uploadSingle = upload.single('file');
 exports.uploadMultiple = upload.array('files', 10);
 
 // Handle single file upload
-exports.handleSingleUpload = (req, res) => {
+exports.handleSingleUpload = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
@@ -79,6 +80,21 @@ exports.handleSingleUpload = (req, res) => {
             uploadedBy: req.body.uploadedBy || 'Unknown'
         };
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'file_uploaded',
+                description: `${req.user.name} uploaded file "${req.file.originalname}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    filename: req.file.originalname,
+                    fileSize: req.file.size,
+                    operation: 'upload'
+                }
+            });
+        }
+
         res.status(201).json({
             message: 'File uploaded successfully',
             file: fileInfo
@@ -89,7 +105,7 @@ exports.handleSingleUpload = (req, res) => {
 };
 
 // Handle multiple files upload
-exports.handleMultipleUpload = (req, res) => {
+exports.handleMultipleUpload = async (req, res) => {
     try {
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ error: 'No files uploaded' });
@@ -107,6 +123,20 @@ exports.handleMultipleUpload = (req, res) => {
             uploadedBy: req.body.uploadedBy || 'Unknown'
         }));
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'files_uploaded',
+                description: `${req.user.name} uploaded ${req.files.length} files`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    fileCount: req.files.length,
+                    operation: 'upload_multiple'
+                }
+            });
+        }
+
         res.status(201).json({
             message: `${filesInfo.length} files uploaded successfully`,
             files: filesInfo
@@ -117,7 +147,7 @@ exports.handleMultipleUpload = (req, res) => {
 };
 
 // Serve uploaded files
-exports.serveFile = (req, res) => {
+exports.serveFile = async (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(__dirname, '../uploads', filename);
@@ -146,6 +176,20 @@ exports.serveFile = (req, res) => {
         const contentType = mimeTypes[ext] || 'application/octet-stream';
         res.setHeader('Content-Type', contentType);
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'file_downloaded',
+                description: `${req.user.name} downloaded file "${filename}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    filename: filename,
+                    operation: 'download'
+                }
+            });
+        }
+
         // Send file
         res.sendFile(filePath);
     } catch (err) {
@@ -154,7 +198,7 @@ exports.serveFile = (req, res) => {
 };
 
 // Delete file
-exports.deleteFile = (req, res) => {
+exports.deleteFile = async (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(__dirname, '../uploads', filename);
@@ -164,8 +208,26 @@ exports.deleteFile = (req, res) => {
             return res.status(404).json({ error: 'File not found' });
         }
 
+        // Get file stats before deletion for logging
+        const stats = fs.statSync(filePath);
+
         // Delete file
         fs.unlinkSync(filePath);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'file_deleted',
+                description: `${req.user.name} deleted file "${filename}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    filename: filename,
+                    fileSize: stats.size,
+                    operation: 'delete'
+                }
+            });
+        }
 
         res.json({ message: 'File deleted successfully' });
     } catch (err) {
@@ -174,7 +236,7 @@ exports.deleteFile = (req, res) => {
 };
 
 // Get file info
-exports.getFileInfo = (req, res) => {
+exports.getFileInfo = async (req, res) => {
     try {
         const filename = req.params.filename;
         const filePath = path.join(__dirname, '../uploads', filename);
@@ -195,6 +257,20 @@ exports.getFileInfo = (req, res) => {
             url: `/api/files/${filename}`
         };
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'file_info_viewed',
+                description: `${req.user.name} viewed info for file "${filename}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    filename: filename,
+                    operation: 'view_info'
+                }
+            });
+        }
+
         res.json(fileInfo);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -202,11 +278,24 @@ exports.getFileInfo = (req, res) => {
 };
 
 // List all uploaded files
-exports.listFiles = (req, res) => {
+exports.listFiles = async (req, res) => {
     try {
         const uploadsPath = path.join(__dirname, '../uploads');
 
         if (!fs.existsSync(uploadsPath)) {
+            // Log activity
+            if (req.user) {
+                await ActivityService.logActivity({
+                    type: 'files_listed',
+                    description: `${req.user.name} viewed files list (no uploads folder)`,
+                    userId: req.user._id || req.user.id,
+                    meta: {
+                        category: 'file',
+                        operation: 'list'
+                    }
+                });
+            }
+
             return res.json({ files: [] });
         }
 
@@ -224,7 +313,139 @@ exports.listFiles = (req, res) => {
             };
         });
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'files_listed',
+                description: `${req.user.name} viewed files list (${files.length} files)`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    fileCount: files.length,
+                    operation: 'list'
+                }
+            });
+        }
+
         res.json({ files: fileList });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Search files
+exports.searchFiles = async (req, res) => {
+    try {
+        const { searchTerm } = req.query;
+        const uploadsPath = path.join(__dirname, '../uploads');
+
+        if (!fs.existsSync(uploadsPath)) {
+            return res.json({ files: [] });
+        }
+
+        const files = fs.readdirSync(uploadsPath);
+        const filteredFiles = files.filter(filename =>
+            filename.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        const fileList = filteredFiles.map(filename => {
+            const filePath = path.join(uploadsPath, filename);
+            const stats = fs.statSync(filePath);
+
+            return {
+                filename: filename,
+                size: stats.size,
+                createdAt: stats.birthtime,
+                modifiedAt: stats.mtime,
+                url: `/api/files/${filename}`
+            };
+        });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'files_searched',
+                description: `${req.user.name} searched files with term "${searchTerm}" (${filteredFiles.length} results)`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    searchTerm: searchTerm,
+                    resultCount: filteredFiles.length,
+                    operation: 'search'
+                }
+            });
+        }
+
+        res.json({ files: fileList });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Get file statistics
+exports.getFileStats = async (req, res) => {
+    try {
+        const uploadsPath = path.join(__dirname, '../uploads');
+
+        if (!fs.existsSync(uploadsPath)) {
+            // Log activity
+            if (req.user) {
+                await ActivityService.logActivity({
+                    type: 'file_stats_viewed',
+                    description: `${req.user.name} viewed file statistics (no uploads folder)`,
+                    userId: req.user._id || req.user.id,
+                    meta: {
+                        category: 'file',
+                        operation: 'view_stats'
+                    }
+                });
+            }
+
+            return res.json({
+                totalFiles: 0,
+                totalSize: 0,
+                averageSize: 0,
+                fileTypeDistribution: {}
+            });
+        }
+
+        const files = fs.readdirSync(uploadsPath);
+        let totalSize = 0;
+        const fileTypeDistribution = {};
+
+        const fileStats = files.map(filename => {
+            const filePath = path.join(uploadsPath, filename);
+            const stats = fs.statSync(filePath);
+
+            // Track file type distribution
+            const ext = path.extname(filename).toLowerCase();
+            fileTypeDistribution[ext] = (fileTypeDistribution[ext] || 0) + 1;
+
+            totalSize += stats.size;
+            return stats;
+        });
+
+        const stats = {
+            totalFiles: files.length,
+            totalSize: totalSize,
+            averageSize: files.length > 0 ? totalSize / files.length : 0,
+            fileTypeDistribution: fileTypeDistribution
+        };
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'file_stats_viewed',
+                description: `${req.user.name} viewed file statistics`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'file',
+                    operation: 'view_stats'
+                }
+            });
+        }
+
+        res.json(stats);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

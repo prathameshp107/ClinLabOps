@@ -1,10 +1,26 @@
 const Cage = require('../models/Cage');
 const mongoose = require('mongoose');
+const ActivityService = require('../services/activityService');
 
 // Get all cages
 const getCages = async (req, res) => {
     try {
         const cages = await Cage.find().sort({ createdAt: -1 });
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'cages_listed',
+                description: `${req.user.name} viewed the list of cages`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'cage',
+                    cageCount: cages.length,
+                    operation: 'list'
+                }
+            });
+        }
+        
         res.status(200).json(cages);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching cages', error: error.message });
@@ -24,6 +40,22 @@ const getCageById = async (req, res) => {
 
         if (!cage) {
             return res.status(404).json({ message: 'Cage not found' });
+        }
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'cage_viewed',
+                description: `${req.user.name} viewed cage "${cage.name}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'cage',
+                    cageId: cage._id,
+                    cageName: cage.name,
+                    location: cage.location,
+                    operation: 'view'
+                }
+            });
         }
 
         res.status(200).json(cage);
@@ -61,6 +93,22 @@ const createCage = async (req, res) => {
         const cage = new Cage(cageData);
         const savedCage = await cage.save();
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'cage_created',
+                description: `${req.user.name} created cage "${savedCage.name}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'cage',
+                    cageId: savedCage._id,
+                    cageName: savedCage.name,
+                    location: savedCage.location,
+                    operation: 'create'
+                }
+            });
+        }
+
         res.status(201).json(savedCage);
     } catch (error) {
         res.status(500).json({ message: 'Error creating cage', error: error.message });
@@ -97,6 +145,21 @@ const updateCage = async (req, res) => {
             return res.status(404).json({ message: 'Cage not found' });
         }
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'cage_updated',
+                description: `${req.user.name} updated cage "${cage.name}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'cage',
+                    cageId: cage._id,
+                    cageName: cage.name,
+                    operation: 'update'
+                }
+            });
+        }
+
         res.status(200).json(cage);
     } catch (error) {
         res.status(500).json({ message: 'Error updating cage', error: error.message });
@@ -116,6 +179,20 @@ const deleteCage = async (req, res) => {
 
         if (!cage) {
             return res.status(404).json({ message: 'Cage not found' });
+        }
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'cage_deleted',
+                description: `${req.user.name} deleted cage "${cage.name}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'cage',
+                    cageName: cage.name,
+                    operation: 'delete'
+                }
+            });
         }
 
         res.status(200).json({ message: 'Cage deleted successfully' });

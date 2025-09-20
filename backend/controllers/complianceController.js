@@ -1,4 +1,5 @@
 const { ComplianceItem, Audit, TrainingRecord } = require('../models/Compliance');
+const ActivityService = require('../services/activityService');
 
 // COMPLIANCE ITEMS
 exports.getAllComplianceItems = async (req, res) => {
@@ -20,6 +21,21 @@ exports.getAllComplianceItems = async (req, res) => {
 
         const total = await ComplianceItem.countDocuments(filter);
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_items_listed',
+                description: `${req.user.name} viewed compliance items list`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemCount: items.length,
+                    filters: { category, status, priority, department },
+                    operation: 'list'
+                }
+            });
+        }
+
         res.json({
             items,
             totalPages: Math.ceil(total / limit),
@@ -40,6 +56,22 @@ exports.getComplianceItemById = async (req, res) => {
             .populate('evidence.uploadedBy', 'name email');
 
         if (!item) return res.status(404).json({ error: 'Compliance item not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_item_viewed',
+                description: `${req.user.name} viewed compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    operation: 'view'
+                }
+            });
+        }
+
         res.json(item);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -55,6 +87,21 @@ exports.createComplianceItem = async (req, res) => {
         await item.save();
         await item.populate('assignedTo', 'name email');
         await item.populate('createdBy', 'name email');
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_item_created',
+                description: `${req.user.name} created compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    operation: 'create'
+                }
+            });
+        }
 
         res.status(201).json(item);
     } catch (err) {
@@ -73,6 +120,22 @@ exports.updateComplianceItem = async (req, res) => {
             .populate('createdBy', 'name email');
 
         if (!item) return res.status(404).json({ error: 'Compliance item not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_item_updated',
+                description: `${req.user.name} updated compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    operation: 'update'
+                }
+            });
+        }
+
         res.json(item);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -83,6 +146,21 @@ exports.deleteComplianceItem = async (req, res) => {
     try {
         const item = await ComplianceItem.findByIdAndDelete(req.params.id);
         if (!item) return res.status(404).json({ error: 'Compliance item not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_item_deleted',
+                description: `${req.user.name} deleted compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemTitle: item.title,
+                    operation: 'delete'
+                }
+            });
+        }
+
         res.json({ message: 'Compliance item deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -97,6 +175,21 @@ exports.addComplianceAction = async (req, res) => {
         item.actions.push(req.body);
         await item.save();
         await item.populate('actions.assignedTo', 'name email');
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_action_added',
+                description: `${req.user.name} added action to compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    operation: 'add_action'
+                }
+            });
+        }
 
         res.status(201).json(item.actions[item.actions.length - 1]);
     } catch (err) {
@@ -115,7 +208,134 @@ exports.updateComplianceAction = async (req, res) => {
         Object.assign(action, req.body);
         await item.save();
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_action_updated',
+                description: `${req.user.name} updated action in compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    actionId: req.params.actionId,
+                    operation: 'update_action'
+                }
+            });
+        }
+
         res.json(action);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.deleteComplianceAction = async (req, res) => {
+    try {
+        const item = await ComplianceItem.findById(req.params.id);
+        if (!item) return res.status(404).json({ error: 'Compliance item not found' });
+
+        const action = item.actions.id(req.params.actionId);
+        if (!action) return res.status(404).json({ error: 'Action not found' });
+
+        const actionDescription = action.description || 'action';
+        item.actions.pull(req.params.actionId);
+        await item.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_action_deleted',
+                description: `${req.user.name} deleted action from compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    actionId: req.params.actionId,
+                    actionDescription: actionDescription,
+                    operation: 'delete_action'
+                }
+            });
+        }
+
+        res.json({ message: 'Action deleted successfully' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.addComplianceEvidence = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+        const { originalname, size, filename, path } = req.file;
+        const evidence = {
+            name: originalname,
+            size: `${(size / (1024 * 1024)).toFixed(1)} MB`,
+            uploadedAt: new Date(),
+            uploadedBy: req.body.uploadedBy || req.user?.name || 'Unknown',
+            path,
+        };
+
+        const item = await ComplianceItem.findById(id);
+        if (!item) return res.status(404).json({ error: 'Compliance item not found' });
+
+        item.evidence.push(evidence);
+        await item.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_evidence_added',
+                description: `${req.user.name} uploaded evidence "${originalname}" to compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    fileName: originalname,
+                    operation: 'add_evidence'
+                }
+            });
+        }
+
+        res.status(201).json(evidence);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+exports.deleteComplianceEvidence = async (req, res) => {
+    try {
+        const { id, evidenceId } = req.params;
+        const item = await ComplianceItem.findById(id);
+        if (!item) return res.status(404).json({ error: 'Compliance item not found' });
+
+        const evidence = item.evidence.id(evidenceId);
+        const evidenceName = evidence ? evidence.name : 'Unknown file';
+        item.evidence.pull(evidenceId);
+        await item.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_evidence_deleted',
+                description: `${req.user.name} deleted evidence "${evidenceName}" from compliance item "${item.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    itemId: item._id,
+                    itemTitle: item.title,
+                    evidenceId: evidenceId,
+                    evidenceName: evidenceName,
+                    operation: 'delete_evidence'
+                }
+            });
+        }
+
+        res.json({ message: 'Evidence deleted successfully' });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -124,40 +344,55 @@ exports.updateComplianceAction = async (req, res) => {
 // AUDITS
 exports.getAllAudits = async (req, res) => {
     try {
-        const { type, status, department, page = 1, limit = 20 } = req.query;
-        const filter = {};
+        const audits = await Audit.find()
+            .populate('complianceItems.item', 'title')
+            .populate('conductedBy', 'name email')
+            .sort({ scheduledDate: -1 });
 
-        if (type) filter.type = type;
-        if (status) filter.status = status;
-        if (department) filter.department = department;
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'audits_listed',
+                description: `${req.user.name} viewed audits list`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    auditCount: audits.length,
+                    operation: 'list_audits'
+                }
+            });
+        }
 
-        const audits = await Audit.find(filter)
-            .populate('createdBy', 'name email')
-            .populate('findings.assignedTo', 'name email')
-            .sort({ auditDate: -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit);
-
-        const total = await Audit.countDocuments(filter);
-
-        res.json({
-            audits,
-            totalPages: Math.ceil(total / limit),
-            currentPage: parseInt(page),
-            total
-        });
+        res.json(audits);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
+// Add the missing getAuditById function
 exports.getAuditById = async (req, res) => {
     try {
         const audit = await Audit.findById(req.params.id)
-            .populate('createdBy', 'name email')
-            .populate('findings.assignedTo', 'name email department');
+            .populate('complianceItems.item', 'title')
+            .populate('conductedBy', 'name email');
 
         if (!audit) return res.status(404).json({ error: 'Audit not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'audit_viewed',
+                description: `${req.user.name} viewed audit "${audit.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    auditId: audit._id,
+                    auditTitle: audit.title,
+                    operation: 'view_audit'
+                }
+            });
+        }
+
         res.json(audit);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -168,10 +403,26 @@ exports.createAudit = async (req, res) => {
     try {
         const audit = new Audit({
             ...req.body,
-            createdBy: req.user?.id || req.body.createdBy
+            conductedBy: req.user?.id
         });
         await audit.save();
-        await audit.populate('createdBy', 'name email');
+        await audit.populate('complianceItems.item', 'title');
+        await audit.populate('conductedBy', 'name email');
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'audit_created',
+                description: `${req.user.name} created audit "${audit.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    auditId: audit._id,
+                    auditTitle: audit.title,
+                    operation: 'create_audit'
+                }
+            });
+        }
 
         res.status(201).json(audit);
     } catch (err) {
@@ -181,11 +432,31 @@ exports.createAudit = async (req, res) => {
 
 exports.updateAudit = async (req, res) => {
     try {
-        const audit = await Audit.findByIdAndUpdate(req.params.id, req.body, { new: true })
-            .populate('createdBy', 'name email')
-            .populate('findings.assignedTo', 'name email');
+        const audit = await Audit.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body, conductedBy: req.user?.id },
+            { new: true }
+        )
+            .populate('complianceItems.item', 'title')
+            .populate('conductedBy', 'name email');
 
         if (!audit) return res.status(404).json({ error: 'Audit not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'audit_updated',
+                description: `${req.user.name} updated audit "${audit.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    auditId: audit._id,
+                    auditTitle: audit.title,
+                    operation: 'update_audit'
+                }
+            });
+        }
+
         res.json(audit);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -196,6 +467,21 @@ exports.deleteAudit = async (req, res) => {
     try {
         const audit = await Audit.findByIdAndDelete(req.params.id);
         if (!audit) return res.status(404).json({ error: 'Audit not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'audit_deleted',
+                description: `${req.user.name} deleted audit "${audit.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    auditTitle: audit.title,
+                    operation: 'delete_audit'
+                }
+            });
+        }
+
         res.json({ message: 'Audit deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -205,39 +491,56 @@ exports.deleteAudit = async (req, res) => {
 // TRAINING RECORDS
 exports.getAllTrainingRecords = async (req, res) => {
     try {
-        const { category, mandatory, page = 1, limit = 20 } = req.query;
-        const filter = {};
+        const records = await TrainingRecord.find()
+            .populate('assignedTo', 'name email')
+            .populate('completedBy', 'name email')
+            .sort({ dueDate: 1 });
 
-        if (category) filter.category = category;
-        if (mandatory !== undefined) filter.mandatory = mandatory === 'true';
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'training_records_listed',
+                description: `${req.user.name} viewed training records list`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    recordCount: records.length,
+                    operation: 'list_training'
+                }
+            });
+        }
 
-        const records = await TrainingRecord.find(filter)
-            .populate('createdBy', 'name email')
-            .populate('attendees.user', 'name email department')
-            .sort({ trainingDate: -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit);
-
-        const total = await TrainingRecord.countDocuments(filter);
-
-        res.json({
-            records,
-            totalPages: Math.ceil(total / limit),
-            currentPage: parseInt(page),
-            total
-        });
+        res.json(records);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
+// Add the missing getTrainingRecordById function
 exports.getTrainingRecordById = async (req, res) => {
     try {
         const record = await TrainingRecord.findById(req.params.id)
-            .populate('createdBy', 'name email')
-            .populate('attendees.user', 'name email department');
+            .populate('assignedTo', 'name email')
+            .populate('assignedBy', 'name email')
+            .populate('completedBy', 'name email');
 
         if (!record) return res.status(404).json({ error: 'Training record not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'training_record_viewed',
+                description: `${req.user.name} viewed training record "${record.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    recordId: record._id,
+                    recordTitle: record.title,
+                    operation: 'view_training'
+                }
+            });
+        }
+
         res.json(record);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -248,11 +551,26 @@ exports.createTrainingRecord = async (req, res) => {
     try {
         const record = new TrainingRecord({
             ...req.body,
-            createdBy: req.user?.id || req.body.createdBy
+            assignedBy: req.user?.id
         });
         await record.save();
-        await record.populate('createdBy', 'name email');
-        await record.populate('attendees.user', 'name email department');
+        await record.populate('assignedTo', 'name email');
+        await record.populate('assignedBy', 'name email');
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'training_record_created',
+                description: `${req.user.name} created training record "${record.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    recordId: record._id,
+                    recordTitle: record.title,
+                    operation: 'create_training'
+                }
+            });
+        }
 
         res.status(201).json(record);
     } catch (err) {
@@ -262,11 +580,31 @@ exports.createTrainingRecord = async (req, res) => {
 
 exports.updateTrainingRecord = async (req, res) => {
     try {
-        const record = await TrainingRecord.findByIdAndUpdate(req.params.id, req.body, { new: true })
-            .populate('createdBy', 'name email')
-            .populate('attendees.user', 'name email department');
+        const record = await TrainingRecord.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body, assignedBy: req.user?.id },
+            { new: true }
+        )
+            .populate('assignedTo', 'name email')
+            .populate('assignedBy', 'name email');
 
         if (!record) return res.status(404).json({ error: 'Training record not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'training_record_updated',
+                description: `${req.user.name} updated training record "${record.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    recordId: record._id,
+                    recordTitle: record.title,
+                    operation: 'update_training'
+                }
+            });
+        }
+
         res.json(record);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -277,91 +615,124 @@ exports.deleteTrainingRecord = async (req, res) => {
     try {
         const record = await TrainingRecord.findByIdAndDelete(req.params.id);
         if (!record) return res.status(404).json({ error: 'Training record not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'training_record_deleted',
+                description: `${req.user.name} deleted training record "${record.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    recordTitle: record.title,
+                    operation: 'delete_training'
+                }
+            });
+        }
+
         res.json({ message: 'Training record deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
-exports.updateAttendeeStatus = async (req, res) => {
+exports.completeTraining = async (req, res) => {
     try {
-        const { status, score, completedAt } = req.body;
-        const record = await TrainingRecord.findById(req.params.id);
+        const { id } = req.params;
+        const { completionDate, notes } = req.body;
+
+        const record = await TrainingRecord.findById(id);
         if (!record) return res.status(404).json({ error: 'Training record not found' });
 
-        const attendee = record.attendees.id(req.params.attendeeId);
-        if (!attendee) return res.status(404).json({ error: 'Attendee not found' });
-
-        attendee.status = status;
-        if (score !== undefined) attendee.score = score;
-        if (completedAt) attendee.completedAt = completedAt;
-
+        record.status = 'completed';
+        record.completionDate = completionDate || new Date();
+        record.notes = notes;
+        record.completedBy = req.user?.id;
         await record.save();
-        res.json(attendee);
+
+        await record.populate('assignedTo', 'name email');
+        await record.populate('completedBy', 'name email');
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'training_completed',
+                description: `${req.user.name} completed training "${record.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    recordId: record._id,
+                    recordTitle: record.title,
+                    operation: 'complete_training'
+                }
+            });
+        }
+
+        res.json(record);
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
 };
 
-// DASHBOARD STATS
+// Add the missing getComplianceStats function
 exports.getComplianceStats = async (req, res) => {
     try {
+        // Get counts for different compliance items
         const totalItems = await ComplianceItem.countDocuments();
-        const compliantItems = await ComplianceItem.countDocuments({ status: 'Compliant' });
-        const nonCompliantItems = await ComplianceItem.countDocuments({ status: 'Non-Compliant' });
-        const expiredItems = await ComplianceItem.countDocuments({ status: 'Expired' });
-        const actionRequiredItems = await ComplianceItem.countDocuments({ status: 'Action Required' });
-
-        const upcomingDue = await ComplianceItem.countDocuments({
-            dueDate: {
-                $gte: new Date(),
-                $lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-            },
-            status: { $ne: 'Compliant' }
+        const overdueItems = await ComplianceItem.countDocuments({
+            dueDate: { $lt: new Date() },
+            status: { $ne: 'completed' }
         });
+        const pendingItems = await ComplianceItem.countDocuments({ status: 'pending' });
+        const inProgressItems = await ComplianceItem.countDocuments({ status: 'in-progress' });
+        const completedItems = await ComplianceItem.countDocuments({ status: 'completed' });
 
-        const categoryStats = await ComplianceItem.aggregate([
-            { $group: { _id: '$category', count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-        ]);
-
-        const priorityStats = await ComplianceItem.aggregate([
-            { $group: { _id: '$priority', count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-        ]);
-
+        // Get audit stats
         const totalAudits = await Audit.countDocuments();
-        const completedAudits = await Audit.countDocuments({ status: 'Completed' });
-        const openFindings = await Audit.aggregate([
-            { $unwind: '$findings' },
-            { $match: { 'findings.status': 'Open' } },
-            { $count: 'total' }
-        ]);
+        const upcomingAudits = await Audit.countDocuments({
+            scheduledDate: { $gte: new Date() }
+        });
+        const completedAudits = await Audit.countDocuments({ status: 'completed' });
 
-        const totalTrainings = await TrainingRecord.countDocuments();
-        const mandatoryTrainings = await TrainingRecord.countDocuments({ mandatory: true });
+        // Get training stats
+        const totalTraining = await TrainingRecord.countDocuments();
+        const overdueTraining = await TrainingRecord.countDocuments({
+            dueDate: { $lt: new Date() },
+            status: { $ne: 'completed' }
+        });
+        const completedTraining = await TrainingRecord.countDocuments({ status: 'completed' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_stats_viewed',
+                description: `${req.user.name} viewed compliance statistics`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'compliance',
+                    operation: 'view_stats'
+                }
+            });
+        }
 
         res.json({
             complianceItems: {
                 total: totalItems,
-                compliant: compliantItems,
-                nonCompliant: nonCompliantItems,
-                expired: expiredItems,
-                actionRequired: actionRequiredItems,
-                upcomingDue,
-                complianceRate: totalItems > 0 ? ((compliantItems / totalItems) * 100).toFixed(1) : 0
+                overdue: overdueItems,
+                pending: pendingItems,
+                inProgress: inProgressItems,
+                completed: completedItems
             },
             audits: {
                 total: totalAudits,
-                completed: completedAudits,
-                openFindings: openFindings[0]?.total || 0
+                upcoming: upcomingAudits,
+                completed: completedAudits
             },
             training: {
-                total: totalTrainings,
-                mandatory: mandatoryTrainings
-            },
-            categoryStats,
-            priorityStats
+                total: totalTraining,
+                overdue: overdueTraining,
+                completed: completedTraining
+            }
         });
     } catch (err) {
         res.status(500).json({ error: err.message });

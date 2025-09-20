@@ -1,6 +1,7 @@
 const Settings = require('../models/Settings');
 const User = require('../models/User');
 const crypto = require('crypto');
+const ActivityService = require('../services/activityService');
 
 // Encryption helpers for sensitive data
 const encrypt = (text) => {
@@ -127,9 +128,18 @@ const updateSettingsSection = async (req, res) => {
 
         await settings.save();
 
-        // Log the activity
+        // Log activity
         if (req.user) {
-            console.log(`User ${req.user.name} updated ${section} settings`);
+            await ActivityService.logActivity({
+                type: 'settings_updated',
+                description: `${req.user.name} updated ${section} settings`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'settings',
+                    section: section,
+                    operation: 'update'
+                }
+            });
         }
 
         res.json({
@@ -179,6 +189,19 @@ const updateAllSettings = async (req, res) => {
             { $set: updates },
             { new: true, upsert: true, runValidators: true }
         );
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'settings_updated_all',
+                description: `${req.user.name} updated all settings`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'settings',
+                    operation: 'update_all'
+                }
+            });
+        }
 
         res.json({
             message: 'Settings updated successfully',
@@ -233,6 +256,20 @@ const resetSettings = async (req, res) => {
                 await settings.save();
             }
 
+            // Log activity
+            if (req.user) {
+                await ActivityService.logActivity({
+                    type: 'settings_reset_section',
+                    description: `${req.user.name} reset ${section} settings to defaults`,
+                    userId: req.user._id || req.user.id,
+                    meta: {
+                        category: 'settings',
+                        section: section,
+                        operation: 'reset_section'
+                    }
+                });
+            }
+
             res.json({
                 message: `${section} settings reset to defaults`,
                 settings: settings.getPublicSettings()
@@ -248,6 +285,19 @@ const resetSettings = async (req, res) => {
                 ...defaultSettings
             });
             await settings.save();
+
+            // Log activity
+            if (req.user) {
+                await ActivityService.logActivity({
+                    type: 'settings_reset_all',
+                    description: `${req.user.name} reset all settings to defaults`,
+                    userId: req.user._id || req.user.id,
+                    meta: {
+                        category: 'settings',
+                        operation: 'reset_all'
+                    }
+                });
+            }
 
             res.json({
                 message: 'All settings reset to defaults',
@@ -281,6 +331,20 @@ const exportSettings = async (req, res) => {
         const exportData = settings.getPublicSettings();
         exportData.exportedAt = new Date().toISOString();
         exportData.exportedBy = req.user.name;
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'settings_exported',
+                description: `${req.user.name} exported settings in ${format} format`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'settings',
+                    format: format,
+                    operation: 'export'
+                }
+            });
+        }
 
         if (format === 'json') {
             res.setHeader('Content-Type', 'application/json');
@@ -344,6 +408,19 @@ const importSettings = async (req, res) => {
             { $set: importData },
             { upsert: true, runValidators: true }
         );
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'settings_imported',
+                description: `${req.user.name} imported settings`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'settings',
+                    operation: 'import'
+                }
+            });
+        }
 
         const updatedSettings = await Settings.findOne({ userId });
 
@@ -410,6 +487,19 @@ const updateSystemSettings = async (req, res) => {
             { $set: { system: updates } },
             { new: true, upsert: true, runValidators: true }
         );
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'system_settings_updated',
+                description: `${req.user.name} updated system settings`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'settings',
+                    operation: 'update_system'
+                }
+            });
+        }
 
         res.json({
             message: 'System settings updated successfully',

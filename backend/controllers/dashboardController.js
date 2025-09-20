@@ -4,6 +4,7 @@ const Experiment = require('../models/Experiment');
 const { InventoryItem } = require('../models/Inventory');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const ActivityService = require('../services/activityService');
 
 // Get dashboard overview stats
 exports.getDashboardStats = async (req, res) => {
@@ -31,6 +32,19 @@ exports.getDashboardStats = async (req, res) => {
         const recentTasks = await Task.countDocuments({
             createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
         });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'dashboard_viewed',
+                description: `${req.user.name} viewed dashboard`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_dashboard'
+                }
+            });
+        }
 
         res.json({
             projects: {
@@ -77,6 +91,19 @@ exports.getTaskDistribution = async (req, res) => {
             { $group: { _id: '$priority', count: { $sum: 1 } } },
             { $sort: { count: -1 } }
         ]);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'task_distribution_viewed',
+                description: `${req.user.name} viewed task distribution`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_task_distribution'
+                }
+            });
+        }
 
         res.json({
             byStatus: tasksByStatus,
@@ -149,6 +176,19 @@ exports.getRecentActivities = async (req, res) => {
         // Sort by timestamp and limit
         activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'recent_activities_viewed',
+                description: `${req.user.name} viewed recent activities`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_recent_activities'
+                }
+            });
+        }
+
         res.json(activities.slice(0, limit));
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -158,136 +198,110 @@ exports.getRecentActivities = async (req, res) => {
 // Get team performance data
 exports.getTeamPerformance = async (req, res) => {
     try {
-        // Get task completion by assignee
-        const taskPerformance = await Task.aggregate([
-            { $match: { assignee: { $ne: null, $ne: '' } } },
-            {
-                $group: {
-                    _id: '$assignee',
-                    totalTasks: { $sum: 1 },
-                    completedTasks: {
-                        $sum: { $cond: [{ $eq: ['$status', 'done'] }, 1, 0] }
-                    }
-                }
-            },
-            {
-                $project: {
-                    assignee: '$_id',
-                    totalTasks: 1,
-                    completedTasks: 1,
-                    completionRate: {
-                        $multiply: [
-                            { $divide: ['$completedTasks', '$totalTasks'] },
-                            100
-                        ]
-                    }
-                }
-            },
-            { $sort: { completionRate: -1 } },
+        // Get tasks grouped by assignee
+        const tasksByAssignee = await Task.aggregate([
+            { $match: { assignee: { $exists: true, $ne: null } } },
+            { $group: { _id: '$assignee', totalTasks: { $sum: 1 }, completedTasks: { $sum: { $cond: [{ $eq: ['$status', 'done'] }, 1, 0] } } } },
+            { $sort: { totalTasks: -1 } },
             { $limit: 10 }
         ]);
 
-        res.json(taskPerformance);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+        // Get projects grouped by department
+        const projectsByDepartment = await Project.aggregate([
+            { $match: { department: { $exists: true, $ne: null } } },
+            { $group: { _id: '$department', totalProjects: { $sum: 1 }, activeProjects: { $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] } } } },
+            { $sort: { totalProjects: -1 } }
+        ]);
 
-// Get project health data
-exports.getProjectHealth = async (req, res) => {
-    try {
-        const projects = await Project.find()
-            .select('name status progress startDate endDate priority')
-            .sort({ updatedAt: -1 });
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'team_performance_viewed',
+                description: `${req.user.name} viewed team performance data`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_team_performance'
+                }
+            });
+        }
 
-        const projectHealth = projects.map(project => {
-            const now = new Date();
-            const endDate = new Date(project.endDate);
-            const startDate = new Date(project.startDate);
-            const totalDuration = endDate - startDate;
-            const elapsed = now - startDate;
-            const timeProgress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
-
-            let health = 'good';
-            if (project.progress < timeProgress - 20) {
-                health = 'poor';
-            } else if (project.progress < timeProgress - 10) {
-                health = 'warning';
-            }
-
-            return {
-                id: project._id,
-                name: project.name,
-                status: project.status,
-                progress: project.progress || 0,
-                timeProgress: Math.round(timeProgress),
-                priority: project.priority,
-                health,
-                daysRemaining: Math.ceil((endDate - now) / (1000 * 60 * 60 * 24))
-            };
+        res.json({
+            tasksByAssignee,
+            projectsByDepartment
         });
-
-        res.json(projectHealth);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
-// Get experiment progress data
-exports.getExperimentProgress = async (req, res) => {
+// Get system health data
+exports.getSystemHealth = async (req, res) => {
     try {
-        const experiments = await Experiment.aggregate([
-            {
-                $group: {
-                    _id: '$status',
-                    count: { $sum: 1 }
+        // Get database stats
+        const dbStats = await Project.db.stats();
+
+        // Get recent error logs (this would typically come from a logging system)
+        const recentErrors = [];
+
+        // Get system metrics
+        const uptime = process.uptime();
+        const memoryUsage = process.memoryUsage();
+        const cpuUsage = process.cpuUsage();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'system_health_viewed',
+                description: `${req.user.name} viewed system health data`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_system_health'
                 }
-            },
-            { $sort: { count: -1 } }
-        ]);
+            });
+        }
 
-        const totalExperiments = await Experiment.countDocuments();
-
-        const progressData = experiments.map(exp => ({
-            status: exp._id,
-            count: exp.count,
-            percentage: totalExperiments > 0 ? ((exp.count / totalExperiments) * 100).toFixed(1) : 0
-        }));
-
-        res.json(progressData);
+        res.json({
+            dbStats,
+            recentErrors,
+            uptime,
+            memoryUsage,
+            cpuUsage
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
-// Get user activity data
-exports.getUserActivity = async (req, res) => {
+// Get user activity timeline
+exports.getUserActivityTimeline = async (req, res) => {
     try {
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const { days = 30 } = req.query;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - parseInt(days));
 
-        // Get daily user registrations for the last 30 days
+        // Get user activity data
         const userActivity = await User.aggregate([
-            { $match: { createdAt: { $gte: thirtyDaysAgo } } },
-            {
-                $group: {
-                    _id: {
-                        year: { $year: '$createdAt' },
-                        month: { $month: '$createdAt' },
-                        day: { $dayOfMonth: '$createdAt' }
-                    },
-                    count: { $sum: 1 }
-                }
-            },
-            { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+            { $match: { lastLogin: { $gte: startDate } } },
+            { $project: { name: 1, email: 1, lastLogin: 1, createdAt: 1 } },
+            { $sort: { lastLogin: -1 } }
         ]);
 
-        // Format data for charts
-        const formattedData = userActivity.map(item => ({
-            date: `${item._id.year}-${String(item._id.month).padStart(2, '0')}-${String(item._id.day).padStart(2, '0')}`,
-            users: item.count
-        }));
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'user_activity_timeline_viewed',
+                description: `${req.user.name} viewed user activity timeline`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_user_activity'
+                }
+            });
+        }
 
-        res.json(formattedData);
+        res.json(userActivity);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -362,6 +376,19 @@ exports.getComplianceAlerts = async (req, res) => {
             return new Date(b.createdAt) - new Date(a.createdAt);
         });
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'compliance_alerts_viewed',
+                description: `${req.user.name} viewed compliance alerts`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_compliance_alerts'
+                }
+            });
+        }
+
         res.json(alerts);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -393,6 +420,19 @@ exports.getSystemLogs = async (req, res) => {
                 details: 'Connected to MongoDB successfully'
             }
         ];
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'system_logs_viewed',
+                description: `${req.user.name} viewed system logs`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_system_logs'
+                }
+            });
+        }
 
         res.json({
             logs,
@@ -430,6 +470,19 @@ exports.getTaskHeatmap = async (req, res) => {
             date: `${item._id.year}-${String(item._id.month).padStart(2, '0')}-${String(item._id.day).padStart(2, '0')}`,
             count: item.count
         }));
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'task_heatmap_viewed',
+                description: `${req.user.name} viewed task heatmap`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'system',
+                    operation: 'view_task_heatmap'
+                }
+            });
+        }
 
         res.json(heatmapData);
     } catch (err) {

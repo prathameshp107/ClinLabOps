@@ -4,6 +4,7 @@ const { Parser } = require('json2csv');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const stream = require('stream');
+const ActivityService = require('../services/activityService');
 
 /**
  * @desc    Get all experiments with optional filtering and sorting
@@ -37,6 +38,21 @@ exports.getExperiments = async (req, res) => {
     const experiments = await Experiment.find(query)
       .sort(sort)
       .select('-__v');
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiments_listed',
+        description: `${req.user.name} viewed experiments list`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentCount: experiments.length,
+          filters: { status, search },
+          operation: 'list'
+        }
+      });
+    }
 
     res.json(experiments);
   } catch (err) {
@@ -53,6 +69,20 @@ exports.getExperiments = async (req, res) => {
 exports.getExperimentStats = async (req, res) => {
   try {
     const stats = await Experiment.getStats();
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_stats_viewed',
+        description: `${req.user.name} viewed experiment statistics`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          operation: 'view_stats'
+        }
+      });
+    }
+    
     res.json(stats);
   } catch (err) {
     console.error(err.message);
@@ -103,6 +133,22 @@ exports.createExperiment = async (req, res) => {
     });
 
     const experiment = await newExperiment.save();
+
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_created',
+        description: `${req.user.name} created experiment "${experiment.title}"`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentId: experiment._id,
+          experimentTitle: experiment.title,
+          operation: 'create'
+        }
+      });
+    }
+
     res.status(201).json(experiment);
   } catch (err) {
     console.error(err.message);
@@ -125,6 +171,21 @@ exports.getExperimentById = async (req, res) => {
 
     if (!experiment) {
       return res.status(404).json({ msg: 'Experiment not found' });
+    }
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_viewed',
+        description: `${req.user.name} viewed experiment "${experiment.title}"`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentId: experiment._id,
+          experimentTitle: experiment.title,
+          operation: 'view'
+        }
+      });
     }
 
     res.json(experiment);
@@ -181,23 +242,31 @@ exports.updateExperiment = async (req, res) => {
       return res.status(404).json({ msg: 'Experiment not found' });
     }
 
-    // Make sure user owns experiment or has admin role
-    if (!req.user) {
-      return res.status(401).json({ msg: 'Authentication required' });
-    }
-
-    const isOwner = experiment.createdBy && experiment.createdBy.toString() === (req.user._id || req.user.id).toString();
-    const isAdmin = req.user.roles && req.user.roles.includes('Admin');
-
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ msg: 'User not authorized to modify this experiment' });
+    // Make sure user owns experiment
+    if (experiment.createdBy.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
     }
 
     experiment = await Experiment.findByIdAndUpdate(
       req.params.id,
       { $set: experimentFields },
-      { new: true, runValidators: true }
+      { new: true }
     );
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_updated',
+        description: `${req.user.name} updated experiment "${experiment.title}"`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentId: experiment._id,
+          experimentTitle: experiment.title,
+          operation: 'update'
+        }
+      });
+    }
 
     res.json(experiment);
   } catch (err) {
@@ -213,71 +282,171 @@ exports.updateExperiment = async (req, res) => {
  */
 exports.deleteExperiment = async (req, res) => {
   try {
-    console.log('Attempting to delete experiment with ID:', req.params.id);
-
-    // Validate ObjectId format
-    if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ msg: 'Invalid experiment ID format' });
-    }
-
     const experiment = await Experiment.findById(req.params.id);
 
     if (!experiment) {
-      console.log('Experiment not found with ID:', req.params.id);
       return res.status(404).json({ msg: 'Experiment not found' });
     }
 
-    console.log('Found experiment:', experiment.title);
-
-    // Make sure user owns experiment or has admin role
-    if (!req.user) {
-      return res.status(401).json({ msg: 'Authentication required' });
+    // Make sure user owns experiment
+    if (experiment.createdBy.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    const isOwner = experiment.createdBy && experiment.createdBy.toString() === (req.user._id || req.user.id).toString();
-    const isAdmin = req.user.roles && req.user.roles.includes('Admin');
-
-    if (!isOwner && !isAdmin) {
-      console.log('User not authorized to delete experiment');
-      return res.status(403).json({ msg: 'User not authorized to delete this experiment' });
+    await experiment.remove();
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_deleted',
+        description: `${req.user.name} deleted experiment "${experiment.title}"`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentTitle: experiment.title,
+          operation: 'delete'
+        }
+      });
     }
 
-    // Try to delete the experiment using deleteOne method
-    const deleteResult = await Experiment.deleteOne({ _id: req.params.id });
-
-    if (deleteResult.deletedCount === 0) {
-      console.log('Failed to delete experiment - no documents deleted');
-      return res.status(404).json({ msg: 'Experiment not found during deletion' });
-    }
-
-    console.log('Successfully deleted experiment. Deleted count:', deleteResult.deletedCount);
-    res.json({ msg: 'Experiment removed', deletedCount: deleteResult.deletedCount });
+    res.json({ msg: 'Experiment removed' });
   } catch (err) {
-    console.error('Delete experiment error:', err);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Experiment not found' });
-    }
-    res.status(500).json({ msg: 'Server Error', error: err.message });
+    console.error(err.message);
+    res.status(500).send('Server Error');
   }
 };
 
-// @desc    Export experiment data
-// @route   GET /api/experiments/:id/export
-// @access  Private
+/**
+ * @desc    Add note to experiment
+ * @route   POST /api/experiments/:id/notes
+ * @access  Private
+ */
+exports.addNoteToExperiment = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const experiment = await Experiment.findById(req.params.id);
+
+    if (!experiment) {
+      return res.status(404).json({ msg: 'Experiment not found' });
+    }
+
+    const newNote = {
+      content,
+      author: req.user.name,
+      date: new Date()
+    };
+
+    experiment.notes.unshift(newNote);
+    await experiment.save();
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_note_added',
+        description: `${req.user.name} added note to experiment "${experiment.title}"`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentId: experiment._id,
+          experimentTitle: experiment.title,
+          operation: 'add_note'
+        }
+      });
+    }
+
+    res.json(experiment.notes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+/**
+ * @desc    Delete note from experiment
+ * @route   DELETE /api/experiments/:id/notes/:note_id
+ * @access  Private
+ */
+exports.deleteNoteFromExperiment = async (req, res) => {
+  try {
+    const experiment = await Experiment.findById(req.params.id);
+
+    if (!experiment) {
+      return res.status(404).json({ msg: 'Experiment not found' });
+    }
+
+    // Pull out note
+    const note = experiment.notes.find(note => note.id === req.params.note_id);
+
+    // Make sure note exists
+    if (!note) {
+      return res.status(404).json({ msg: 'Note does not exist' });
+    }
+
+    // Check user
+    if (note.author.toString() !== req.user.name) {
+      return res.status(401).json({ msg: 'User not authorized' });
+    }
+
+    experiment.notes = experiment.notes.filter(
+      note => note.id !== req.params.note_id
+    );
+
+    await experiment.save();
+    
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_note_deleted',
+        description: `${req.user.name} deleted note from experiment "${experiment.title}"`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentId: experiment._id,
+          experimentTitle: experiment.title,
+          operation: 'delete_note'
+        }
+      });
+    }
+
+    res.json(experiment.notes);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+};
+
+/**
+ * @desc    Export experiment data
+ * @route   GET /api/experiments/:id/export
+ * @access  Private
+ */
 exports.exportExperiment = async (req, res) => {
   try {
     const { id } = req.params;
     const { format = 'json' } = req.query;
-
     const experiment = await Experiment.findById(id).lean();
-    if (!experiment) {
-      return res.status(404).json({ error: 'Experiment not found' });
-    }
+    if (!experiment) return res.status(404).json({ error: 'Experiment not found' });
 
     // Remove MongoDB internal fields
     const exportData = { ...experiment };
     delete exportData.__v;
     delete exportData._id;
+
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'experiment_exported',
+        description: `${req.user.name} exported experiment "${experiment.title}" as ${format}`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'experiment',
+          experimentId: experiment._id,
+          experimentTitle: experiment.title,
+          exportFormat: format,
+          operation: 'export'
+        }
+      });
+    }
 
     if (format === 'csv') {
       const parser = new Parser();
@@ -287,55 +456,40 @@ exports.exportExperiment = async (req, res) => {
       return res.send(csv);
     } else if (format === 'xlsx') {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Experiment');
+      const worksheet = workbook.addWorksheet('Experiment Data');
+      
+      // Add data to worksheet
+      Object.entries(exportData).forEach(([key, value], index) => {
+        worksheet.getCell(`A${index + 1}`).value = key;
+        worksheet.getCell(`B${index + 1}`).value = typeof value === 'object' ? JSON.stringify(value) : value;
+      });
 
-      // Add headers
-      const headers = Object.keys(exportData);
-      worksheet.addRow(headers);
-
-      // Add data
-      const row = headers.map(header => exportData[header]);
-      worksheet.addRow(row);
-
-      // Set response headers
-      res.setHeader(
-        'Content-Type',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      );
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename=experiment_${id}.xlsx`
-      );
-
-      // Write to response
+      res.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.attachment(`experiment_${id}.xlsx`);
       await workbook.xlsx.write(res);
-      return res.end();
+      res.end();
     } else if (format === 'pdf') {
       const doc = new PDFDocument();
-      const filename = `experiment_${id}.pdf`;
-
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
+      res.header('Content-Type', 'application/pdf');
+      res.attachment(`experiment_${id}.pdf`);
       doc.pipe(res);
-
-      // Add content to PDF
-      doc.fontSize(20).text('Experiment Details', { align: 'center' });
+      
+      doc.fontSize(16).text(`Experiment: ${exportData.title}`, { underline: true });
       doc.moveDown();
-
-      // Add experiment details
-      for (const [key, value] of Object.entries(exportData)) {
-        doc.fontSize(12).text(`${key}: ${JSON.stringify(value)}`);
+      
+      Object.entries(exportData).forEach(([key, value]) => {
+        doc.fontSize(12).text(`${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`);
         doc.moveDown();
-      }
-
+      });
+      
       doc.end();
     } else {
-      // Default to JSON
-      res.json(exportData);
+      // Default: JSON
+      res.header('Content-Type', 'application/json');
+      res.attachment(`experiment_${id}.json`);
+      res.send(JSON.stringify(exportData, null, 2));
     }
-  } catch (error) {
-    console.error('Export error:', error);
-    res.status(500).json({ error: 'Failed to export experiment data' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
