@@ -216,8 +216,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     description: "",
     startDate: new Date(),
     endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
-    status: "Not Started",
-    priority: "Medium",
+    status: "planning",
+    priority: "medium",
     team: [],
     tags: [],
     // New fields
@@ -507,8 +507,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         description: projectData.description,
         startDate: format(projectData.startDate, 'yyyy-MM-dd'),
         endDate: format(projectData.endDate, 'yyyy-MM-dd'),
-        status: projectData.status || "Pending",
-        priority: projectData.priority || "Medium",
+        status: projectData.status || "planning",
+        priority: projectData.priority || "medium",
         progress: 0,
         isFavorite: false,
         team: [],
@@ -544,8 +544,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           description: "",
           startDate: new Date(),
           endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
-          status: "Pending",
-          priority: "Medium",
+          status: "planning",
+          priority: "medium",
           team: [],
           tags: [],
           budget: "",
@@ -681,9 +681,42 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           description: "Good manufacturing practice guidance for active pharmaceutical ingredients",
           tags: ["manufacturing", "quality-control", "pharmaceutical-ingredients"]
         }
+      ],
+      // Templates for Miscellaneous projects
+      miscellaneous: [
+        {
+          id: "misc-1",
+          name: "Pilot Study Template",
+          description: "Template for small-scale preliminary studies to evaluate feasibility, time, cost, and potential adverse effects",
+          tags: ["pilot-study", "feasibility", "preliminary-research"]
+        },
+        {
+          id: "misc-2",
+          name: "Academic Research Template",
+          description: "Template for university-based research projects with literature review and methodology sections",
+          tags: ["academic", "literature-review", "methodology"]
+        },
+        {
+          id: "misc-3",
+          name: "Client-Specific Study Template",
+          description: "Template for client-driven research projects with deliverables and milestone tracking",
+          tags: ["client-project", "deliverables", "milestones"]
+        },
+        {
+          id: "misc-4",
+          name: "Internal Research Template",
+          description: "Template for internal company research initiatives with resource allocation and budget tracking",
+          tags: ["internal-research", "resource-allocation", "budget-tracking"]
+        }
       ]
     };
-    
+
+    // For miscellaneous category, return miscellaneous templates
+    if (type === "miscellaneous") {
+      return templates.miscellaneous || [];
+    }
+
+    // For regulatory categories, return the specific templates
     return templates[type] || [];
   };
 
@@ -696,20 +729,20 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         newTags.push(tag);
       }
     });
-    
+
     // Update project name if it's empty
     const newName = projectData.name || template.name;
-    
+
     // Update description with template description if empty
     const newDescription = projectData.description || `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;
-    
+
     setProjectData(prev => ({
       ...prev,
       name: newName,
       description: newDescription,
       tags: newTags
     }));
-    
+
     // Move to next tab
     setActiveTab("team");
   };
@@ -816,12 +849,12 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         <ul className="list-disc list-inside mt-1 space-y-1">
                           <li><strong>Research:</strong> Exploratory or proof-of-concept studies</li>
                           <li><strong>Regulatory:</strong> Guideline-driven studies for authority submissions</li>
-                          <li><strong>Miscellaneous:</strong> Pilot, academic, or client-specific studies</li>
+                          <li><strong>Miscellaneous:</strong> Pilot, academic, or client-specific studies for non-regulatory purposes</li>
                         </ul>
                       </p>
                     </div>
 
-                    {/* Project Type Selection - Only show for Regulatory projects */}
+                    {/* Project Type Selection - Show for Regulatory projects, hide for Miscellaneous (but still show templates) */}
                     {projectData.category === "regulatory" && (
                       <div className="space-y-3 pt-4 border-t border-border/20">
                         <Label htmlFor="projectType" className="text-sm font-semibold">
@@ -879,14 +912,30 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </div>
                     )}
 
-                    {/* Predefined Templates - Only show for Regulatory projects with a selected type */}
-                    {projectData.category === "regulatory" && projectData.projectType && projectData.projectType !== "other" && (
+                    {/* Info text for Miscellaneous projects */}
+                    {projectData.category === "miscellaneous" && (
+                      <div className="space-y-3 pt-4 border-t border-border/20">
+                        <Label className="text-sm font-semibold">
+                          Miscellaneous Project
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Create pilot, academic, or client-specific studies for non-regulatory purposes.
+                          Select a template below to pre-fill project details or continue without a template.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Predefined Templates - Show for Regulatory projects with a selected type OR for Miscellaneous projects */}
+                    {(projectData.category === "regulatory" && projectData.projectType && projectData.projectType !== "other") ||
+                      (projectData.category === "miscellaneous") ? (
                       <div className="space-y-3 pt-4">
                         <Label className="text-sm font-semibold">
                           Predefined Templates
                         </Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {getTemplatesForType(projectData.projectType).map((template) => (
+                          {getTemplatesForType(
+                            projectData.category === "regulatory" ? projectData.projectType : "miscellaneous"
+                          ).map((template) => (
                             <div
                               key={template.id}
                               className="border rounded-lg p-4 bg-background/50 border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
@@ -911,8 +960,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             </div>
                           ))}
                         </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Select a template to pre-fill project details, or skip to create a project from scratch.
+                        </p>
                       </div>
-                    )}
+                    ) : null}
 
                     <div className="space-y-3">
                       <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1">
@@ -1031,10 +1083,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           </SelectTrigger>
                           <SelectContent>
                             {projectStatuses.map(status => (
-                              <SelectItem key={status.value} value={status.value}>
+                              <SelectItem key={status} value={status}>
                                 <div className="flex items-center gap-2">
-                                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: status.color }} />
-                                  {status.label}
+                                  <div className="h-2 w-2 rounded-full bg-primary" />
+                                  {status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                                 </div>
                               </SelectItem>
                             ))}
@@ -1056,10 +1108,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           </SelectTrigger>
                           <SelectContent>
                             {projectPriorities.map(priority => (
-                              <SelectItem key={priority.value} value={priority.value}>
+                              <SelectItem key={priority} value={priority}>
                                 <div className="flex items-center gap-2">
-                                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: priority.color }} />
-                                  {priority.label}
+                                  <div className="h-2 w-2 rounded-full bg-primary" />
+                                  {priority.charAt(0).toUpperCase() + priority.slice(1)}
                                 </div>
                               </SelectItem>
                             ))}

@@ -71,8 +71,14 @@ const ProjectSchema = new mongoose.Schema({
   description: String,
   startDate: String,
   endDate: String,
-  status: String,
-  priority: String,
+  status: {
+    type: String,
+    default: 'planning'
+  },
+  priority: {
+    type: String,
+    default: 'medium'
+  },
   progress: Number,
   isFavorite: Boolean,
   budget: String,
