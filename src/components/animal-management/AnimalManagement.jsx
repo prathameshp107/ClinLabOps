@@ -91,6 +91,7 @@ import {
 } from "@/components/ui/progress";
 import { animalService } from '@/services/animalService';
 import { breedingService } from '@/services/breedingService';
+import { BreedingPairDetails } from './BreedingPairDetails';
 
 const SPECIES_OPTIONS = [
     { value: 'rat', label: 'Rat', icon: '🐀' },
@@ -142,6 +143,8 @@ export function AnimalManagement() {
     const [isBulkActionDialogOpen, setIsBulkActionDialogOpen] = useState(false);
     const [bulkAction, setBulkAction] = useState('');
     const [error, setError] = useState(null);
+    const [selectedBreedingPair, setSelectedBreedingPair] = useState(null);
+    const [isBreedingDetailsOpen, setIsBreedingDetailsOpen] = useState(false);
 
     // Load animals and breeding pairs
     useEffect(() => {
@@ -344,6 +347,24 @@ export function AnimalManagement() {
 
     const handleCreateBreedingPair = () => {
         setIsBreedingFormOpen(true);
+    };
+
+    const handleViewBreedingPair = (breedingPair) => {
+        setSelectedBreedingPair(breedingPair);
+        setIsBreedingDetailsOpen(true);
+    };
+
+    const handleEditBreedingPair = (updatedBreedingPair) => {
+        setBreedingPairs(breedingPairs.map(pair =>
+            pair._id === updatedBreedingPair._id ? updatedBreedingPair : pair
+        ));
+        setSelectedBreedingPair(updatedBreedingPair);
+    };
+
+    const handleDeleteBreedingPair = (breedingPairId) => {
+        setBreedingPairs(breedingPairs.filter(pair => pair._id !== breedingPairId));
+        // Also refresh the breeding pairs to ensure consistency
+        loadBreedingPairs();
     };
 
     const handleSaveBreedingPair = async (breedingPairData) => {
@@ -1205,8 +1226,22 @@ export function AnimalManagement() {
                                                         </div>
                                                     </div>
                                                     <div className="mt-4 flex justify-end gap-2">
-                                                        <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">View Details</Button>
-                                                        <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">Manage</Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                            onClick={() => handleViewBreedingPair(pair)}
+                                                        >
+                                                            View Details
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                            onClick={() => handleViewBreedingPair(pair)}
+                                                        >
+                                                            Manage
+                                                        </Button>
                                                     </div>
                                                 </CardContent>
                                             </Card>
@@ -1293,6 +1328,15 @@ export function AnimalManagement() {
                 isOpen={isBreedingFormOpen}
                 onClose={() => setIsBreedingFormOpen(false)}
                 onSave={handleSaveBreedingPair}
+                animals={animals}
+            />
+
+            <BreedingPairDetails
+                isOpen={isBreedingDetailsOpen}
+                onClose={() => setIsBreedingDetailsOpen(false)}
+                breedingPair={selectedBreedingPair}
+                onEdit={handleEditBreedingPair}
+                onDelete={handleDeleteBreedingPair}
                 animals={animals}
             />
 
