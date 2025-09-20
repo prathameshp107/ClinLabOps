@@ -232,8 +232,9 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     principalInvestigator: null,
     researchArea: "",
     studyType: "",
-    // Project category field
+    // Project category and type fields
     category: "miscellaneous",
+    projectType: "", // New field for regulatory project type
     documents: {
       protocol: null,
       ethics: null,
@@ -513,6 +514,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         team: [],
         tags: projectData.tags || [],
         category: projectData.category || "miscellaneous",
+        // Include projectType for regulatory projects
+        ...(projectData.category === "regulatory" && { projectType: projectData.projectType || "" }),
         dependencies: [],
         activityLog: [
           {
@@ -555,6 +558,9 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           principalInvestigator: null,
           researchArea: "",
           studyType: "",
+          // Reset project category and type fields
+          category: "miscellaneous",
+          projectType: "",
           documents: {
             protocol: null,
             ethics: null,
@@ -584,6 +590,129 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
       !projectData.tags.includes(tag)
     )
     .slice(0, 5)
+
+  // Function to get templates based on project type
+  const getTemplatesForType = (type) => {
+    const templates = {
+      iso: [
+        {
+          id: "iso-1",
+          name: "ISO 10993-1 Biological Evaluation",
+          description: "Biological evaluation of medical devices - Part 1: Evaluation and testing within a risk management process",
+          tags: ["biocompatibility", "risk-management", "medical-devices"]
+        },
+        {
+          id: "iso-2",
+          name: "ISO 14155 Clinical Investigation",
+          description: "Clinical investigation of medical devices for human subjects - Good clinical practice",
+          tags: ["clinical-trials", "good-clinical-practice", "medical-devices"]
+        },
+        {
+          id: "iso-3",
+          name: "ISO 13485 Quality Management",
+          description: "Quality management systems - Requirements for regulatory purposes",
+          tags: ["quality-systems", "regulatory-compliance", "standards"]
+        }
+      ],
+      oecd: [
+        {
+          id: "oecd-1",
+          name: "OECD Guideline 401",
+          description: "Acute Oral Toxicity - Fixed Dose Procedure",
+          tags: ["toxicity", "oral-administration", "safety-testing"]
+        },
+        {
+          id: "oecd-2",
+          name: "OECD Guideline 402",
+          description: "Acute Dermal Toxicity",
+          tags: ["toxicity", "dermal-exposure", "safety-testing"]
+        },
+        {
+          id: "oecd-3",
+          name: "OECD Guideline 403",
+          description: "Acute Inhalation Toxicity",
+          tags: ["toxicity", "inhalation-exposure", "safety-testing"]
+        }
+      ],
+      fda: [
+        {
+          id: "fda-1",
+          name: "FDA 21 CFR Part 11",
+          description: "Electronic Records and Electronic Signatures",
+          tags: ["electronic-records", "digital-signatures", "compliance"]
+        },
+        {
+          id: "fda-2",
+          name: "FDA 510(k) Template",
+          description: "Premarket Notification for Medical Devices",
+          tags: ["medical-devices", "premarket-notification", "regulatory-submission"]
+        },
+        {
+          id: "fda-3",
+          name: "FDA IND Application",
+          description: "Investigational New Drug Application",
+          tags: ["drug-development", "clinical-trials", "regulatory-submission"]
+        }
+      ],
+      ema: [
+        {
+          id: "ema-1",
+          name: "EMA Clinical Trial Application",
+          description: "Application for authorization of a clinical trial",
+          tags: ["clinical-trials", "authorization", "european-regulations"]
+        },
+        {
+          id: "ema-2",
+          name: "EMA Risk Management Plan",
+          description: "Pharmacovigilance risk management plan template",
+          tags: ["risk-management", "pharmacovigilance", "safety-monitoring"]
+        }
+      ],
+      ich: [
+        {
+          id: "ich-1",
+          name: "ICH E6 (R2) Good Clinical Practice",
+          description: "Guideline for good clinical practice in clinical trials",
+          tags: ["clinical-trials", "good-clinical-practice", "international-harmonization"]
+        },
+        {
+          id: "ich-2",
+          name: "ICH Q7 Active Pharmaceutical Ingredients",
+          description: "Good manufacturing practice guidance for active pharmaceutical ingredients",
+          tags: ["manufacturing", "quality-control", "pharmaceutical-ingredients"]
+        }
+      ]
+    };
+    
+    return templates[type] || [];
+  };
+
+  // Function to handle template selection
+  const handleTemplateSelect = (template) => {
+    // Add template tags to project tags
+    const newTags = [...projectData.tags];
+    template.tags.forEach(tag => {
+      if (!newTags.includes(tag)) {
+        newTags.push(tag);
+      }
+    });
+    
+    // Update project name if it's empty
+    const newName = projectData.name || template.name;
+    
+    // Update description with template description if empty
+    const newDescription = projectData.description || `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;
+    
+    setProjectData(prev => ({
+      ...prev,
+      name: newName,
+      description: newDescription,
+      tags: newTags
+    }));
+    
+    // Move to next tab
+    setActiveTab("team");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -691,6 +820,99 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         </ul>
                       </p>
                     </div>
+
+                    {/* Project Type Selection - Only show for Regulatory projects */}
+                    {projectData.category === "regulatory" && (
+                      <div className="space-y-3 pt-4 border-t border-border/20">
+                        <Label htmlFor="projectType" className="text-sm font-semibold">
+                          Regulatory Project Type
+                        </Label>
+                        <Select
+                          value={projectData.projectType || ""}
+                          onValueChange={(value) => handleSelectChange(value, "projectType")}
+                        >
+                          <SelectTrigger id="projectType" className="bg-background/50 border-border/50 h-11">
+                            <SelectValue placeholder="Select regulatory project type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="iso">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-blue-500" />
+                                ISO Standards
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="oecd">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-green-500" />
+                                OECD Guidelines
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="fda">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-red-500" />
+                                FDA Regulations
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="ema">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-purple-500" />
+                                EMA Guidelines
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="ich">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-orange-500" />
+                                ICH Guidelines
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="other">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-gray-500" />
+                                Other Regulatory Framework
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Select the regulatory framework that applies to this project
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Predefined Templates - Only show for Regulatory projects with a selected type */}
+                    {projectData.category === "regulatory" && projectData.projectType && projectData.projectType !== "other" && (
+                      <div className="space-y-3 pt-4">
+                        <Label className="text-sm font-semibold">
+                          Predefined Templates
+                        </Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {getTemplatesForType(projectData.projectType).map((template) => (
+                            <div
+                              key={template.id}
+                              className="border rounded-lg p-4 bg-background/50 border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
+                              onClick={() => handleTemplateSelect(template)}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="mt-1">
+                                  <FileText className="h-5 w-5 text-primary" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-sm">{template.name}</h4>
+                                  <p className="text-xs text-muted-foreground mt-1">{template.description}</p>
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {template.tags.map((tag) => (
+                                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1">

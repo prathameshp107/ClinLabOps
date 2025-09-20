@@ -96,6 +96,12 @@ const ProjectSchema = new mongoose.Schema({
     type: String,
     enum: ['research', 'regulatory', 'miscellaneous'],
     default: 'miscellaneous'
+  },
+  // Add projectType field for regulatory projects
+  projectType: {
+    type: String,
+    enum: ['iso', 'oecd', 'fda', 'ema', 'ich', 'other', ''],
+    default: ''
   }
 }, { timestamps: true });
 

@@ -92,11 +92,19 @@ exports.createProject = async (req, res) => {
             ? req.body.category
             : 'miscellaneous';
 
+        // Ensure projectType is valid for regulatory projects or default to empty string
+        let projectType = '';
+        if (category === 'regulatory' && req.body.projectType) {
+            const validTypes = ['iso', 'oecd', 'fda', 'ema', 'ich', 'other'];
+            projectType = validTypes.includes(req.body.projectType) ? req.body.projectType : '';
+        }
+
         // Create the project with the generated code
         const project = new Project({
             ...req.body,
             projectCode,
-            category
+            category,
+            projectType
         });
         await project.save();
 
@@ -117,6 +125,11 @@ exports.updateProject = async (req, res) => {
         // Ensure category is valid if provided
         if (req.body.category && !['research', 'regulatory', 'miscellaneous'].includes(req.body.category)) {
             return res.status(400).json({ error: 'Invalid category value' });
+        }
+
+        // Ensure projectType is valid if provided
+        if (req.body.projectType && !['iso', 'oecd', 'fda', 'ema', 'ich', 'other', ''].includes(req.body.projectType)) {
+            return res.status(400).json({ error: 'Invalid projectType value' });
         }
 
         const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });

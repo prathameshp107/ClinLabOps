@@ -730,6 +730,7 @@ const project3 = {
     projectCode: "EMS-2024-003",
     tags: ["environmental", "monitoring", "iot", "sensors", "analytics", "compliance", "regulatory"],
     category: "regulatory",
+    projectType: "iso", // Added projectType field
 
     team: [
         {
@@ -1013,6 +1014,7 @@ const project5 = {
     projectCode: "BDT-2024-005",
     tags: ["biomedical", "device-testing", "validation", "regulatory", "safety", "medical-devices", "regulatory"],
     category: "regulatory",
+    projectType: "fda", // Added projectType field
 
     team: [
         {

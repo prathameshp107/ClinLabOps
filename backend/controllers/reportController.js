@@ -238,44 +238,34 @@ exports.generateUserReport = async (req, res) => {
 // Generate compliance report
 exports.generateComplianceReport = async (req, res) => {
     try {
-        const { format = 'json', category, status, department, startDate, endDate } = req.query;
+        const { format = 'json', status, category, dueDate } = req.query;
 
         const filter = {};
-        if (category) filter.category = category;
         if (status) filter.status = status;
-        if (department) filter.department = department;
-        if (startDate || endDate) {
-            filter.dueDate = {};
-            if (startDate) filter.dueDate.$gte = new Date(startDate);
-            if (endDate) filter.dueDate.$lte = new Date(endDate);
-        }
+        if (category) filter.category = category;
+        if (dueDate) filter.dueDate = { $lte: new Date(dueDate) };
 
-        const items = await ComplianceItem.find(filter)
-            .populate('assignedTo', 'name email')
-            .populate('createdBy', 'name email')
-            .lean();
+        const complianceItems = await ComplianceItem.find(filter).lean();
 
         const reportData = {
             title: 'Compliance Report',
             generatedAt: new Date(),
-            filters: { category, status, department, startDate, endDate },
+            filters: { status, category, dueDate },
             summary: {
-                totalItems: items.length,
-                byStatus: items.reduce((acc, item) => {
+                totalItems: complianceItems.length,
+                byStatus: complianceItems.reduce((acc, item) => {
                     acc[item.status] = (acc[item.status] || 0) + 1;
                     return acc;
                 }, {}),
-                byCategory: items.reduce((acc, item) => {
+                byCategory: complianceItems.reduce((acc, item) => {
                     acc[item.category] = (acc[item.category] || 0) + 1;
                     return acc;
                 }, {}),
-                byDepartment: items.reduce((acc, item) => {
-                    if (item.department) acc[item.department] = (acc[item.department] || 0) + 1;
-                    return acc;
-                }, {}),
-                overdueItems: items.filter(item => item.status !== 'completed' && item.dueDate < new Date()).length
+                overdueItems: complianceItems.filter(item =>
+                    item.status !== 'Completed' && new Date(item.dueDate) < new Date()
+                ).length
             },
-            items
+            complianceItems
         };
 
         // Log activity
@@ -288,7 +278,7 @@ exports.generateComplianceReport = async (req, res) => {
                     category: 'report',
                     reportType: 'compliance',
                     format: format,
-                    filters: { category, status, department, startDate, endDate },
+                    filters: { status, category, dueDate },
                     operation: 'generate'
                 }
             });
@@ -300,39 +290,36 @@ exports.generateComplianceReport = async (req, res) => {
     }
 };
 
-// Generate audit report
+// Generate audit report (was experiments)
 exports.generateAuditReport = async (req, res) => {
     try {
-        const { format = 'json', status, startDate, endDate } = req.query;
+        const { format = 'json', status, auditor, startDate, endDate } = req.query;
 
         const filter = {};
         if (status) filter.status = status;
-        if (startDate || endDate) {
-            filter.scheduledDate = {};
-            if (startDate) filter.scheduledDate.$gte = new Date(startDate);
-            if (endDate) filter.scheduledDate.$lte = new Date(endDate);
-        }
+        if (auditor) filter.auditor = auditor;
+        if (startDate) filter.scheduledDate = { $gte: new Date(startDate) };
+        if (endDate) filter.scheduledDate = { ...filter.scheduledDate, $lte: new Date(endDate) };
 
-        const audits = await Audit.find(filter)
-            .populate('complianceItems.item', 'title')
-            .populate('conductedBy', 'name email')
-            .lean();
+        const audits = await Audit.find(filter).lean();
 
         const reportData = {
             title: 'Audit Report',
             generatedAt: new Date(),
-            filters: { status, startDate, endDate },
+            filters: { status, auditor, startDate, endDate },
             summary: {
                 totalAudits: audits.length,
                 byStatus: audits.reduce((acc, audit) => {
                     acc[audit.status] = (acc[audit.status] || 0) + 1;
                     return acc;
                 }, {}),
-                byResult: audits.reduce((acc, audit) => {
-                    if (audit.result) acc[audit.result] = (acc[audit.result] || 0) + 1;
+                byAuditor: audits.reduce((acc, audit) => {
+                    if (audit.auditor) acc[audit.auditor] = (acc[audit.auditor] || 0) + 1;
                     return acc;
                 }, {}),
-                overdueAudits: audits.filter(audit => audit.status !== 'completed' && audit.scheduledDate < new Date()).length
+                upcomingAudits: audits.filter(audit =>
+                    audit.status === 'Scheduled' && new Date(audit.scheduledDate) >= new Date()
+                ).length
             },
             audits
         };
@@ -347,7 +334,7 @@ exports.generateAuditReport = async (req, res) => {
                     category: 'report',
                     reportType: 'audit',
                     format: format,
-                    filters: { status, startDate, endDate },
+                    filters: { status, auditor, startDate, endDate },
                     operation: 'generate'
                 }
             });
@@ -359,37 +346,35 @@ exports.generateAuditReport = async (req, res) => {
     }
 };
 
-// Generate experiment report
+// Generate experiment report (was dashboard)
 exports.generateExperimentReport = async (req, res) => {
     try {
-        const { format = 'json', status, priority, startDate, endDate } = req.query;
+        const { format = 'json', status, researcher, startDate, endDate } = req.query;
 
         const filter = {};
         if (status) filter.status = status;
-        if (priority) filter.priority = priority;
-        if (startDate || endDate) {
-            filter.createdAt = {};
-            if (startDate) filter.createdAt.$gte = new Date(startDate);
-            if (endDate) filter.createdAt.$lte = new Date(endDate);
-        }
+        if (researcher) filter.researcher = researcher;
+        if (startDate) filter.createdAt = { $gte: new Date(startDate) };
+        if (endDate) filter.createdAt = { ...filter.createdAt, $lte: new Date(endDate) };
 
         const experiments = await Experiment.find(filter).lean();
 
         const reportData = {
             title: 'Experiment Report',
             generatedAt: new Date(),
-            filters: { status, priority, startDate, endDate },
+            filters: { status, researcher, startDate, endDate },
             summary: {
                 totalExperiments: experiments.length,
                 byStatus: experiments.reduce((acc, exp) => {
                     acc[exp.status] = (acc[exp.status] || 0) + 1;
                     return acc;
                 }, {}),
-                byPriority: experiments.reduce((acc, exp) => {
-                    acc[exp.priority] = (acc[exp.priority] || 0) + 1;
+                byResearcher: experiments.reduce((acc, exp) => {
+                    if (exp.researcher) acc[exp.researcher] = (acc[exp.researcher] || 0) + 1;
                     return acc;
                 }, {}),
-                averageProgress: experiments.reduce((sum, exp) => sum + (exp.progress || 0), 0) / experiments.length || 0
+                averageDuration: experiments.length > 0 ?
+                    experiments.reduce((sum, exp) => sum + (exp.duration || 0), 0) / experiments.length : 0
             },
             experiments
         };
@@ -404,7 +389,7 @@ exports.generateExperimentReport = async (req, res) => {
                     category: 'report',
                     reportType: 'experiment',
                     format: format,
-                    filters: { status, priority, startDate, endDate },
+                    filters: { status, researcher, startDate, endDate },
                     operation: 'generate'
                 }
             });
@@ -416,7 +401,7 @@ exports.generateExperimentReport = async (req, res) => {
     }
 };
 
-// Shared report generation function
+// Generic report generation function
 async function generateReport(res, reportData, format, filename) {
     try {
         if (format === 'csv') {
