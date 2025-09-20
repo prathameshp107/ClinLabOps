@@ -173,33 +173,8 @@ export function AnimalManagement() {
             setBreedingPairs(breedingPairsData);
         } catch (error) {
             console.error('Error loading breeding pairs:', error);
-            // Fallback to mock data if API fails
-            setBreedingPairs([
-                {
-                    _id: '60f7b2d1e3c8a40015d2f1a1',
-                    maleId: '60f7b2d1e3c8a40015d2f1b1',
-                    femaleId: '60f7b2d1e3c8a40015d2f1b2',
-                    maleName: 'Specimen-004',
-                    femaleName: 'Specimen-002',
-                    startDate: '2024-05-15T00:00:00.000Z',
-                    expectedDelivery: '2024-07-20T00:00:00.000Z',
-                    status: 'active',
-                    offspringCount: 8,
-                    notes: 'First litter expected'
-                },
-                {
-                    _id: '60f7b2d1e3c8a40015d2f1a2',
-                    maleId: '60f7b2d1e3c8a40015d2f1b3',
-                    femaleId: '60f7b2d1e3c8a40015d2f1b4',
-                    maleName: 'Specimen-006',
-                    femaleName: 'Specimen-007',
-                    startDate: '2024-06-01T00:00:00.000Z',
-                    expectedDelivery: '2024-08-05T00:00:00.000Z',
-                    status: 'active',
-                    offspringCount: 0,
-                    notes: 'Monitoring closely'
-                }
-            ]);
+            // Set empty array instead of mock data
+            setBreedingPairs([]);
         }
     };
 
@@ -534,23 +509,8 @@ export function AnimalManagement() {
 
     // Add timeline/history tracking
     const getAnimalTimeline = (animalId) => {
-        // Mock timeline data
-        return [
-            {
-                id: 1,
-                date: '2024-06-15T14:30:00Z',
-                action: 'Experiment Assigned',
-                description: 'Added to cardiovascular study (EXP-001)',
-                user: 'Dr. Johnson'
-            },
-            {
-                id: 2,
-                date: '2024-05-20T11:00:00Z',
-                action: 'Animal Registered',
-                description: 'New animal added to the system',
-                user: 'Lab Technician'
-            }
-        ];
+        // Return empty array instead of mock data
+        return [];
     };
 
     // Add animal grouping (remove health grouping)
