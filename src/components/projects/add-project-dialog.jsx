@@ -299,6 +299,23 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     },
   })
 
+  // Update editor content when projectData.description changes
+  useEffect(() => {
+    if (editor && projectData.description !== editor.getHTML()) {
+      editor.commands.setContent(projectData.description)
+    }
+  }, [editor, projectData.description])
+
+  // Focus editor when dialog opens
+  useEffect(() => {
+    if (open && editor) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        editor.commands.focus()
+      }, 100)
+    }
+  }, [open, editor])
+
   const validateForm = () => {
     const errors = {}
 
@@ -844,14 +861,14 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         Select the appropriate category for this project:
                         <ul className="list-disc list-inside mt-1 space-y-1">
                           <li><strong>Research:</strong> Exploratory or proof-of-concept studies</li>
                           <li><strong>Regulatory:</strong> Guideline-driven studies for authority submissions</li>
                           <li><strong>Miscellaneous:</strong> Pilot, academic, or client-specific studies for non-regulatory purposes</li>
                         </ul>
-                      </p>
+                      </div>
                     </div>
 
                     {/* Project Type Selection - Show for Regulatory projects, hide for Miscellaneous (but still show templates) */}
@@ -1002,13 +1019,13 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         Description <span className="text-destructive">*</span>
                       </Label>
                       <div className={cn(
-                        "border rounded-lg transition-all duration-200 bg-background/50 border-border/50 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 shadow-sm",
+                        "border rounded-lg transition-all duration-200 bg-background/50 border-border/50 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 shadow-sm overflow-hidden",
                         formErrors.description ? "border-destructive/50 ring-1 ring-destructive/20" : ""
                       )}>
                         <EditorMenuBar editor={editor} />
                         <EditorContent
                           editor={editor}
-                          className="p-4 min-h-[160px] prose prose-sm max-w-none focus:outline-none"
+                          className="p-4 min-h-[160px] prose prose-sm max-w-none focus:outline-none bg-background [&_*]:outline-none [&_*]:border-none [&_*]:ring-0 [&_*]:selection:bg-primary/10 [&_*]:selection:text-inherit [&_p]:my-0 [&_p]:leading-relaxed"
                         />
                       </div>
                       {formErrors.description && (
