@@ -555,11 +555,14 @@ export function AnimalManagement() {
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                <p className="text-red-700">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+                <div className="text-red-500 mb-2">
+                    <AlertCircle className="h-12 w-12 mx-auto" />
+                </div>
+                <p className="text-red-700 font-medium">{error}</p>
                 <Button
                     onClick={loadAnimals}
-                    className="mt-3 bg-red-600 hover:bg-red-700 text-white"
+                    className="mt-4 bg-red-600 hover:bg-red-700 text-white rounded-xl"
                 >
                     Retry
                 </Button>
@@ -569,45 +572,46 @@ export function AnimalManagement() {
 
     return (
         <div className="space-y-6 w-full">
-            {/* Header Actions */}
+            {/* Header Actions - Modernized Design */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                     <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <Input
                             placeholder="Search animals by name, species, strain, or location..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 py-5 rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="pl-10 py-5 rounded-2xl border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 focus:border-blue-500 dark:focus:border-blue-500 shadow-sm transition-all duration-300"
                         />
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Label htmlFor="active-toggle" className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800/50 px-5 py-3 rounded-2xl border border-gray-200 dark:border-gray-700">
+                        <Label htmlFor="active-toggle" className="text-sm text-gray-700 dark:text-gray-300 font-medium">
                             Active only
                         </Label>
                         <Switch
                             id="active-toggle"
                             checked={showOnlyActive}
                             onCheckedChange={setShowOnlyActive}
+                            className="data-[state=checked]:bg-blue-600"
                         />
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 w-full md:w-auto justify-start md:justify-end">
+                <div className="flex flex-wrap gap-3 w-full md:w-auto justify-start md:justify-end">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex items-center gap-2 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <Button variant="outline" className="flex items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md">
                                 <SlidersHorizontal className="h-4 w-4" />
                                 <span className="hidden sm:inline">View Options</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => setViewMode('grid')} className="flex items-center gap-2 cursor-pointer">
+                        <DropdownMenuContent align="end" className="w-48 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl">
+                            <DropdownMenuItem onClick={() => setViewMode('grid')} className="flex items-center gap-2 cursor-pointer rounded-xl py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800">
                                 <Grid className="h-4 w-4" />
                                 Grid View
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setViewMode('list')} className="flex items-center gap-2 cursor-pointer">
+                            <DropdownMenuItem onClick={() => setViewMode('list')} className="flex items-center gap-2 cursor-pointer rounded-xl py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800">
                                 <List className="h-4 w-4" />
                                 List View
                             </DropdownMenuItem>
@@ -616,83 +620,87 @@ export function AnimalManagement() {
 
                     <AnimalFilters filters={filters} onFiltersChange={setFilters} />
 
-                    <Button onClick={handleAddAnimal} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    <Button onClick={handleAddAnimal} className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-3 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                         <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline">Add Animal</span>
+                        <span className="hidden sm:inline font-medium">Add Animal</span>
                     </Button>
                 </div>
             </div>
 
-            {/* Active Filters Bar */}
+            {/* Active Filters Bar - Modernized Design */}
             {(searchTerm || filters.species !== '__all__' || filters.status !== '__all__' || showOnlyActive || filters.gender !== '__all__' || filters.hasExperiments) && (
-                <div className="flex flex-wrap items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                    <span className="text-sm font-medium text-blue-800 dark:text-blue-200 flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-3 p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                    <span className="text-sm font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2">
                         <Filter className="h-4 w-4" />
                         Active filters:
                     </span>
                     {searchTerm && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Search: "{searchTerm}"
+                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <span className="text-xs font-medium">Search:</span>
+                            <span className="text-xs">"{searchTerm}"</span>
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="ml-1 hover:text-red-600"
+                                className="ml-1 hover:text-red-500 transition-colors"
                             >
-                                ×
+                                <X className="h-3.5 w-3.5" />
                             </button>
                         </Badge>
                     )}
                     {filters.species && filters.species !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Species: {SPECIES_OPTIONS.find(s => s.value === filters.species)?.label}
+                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <span className="text-xs font-medium">Species:</span>
+                            <span className="text-xs">{SPECIES_OPTIONS.find(s => s.value === filters.species)?.label}</span>
                             <button
                                 onClick={() => setFilters({ ...filters, species: '__all__' })}
-                                className="ml-1 hover:text-red-600"
+                                className="ml-1 hover:text-red-500 transition-colors"
                             >
-                                ×
+                                <X className="h-3.5 w-3.5" />
                             </button>
                         </Badge>
                     )}
                     {filters.status && filters.status !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Status: {filters.status}
+                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <span className="text-xs font-medium">Status:</span>
+                            <span className="text-xs">{filters.status}</span>
                             <button
                                 onClick={() => setFilters({ ...filters, status: '__all__' })}
-                                className="ml-1 hover:text-red-600"
+                                className="ml-1 hover:text-red-500 transition-colors"
                             >
-                                ×
+                                <X className="h-3.5 w-3.5" />
                             </button>
                         </Badge>
                     )}
                     {filters.gender && filters.gender !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Gender: {GENDER_OPTIONS.find(g => g.value === filters.gender)?.label}
+                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <span className="text-xs font-medium">Gender:</span>
+                            <span className="text-xs">{GENDER_OPTIONS.find(g => g.value === filters.gender)?.label}</span>
                             <button
                                 onClick={() => setFilters({ ...filters, gender: '__all__' })}
-                                className="ml-1 hover:text-red-600"
+                                className="ml-1 hover:text-red-500 transition-colors"
                             >
-                                ×
+                                <X className="h-3.5 w-3.5" />
                             </button>
                         </Badge>
                     )}
                     {filters.hasExperiments && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Has Experiments
+                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <span className="text-xs font-medium">Has Experiments</span>
                             <button
                                 onClick={() => setFilters({ ...filters, hasExperiments: false })}
-                                className="ml-1 hover:text-red-600"
+                                className="ml-1 hover:text-red-500 transition-colors"
                             >
-                                ×
+                                <X className="h-3.5 w-3.5" />
                             </button>
                         </Badge>
                     )}
                     {showOnlyActive && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Active Only
+                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
+                            <span className="text-xs font-medium">Active Only</span>
                             <button
                                 onClick={() => setShowOnlyActive(false)}
-                                className="ml-1 hover:text-red-600"
+                                className="ml-1 hover:text-red-500 transition-colors"
                             >
-                                ×
+                                <X className="h-3.5 w-3.5" />
                             </button>
                         </Badge>
                     )}
@@ -700,99 +708,95 @@ export function AnimalManagement() {
                         variant="ghost"
                         size="sm"
                         onClick={clearAllFilters}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 h-6 px-2 text-xs flex items-center gap-1"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 h-7 px-3 text-xs flex items-center gap-1.5 rounded-full font-medium transition-colors"
                     >
-                        <FilterX className="h-3 w-3" />
+                        <FilterX className="h-3.5 w-3.5" />
                         Clear All
                     </Button>
                 </div>
             )}
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-                <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                    <CardContent className="p-5">
-                        <div className="flex items-center justify-between">
+            {/* Statistics Cards - Modernized Design */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5">
+                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
+                    <CardContent className="p-6 relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Animals</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Total Animals</p>
+                                <p className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">{stats.total}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                            <div className="p-4 rounded-2xl bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/30 transition-all duration-300 transform group-hover:scale-110">
                                 <span className="text-2xl">🐾</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                    <CardContent className="p-5">
-                        <div className="flex items-center justify-between">
+                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
+                    <CardContent className="p-6 relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-green-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
-                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                    {stats.active}
-                                </p>
+                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Active</p>
+                                <p className="text-4xl font-bold text-green-600 dark:text-green-400 tracking-tight">{stats.active}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900/30">
+                            <div className="p-4 rounded-2xl bg-green-100 dark:bg-green-900/20 group-hover:bg-green-200 dark:group-hover:bg-green-800/30 transition-all duration-300 transform group-hover:scale-110">
                                 <span className="text-2xl">✅</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                    <CardContent className="p-5">
-                        <div className="flex items-center justify-between">
+                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
+                    <CardContent className="p-6 relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Quarantine</p>
-                                <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                                    {stats.quarantine}
-                                </p>
+                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Quarantine</p>
+                                <p className="text-4xl font-bold text-yellow-600 dark:text-yellow-400 tracking-tight">{stats.quarantine}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+                            <div className="p-4 rounded-2xl bg-yellow-100 dark:bg-yellow-900/20 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/30 transition-all duration-300 transform group-hover:scale-110">
                                 <span className="text-2xl">⚠️</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                    <CardContent className="p-5">
-                        <div className="flex items-center justify-between">
+                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
+                    <CardContent className="p-6 relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Species</p>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {stats.speciesCount}
-                                </p>
+                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Species</p>
+                                <p className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">{stats.speciesCount}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30">
+                            <div className="p-4 rounded-2xl bg-purple-100 dark:bg-purple-900/20 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/30 transition-all duration-300 transform group-hover:scale-110">
                                 <span className="text-2xl">🧬</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                    <CardContent className="p-5">
-                        <div className="flex items-center justify-between">
+                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
+                    <CardContent className="p-6 relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Experiments</p>
-                                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                    {stats.experimentsCount}
-                                </p>
+                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Experiments</p>
+                                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">{stats.experimentsCount}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30">
+                            <div className="p-4 rounded-2xl bg-blue-100 dark:bg-blue-900/20 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/30 transition-all duration-300 transform group-hover:scale-110">
                                 <span className="text-2xl">🔬</span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
-                    <CardContent className="p-5">
-                        <div className="flex items-center justify-between">
+                <Card className="group hover:shadow-xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-800/50 dark:to-gray-900/50 overflow-hidden transform hover:-translate-y-1">
+                    <CardContent className="p-6 relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500 rounded-full -mr-16 -mt-16 opacity-5 group-hover:opacity-10 transition-all duration-500"></div>
+                        <div className="flex items-center justify-between relative z-10">
                             <div>
-                                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Needs Health Check</p>
-                                <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                                    {stats.needsHealthCheck}
-                                </p>
+                                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-1">Needs Health Check</p>
+                                <p className="text-4xl font-bold text-red-600 dark:text-red-400 tracking-tight">{stats.needsHealthCheck}</p>
                             </div>
-                            <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30">
+                            <div className="p-4 rounded-2xl bg-red-100 dark:bg-red-900/20 group-hover:bg-red-200 dark:group-hover:bg-red-800/30 transition-all duration-300 transform group-hover:scale-110">
                                 <span className="text-2xl">🩺</span>
                             </div>
                         </div>
@@ -820,17 +824,17 @@ export function AnimalManagement() {
                 <TabsContent value="overview" className="space-y-6 mt-6">
                     {/* Bulk Actions Bar */}
                     {selectedAnimals.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <div className="flex flex-wrap items-center gap-4 p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                            <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
                                 {selectedAnimals.length} animal{selectedAnimals.length !== 1 ? 's' : ''} selected
                             </span>
-                            <Separator orientation="vertical" className="h-5 bg-gray-300 dark:bg-gray-600" />
-                            <div className="flex flex-wrap gap-2">
+                            <Separator orientation="vertical" className="h-6 bg-blue-300 dark:bg-blue-700" />
+                            <div className="flex flex-wrap gap-3">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleBulkAction('export')}
-                                    className="flex items-center gap-1 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    className="flex items-center gap-1.5 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
                                 >
                                     <Download className="h-4 w-4" />
                                     Export
@@ -839,7 +843,7 @@ export function AnimalManagement() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleBulkAction('set-active')}
-                                    className="flex items-center gap-1 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    className="flex items-center gap-1.5 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
                                 >
                                     <Check className="h-4 w-4" />
                                     Set Active
@@ -848,7 +852,7 @@ export function AnimalManagement() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleBulkAction('set-quarantine')}
-                                    className="flex items-center gap-1 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    className="flex items-center gap-1.5 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
                                 >
                                     <AlertCircle className="h-4 w-4" />
                                     Quarantine
@@ -857,7 +861,7 @@ export function AnimalManagement() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleBulkAction('delete')}
-                                    className="flex items-center gap-1 text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
+                                    className="flex items-center gap-1.5 text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                     Delete
@@ -868,65 +872,65 @@ export function AnimalManagement() {
 
                     {/* Animals Grid/List View */}
                     {viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredAnimals.map((animal) => (
-                                <Card key={animal._id} className="hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                                    <CardHeader className="pb-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                                <Card key={animal._id} className="group hover:shadow-2xl transition-all duration-500 border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden bg-white dark:bg-gray-800/90 backdrop-blur-sm transform hover:-translate-y-1.5">
+                                    <CardHeader className="pb-4 bg-gradient-to-r from-gray-50/80 to-gray-100/80 dark:from-gray-700/50 dark:to-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <Checkbox
                                                     checked={selectedAnimals.includes(animal._id)}
                                                     onCheckedChange={() => toggleSelectAnimal(animal._id)}
-                                                    className="rounded-full"
+                                                    className="rounded-full data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 h-5 w-5"
                                                 />
-                                                <CardTitle className="text-lg flex items-center gap-2">
+                                                <CardTitle className="text-lg flex items-center gap-2.5">
                                                     <span className="text-2xl">{getSpeciesIcon(animal.species)}</span>
-                                                    <span className="truncate max-w-[120px] font-semibold">{animal.name}</span>
+                                                    <span className="truncate max-w-[120px] font-bold text-gray-900 dark:text-white">{animal.name}</span>
                                                 </CardTitle>
                                             </div>
                                             <div className="flex flex-col gap-1">
-                                                <Badge className={`${getStatusColor(animal.status)} px-2 py-1 text-xs font-medium rounded-full`} variant="secondary">
+                                                <Badge className={`${getStatusColor(animal.status)} px-2.5 py-1.5 text-xs font-semibold rounded-full border-0 shadow-sm`} variant="secondary">
                                                     {animal.status}
                                                 </Badge>
                                             </div>
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="space-y-4 p-4">
+                                    <CardContent className="space-y-4 p-5">
                                         <div className="grid grid-cols-2 gap-3 text-sm">
-                                            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
-                                                <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Species</span>
-                                                <p className="capitalize truncate font-medium">{animal.species}</p>
+                                            <div className="bg-gray-50 dark:bg-gray-700/30 p-3.5 rounded-2xl transition-all duration-300 group-hover:bg-gray-100 dark:group-hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700/50">
+                                                <span className="font-semibold text-gray-500 dark:text-gray-400 block text-xs mb-1">Species</span>
+                                                <p className="capitalize truncate font-semibold text-gray-900 dark:text-gray-100">{animal.species}</p>
                                             </div>
-                                            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
-                                                <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Strain</span>
-                                                <p className="truncate font-medium">{animal.strain}</p>
+                                            <div className="bg-gray-50 dark:bg-gray-700/30 p-3.5 rounded-2xl transition-all duration-300 group-hover:bg-gray-100 dark:group-hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700/50">
+                                                <span className="font-semibold text-gray-500 dark:text-gray-400 block text-xs mb-1">Strain</span>
+                                                <p className="truncate font-semibold text-gray-900 dark:text-gray-100">{animal.strain}</p>
                                             </div>
-                                            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
-                                                <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Age</span>
-                                                <p className="font-medium">{animal.age} weeks</p>
+                                            <div className="bg-gray-50 dark:bg-gray-700/30 p-3.5 rounded-2xl transition-all duration-300 group-hover:bg-gray-100 dark:group-hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700/50">
+                                                <span className="font-semibold text-gray-500 dark:text-gray-400 block text-xs mb-1">Age</span>
+                                                <p className="font-semibold text-gray-900 dark:text-gray-100">{animal.age} weeks</p>
                                             </div>
-                                            <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
-                                                <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Weight</span>
-                                                <p className="font-medium">{animal.weight}g</p>
+                                            <div className="bg-gray-50 dark:bg-gray-700/30 p-3.5 rounded-2xl transition-all duration-300 group-hover:bg-gray-100 dark:group-hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700/50">
+                                                <span className="font-semibold text-gray-500 dark:text-gray-400 block text-xs mb-1">Weight</span>
+                                                <p className="font-semibold text-gray-900 dark:text-gray-100">{animal.weight}g</p>
                                             </div>
                                         </div>
 
-                                        <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
-                                            <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Location</span>
-                                            <p className="text-sm truncate font-medium">{animal.location}</p>
+                                        <div className="bg-gray-50 dark:bg-gray-700/30 p-3.5 rounded-2xl transition-all duration-300 group-hover:bg-gray-100 dark:group-hover:bg-gray-700/50 border border-gray-100 dark:border-gray-700/50">
+                                            <span className="font-semibold text-gray-500 dark:text-gray-400 block text-xs mb-1">Location</span>
+                                            <p className="text-sm truncate font-semibold text-gray-900 dark:text-gray-100">{animal.location}</p>
                                         </div>
 
                                         {animal.experiments && animal.experiments.length > 0 && (
                                             <div>
-                                                <span className="font-medium text-gray-600 dark:text-gray-400 text-xs">Experiments:</span>
-                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                <span className="font-semibold text-gray-500 dark:text-gray-400 text-xs">Experiments:</span>
+                                                <div className="flex flex-wrap gap-1.5 mt-2.5">
                                                     {animal.experiments.slice(0, 3).map((exp, index) => (
-                                                        <Badge key={index} variant="outline" className="text-xs bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                                                        <Badge key={index} variant="outline" className="text-xs bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-full px-2.5 py-1 font-medium">
                                                             {exp}
                                                         </Badge>
                                                     ))}
                                                     {animal.experiments.length > 3 && (
-                                                        <Badge variant="outline" className="text-xs bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                                                        <Badge variant="outline" className="text-xs bg-white dark:bg-gray-700/50 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-full px-2.5 py-1 font-medium">
                                                             +{animal.experiments.length - 3}
                                                         </Badge>
                                                     )}
@@ -934,7 +938,7 @@ export function AnimalManagement() {
                                             </div>
                                         )}
 
-                                        <div className="flex justify-end gap-2 pt-2">
+                                        <div className="flex justify-end gap-2.5 pt-3">
                                             <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
@@ -942,7 +946,7 @@ export function AnimalManagement() {
                                                             variant="outline"
                                                             size="sm"
                                                             onClick={() => handleViewAnimal(animal)}
-                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-xl h-9 w-9 p-0 transition-all duration-300 hover:shadow-md"
                                                         >
                                                             <Eye className="h-4 w-4" />
                                                         </Button>
@@ -960,7 +964,7 @@ export function AnimalManagement() {
                                                             variant="outline"
                                                             size="sm"
                                                             onClick={() => handleEditAnimal(animal)}
-                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-xl h-9 w-9 p-0 transition-all duration-300 hover:shadow-md"
                                                         >
                                                             <Edit className="h-4 w-4" />
                                                         </Button>
@@ -978,7 +982,7 @@ export function AnimalManagement() {
                                                             variant="outline"
                                                             size="sm"
                                                             onClick={() => handleDeleteAnimal(animal)}
-                                                            className="border-red-200 dark:border-red-800 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                            className="border-red-300 dark:border-red-700 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl h-9 w-9 p-0 transition-all duration-300 hover:shadow-md"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                         </Button>
@@ -995,66 +999,68 @@ export function AnimalManagement() {
                         </div>
                     ) : (
                         // List View
-                        <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
+                        <Card className="border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden">
                             <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-gray-50 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                            <TableHead className="w-12">
+                                        <TableRow className="bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-2xl">
+                                            <TableHead className="w-12 rounded-l-2xl">
                                                 <Checkbox
                                                     checked={selectedAnimals.length === filteredAnimals.length && filteredAnimals.length > 0}
                                                     onCheckedChange={toggleSelectAll}
+                                                    className="rounded-full data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 h-5 w-5"
                                                 />
                                             </TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg">
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-l-2xl text-base">
                                                 Animal {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
                                                 Species {sortBy === 'species' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Strain</TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <TableHead className="font-bold text-gray-800 dark:text-gray-200 text-base">Strain</TableHead>
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
                                                 Age {sortBy === 'age' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
                                                 Weight {sortBy === 'weight' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
                                                 Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
                                                 Location {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300 rounded-r-lg">Actions</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-800 dark:text-gray-200 rounded-r-2xl text-base">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredAnimals.map((animal) => (
-                                            <TableRow key={animal._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                            <TableRow key={animal._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors duration-200">
                                                 <TableCell>
                                                     <Checkbox
                                                         checked={selectedAnimals.includes(animal._id)}
                                                         onCheckedChange={() => toggleSelectAnimal(animal._id)}
+                                                        className="rounded-full data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 h-5 w-5"
                                                     />
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-3.5">
                                                         <span className="text-2xl">{getSpeciesIcon(animal.species)}</span>
-                                                        <span className="font-medium">{animal.name}</span>
+                                                        <span className="font-semibold text-gray-900 dark:text-gray-100">{animal.name}</span>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="capitalize font-medium">{animal.species}</TableCell>
-                                                <TableCell className="font-medium">{animal.strain}</TableCell>
-                                                <TableCell className="font-medium">{animal.age}w</TableCell>
-                                                <TableCell className="font-medium">{animal.weight}g</TableCell>
+                                                <TableCell className="capitalize font-semibold text-gray-900 dark:text-gray-100">{animal.species}</TableCell>
+                                                <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{animal.strain}</TableCell>
+                                                <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{animal.age}w</TableCell>
+                                                <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{animal.weight}g</TableCell>
                                                 <TableCell>
-                                                    <Badge className={`${getStatusColor(animal.status)} px-2 py-1 text-xs font-medium rounded-full`} variant="secondary">
+                                                    <Badge className={`${getStatusColor(animal.status)} px-2.5 py-1.5 text-xs font-semibold rounded-full border-0 shadow-sm`} variant="secondary">
                                                         {animal.status}
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="font-medium">{animal.location}</TableCell>
+                                                <TableCell className="font-semibold text-gray-900 dark:text-gray-100">{animal.location}</TableCell>
                                                 <TableCell>
-                                                    <div className="flex justify-end gap-1">
+                                                    <div className="flex justify-end gap-2">
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
@@ -1062,7 +1068,7 @@ export function AnimalManagement() {
                                                                         variant="outline"
                                                                         size="sm"
                                                                         onClick={() => handleViewAnimal(animal)}
-                                                                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md"
                                                                     >
                                                                         <Eye className="h-4 w-4" />
                                                                     </Button>
@@ -1080,7 +1086,7 @@ export function AnimalManagement() {
                                                                         variant="outline"
                                                                         size="sm"
                                                                         onClick={() => handleEditAnimal(animal)}
-                                                                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                                        className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md"
                                                                     >
                                                                         <Edit className="h-4 w-4" />
                                                                     </Button>
@@ -1098,7 +1104,7 @@ export function AnimalManagement() {
                                                                         variant="outline"
                                                                         size="sm"
                                                                         onClick={() => handleDeleteAnimal(animal)}
-                                                                        className="border-red-200 dark:border-red-800 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                                        className="border-red-300 dark:border-red-700 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md"
                                                                     >
                                                                         <Trash2 className="h-4 w-4" />
                                                                     </Button>
@@ -1119,17 +1125,17 @@ export function AnimalManagement() {
                     )}
 
                     {filteredAnimals.length === 0 && (
-                        <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
-                            <CardContent className="p-12 text-center">
-                                <div className="text-6xl mb-4 text-gray-300 dark:text-gray-600">🐾</div>
-                                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">No animals found</h3>
-                                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                        <Card className="border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 backdrop-blur-sm">
+                            <CardContent className="p-14 text-center">
+                                <div className="text-7xl mb-5 text-gray-300 dark:text-gray-600 opacity-80">🐾</div>
+                                <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">No animals found</h3>
+                                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto text-base">
                                     {searchTerm || filters.species || filters.status || showOnlyActive || filters.gender || filters.hasExperiments
                                         ? 'Try adjusting your search or filters to find what you\'re looking for'
                                         : 'Get started by adding your first animal to the system'}
                                 </p>
                                 {!searchTerm && !filters.species && !filters.status && !showOnlyActive && !filters.gender && !filters.hasExperiments && (
-                                    <Button onClick={handleAddAnimal} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 mx-auto">
+                                    <Button onClick={handleAddAnimal} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-7 py-4 rounded-2xl transition-all duration-300 flex items-center gap-3 mx-auto shadow-xl hover:shadow-2xl transform hover:-translate-y-1 font-semibold text-base">
                                         <Plus className="h-5 w-5" />
                                         Add First Animal
                                     </Button>
@@ -1142,15 +1148,15 @@ export function AnimalManagement() {
                 <TabsContent value="breeding" className="space-y-6 mt-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Breeding Management</h2>
-                        <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto" onClick={handleCreateBreedingPair}>
+                        <Button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg w-full sm:w-auto" onClick={handleCreateBreedingPair}>
                             <Baby className="h-4 w-4" />
                             Create Breeding Pair
                         </Button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <Card className="md:col-span-2 border border-gray-200 dark:border-gray-700 rounded-xl">
-                            <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 rounded-t-xl">
+                        <Card className="md:col-span-2 border border-gray-200 dark:border-gray-700 rounded-2xl">
+                            <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 rounded-t-2xl">
                                 <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                                     <Baby className="h-5 w-5" />
                                     Active Breeding Pairs
@@ -1160,7 +1166,7 @@ export function AnimalManagement() {
                                 {breedingPairs.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {breedingPairs.map(pair => (
-                                            <Card key={pair._id} className="border-2 border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-shadow">
+                                            <Card key={pair._id} className="border-2 border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-shadow bg-white dark:bg-gray-800">
                                                 <CardContent className="p-5">
                                                     <div className="flex justify-between items-start">
                                                         <div>
@@ -1169,27 +1175,27 @@ export function AnimalManagement() {
                                                                 <span className="font-medium">{pair.maleName}</span> + <span className="font-medium">{pair.femaleName}</span>
                                                             </p>
                                                         </div>
-                                                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">Active</Badge>
+                                                        <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-0">Active</Badge>
                                                     </div>
                                                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                                                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                                                            <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Start Date</span>
-                                                            <p className="font-medium">{new Date(pair.startDate).toLocaleDateString()}</p>
+                                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
+                                                            <span className="font-medium text-gray-500 dark:text-gray-400 block text-xs mb-1">Start Date</span>
+                                                            <p className="font-medium text-gray-900 dark:text-white">{new Date(pair.startDate).toLocaleDateString()}</p>
                                                         </div>
-                                                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                                                            <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Expected Delivery</span>
-                                                            <p className="font-medium">{new Date(pair.expectedDelivery).toLocaleDateString()}</p>
+                                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
+                                                            <span className="font-medium text-gray-500 dark:text-gray-400 block text-xs mb-1">Expected Delivery</span>
+                                                            <p className="font-medium text-gray-900 dark:text-white">{new Date(pair.expectedDelivery).toLocaleDateString()}</p>
                                                         </div>
-                                                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                                                            <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Offspring</span>
-                                                            <p className="font-medium">{pair.offspringCount || 0}</p>
+                                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
+                                                            <span className="font-medium text-gray-500 dark:text-gray-400 block text-xs mb-1">Offspring</span>
+                                                            <p className="font-medium text-gray-900 dark:text-white">{pair.offspringCount || 0}</p>
                                                         </div>
                                                     </div>
                                                     <div className="mt-4 flex justify-end gap-2">
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                                                             onClick={() => handleViewBreedingPair(pair)}
                                                         >
                                                             View Details
@@ -1197,7 +1203,7 @@ export function AnimalManagement() {
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
-                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                            className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                                                             onClick={() => handleViewBreedingPair(pair)}
                                                         >
                                                             Manage
@@ -1214,7 +1220,7 @@ export function AnimalManagement() {
                                         <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
                                             You haven't created any breeding pairs yet. Get started by creating your first breeding pair.
                                         </p>
-                                        <Button onClick={handleCreateBreedingPair} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 mx-auto">
+                                        <Button onClick={handleCreateBreedingPair} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-2 mx-auto shadow-lg hover:shadow-xl">
                                             <Baby className="h-5 w-5" />
                                             Create Breeding Pair
                                         </Button>
@@ -1223,8 +1229,8 @@ export function AnimalManagement() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
-                            <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30 rounded-t-xl">
+                        <Card className="border border-gray-200 dark:border-gray-700 rounded-2xl">
+                            <CardHeader className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/30 rounded-t-2xl">
                                 <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
                                     <TrendingUp className="h-5 w-5" />
                                     Breeding Statistics
@@ -1232,19 +1238,19 @@ export function AnimalManagement() {
                             </CardHeader>
                             <CardContent className="p-6">
                                 <div className="space-y-5">
-                                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                                         <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">{breedingPairs.length}</p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Active Pairs</p>
                                     </div>
 
-                                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
                                         <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                                             {breedingPairs.reduce((sum, pair) => sum + (pair.offspringCount || 0), 0)}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Total Offspring</p>
                                     </div>
 
-                                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                                         <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                                             {breedingPairs.filter(p => new Date(p.expectedDelivery) > new Date()).length}
                                         </p>
@@ -1302,7 +1308,7 @@ export function AnimalManagement() {
 
             {/* Export Dialog */}
             <AlertDialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
-                <AlertDialogContent className="rounded-xl">
+                <AlertDialogContent className="rounded-2xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-xl font-semibold">Export Animals</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -1312,7 +1318,7 @@ export function AnimalManagement() {
                     <div className="py-4">
                         <Label htmlFor="export-format" className="mb-2 block font-medium">Export Format</Label>
                         <Select value={exportFormat} onValueChange={setExportFormat}>
-                            <SelectTrigger id="export-format" className="border-gray-300 dark:border-gray-600">
+                            <SelectTrigger id="export-format" className="border-gray-300 dark:border-gray-600 rounded-xl">
                                 <SelectValue placeholder="Select format" />
                             </SelectTrigger>
                             <SelectContent>
@@ -1324,8 +1330,8 @@ export function AnimalManagement() {
                         </Select>
                     </div>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmExport} className="bg-blue-600 hover:bg-blue-700">
+                        <AlertDialogCancel className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmExport} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl">
                             Export
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -1334,7 +1340,7 @@ export function AnimalManagement() {
 
             {/* Bulk Action Confirmation Dialog */}
             <AlertDialog open={isBulkActionDialogOpen} onOpenChange={setIsBulkActionDialogOpen}>
-                <AlertDialogContent className="rounded-xl">
+                <AlertDialogContent className="rounded-2xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-xl font-semibold">Confirm Bulk Action</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -1352,10 +1358,10 @@ export function AnimalManagement() {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">Cancel</AlertDialogCancel>
+                        <AlertDialogCancel className="border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl">Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmBulkAction}
-                            className={bulkAction === 'delete' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}
+                            className={bulkAction === 'delete' ? 'bg-red-600 hover:bg-red-700 rounded-xl' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl'}
                         >
                             {bulkAction === 'delete' ? 'Delete' : 'Confirm'}
                         </AlertDialogAction>
