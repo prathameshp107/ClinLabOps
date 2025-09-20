@@ -55,10 +55,16 @@ exports.createProject = async (req, res) => {
             projectCode = `PRJ-${Date.now()}`;
         }
 
+        // Ensure category is valid or default to 'miscellaneous'
+        const category = req.body.category && ['research', 'regulatory', 'miscellaneous'].includes(req.body.category)
+            ? req.body.category
+            : 'miscellaneous';
+
         // Create the project with the generated code
         const project = new Project({
             ...req.body,
             projectCode,
+            category
         });
         await project.save();
         res.status(201).json(project);
@@ -70,6 +76,11 @@ exports.createProject = async (req, res) => {
 // Update project
 exports.updateProject = async (req, res) => {
     try {
+        // Ensure category is valid if provided
+        if (req.body.category && !['research', 'regulatory', 'miscellaneous'].includes(req.body.category)) {
+            return res.status(400).json({ error: 'Invalid category value' });
+        }
+
         const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!project) return res.status(404).json({ error: 'Project not found' });
         res.json(project);

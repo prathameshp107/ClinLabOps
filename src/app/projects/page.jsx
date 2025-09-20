@@ -4,9 +4,40 @@ import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProjectManagement } from "@/components/projects/project-management"
 import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { Button } from "@/components/ui/button"
-import { Plus, Beaker, Sparkles, LayoutGrid, List } from "lucide-react"
+import { Plus, Beaker, Sparkles, LayoutGrid, List, FlaskConical, FileText, Layers } from "lucide-react"
 import { useState, useEffect } from "react"
 import { statusChips } from "@/constants"
+
+// Project category configuration
+const PROJECT_CATEGORIES = [
+  {
+    id: "research",
+    name: "Research",
+    description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+    icon: FlaskConical,
+    color: "text-blue-500",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/20"
+  },
+  {
+    id: "regulatory",
+    name: "Regulatory",
+    description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+    icon: FileText,
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/10",
+    borderColor: "border-amber-500/20"
+  },
+  {
+    id: "miscellaneous",
+    name: "Miscellaneous",
+    description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+    icon: Layers,
+    color: "text-purple-500",
+    bgColor: "bg-purple-500/10",
+    borderColor: "border-purple-500/20"
+  }
+];
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
@@ -70,6 +101,31 @@ export default function ProjectsPage() {
                 <span>Innovation Center</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Project Categories Section */}
+        <div className="w-full px-4 md:px-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {PROJECT_CATEGORIES.map((category) => {
+              const IconComponent = category.icon;
+              return (
+                <div
+                  key={category.id}
+                  className={`border ${category.borderColor} ${category.bgColor} rounded-xl p-6 transition-all hover:shadow-md`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-lg ${category.bgColor}`}>
+                      <IconComponent className={`h-6 w-6 ${category.color}`} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{category.name}</h3>
+                      <p className="text-muted-foreground text-sm">{category.description}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

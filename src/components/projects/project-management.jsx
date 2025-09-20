@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils"
 import { ProjectTable } from "./project-table"
 import { ProjectCardView } from "./project-card-view"
+import { CategorizedProjects, getProjectCategory } from "./categorized-projects"
 import { AddProjectDialog } from "./add-project-dialog"
 import { EditProjectDialog } from "./edit-project-dialog"
 import { DeleteProjectDialog } from "./delete-project-dialog"
@@ -60,6 +61,7 @@ export function ProjectManagement() {
   const [activeTab, setActiveTab] = useState("all"); // "all" or "favorites"
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
+  const [activeCategory, setActiveCategory] = useState("all"); // "all", "research", "regulatory", "miscellaneous"
 
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
@@ -146,7 +148,7 @@ export function ProjectManagement() {
         project =>
           project.name.toLowerCase().includes(query) ||
           project.description.toLowerCase().includes(query) ||
-          project.tags.some(tag => tag.toLowerCase().includes(query))
+          (project.tags && project.tags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
 
@@ -172,8 +174,13 @@ export function ProjectManagement() {
       filtered = filtered.filter(project => new Date(project.endDate) < now);
     }
 
+    // Apply category filter
+    if (activeCategory !== "all") {
+      filtered = filtered.filter(project => getProjectCategory(project) === activeCategory);
+    }
+
     setFilteredProjects(filtered);
-  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab]);
+  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab, activeCategory]);
 
   // Sorting function
   const requestSort = (key) => {
@@ -379,6 +386,14 @@ export function ProjectManagement() {
     setProjects(updatedProjects);
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setTimeframeFilter("all");
+    setActiveCategory("all");
+  };
+
   if (loading) return <ProjectsLoading />;
   if (error) {
     return (
@@ -486,6 +501,42 @@ export function ProjectManagement() {
         </Tabs>
       </div>
 
+      {/* Category Filter Tabs */}
+      <div className="border-b border-border/50">
+        <Tabs
+          value={activeCategory}
+          onValueChange={setActiveCategory}
+          className="w-full"
+        >
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6">
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
+            >
+              All Projects
+            </TabsTrigger>
+            <TabsTrigger
+              value="research"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-blue-500 transition-colors"
+            >
+              Research
+            </TabsTrigger>
+            <TabsTrigger
+              value="regulatory"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-amber-500 transition-colors"
+            >
+              Regulatory
+            </TabsTrigger>
+            <TabsTrigger
+              value="miscellaneous"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-purple-500 transition-colors"
+            >
+              Miscellaneous
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       {/* Main Content Area */}
       {activeView === "projects" && (
         <>
@@ -544,13 +595,25 @@ export function ProjectManagement() {
           </div>
 
           {/* Projects Display */}
-          <ProjectDisplay
-            projects={filteredProjects}
-            viewMode={viewMode}
-            handleProjectAction={handleProjectAction}
-            sortConfig={sortConfig}
-            requestSort={requestSort}
-          />
+          {activeCategory === "all" ? (
+            <CategorizedProjects
+              projects={filteredProjects}
+              viewMode={viewMode}
+              handleProjectAction={handleProjectAction}
+              sortConfig={sortConfig}
+              requestSort={requestSort}
+              searchQuery={searchQuery}
+              onClearFilters={clearFilters}
+            />
+          ) : (
+            <ProjectDisplay
+              projects={filteredProjects}
+              viewMode={viewMode}
+              handleProjectAction={handleProjectAction}
+              sortConfig={sortConfig}
+              requestSort={requestSort}
+            />
+          )}
         </>
       )}
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus } from "lucide-react"
+import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -232,6 +232,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     principalInvestigator: null,
     researchArea: "",
     studyType: "",
+    // Project category field
+    category: "miscellaneous",
     documents: {
       protocol: null,
       ethics: null,
@@ -510,6 +512,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         isFavorite: false,
         team: [],
         tags: projectData.tags || [],
+        category: projectData.category || "miscellaneous",
         dependencies: [],
         activityLog: [
           {
@@ -646,6 +649,49 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                   transition={{ duration: 0.5 }}
                 >
                   <div className="space-y-8">
+                    {/* Project Category Selection */}
+                    <div className="space-y-3">
+                      <Label htmlFor="category" className="text-sm font-semibold">
+                        Project Category
+                      </Label>
+                      <Select
+                        value={projectData.category}
+                        onValueChange={(value) => handleSelectChange(value, "category")}
+                      >
+                        <SelectTrigger id="category" className="bg-background/50 border-border/50 h-11">
+                          <SelectValue placeholder="Select project category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="research">
+                            <div className="flex items-center gap-2">
+                              <FlaskConical className="h-4 w-4 text-blue-500" />
+                              Research
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="regulatory">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-amber-500" />
+                              Regulatory
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="miscellaneous">
+                            <div className="flex items-center gap-2">
+                              <Layers className="h-4 w-4 text-purple-500" />
+                              Miscellaneous
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Select the appropriate category for this project:
+                        <ul className="list-disc list-inside mt-1 space-y-1">
+                          <li><strong>Research:</strong> Exploratory or proof-of-concept studies</li>
+                          <li><strong>Regulatory:</strong> Guideline-driven studies for authority submissions</li>
+                          <li><strong>Miscellaneous:</strong> Pilot, academic, or client-specific studies</li>
+                        </ul>
+                      </p>
+                    </div>
+
                     <div className="space-y-3">
                       <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1">
                         Project Name <span className="text-destructive">*</span>
@@ -682,7 +728,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         Description <span className="text-destructive">*</span>
                       </Label>
                       <div className={cn(
-                        "border rounded-lg transition-all duration-200 bg-background/50 border-border/50 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 shadow-sm overflow-hidden",
+                        "border rounded-lg transition-all duration-200 bg-background/50 border-border/50 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 shadow-sm",
                         formErrors.description ? "border-destructive/50 ring-1 ring-destructive/20" : ""
                       )}>
                         <EditorMenuBar editor={editor} />
@@ -1130,7 +1176,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         {projectData.externalCollaborators.map(collaborator => (
                           <Badge key={collaborator} variant="outline" className="px-2 py-1 gap-1 bg-blue-50">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                              <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
                               <circle cx="9" cy="7" r="4" />
                               <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                               <path d="M16 3.13a4 4 0 0 1 0 7.75" />

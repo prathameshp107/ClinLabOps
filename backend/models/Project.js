@@ -91,6 +91,12 @@ const ProjectSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  // Add category field
+  category: {
+    type: String,
+    enum: ['research', 'regulatory', 'miscellaneous'],
+    default: 'miscellaneous'
+  }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Project', ProjectSchema); 
+module.exports = mongoose.model('Project', ProjectSchema);
