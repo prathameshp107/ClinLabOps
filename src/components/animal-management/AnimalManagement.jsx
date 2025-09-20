@@ -90,6 +90,7 @@ import {
     Progress
 } from "@/components/ui/progress";
 import { animalService } from '@/services/animalService';
+import { breedingService } from '@/services/breedingService';
 
 const SPECIES_OPTIONS = [
     { value: 'rat', label: 'Rat', icon: '🐀' },
@@ -105,13 +106,6 @@ const STATUS_OPTIONS = [
     { value: 'inactive', label: 'Inactive' },
     { value: 'quarantine', label: 'Quarantine' },
     { value: 'deceased', label: 'Deceased' }
-];
-
-const HEALTH_STATUS_OPTIONS = [
-    { value: 'excellent', label: 'Excellent', color: 'bg-green-500' },
-    { value: 'good', label: 'Good', color: 'bg-blue-500' },
-    { value: 'fair', label: 'Fair', color: 'bg-yellow-500' },
-    { value: 'poor', label: 'Poor', color: 'bg-red-500' }
 ];
 
 const GENDER_OPTIONS = [
@@ -132,10 +126,8 @@ export function AnimalManagement() {
         species: '__all__',
         status: '__all__',
         ageRange: '__all__',
-        healthStatus: '__all__',
         gender: '__all__',
-        hasExperiments: false,
-        needsHealthCheck: false
+        hasExperiments: false
     });
     const [breedingPairs, setBreedingPairs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -174,31 +166,37 @@ export function AnimalManagement() {
 
     const loadBreedingPairs = async () => {
         try {
-            // Mock breeding pairs data - in a real implementation, this would come from the backend
+            const breedingPairsData = await breedingService.getAllBreedingPairs();
+            setBreedingPairs(breedingPairsData);
+        } catch (error) {
+            console.error('Error loading breeding pairs:', error);
+            // Fallback to mock data if API fails
             setBreedingPairs([
                 {
-                    id: 'BP-001',
-                    male: 'Specimen-004',
-                    female: 'Specimen-002',
-                    startDate: '2024-05-15',
-                    expectedDelivery: '2024-07-20',
+                    _id: '60f7b2d1e3c8a40015d2f1a1',
+                    maleId: '60f7b2d1e3c8a40015d2f1b1',
+                    femaleId: '60f7b2d1e3c8a40015d2f1b2',
+                    maleName: 'Specimen-004',
+                    femaleName: 'Specimen-002',
+                    startDate: '2024-05-15T00:00:00.000Z',
+                    expectedDelivery: '2024-07-20T00:00:00.000Z',
                     status: 'active',
                     offspringCount: 8,
                     notes: 'First litter expected'
                 },
                 {
-                    id: 'BP-002',
-                    male: 'Specimen-006',
-                    female: 'Specimen-007',
-                    startDate: '2024-06-01',
-                    expectedDelivery: '2024-08-05',
+                    _id: '60f7b2d1e3c8a40015d2f1a2',
+                    maleId: '60f7b2d1e3c8a40015d2f1b3',
+                    femaleId: '60f7b2d1e3c8a40015d2f1b4',
+                    maleName: 'Specimen-006',
+                    femaleName: 'Specimen-007',
+                    startDate: '2024-06-01T00:00:00.000Z',
+                    expectedDelivery: '2024-08-05T00:00:00.000Z',
                     status: 'active',
                     offspringCount: 0,
                     notes: 'Monitoring closely'
                 }
             ]);
-        } catch (error) {
-            console.error('Error loading breeding pairs:', error);
         }
     };
 
@@ -226,11 +224,6 @@ export function AnimalManagement() {
             filtered = filtered.filter(animal => animal.status === filters.status);
         }
 
-        // Apply health status filter
-        if (filters.healthStatus && filters.healthStatus !== '__all__') {
-            filtered = filtered.filter(animal => animal.healthStatus === filters.healthStatus);
-        }
-
         // Apply gender filter
         if (filters.gender && filters.gender !== '__all__') {
             filtered = filtered.filter(animal => animal.gender === filters.gender);
@@ -244,16 +237,6 @@ export function AnimalManagement() {
         // Apply has experiments filter
         if (filters.hasExperiments) {
             filtered = filtered.filter(animal => animal.experiments && animal.experiments.length > 0);
-        }
-
-        // Apply needs health check filter
-        if (filters.needsHealthCheck) {
-            const today = new Date();
-            filtered = filtered.filter(animal => {
-                if (!animal.nextHealthCheck) return false;
-                const nextCheck = new Date(animal.nextHealthCheck);
-                return nextCheck < today;
-            });
         }
 
         // Apply sorting
@@ -280,10 +263,6 @@ export function AnimalManagement() {
                 case 'status':
                     aValue = a.status;
                     bValue = b.status;
-                    break;
-                case 'health':
-                    aValue = a.healthStatus;
-                    bValue = b.healthStatus;
                     break;
                 case 'location':
                     aValue = a.location;
@@ -343,6 +322,8 @@ export function AnimalManagement() {
 
     const handleSaveAnimal = async (animalData) => {
         try {
+            console.log('Sending animal data to backend:', animalData);
+
             if (selectedAnimal) {
                 // Update existing animal
                 const updatedAnimal = await animalService.updateAnimal(selectedAnimal._id, animalData);
@@ -365,14 +346,30 @@ export function AnimalManagement() {
         setIsBreedingFormOpen(true);
     };
 
-    const handleSaveBreedingPair = (breedingPairData) => {
-        setBreedingPairs([...breedingPairs, breedingPairData]);
-        setIsBreedingFormOpen(false);
-    };
+    const handleSaveBreedingPair = async (breedingPairData) => {
+        try {
+            console.log('handleSaveBreedingPair called with data:', breedingPairData);
+            // Extract only the required fields for the backend
+            const { maleId, femaleId, startDate, expectedDelivery, notes } = breedingPairData;
+            const breedingPairPayload = {
+                maleId,
+                femaleId,
+                startDate,
+                expectedDelivery,
+                ...(notes && { notes }) // Only include notes if it exists and is not empty
+            };
+            console.log('Sending payload to breeding service:', breedingPairPayload);
 
-    const handleScheduleHealthCheck = (animal) => {
-        // For now, just show an alert - in a real implementation this would open a scheduling form
-        alert(`Scheduling health check for ${animal.name}. This would open a scheduling form in a full implementation.`);
+            const savedBreedingPair = await breedingService.createBreedingPair(breedingPairPayload);
+            console.log('Received response from breeding service:', savedBreedingPair);
+            setBreedingPairs([...breedingPairs, savedBreedingPair]);
+            setIsBreedingFormOpen(false);
+        } catch (error) {
+            console.error('Error saving breeding pair:', error);
+            setError('Failed to save breeding pair. Please try again.');
+            // Still close the form even if there's an error to provide feedback
+            setIsBreedingFormOpen(false);
+        }
     };
 
     const getSpeciesIcon = (species) => {
@@ -390,36 +387,14 @@ export function AnimalManagement() {
         }
     };
 
-    const getHealthStatusColor = (healthStatus) => {
-        switch (healthStatus) {
-            case 'excellent': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case 'good': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case 'fair': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case 'poor': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-            default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-        }
-    };
-
-    const getHealthStatusEmoji = (healthStatus) => {
-        switch (healthStatus) {
-            case 'excellent': return '💚';
-            case 'good': return '💙';
-            case 'fair': return '💛';
-            case 'poor': return '❤️';
-            default: return '🤍';
-        }
-    };
-
     const clearAllFilters = () => {
         setSearchTerm('');
         setFilters({
             species: '__all__',
             status: '__all__',
             ageRange: '__all__',
-            healthStatus: '__all__',
             gender: '__all__',
-            hasExperiments: false,
-            needsHealthCheck: false
+            hasExperiments: false
         });
         setShowOnlyActive(false);
     };
@@ -507,14 +482,8 @@ export function AnimalManagement() {
         const quarantine = animals.filter(a => a.status === 'quarantine').length;
         const speciesCount = new Set(animals.map(a => a.species)).size;
         const experimentsCount = animals.reduce((sum, a) => sum + (a.experiments?.length || 0), 0);
-        const needsHealthCheck = animals.filter(a => {
-            if (!a.nextHealthCheck) return false;
-            const nextCheck = new Date(a.nextHealthCheck);
-            const today = new Date();
-            return nextCheck < today;
-        }).length;
 
-        return { total, active, quarantine, speciesCount, experimentsCount, needsHealthCheck };
+        return { total, active, quarantine, speciesCount, experimentsCount };
     };
 
     const stats = getAnimalStats();
@@ -549,19 +518,12 @@ export function AnimalManagement() {
             {
                 id: 1,
                 date: '2024-06-15T14:30:00Z',
-                action: 'Health Check',
-                description: 'Routine health assessment completed',
-                user: 'Dr. Smith'
-            },
-            {
-                id: 2,
-                date: '2024-06-10T09:15:00Z',
                 action: 'Experiment Assigned',
                 description: 'Added to cardiovascular study (EXP-001)',
                 user: 'Dr. Johnson'
             },
             {
-                id: 3,
+                id: 2,
                 date: '2024-05-20T11:00:00Z',
                 action: 'Animal Registered',
                 description: 'New animal added to the system',
@@ -570,12 +532,11 @@ export function AnimalManagement() {
         ];
     };
 
-    // Add animal grouping
+    // Add animal grouping (remove health grouping)
     const getAnimalGroups = () => {
         const groups = {
             bySpecies: {},
             byStatus: {},
-            byHealth: {},
             byLocation: {}
         };
 
@@ -591,12 +552,6 @@ export function AnimalManagement() {
                 groups.byStatus[animal.status] = [];
             }
             groups.byStatus[animal.status].push(animal);
-
-            // Group by health status
-            if (!groups.byHealth[animal.healthStatus]) {
-                groups.byHealth[animal.healthStatus] = [];
-            }
-            groups.byHealth[animal.healthStatus].push(animal);
 
             // Group by location (first part before space)
             const locationGroup = animal.location.split(' ')[0];
@@ -688,7 +643,7 @@ export function AnimalManagement() {
             </div>
 
             {/* Active Filters Bar */}
-            {(searchTerm || filters.species !== '__all__' || filters.status !== '__all__' || filters.healthStatus !== '__all__' || showOnlyActive || filters.gender !== '__all__' || filters.hasExperiments || filters.needsHealthCheck) && (
+            {(searchTerm || filters.species !== '__all__' || filters.status !== '__all__' || showOnlyActive || filters.gender !== '__all__' || filters.hasExperiments) && (
                 <div className="flex flex-wrap items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                     <span className="text-sm font-medium text-blue-800 dark:text-blue-200 flex items-center gap-1">
                         <Filter className="h-4 w-4" />
@@ -727,17 +682,6 @@ export function AnimalManagement() {
                             </button>
                         </Badge>
                     )}
-                    {filters.healthStatus && filters.healthStatus !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Health: {filters.healthStatus}
-                            <button
-                                onClick={() => setFilters({ ...filters, healthStatus: '__all__' })}
-                                className="ml-1 hover:text-red-600"
-                            >
-                                ×
-                            </button>
-                        </Badge>
-                    )}
                     {filters.gender && filters.gender !== '__all__' && (
                         <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                             Gender: {GENDER_OPTIONS.find(g => g.value === filters.gender)?.label}
@@ -754,17 +698,6 @@ export function AnimalManagement() {
                             Has Experiments
                             <button
                                 onClick={() => setFilters({ ...filters, hasExperiments: false })}
-                                className="ml-1 hover:text-red-600"
-                            >
-                                ×
-                            </button>
-                        </Badge>
-                    )}
-                    {filters.needsHealthCheck && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                            Needs Health Check
-                            <button
-                                onClick={() => setFilters({ ...filters, needsHealthCheck: false })}
                                 className="ml-1 hover:text-red-600"
                             >
                                 ×
@@ -888,7 +821,7 @@ export function AnimalManagement() {
 
             {/* Tabs for different views */}
             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                     <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
                         <FileText className="h-4 w-4" />
                         <span>Overview</span>
@@ -896,10 +829,6 @@ export function AnimalManagement() {
                     <TabsTrigger value="breeding" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
                         <Baby className="h-4 w-4" />
                         <span>Breeding</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="health" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
-                        <Heart className="h-4 w-4" />
-                        <span>Health</span>
                     </TabsTrigger>
                     <TabsTrigger value="cages" className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
                         <MapPin className="h-4 w-4" />
@@ -977,10 +906,6 @@ export function AnimalManagement() {
                                             <div className="flex flex-col gap-1">
                                                 <Badge className={`${getStatusColor(animal.status)} px-2 py-1 text-xs font-medium rounded-full`} variant="secondary">
                                                     {animal.status}
-                                                </Badge>
-                                                <Badge className={`${getHealthStatusColor(animal.healthStatus)} px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1`} variant="secondary">
-                                                    <span>{getHealthStatusEmoji(animal.healthStatus)}</span>
-                                                    <span className="capitalize">{animal.healthStatus}</span>
                                                 </Badge>
                                             </div>
                                         </div>
@@ -1117,9 +1042,6 @@ export function AnimalManagement() {
                                                 Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
                                             <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                                Health {sortBy === 'health' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                 Location {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
                                             <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300 rounded-r-lg">Actions</TableHead>
@@ -1147,12 +1069,6 @@ export function AnimalManagement() {
                                                 <TableCell>
                                                     <Badge className={`${getStatusColor(animal.status)} px-2 py-1 text-xs font-medium rounded-full`} variant="secondary">
                                                         {animal.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge className={`${getHealthStatusColor(animal.healthStatus)} px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1`} variant="secondary">
-                                                        <span>{getHealthStatusEmoji(animal.healthStatus)}</span>
-                                                        <span className="capitalize">{animal.healthStatus}</span>
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="font-medium">{animal.location}</TableCell>
@@ -1227,11 +1143,11 @@ export function AnimalManagement() {
                                 <div className="text-6xl mb-4 text-gray-300 dark:text-gray-600">🐾</div>
                                 <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">No animals found</h3>
                                 <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                                    {searchTerm || filters.species || filters.status || filters.healthStatus || showOnlyActive || filters.gender || filters.hasExperiments || filters.needsHealthCheck
+                                    {searchTerm || filters.species || filters.status || showOnlyActive || filters.gender || filters.hasExperiments
                                         ? 'Try adjusting your search or filters to find what you\'re looking for'
                                         : 'Get started by adding your first animal to the system'}
                                 </p>
-                                {!searchTerm && !filters.species && !filters.status && !filters.healthStatus && !showOnlyActive && !filters.gender && !filters.hasExperiments && !filters.needsHealthCheck && (
+                                {!searchTerm && !filters.species && !filters.status && !showOnlyActive && !filters.gender && !filters.hasExperiments && (
                                     <Button onClick={handleAddAnimal} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 mx-auto">
                                         <Plus className="h-5 w-5" />
                                         Add First Animal
@@ -1263,13 +1179,13 @@ export function AnimalManagement() {
                                 {breedingPairs.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {breedingPairs.map(pair => (
-                                            <Card key={pair.id} className="border-2 border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-shadow">
+                                            <Card key={pair._id} className="border-2 border-blue-200 dark:border-blue-800 rounded-xl hover:shadow-md transition-shadow">
                                                 <CardContent className="p-5">
                                                     <div className="flex justify-between items-start">
                                                         <div>
-                                                            <h3 className="font-bold text-lg text-gray-900 dark:text-white">Pair {pair.id}</h3>
+                                                            <h3 className="font-bold text-lg text-gray-900 dark:text-white">Pair {pair._id.substring(0, 8)}</h3>
                                                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                                <span className="font-medium">{pair.male}</span> + <span className="font-medium">{pair.female}</span>
+                                                                <span className="font-medium">{pair.maleName}</span> + <span className="font-medium">{pair.femaleName}</span>
                                                             </p>
                                                         </div>
                                                         <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">Active</Badge>
@@ -1277,15 +1193,15 @@ export function AnimalManagement() {
                                                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                                                         <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                                                             <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Start Date</span>
-                                                            <p className="font-medium">{pair.startDate}</p>
+                                                            <p className="font-medium">{new Date(pair.startDate).toLocaleDateString()}</p>
                                                         </div>
                                                         <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                                                             <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Expected Delivery</span>
-                                                            <p className="font-medium">{pair.expectedDelivery}</p>
+                                                            <p className="font-medium">{new Date(pair.expectedDelivery).toLocaleDateString()}</p>
                                                         </div>
                                                         <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                                                             <span className="font-medium text-gray-600 dark:text-gray-400 block text-xs">Offspring</span>
-                                                            <p className="font-medium">{pair.offspringCount}</p>
+                                                            <p className="font-medium">{pair.offspringCount || 0}</p>
                                                         </div>
                                                     </div>
                                                     <div className="mt-4 flex justify-end gap-2">
@@ -1328,7 +1244,7 @@ export function AnimalManagement() {
 
                                     <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                                         <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                                            {breedingPairs.reduce((sum, pair) => sum + pair.offspringCount, 0)}
+                                            {breedingPairs.reduce((sum, pair) => sum + (pair.offspringCount || 0), 0)}
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Total Offspring</p>
                                     </div>
@@ -1339,91 +1255,6 @@ export function AnimalManagement() {
                                         </p>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Upcoming Deliveries</p>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="health" className="space-y-6 mt-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Health Tracking</h2>
-                        <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto">
-                            <Activity className="h-4 w-4" />
-                            Schedule Health Checks
-                        </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <Card className="lg:col-span-2 border border-gray-200 dark:border-gray-700 rounded-xl">
-                            <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/30 rounded-t-xl">
-                                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                                    <Activity className="h-5 w-5" />
-                                    Upcoming Health Checks
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                {animals.filter(a => a.nextHealthCheck).length > 0 ? (
-                                    <div className="space-y-4">
-                                        {animals.filter(a => a.nextHealthCheck).map(animal => (
-                                            <div key={animal._id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-3xl">{getSpeciesIcon(animal.species)}</span>
-                                                    <div>
-                                                        <p className="font-medium text-gray-900 dark:text-white">{animal.name}</p>
-                                                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                                                            Next check: <span className="font-medium">{animal.nextHealthCheck}</span>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <Button variant="outline" size="sm" onClick={() => handleScheduleHealthCheck(animal)} className="w-full sm:w-auto border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
-                                                    Schedule
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <div className="text-5xl mb-4 text-gray-300 dark:text-gray-600">🩺</div>
-                                        <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">No Upcoming Health Checks</h3>
-                                        <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                                            All animals are up to date with their health checks. Great job!
-                                        </p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
-                            <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/30 rounded-t-xl">
-                                <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                                    <Heart className="h-5 w-5" />
-                                    Health Status Overview
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                <div className="space-y-5">
-                                    {HEALTH_STATUS_OPTIONS.map(option => {
-                                        const count = animals.filter(a => a.healthStatus === option.value).length;
-                                        const percentage = animals.length > 0 ? Math.round((count / animals.length) * 100) : 0;
-                                        return (
-                                            <div key={option.value}>
-                                                <div className="flex justify-between mb-2">
-                                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                                        <span className={`w-3 h-3 ${option.color} rounded-full`}></span>
-                                                        {option.label}
-                                                    </span>
-                                                    <span className="text-sm text-gray-600 dark:text-gray-400">{count} ({percentage}%)</span>
-                                                </div>
-                                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-                                                    <div
-                                                        className={`h-2.5 rounded-full ${option.color}`}
-                                                        style={{ width: `${percentage}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
                                 </div>
                             </CardContent>
                         </Card>

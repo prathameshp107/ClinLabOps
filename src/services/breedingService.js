@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:5000/api/animals';
+const API_BASE_URL = 'http://localhost:5000/api/breeding';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -39,68 +39,60 @@ apiClient.interceptors.response.use(
     }
 );
 
-// Animal API functions
-export const animalService = {
-    // Get all animals
-    getAllAnimals: async () => {
+// Breeding API functions
+export const breedingService = {
+    // Get all breeding pairs
+    getAllBreedingPairs: async () => {
         try {
             const response = await apiClient.get('/');
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Failed to fetch animals');
+            throw new Error(error.response?.data?.message || 'Failed to fetch breeding pairs');
         }
     },
 
-    // Get animal by ID
-    getAnimalById: async (id) => {
+    // Get breeding pair by ID
+    getBreedingPairById: async (id) => {
         try {
             const response = await apiClient.get(`/${id}`);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Failed to fetch animal');
+            throw new Error(error.response?.data?.message || 'Failed to fetch breeding pair');
         }
     },
 
-    // Create new animal
-    createAnimal: async (animalData) => {
+    // Create new breeding pair
+    createBreedingPair: async (breedingPairData) => {
         try {
-            console.log('Animal service sending data:', animalData);
-            const response = await apiClient.post('/', animalData);
+            console.log('Sending breeding pair data to backend:', breedingPairData);
+            const response = await apiClient.post('/', breedingPairData);
+            console.log('Received response from backend:', response.data);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Failed to create animal');
+            console.error('Error in createBreedingPair:', error);
+            throw new Error(error.response?.data?.message || 'Failed to create breeding pair');
         }
     },
 
-    // Update animal
-    updateAnimal: async (id, animalData) => {
+    // Update breeding pair
+    updateBreedingPair: async (id, breedingPairData) => {
         try {
-            const response = await apiClient.put(`/${id}`, animalData);
+            const response = await apiClient.put(`/${id}`, breedingPairData);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Failed to update animal');
+            throw new Error(error.response?.data?.message || 'Failed to update breeding pair');
         }
     },
 
-    // Delete animal
-    deleteAnimal: async (id) => {
+    // Delete breeding pair
+    deleteBreedingPair: async (id) => {
         try {
             const response = await apiClient.delete(`/${id}`);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Failed to delete animal');
-        }
-    },
-
-    // Search animals
-    searchAnimals: async (searchTerm) => {
-        try {
-            const response = await apiClient.get(`/search?searchTerm=${encodeURIComponent(searchTerm)}`);
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.message || 'Failed to search animals');
+            throw new Error(error.response?.data?.message || 'Failed to delete breeding pair');
         }
     },
 };
 
-export default animalService;
+export default breedingService;

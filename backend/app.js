@@ -99,6 +99,10 @@ app.use('/api/settings', settingsRouter);
 const animalsRouter = require('./routes/animals');
 app.use('/api/animals', animalsRouter);
 
+// Breeding management routes
+const breedingRouter = require('./routes/breeding');
+app.use('/api/breeding', breedingRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     app.listen(config.port, () => {

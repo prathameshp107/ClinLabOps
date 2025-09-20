@@ -16,11 +16,8 @@ import {
     Clock,
     FileText,
     FlaskConical,
-    Heart,
-    Activity,
     User,
     CalendarClock,
-    Stethoscope,
     Dna,
     Baby,
     Hash,
@@ -29,13 +26,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const HEALTH_STATUS_OPTIONS = [
-    { value: 'excellent', label: 'Excellent', color: 'bg-green-500' },
-    { value: 'good', label: 'Good', color: 'bg-blue-500' },
-    { value: 'fair', label: 'Fair', color: 'bg-yellow-500' },
-    { value: 'poor', label: 'Poor', color: 'bg-red-500' }
-];
 
 export function AnimalDetails({ isOpen, onClose, animal, speciesOptions }) {
     if (!animal) return null;
@@ -52,26 +42,6 @@ export function AnimalDetails({ isOpen, onClose, animal, speciesOptions }) {
             case 'quarantine': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
             case 'deceased': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
             default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-        }
-    };
-
-    const getHealthStatusColor = (healthStatus) => {
-        switch (healthStatus) {
-            case 'excellent': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case 'good': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case 'fair': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case 'poor': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-            default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-        }
-    };
-
-    const getHealthStatusEmoji = (healthStatus) => {
-        switch (healthStatus) {
-            case 'excellent': return '💚';
-            case 'good': return '💙';
-            case 'fair': return '💛';
-            case 'poor': return '❤️';
-            default: return '🤍';
         }
     };
 
@@ -119,22 +89,15 @@ export function AnimalDetails({ isOpen, onClose, animal, speciesOptions }) {
                                 <Badge className={`${getStatusColor(animal.status)} px-3 py-1.5 text-sm font-medium rounded-full`}>
                                     {animal.status}
                                 </Badge>
-                                <Badge className={`${getHealthStatusColor(animal.healthStatus)} px-3 py-1.5 text-sm font-medium rounded-full flex items-center gap-1`}>
-                                    <span>{getHealthStatusEmoji(animal.healthStatus)}</span>
-                                    <span className="capitalize">{animal.healthStatus}</span>
-                                </Badge>
                             </div>
                         </div>
                     </DialogTitle>
                 </DialogHeader>
 
                 <Tabs defaultValue="overview" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                    <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                         <TabsTrigger value="overview" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
                             Overview
-                        </TabsTrigger>
-                        <TabsTrigger value="health" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
-                            Health
                         </TabsTrigger>
                         <TabsTrigger value="experiments" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm rounded-lg">
                             Experiments
@@ -302,90 +265,6 @@ export function AnimalDetails({ isOpen, onClose, animal, speciesOptions }) {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="health" className="space-y-6 mt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Health Information */}
-                            <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
-                                <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/30 rounded-t-xl">
-                                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                                        <Heart className="h-5 w-5" />
-                                        Health Status
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-5 p-5">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="text-center p-5 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                            <Heart className="h-8 w-8 mx-auto mb-3 text-red-600 dark:text-red-400" />
-                                            <p className="text-2xl font-bold text-red-600 dark:text-red-400 capitalize">{animal.healthStatus}</p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">Current Status</p>
-                                        </div>
-                                        <div className="text-center p-5 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                                            <Activity className="h-8 w-8 mx-auto mb-3 text-orange-600 dark:text-orange-400" />
-                                            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                                                {animal.lastHealthCheck ? formatDate(animal.lastHealthCheck) : 'N/A'}
-                                            </p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">Last Check</p>
-                                        </div>
-                                    </div>
-
-                                    <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                                    <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                                            <Activity className="h-4 w-4" />
-                                            Next Health Check
-                                        </p>
-                                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                                            {animal.nextHealthCheck ? formatDate(animal.nextHealthCheck) : 'Not scheduled'}
-                                        </p>
-                                        {animal.nextHealthCheck && (
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                {new Date(animal.nextHealthCheck) > new Date()
-                                                    ? `${Math.ceil((new Date(animal.nextHealthCheck) - new Date()) / (1000 * 60 * 60 * 24))} days remaining`
-                                                    : 'Overdue'}
-                                            </p>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            {/* Health History */}
-                            <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
-                                <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/30 rounded-t-xl">
-                                    <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-white">
-                                        <Stethoscope className="h-5 w-5" />
-                                        Health History
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-5">
-                                    <div className="space-y-4">
-                                        <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <div className="mt-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-3 rounded-full">
-                                                <Calendar className="h-5 w-5" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-gray-900 dark:text-white">Routine Health Check</p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">June 15, 2024</p>
-                                                <p className="text-sm mt-1">Animal in excellent condition, all vitals normal</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <div className="mt-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-full">
-                                                <Stethoscope className="h-5 w-5" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-gray-900 dark:text-white">Vaccination</p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">May 20, 2024</p>
-                                                <p className="text-sm mt-1">Administered standard laboratory animal vaccines</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </TabsContent>
-
                     <TabsContent value="experiments" className="space-y-6 mt-6">
                         <Card className="border border-gray-200 dark:border-gray-700 rounded-xl">
                             <CardHeader className="bg-gradient-to-r from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/30 rounded-t-xl">
@@ -452,17 +331,6 @@ export function AnimalDetails({ isOpen, onClose, animal, speciesOptions }) {
                                             <p className="font-semibold text-gray-900 dark:text-white">Assigned to Experiment</p>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">February 5, 2024 at 2:15 PM</p>
                                             <p className="text-sm mt-1">Added to cardiovascular study (EXP-001)</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                        <div className="mt-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 p-3 rounded-full">
-                                            <Heart className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-gray-900 dark:text-white">Health Check Completed</p>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">June 15, 2024 at 2:20 PM</p>
-                                            <p className="text-sm mt-1">Routine health assessment, animal in excellent condition</p>
                                         </div>
                                     </div>
                                 </div>

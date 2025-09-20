@@ -76,14 +76,8 @@ export function BreedingPairForm({ isOpen, onClose, onSave, animals }) {
     }, [isOpen, reset]);
 
     const onSubmit = (data) => {
-        const breedingPairData = {
-            ...data,
-            male: availableMales.find(a => a._id === data.maleId)?.name || '',
-            female: availableFemales.find(a => a._id === data.femaleId)?.name || '',
-            id: `BP-${Date.now()}`, // Simple ID generation for demo
-            status: 'active'
-        };
-        onSave(breedingPairData);
+        // Send only the required data to the backend
+        onSave(data);
         handleClose();
     };
 

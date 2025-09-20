@@ -40,11 +40,6 @@ const animalSchema = new mongoose.Schema({
         required: true,
         enum: ['active', 'inactive', 'quarantine', 'deceased']
     },
-    healthStatus: {
-        type: String,
-        required: true,
-        enum: ['excellent', 'good', 'fair', 'poor']
-    },
     location: {
         type: String,
         required: true,
@@ -53,12 +48,6 @@ const animalSchema = new mongoose.Schema({
     dateOfBirth: {
         type: Date,
         required: true
-    },
-    lastHealthCheck: {
-        type: Date
-    },
-    nextHealthCheck: {
-        type: Date
     },
     experiments: [{
         type: String,

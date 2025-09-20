@@ -41,13 +41,6 @@ const STATUS_OPTIONS = [
     { value: 'deceased', label: 'Deceased', color: 'bg-red-500' }
 ];
 
-const HEALTH_STATUS_OPTIONS = [
-    { value: 'excellent', label: 'Excellent', color: 'bg-green-500' },
-    { value: 'good', label: 'Good', color: 'bg-blue-500' },
-    { value: 'fair', label: 'Fair', color: 'bg-yellow-500' },
-    { value: 'poor', label: 'Poor', color: 'bg-red-500' }
-];
-
 const AGE_RANGES = [
     { value: '0-4', label: '0-4 weeks' },
     { value: '5-12', label: '5-12 weeks' },
@@ -77,10 +70,8 @@ export function AnimalFilters({ filters, onFiltersChange }) {
             species: '__all__',
             status: '__all__',
             ageRange: '__all__',
-            healthStatus: '__all__',
             gender: '__all__',
-            hasExperiments: false,
-            needsHealthCheck: false
+            hasExperiments: false
         });
     };
 
@@ -93,10 +84,8 @@ export function AnimalFilters({ filters, onFiltersChange }) {
         species: filters.species || '__all__',
         status: filters.status || '__all__',
         ageRange: filters.ageRange || '__all__',
-        healthStatus: filters.healthStatus || '__all__',
         gender: filters.gender || '__all__',
-        hasExperiments: filters.hasExperiments || false,
-        needsHealthCheck: filters.needsHealthCheck || false
+        hasExperiments: filters.hasExperiments || false
     };
 
     return (
@@ -130,17 +119,6 @@ export function AnimalFilters({ filters, onFiltersChange }) {
                             </button>
                         </Badge>
                     )}
-                    {normalizedFilters.healthStatus && normalizedFilters.healthStatus !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
-                            Health: {HEALTH_STATUS_OPTIONS.find(s => s.value === normalizedFilters.healthStatus)?.label}
-                            <button
-                                onClick={() => clearFilter('healthStatus')}
-                                className="ml-1 hover:text-red-600"
-                            >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    )}
                     {normalizedFilters.ageRange && normalizedFilters.ageRange !== '__all__' && (
                         <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
                             Age: {AGE_RANGES.find(a => a.value === normalizedFilters.ageRange)?.label}
@@ -168,17 +146,6 @@ export function AnimalFilters({ filters, onFiltersChange }) {
                             Has Experiments
                             <button
                                 onClick={() => updateFilter('hasExperiments', false)}
-                                className="ml-1 hover:text-red-600"
-                            >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    )}
-                    {normalizedFilters.needsHealthCheck && (
-                        <Badge variant="secondary" className="flex items-center gap-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
-                            Needs Health Check
-                            <button
-                                onClick={() => updateFilter('needsHealthCheck', false)}
                                 className="ml-1 hover:text-red-600"
                             >
                                 <X className="h-3 w-3" />
@@ -275,30 +242,6 @@ export function AnimalFilters({ filters, onFiltersChange }) {
                             </Select>
                         </div>
 
-                        {/* Health Status Filter */}
-                        <div className="space-y-2">
-                            <Label className="font-medium">Health Status</Label>
-                            <Select
-                                value={normalizedFilters.healthStatus}
-                                onValueChange={(value) => updateFilter('healthStatus', value)}
-                            >
-                                <SelectTrigger className="border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500">
-                                    <SelectValue placeholder="All health statuses" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="__all__">All health statuses</SelectItem>
-                                    {HEALTH_STATUS_OPTIONS.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-3 h-3 ${option.color} rounded-full`}></div>
-                                                {option.label}
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
                         {/* Age Range Filter */}
                         <div className="space-y-2">
                             <Label className="font-medium">Age Range</Label>
@@ -363,27 +306,6 @@ export function AnimalFilters({ filters, onFiltersChange }) {
                                     id="has-experiments"
                                     checked={normalizedFilters.hasExperiments}
                                     onCheckedChange={(checked) => updateFilter('hasExperiments', checked)}
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Label htmlFor="needs-health-check" className="font-medium">Needs Health Check</Label>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger>
-                                                <span className="text-gray-500 text-xs">ⓘ</span>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>Show animals with overdue health checks</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </div>
-                                <Switch
-                                    id="needs-health-check"
-                                    checked={normalizedFilters.needsHealthCheck}
-                                    onCheckedChange={(checked) => updateFilter('needsHealthCheck', checked)}
                                 />
                             </div>
                         </div>

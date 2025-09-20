@@ -6,13 +6,12 @@ This component provides a comprehensive interface for managing laboratory animal
 
 ### 1. Animal Overview
 - Grid view of all animals with key information
-- Filtering by species, status, health status, and age range
+- Filtering by species, status, and age range
 - Search functionality
 - Statistics cards for quick insights
 
 ### 2. Detailed Animal Information
 - Comprehensive animal profile with all relevant data
-- Health status tracking
 - Experiment associations
 - Physical characteristics
 - Location information
@@ -22,15 +21,9 @@ This component provides a comprehensive interface for managing laboratory animal
 - Expected delivery dates
 - Pair status management
 
-### 4. Health Tracking
-- Health status categorization (Excellent, Good, Fair, Poor)
-- Health check scheduling
-- Visual health statistics
-
-### 5. Data Visualization
+### 4. Data Visualization
 - Species distribution charts
-- Health status distribution charts
-- Progress indicators for health metrics
+- Progress indicators for metrics
 
 ## Components
 
@@ -52,11 +45,8 @@ Animals are represented with the following properties:
 - `weight`: Weight in grams
 - `gender`: Male or female
 - `status`: Active, inactive, quarantine, or deceased
-- `healthStatus`: Excellent, good, fair, or poor
 - `location`: Current housing location
 - `dateOfBirth`: Birth date
-- `lastHealthCheck`: Date of last health check
-- `nextHealthCheck`: Scheduled next health check
 - `experiments`: Array of associated experiment IDs
 - `notes`: Additional notes
 
@@ -66,7 +56,6 @@ Planned improvements include:
 - Integration with backend API for real data
 - Export/import functionality for animal data
 - Advanced reporting capabilities
-- Automated health check reminders
 - Breeding pair analytics
 
 # Animal Management System
@@ -226,8 +215,7 @@ Laboratory
 - **Batch Operations**: Select multiple animals for bulk actions
 - **Export/Import**: CSV/Excel export and import functionality
 - **Photo Upload**: Animal photo management
-- **Medical Records**: Detailed health and medical history
 - **Breeding Records**: Genealogy and breeding information
-- **Notifications**: Alerts for health checks, feeding schedules
+- **Notifications**: Alerts for feeding schedules
 - **Reports**: Generate detailed reports and analytics
 - **Barcode/QR**: Generate and scan animal identification codes

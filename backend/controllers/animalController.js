@@ -38,11 +38,26 @@ const createAnimal = async (req, res) => {
         const animalData = req.body;
 
         // Validate required fields
-        if (!animalData.name || !animalData.species || !animalData.strain ||
-            !animalData.age || !animalData.weight || !animalData.gender ||
-            !animalData.status || !animalData.healthStatus || !animalData.location ||
-            !animalData.dateOfBirth) {
-            return res.status(400).json({ message: 'Missing required fields' });
+        // Check for truly missing fields (undefined or null)
+        const requiredFields = [
+            'name', 'species', 'strain', 'age', 'weight',
+            'gender', 'status', 'location', 'dateOfBirth'
+        ];
+
+        const missingFields = requiredFields.filter(field => {
+            // For age and weight, 0 is a valid value
+            if (field === 'age' || field === 'weight') {
+                return animalData[field] === undefined || animalData[field] === null;
+            }
+            // For string fields, empty string is invalid
+            return !animalData[field];
+        });
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: 'Missing required fields',
+                missingFields
+            });
         }
 
         const animal = new Animal(animalData);

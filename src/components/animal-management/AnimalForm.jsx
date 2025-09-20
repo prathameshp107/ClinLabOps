@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Calendar, Heart, Info, User, Dna, MapPin, Scale, Clock, FlaskConical } from 'lucide-react';
+import { X, Plus, Calendar, User, Dna, MapPin, Scale, Clock, FlaskConical, Info } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Tooltip,
@@ -51,22 +51,29 @@ const animalSchema = z.object({
     status: z.enum(['active', 'inactive', 'quarantine', 'deceased'], {
         required_error: 'Status is required',
     }),
-    healthStatus: z.enum(['excellent', 'good', 'fair', 'poor'], {
-        required_error: 'Health status is required',
-    }),
     location: z.string().min(1, 'Location is required'),
     dateOfBirth: z.string().min(1, 'Date of birth is required'),
-    lastHealthCheck: z.string().optional(),
-    nextHealthCheck: z.string().optional(),
     notes: z.string().optional(),
+}).refine((data) => {
+    // If species is 'custom', then customSpecies is required
+    if (data.species === 'custom') {
+        return data.customSpecies && data.customSpecies.trim().length > 0;
+    }
+    return true;
+}, {
+    message: 'Custom species name is required when species is set to custom',
+    path: ['customSpecies'],
+}).refine((data) => {
+    // Validate that dateOfBirth is not empty and is a valid date
+    if (!data.dateOfBirth || data.dateOfBirth.trim().length === 0) {
+        return false;
+    }
+    const date = new Date(data.dateOfBirth);
+    return date instanceof Date && !isNaN(date.getTime());
+}, {
+    message: 'Date of birth must be a valid date',
+    path: ['dateOfBirth'],
 });
-
-const HEALTH_STATUS_OPTIONS = [
-    { value: 'excellent', label: 'Excellent', color: 'bg-green-500' },
-    { value: 'good', label: 'Good', color: 'bg-blue-500' },
-    { value: 'fair', label: 'Fair', color: 'bg-yellow-500' },
-    { value: 'poor', label: 'Poor', color: 'bg-red-500' }
-];
 
 const STATUS_OPTIONS = [
     { value: 'active', label: 'Active', description: 'Animal is healthy and available for experiments' },
@@ -97,11 +104,8 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
             weight: 0,
             gender: 'male',
             status: 'active',
-            healthStatus: 'good',
             location: '',
             dateOfBirth: '',
-            lastHealthCheck: '',
-            nextHealthCheck: '',
             notes: '',
         },
     });
@@ -120,11 +124,8 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                 weight: animal.weight || 0,
                 gender: animal.gender || 'male',
                 status: animal.status || 'active',
-                healthStatus: animal.healthStatus || 'good',
                 location: animal.location || '',
                 dateOfBirth: animal.dateOfBirth || '',
-                lastHealthCheck: animal.lastHealthCheck || '',
-                nextHealthCheck: animal.nextHealthCheck || '',
                 notes: animal.notes || '',
             });
             setExperiments(animal.experiments || []);
@@ -138,11 +139,8 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                 weight: 0,
                 gender: 'male',
                 status: 'active',
-                healthStatus: 'good',
                 location: '',
                 dateOfBirth: '',
-                lastHealthCheck: '',
-                nextHealthCheck: '',
                 notes: '',
             });
             setExperiments([]);
@@ -150,11 +148,18 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
     }, [animal, reset]);
 
     const onSubmit = (data) => {
+        // Handle species field correctly
         const animalData = {
             ...data,
             experiments,
             species: data.species === 'custom' ? data.customSpecies : data.species,
         };
+
+        // Remove customSpecies field if species is not 'custom'
+        if (data.species !== 'custom') {
+            delete animalData.customSpecies;
+        }
+
         onSave(animalData);
         handleClose();
     };
@@ -442,12 +447,12 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                             </AccordionContent>
                         </AccordionItem>
 
-                        {/* Status and Health */}
+                        {/* Status */}
                         <AccordionItem value="status">
                             <AccordionTrigger className="hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg px-3">
                                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                                    <Heart className="h-5 w-5" />
-                                    Status & Health
+                                    <User className="h-5 w-5" />
+                                    Status
                                 </h3>
                             </AccordionTrigger>
                             <AccordionContent>
@@ -491,43 +496,6 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
 
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2">
-                                            <Label htmlFor="healthStatus" className="font-medium">Health Status *</Label>
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                        <Info className="h-4 w-4 text-gray-500" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>Overall health condition of the animal</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                        <Select
-                                            onValueChange={(value) => setValue('healthStatus', value)}
-                                            defaultValue="good"
-                                        >
-                                            <SelectTrigger className="py-5 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500">
-                                                <SelectValue placeholder="Select health status" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {HEALTH_STATUS_OPTIONS.map((option) => (
-                                                    <SelectItem key={option.value} value={option.value}>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-3 h-3 ${option.color} rounded-full`}></div>
-                                                            {option.label}
-                                                        </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        {errors.healthStatus && (
-                                            <p className="text-sm text-red-600">{errors.healthStatus.message}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <div className="flex items-center gap-2">
                                             <Label htmlFor="dateOfBirth" className="font-medium">Date of Birth *</Label>
                                             <TooltipProvider>
                                                 <Tooltip>
@@ -552,34 +520,6 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                                         {errors.dateOfBirth && (
                                             <p className="text-sm text-red-600">{errors.dateOfBirth.message}</p>
                                         )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:col-span-2">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="lastHealthCheck" className="font-medium">Last Health Check</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="lastHealthCheck"
-                                                    type="date"
-                                                    {...register('lastHealthCheck')}
-                                                    className="py-5 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                                                />
-                                                <Heart className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="nextHealthCheck" className="font-medium">Next Health Check</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="nextHealthCheck"
-                                                    type="date"
-                                                    {...register('nextHealthCheck')}
-                                                    className="py-5 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                                                />
-                                                <Heart className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </AccordionContent>
