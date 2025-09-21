@@ -159,15 +159,6 @@ export default function TaskDetailsSection({
                         </div>
 
                         <div className="space-y-3">
-                            <div className={cn(
-                                "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border-2",
-                                currentStatus.bgColor,
-                                currentStatus.textColor,
-                                currentStatus.borderColor
-                            )}>
-                                <currentStatus.icon className="h-4 w-4" />
-                                {currentStatus.label}
-                            </div>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -215,15 +206,6 @@ export default function TaskDetailsSection({
                         </div>
 
                         <div className="space-y-3">
-                            <div className={cn(
-                                "inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border-2",
-                                currentPriority.bgColor,
-                                currentPriority.textColor,
-                                currentPriority.borderColor
-                            )}>
-                                <currentPriority.icon className="h-4 w-4" />
-                                {currentPriority.label}
-                            </div>
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -271,19 +253,7 @@ export default function TaskDetailsSection({
                         </div>
 
                         <div className="space-y-3">
-                            {selectedAssignees[0] && (
-                                <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/30 border border-accent/50">
-                                    <UserAvatar
-                                        user={selectedAssignees[0]}
-                                        variant="minimal"
-                                        size="md"
-                                    />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">{selectedAssignees[0].name}</p>
-                                        <p className="text-xs text-muted-foreground">{selectedAssignees[0].email}</p>
-                                    </div>
-                                </div>
-                            )}
+                        
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -466,29 +436,7 @@ export default function TaskDetailsSection({
                         </div>
 
                         <div className="space-y-3">
-                            {date && (
-                                <div className={cn(
-                                    "flex items-center gap-3 p-3 rounded-lg border-2",
-                                    date && isPast(new Date(date)) && !isToday(new Date(date))
-                                        ? "bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300"
-                                        : isToday(new Date(date))
-                                            ? "bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-300"
-                                            : "bg-accent/30 border-accent/50"
-                                )}>
-                                    <CalendarIcon className="h-4 w-4 flex-shrink-0" />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">{format(date, 'PPP')}</p>
-                                        <p className="text-xs opacity-70">
-                                            {isPast(new Date(date)) && !isToday(new Date(date))
-                                                ? "Overdue"
-                                                : isToday(new Date(date))
-                                                    ? "Due today"
-                                                    : `Due in ${Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))} days`
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+                            
 
                             <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
                                 <PopoverTrigger asChild>

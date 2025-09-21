@@ -428,38 +428,7 @@ export default function TasksPage() {
                 </div>
 
                 {/* Stats Grid - Responsive */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                  <StatCard
-                    title="Total"
-                    value={taskStats.total}
-                    icon={<List className="h-4 w-4" />}
-                    variant="default"
-                  />
-                  <StatCard
-                    title="Pending"
-                    value={taskStats.pending}
-                    icon={<Clock className="h-4 w-4 text-amber-500" />}
-                    variant="pending"
-                  />
-                  <StatCard
-                    title="In Progress"
-                    value={taskStats.inProgress}
-                    icon={<Loader2 className="h-4 w-4 animate-spin text-blue-500" />}
-                    variant="inProgress"
-                  />
-                  <StatCard
-                    title="Completed"
-                    value={taskStats.completed}
-                    icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
-                    variant="completed"
-                  />
-                  <StatCard
-                    title="Overdue"
-                    value={taskStats.overdue}
-                    icon={<AlertCircle className="h-4 w-4 text-red-500" />}
-                    variant="overdue"
-                  />
-                </div>
+
               </div>
             </div>
           </div>
