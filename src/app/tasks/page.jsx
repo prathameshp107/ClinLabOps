@@ -27,7 +27,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { getTasks, createTask, getNextTaskId } from "@/services/taskService"
+import { getTasks, createTask, getNextTaskId, deleteTask } from "@/services/taskService"
 import { getProjects, getProjectById } from "@/services/projectService"
 
 export default function TasksPage() {
@@ -61,8 +61,8 @@ export default function TasksPage() {
   // Helper to get the next custom task number for a project
   function getNextTaskNumberForProject(tasks, projectAcronym) {
     const numbers = tasks
-      .filter(t => t.customId && t.customId.startsWith(projectAcronym + ' - '))
-      .map(t => parseInt(t.customId.split(' - ')[1], 10))
+      .filter(t => t.customId && t.customId.startsWith(projectAcronym + '-'))
+      .map(t => parseInt(t.customId.split('-')[1], 10))
       .filter(n => !isNaN(n));
     return numbers.length ? Math.max(...numbers) + 1 : 1;
   }
@@ -78,7 +78,7 @@ export default function TasksPage() {
       } else {
         // Find the next available number for this project
         const nextNum = getNextTaskNumberForProject(allTasks, acronym);
-        customId = `${acronym} - ${nextNum}`;
+        customId = `${acronym}-${nextNum}`;
       }
     }
     return {
@@ -165,31 +165,43 @@ export default function TasksPage() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId))
+      await deleteTask(taskId);
+      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
       toast({
         title: "Task deleted",
         description: "The task has been removed.",
-      })
+      });
     } catch (error) {
-      fetchTasksData()
+      fetchTasksData();
       toast({
         title: "Error deleting task",
         description: error.message,
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
-  const handleBulkDelete = () => {
-    if (selectedTasks.length === 0) return
+  const handleBulkDelete = async () => {
+    if (selectedTasks.length === 0) return;
 
     if (window.confirm(`Are you sure you want to delete ${selectedTasks.length} selected tasks?`)) {
-      setTasks(prev => prev.filter(task => !selectedTasks.includes(task.id)))
-      setSelectedTasks([])
-      toast({
-        title: "Tasks deleted",
-        description: `${selectedTasks.length} tasks have been removed.`,
-      })
+      try {
+        // Delete all selected tasks
+        await Promise.all(selectedTasks.map(taskId => deleteTask(taskId)));
+        setTasks(prev => prev.filter(task => !selectedTasks.includes(task.id)));
+        setSelectedTasks([]);
+        toast({
+          title: "Tasks deleted",
+          description: `${selectedTasks.length} tasks have been removed.`,
+        });
+      } catch (error) {
+        fetchTasksData();
+        toast({
+          title: "Error deleting tasks",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
     }
   }
 
@@ -286,13 +298,23 @@ export default function TasksPage() {
                 // You can implement edit functionality here
                 // For example: setEditingTask(task); setShowTaskForm(true);
               }}
-              onDelete={(taskId) => {
+              onDelete={async (taskId) => {
                 if (window.confirm('Are you sure you want to delete this task?')) {
-                  setTasks(prev => prev.filter(t => t.id !== taskId));
-                  toast({
-                    title: "Task deleted",
-                    description: "The task has been successfully deleted.",
-                  });
+                  try {
+                    await deleteTask(taskId);
+                    setTasks(prev => prev.filter(t => t.id !== taskId));
+                    toast({
+                      title: "Task deleted",
+                      description: "The task has been successfully deleted.",
+                    });
+                  } catch (error) {
+                    fetchTasksData();
+                    toast({
+                      title: "Error deleting task",
+                      description: error.message,
+                      variant: "destructive",
+                    });
+                  }
                 }
               }}
               onStatusChange={(taskId, status) => {
@@ -312,7 +334,7 @@ export default function TasksPage() {
       }
       return col;
     });
-  }, [setTasks, setSelectedTask, setShowTaskDetails])
+  }, [setTasks, setSelectedTask, setShowTaskDetails, fetchTasksData, toast]);
 
   const handleAddTask = async (taskData) => {
     try {
@@ -325,7 +347,7 @@ export default function TasksPage() {
           const acronym = getProjectAcronym(project.name);
           // Use current tasks to determine next customId
           const nextNum = getNextTaskNumberForProject(tasks, acronym);
-          customId = `${acronym} - ${nextNum}`;
+          customId = `${acronym}-${nextNum}`;
         }
       }
       const newTask = await createTask({ ...taskData, customId });
@@ -512,10 +534,10 @@ export default function TasksPage() {
                       variant="outline"
                       size="sm"
                       className="h-7 sm:h-8 px-2 sm:px-3 text-xs sm:text-sm flex-1 sm:flex-none"
-                      onClick={() => handleBulkStatusChange('completed')}
+                      onClick={() => handleBulkStatusChange('done')}
                     >
                       <CheckCircle2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                      <span className="hidden sm:inline">Mark </span>Completed
+                      <span className="hidden sm:inline">Mark </span>Done
                     </Button>
                     <Button
                       variant="destructive"
@@ -541,7 +563,7 @@ export default function TasksPage() {
 
               {viewMode === 'table' ? (
                 <div className="w-full overflow-hidden rounded-lg sm:rounded-2xl border shadow-lg bg-white dark:bg-gray-950">
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                     <DataTable
                       columns={tableColumns}
                       data={filteredTasks}

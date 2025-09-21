@@ -10,10 +10,10 @@ import { DataTableRowActions } from "./data-table-row-actions"
 import { statuses, priorities } from "@/app/tasks/data/schema"
 
 const statusIcons = {
-  pending: { icon: Clock, color: "text-amber-500" },
+  todo: { icon: Clock, color: "text-amber-500" },
   "in-progress": { icon: AlertCircle, color: "text-blue-500" },
-  completed: { icon: CheckCircle2, color: "text-green-500" },
-  cancelled: { icon: XCircle, color: "text-red-500" }
+  review: { icon: AlertCircle, color: "text-purple-500" },
+  done: { icon: CheckCircle2, color: "text-green-500" }
 }
 
 export const columns = [
@@ -41,6 +41,7 @@ export const columns = [
     ),
     enableSorting: false,
     enableHiding: false,
+    size: 40,
   },
   {
     accessorKey: "customId",
@@ -48,16 +49,13 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Task ID" />
     ),
     cell: ({ row }) => (
-      <div className="w-[80px] sm:w-[100px] font-mono text-xs sm:text-sm">
+      <div className="font-mono text-xs sm:text-sm min-w-[80px] max-w-[100px] truncate">
         {row.getValue("customId") || row.getValue("id")}
       </div>
     ),
     enableSorting: true,
     enableHiding: false,
-    size: 80,
-    meta: {
-      className: "min-w-[80px]"
-    },
+    size: 100,
   },
   {
     accessorKey: "title",
@@ -66,19 +64,14 @@ export const columns = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="flex space-x-2">
-          <span className="max-w-[180px] sm:max-w-[250px] truncate font-medium text-sm sm:text-base">
-            {row.getValue("title")}
-          </span>
+        <div className="min-w-[150px] max-w-[250px] truncate font-medium text-sm sm:text-base">
+          {row.getValue("title")}
         </div>
       )
     },
     enableSorting: true,
     enableHiding: false,
     size: 200,
-    meta: {
-      className: "min-w-[180px] sm:min-w-[250px]"
-    },
   },
   {
     accessorKey: "description",
@@ -86,16 +79,13 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Description" />
     ),
     cell: ({ row }) => (
-      <div className="max-w-[150px] sm:max-w-[200px] truncate text-xs sm:text-sm text-muted-foreground">
+      <div className="truncate text-xs sm:text-sm text-muted-foreground min-w-[150px] max-w-[200px]">
         {row.getValue("description")}
       </div>
     ),
     enableSorting: false,
     enableHiding: true,
-    size: 150,
-    meta: {
-      className: "hidden sm:table-cell min-w-[150px]"
-    },
+    size: 180,
   },
   {
     accessorKey: "status",
@@ -113,7 +103,7 @@ export const columns = [
       const statusColor = statusIcons[status.value]?.color || "text-muted-foreground"
 
       return (
-        <div className="flex w-[100px] sm:w-[130px] items-center">
+        <div className="flex items-center min-w-[100px] max-w-[130px]">
           <StatusIcon className={`mr-1 sm:mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5 ${statusColor}`} />
           <span className="text-xs sm:text-sm truncate">{status.label}</span>
         </div>
@@ -123,10 +113,7 @@ export const columns = [
       return value.includes(row.getValue(id))
     },
     enableSorting: true,
-    size: 120,
-    meta: {
-      className: "min-w-[100px]"
-    },
+    size: 130,
   },
   {
     accessorKey: "priority",
@@ -141,7 +128,7 @@ export const columns = [
       if (!priority) return null
 
       return (
-        <div className="flex items-center w-[80px] sm:w-[100px]">
+        <div className="flex items-center min-w-[80px] max-w-[100px]">
           {priority.icon && (
             <priority.icon className="mr-1 sm:mr-2 h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground" />
           )}
@@ -153,10 +140,7 @@ export const columns = [
       return value.includes(row.getValue(id))
     },
     enableSorting: true,
-    size: 90,
-    meta: {
-      className: "hidden md:table-cell min-w-[80px]"
-    },
+    size: 100,
   },
   {
     accessorKey: "dueDate",
@@ -172,10 +156,10 @@ export const columns = [
       })
 
       const today = new Date()
-      const isOverdue = date < today && row.getValue("status") !== "completed"
+      const isOverdue = date < today && row.getValue("status") !== "done"
 
       return (
-        <div className="flex items-center w-[90px] sm:w-[110px]">
+        <div className="flex items-center min-w-[90px] max-w-[110px]">
           <span className={`text-xs sm:text-sm truncate ${isOverdue ? "text-destructive font-medium" : ""
             }`}>
             {formattedDate}
@@ -184,10 +168,7 @@ export const columns = [
       )
     },
     enableSorting: true,
-    size: 100,
-    meta: {
-      className: "hidden lg:table-cell min-w-[90px]"
-    },
+    size: 110,
   },
   {
     accessorKey: "assignedTo",
@@ -197,7 +178,7 @@ export const columns = [
     cell: ({ row }) => {
       const assignedTo = row.getValue("assignedTo")
       return (
-        <div className="flex items-center w-[120px] sm:w-[150px]">
+        <div className="flex items-center min-w-[120px] max-w-[150px]">
           <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-muted flex items-center justify-center mr-1 sm:mr-2 flex-shrink-0">
             <span className="text-xs font-medium">
               {assignedTo?.name?.charAt(0) || '?'}
@@ -208,10 +189,7 @@ export const columns = [
       )
     },
     enableSorting: true,
-    size: 130,
-    meta: {
-      className: "min-w-[120px]"
-    },
+    size: 150,
   },
   {
     accessorKey: "project",
@@ -219,7 +197,7 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Project" />
     ),
     cell: ({ row }) => (
-      <div className="w-[100px] sm:w-[120px]">
+      <div className="min-w-[100px] max-w-[120px] truncate">
         <span className="truncate text-xs sm:text-sm">{row.getValue("project")?.name || '-'}</span>
       </div>
     ),
@@ -228,18 +206,17 @@ export const columns = [
     },
     enableSorting: false,
     enableHiding: true,
-    size: 110,
-    meta: {
-      className: "hidden xl:table-cell min-w-[100px]"
-    },
+    size: 120,
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    header: () => <div className="text-right w-[50px]">Actions</div>,
+    cell: ({ row }) => (
+      <div className="text-right w-[50px]">
+        <DataTableRowActions row={row} />
+      </div>
+    ),
     enableHiding: false,
     size: 50,
-    meta: {
-      className: "w-[50px]"
-    },
   },
 ]

@@ -4,9 +4,18 @@ const ActivityService = require('../services/activityService');
 
 // Helper function to generate project initials from project name
 const generateProjectInitials = (projectName) => {
+    // Check if the project name contains an acronym in parentheses
+    const acronymMatch = projectName.match(/\(([^)]+)\)/);
+    if (acronymMatch && acronymMatch[1]) {
+        // Use the acronym from parentheses if it exists
+        return acronymMatch[1].toUpperCase();
+    }
+
+    // Fallback to the original logic if no parentheses found
     return projectName
         .split(' ')
         .map(word => word.charAt(0).toUpperCase())
+        .filter(char => /[A-Z]/.test(char)) // Only keep alphabetic characters
         .join('');
 };
 
