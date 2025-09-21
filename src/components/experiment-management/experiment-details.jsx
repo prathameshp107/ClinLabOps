@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Textarea } from "@/components/ui/textarea"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,7 @@ import {
   GitBranch,
   History,
   MessageSquare,
+  Send,
   Trash2,
   Users
 } from "lucide-react"
@@ -42,6 +44,10 @@ import { ExperimentChart } from "./experiment-chart"
 export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
+  const [comments, setComments] = useState([])
+  const [newComment, setNewComment] = useState("")
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [replyText, setReplyText] = useState("")
 
   // Priority badge styling
   const getPriorityStyles = (priority) => {
@@ -80,6 +86,168 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
     })
     setIsEditing(false)
   }
+
+  const handleAddComment = () => {
+    if (newComment.trim() === "") return
+
+    const comment = {
+      id: comments.length + 1,
+      author: "Current User", // This would be the actual user in a real app
+      avatar: "/avatars/default.jpg",
+      date: new Date().toISOString(),
+      text: newComment,
+      replies: []
+    }
+
+    setComments([...comments, comment])
+    setNewComment("")
+  }
+
+  const handleAddReply = (commentId, replyToReplyId = null) => {
+    if (replyText.trim() === "") return;
+
+    const reply = {
+      id: Date.now(), // Simple ID generation
+      author: "Current User", // This would be the actual user in a real app
+      avatar: "/avatars/default.jpg",
+      date: new Date().toISOString(),
+      text: replyText,
+      replies: [] // Initialize with empty replies array
+    };
+
+    const addReplyToComments = (commentsArray) => {
+      return commentsArray.map(comment => {
+        // Handle top-level comment replies
+        if (comment.id === commentId && !replyToReplyId) {
+          return {
+            ...comment,
+            replies: [...comment.replies, reply]
+          };
+        }
+
+        // Handle nested reply to reply
+        if (replyToReplyId) {
+          return {
+            ...comment,
+            replies: addReplyToNested(comment.replies, replyToReplyId, reply)
+          };
+        }
+
+        return comment;
+      });
+    };
+
+    const addReplyToNested = (replies, targetId, newReply) => {
+      return replies.map(replyItem => {
+        // If this is the direct reply we're replying to
+        if (replyItem.id === targetId) {
+          return {
+            ...replyItem,
+            replies: [...(replyItem.replies || []), newReply]
+          };
+        }
+
+        // If this reply has nested replies, check them recursively
+        if (replyItem.replies && replyItem.replies.length > 0) {
+          return {
+            ...replyItem,
+            replies: addReplyToNested(replyItem.replies, targetId, newReply)
+          };
+        }
+
+        return replyItem;
+      });
+    };
+
+    setComments(addReplyToComments(comments));
+    setReplyText("");
+    setReplyingTo(null);
+  };
+
+  const formatDate = (dateString) => {
+    const date = parseISO(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60))
+
+    if (diffInHours < 1) {
+      return "Just now"
+    } else if (diffInHours < 24) {
+      return `${diffInHours}h ago`
+    } else {
+      return format(date, "MMM d, yyyy")
+    }
+  }
+
+  const renderReply = (reply, topLevelCommentId) => {
+    return (
+      <div key={reply.id} className="comment">
+        <a className="avatar">
+          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+        </a>
+        <div className="content">
+          <a className="author font-medium text-foreground text-sm">{reply.author}</a>
+          <div className="metadata">
+            <span className="date text-xs text-muted-foreground">{formatDate(reply.date)}</span>
+          </div>
+          <div className="text text-foreground text-sm mt-1">
+            {reply.text}
+          </div>
+          <div className="actions">
+            <a
+              className="reply text-muted-foreground hover:text-foreground cursor-pointer text-sm"
+              onClick={() => setReplyingTo(replyingTo === `reply-${reply.id}` ? null : `reply-${reply.id}`)}
+            >
+              Reply
+            </a>
+          </div>
+
+          {/* Reply Form for reply */}
+          {replyingTo === `reply-${reply.id}` && (
+            <div className="mt-4 flex">
+              <div className="flex-shrink-0 mr-3">
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+              </div>
+              <div className="flex-1">
+                <Textarea
+                  placeholder="Write a reply..."
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  className="mb-2"
+                />
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleAddReply(topLevelCommentId, reply.id)}
+                    disabled={!replyText.trim()}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Post Reply
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setReplyingTo(null)
+                      setReplyText("")
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Nested Replies */}
+          {reply.replies && reply.replies.length > 0 && (
+            <div className="comments space-y-6 mt-6 ml-4 pl-4 border-l-2 border-border/30">
+              {reply.replies.map((nestedReply) => renderReply(nestedReply, topLevelCommentId))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full max-h-[85vh] overflow-hidden bg-background/50 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm">
@@ -424,17 +592,116 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                       Discussion
                     </h2>
 
-                    <div className="flex flex-col items-center justify-center py-16 text-center bg-muted/20 rounded-lg border border-border/30">
-                      <div className="rounded-full bg-primary/10 p-4 mb-5">
-                        <MessageSquare className="h-7 w-7 text-primary/80" />
-                      </div>
-                      <h3 className="text-lg font-semibold mb-2">No discussions yet</h3>
-                      <p className="text-muted-foreground max-w-md mb-5">
-                        Start a discussion about this experiment with your team members.
-                      </p>
-                      <Button className="bg-primary hover:bg-primary/90 transition-colors">
-                        Start Discussion
-                      </Button>
+                    {/* Comments Section - Updated to match requested structure */}
+                    <div className="ui threaded comments bg-card border border-border/50 rounded-lg shadow-sm p-6">
+                      <h3 className="ui dividing header text-lg font-semibold mb-4 pb-2 border-b border-border/50">Comments</h3>
+
+                      {comments.length > 0 ? (
+                        <div className="space-y-6">
+                          {comments.map((comment) => (
+                            <div key={comment.id} className="comment">
+                              <a className="avatar">
+                                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
+                              </a>
+                              <div className="content">
+                                <a className="author font-medium text-foreground">{comment.author}</a>
+                                <div className="metadata">
+                                  <span className="date text-sm text-muted-foreground">{formatDate(comment.date)}</span>
+                                </div>
+                                <div className="text text-foreground mt-1">
+                                  {comment.text}
+                                </div>
+                                <div className="actions">
+                                  <a
+                                    className="reply text-muted-foreground hover:text-foreground cursor-pointer"
+                                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                                  >
+                                    Reply
+                                  </a>
+                                </div>
+
+                                {/* Reply Form for comment */}
+                                {replyingTo === comment.id && (
+                                  <div className="mt-4 flex">
+                                    <div className="flex-shrink-0 mr-3">
+                                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <Textarea
+                                        placeholder="Write a reply..."
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        className="mb-2"
+                                      />
+                                      <div className="flex space-x-2">
+                                        <Button
+                                          size="sm"
+                                          onClick={() => handleAddReply(comment.id)}
+                                          disabled={!replyText.trim()}
+                                        >
+                                          <Send className="h-4 w-4 mr-2" />
+                                          Post Reply
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => {
+                                            setReplyingTo(null)
+                                            setReplyText("")
+                                          }}
+                                        >
+                                          Cancel
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Replies */}
+                                {comment.replies.length > 0 && (
+                                  <div className="comments space-y-6 mt-6">
+                                    {comment.replies.map((reply) => (
+                                      renderReply(reply, comment.id)
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10">
+                          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <h3 className="text-lg font-medium text-foreground mb-1">No comments yet</h3>
+                          <p className="text-muted-foreground">Be the first to start a discussion on this experiment.</p>
+                        </div>
+                      )}
+
+                      {/* Add Comment Form - Updated to match requested structure */}
+                      <form
+                        className="ui reply form mt-6 pt-6 border-t border-border/50"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleAddComment();
+                        }}
+                      >
+                        <div className="field">
+                          <Textarea
+                            placeholder="Add a comment..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            className="mb-3"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="ui blue labeled submit icon button bg-primary text-primary-foreground hover:bg-primary/90 transition-colors rounded-md px-4 py-2 text-sm font-medium cursor-pointer inline-flex items-center"
+                          disabled={!newComment.trim()}
+                        >
+                          <Send className="icon h-4 w-4 mr-2" />
+                          Add Reply
+                        </button>
+                      </form>
                     </div>
                   </div>
                 </TabsContent>
