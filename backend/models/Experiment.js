@@ -43,7 +43,7 @@ const experimentSchema = new Schema({
     type: Date,
     required: [true, 'End date is required'],
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         // End date should be after start date
         return this.startDate ? value > this.startDate : true;
       },
@@ -54,6 +54,12 @@ const experimentSchema = new Schema({
     type: String,
     trim: true
   }],
+  // Add project reference
+  projectId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Project',
+    required: false
+  },
   version: {
     type: Number,
     default: 1
@@ -78,7 +84,7 @@ experimentSchema.index({
 });
 
 // Pre-save hook to manage version history
-experimentSchema.pre('save', function(next) {
+experimentSchema.pre('save', function (next) {
   if (this.isNew) {
     // For new documents, add initial version
     this.versionHistory.push({
@@ -101,7 +107,7 @@ experimentSchema.pre('save', function(next) {
 });
 
 // Static method to get experiment statistics
-experimentSchema.statics.getStats = async function() {
+experimentSchema.statics.getStats = async function () {
   const stats = await this.aggregate([
     {
       $group: {

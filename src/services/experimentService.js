@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getProjects } from './projectService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -347,6 +348,20 @@ export async function getExperimentsByPriority(priority) {
     return response.data;
   } catch (error) {
     console.error('Error fetching experiments by priority:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch all projects for experiment form
+ * @returns {Promise<Array>} List of projects
+ */
+export async function getProjectsForExperimentForm() {
+  try {
+    const projects = await getProjects();
+    return projects;
+  } catch (error) {
+    console.error('Error fetching projects for experiment form:', error);
     throw error;
   }
 }

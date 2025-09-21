@@ -42,6 +42,7 @@ import { ExperimentForm } from "./experiment-form"
 import { ExperimentDetails } from "./experiment-details"
 import { ExperimentGrid } from "./experiment-grid"
 import { ExperimentList } from "./experiment-list"
+import { getProjects } from "@/services/projectService"
 
 // Import API services
 import {
@@ -67,8 +68,9 @@ export function ExperimentManagement() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [error, setError] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
+  const [projects, setProjects] = useState([])
 
-  // Load current user and experiments on component mount
+  // Load current user, projects, and experiments on component mount
   useEffect(() => {
     const initializeComponent = async () => {
       try {
@@ -76,6 +78,11 @@ export function ExperimentManagement() {
         setCurrentUser(user)
 
         if (user) {
+          // Load projects first
+          const projectData = await getProjects()
+          setProjects(projectData)
+
+          // Then load experiments
           await loadExperiments()
         }
       } catch (error) {
@@ -209,7 +216,33 @@ export function ExperimentManagement() {
     setSortOrder("desc")
   }
 
+  // Group experiments by project
+  const groupExperimentsByProject = () => {
+    const grouped = {
+      unassigned: [],
+      projects: {}
+    }
 
+    filteredExperiments.forEach(experiment => {
+      if (experiment.projectId) {
+        const projectId = experiment.projectId._id || experiment.projectId
+        if (!grouped.projects[projectId]) {
+          const project = projects.find(p => p._id === projectId || p.id === projectId)
+          grouped.projects[projectId] = {
+            project: project || { name: 'Unknown Project' },
+            experiments: []
+          }
+        }
+        grouped.projects[projectId].experiments.push(experiment)
+      } else {
+        grouped.unassigned.push(experiment)
+      }
+    })
+
+    return grouped
+  }
+
+  const groupedExperiments = groupExperimentsByProject()
 
   // Show loading state if no current user yet
   if (!currentUser) {
@@ -319,7 +352,7 @@ export function ExperimentManagement() {
           {/* User info and logout */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Welcome, {currentUser?.name}</span>
-            
+
           </div>
 
           <div className="flex border rounded-md p-1">
@@ -420,7 +453,7 @@ export function ExperimentManagement() {
         </div>
       )}
 
-      {/* Experiments Display */}
+      {/* Experiments Display - Grouped by Project */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
@@ -440,39 +473,65 @@ export function ExperimentManagement() {
           ))}
         </div>
       ) : (
-        <>
-          {filteredExperiments.length === 0 ? (
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="rounded-full bg-muted p-3 mb-4">
-                  <Beaker className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold mb-1">No experiments found</h3>
-                <p className="text-muted-foreground text-center max-w-md mb-4">
-                  {searchQuery || statusFilter !== "all"
-                    ? "Try adjusting your filters or search query to find what you're looking for."
-                    : "Get started by creating your first experiment."}
-                </p>
-                <Button onClick={() => setIsCreateDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Experiment
-                </Button>
-              </CardContent>
-            </Card>
+        <div className="space-y-8">
+          {/* Unassigned Experiments */}
+          {groupedExperiments.unassigned.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Unassigned Experiments</h3>
+              {view === "grid" ? (
+                <ExperimentGrid
+                  experiments={groupedExperiments.unassigned}
+                  onView={handleViewExperiment}
+                />
+              ) : (
+                <ExperimentList
+                  experiments={groupedExperiments.unassigned}
+                  onView={handleViewExperiment}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Project Groups */}
+          {Object.keys(groupedExperiments.projects).length > 0 ? (
+            Object.entries(groupedExperiments.projects).map(([projectId, projectGroup]) => (
+              <div key={projectId}>
+                <h3 className="text-xl font-semibold mb-4">{projectGroup.project?.name || 'Unknown Project'}</h3>
+                {view === "grid" ? (
+                  <ExperimentGrid
+                    experiments={projectGroup.experiments}
+                    onView={handleViewExperiment}
+                  />
+                ) : (
+                  <ExperimentList
+                    experiments={projectGroup.experiments}
+                    onView={handleViewExperiment}
+                  />
+                )}
+              </div>
+            ))
           ) : (
-            view === "grid" ? (
-              <ExperimentGrid
-                experiments={filteredExperiments}
-                onView={handleViewExperiment}
-              />
-            ) : (
-              <ExperimentList
-                experiments={filteredExperiments}
-                onView={handleViewExperiment}
-              />
+            groupedExperiments.unassigned.length === 0 && (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="rounded-full bg-muted p-3 mb-4">
+                    <Beaker className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-1">No experiments found</h3>
+                  <p className="text-muted-foreground text-center max-w-md mb-4">
+                    {searchQuery || statusFilter !== "all"
+                      ? "Try adjusting your filters or search query to find what you're looking for."
+                      : "Get started by creating your first experiment."}
+                  </p>
+                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Experiment
+                  </Button>
+                </CardContent>
+              </Card>
             )
           )}
-        </>
+        </div>
       )}
 
       {/* Experiment Details Dialog */}

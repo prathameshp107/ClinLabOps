@@ -31,14 +31,11 @@ exports.getExperiments = async (req, res) => {
       query.$text = { $search: search };
     }
 
-    // Build sort object
-    const sort = {};
-    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-
     const experiments = await Experiment.find(query)
-      .sort(sort)
-      .select('-__v');
-    
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .select('-__v')
+      .populate('projectId', 'name description'); // Populate project details
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -69,7 +66,7 @@ exports.getExperiments = async (req, res) => {
 exports.getExperimentStats = async (req, res) => {
   try {
     const stats = await Experiment.getStats();
-    
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -82,7 +79,7 @@ exports.getExperimentStats = async (req, res) => {
         }
       });
     }
-    
+
     res.json(stats);
   } catch (err) {
     console.error(err.message);
@@ -110,7 +107,8 @@ exports.createExperiment = async (req, res) => {
       priority = 'medium',
       startDate,
       endDate,
-      teamMembers = []
+      teamMembers = [],
+      projectId // Add projectId
     } = req.body;
 
     // Ensure we have a user context
@@ -128,6 +126,7 @@ exports.createExperiment = async (req, res) => {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       teamMembers,
+      projectId: projectId || undefined, // Only set if provided
       createdBy: req.user._id || req.user.id,
       updatedBy: req.user._id || req.user.id
     });
@@ -167,12 +166,12 @@ exports.getExperimentById = async (req, res) => {
     if (req.user) {
       query.createdBy = req.user._id || req.user.id;
     }
-    const experiment = await Experiment.findOne(query);
+    const experiment = await Experiment.findOne(query).populate('projectId', 'name description');
 
     if (!experiment) {
       return res.status(404).json({ msg: 'Experiment not found' });
     }
-    
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -219,6 +218,7 @@ exports.updateExperiment = async (req, res) => {
       startDate,
       endDate,
       teamMembers,
+      projectId, // Add projectId
       updateNotes
     } = req.body;
 
@@ -232,6 +232,7 @@ exports.updateExperiment = async (req, res) => {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       teamMembers,
+      projectId: projectId || undefined, // Only set if provided
       updatedBy: req.user ? (req.user._id || req.user.id) : null,
       _updateDescription: updateNotes || 'Document updated'
     };
@@ -251,8 +252,8 @@ exports.updateExperiment = async (req, res) => {
       req.params.id,
       { $set: experimentFields },
       { new: true }
-    );
-    
+    ).populate('projectId', 'name description');
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -294,7 +295,7 @@ exports.deleteExperiment = async (req, res) => {
     }
 
     await experiment.remove();
-    
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -338,7 +339,7 @@ exports.addNoteToExperiment = async (req, res) => {
 
     experiment.notes.unshift(newNote);
     await experiment.save();
-    
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -392,7 +393,7 @@ exports.deleteNoteFromExperiment = async (req, res) => {
     );
 
     await experiment.save();
-    
+
     // Log activity
     if (req.user) {
       await ActivityService.logActivity({
@@ -457,7 +458,7 @@ exports.exportExperiment = async (req, res) => {
     } else if (format === 'xlsx') {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Experiment Data');
-      
+
       // Add data to worksheet
       Object.entries(exportData).forEach(([key, value], index) => {
         worksheet.getCell(`A${index + 1}`).value = key;
@@ -473,15 +474,15 @@ exports.exportExperiment = async (req, res) => {
       res.header('Content-Type', 'application/pdf');
       res.attachment(`experiment_${id}.pdf`);
       doc.pipe(res);
-      
+
       doc.fontSize(16).text(`Experiment: ${exportData.title}`, { underline: true });
       doc.moveDown();
-      
+
       Object.entries(exportData).forEach(([key, value]) => {
         doc.fontSize(12).text(`${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`);
         doc.moveDown();
       });
-      
+
       doc.end();
     } else {
       // Default: JSON
