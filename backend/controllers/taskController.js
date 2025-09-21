@@ -10,6 +10,11 @@ const generateProjectInitials = (projectName) => {
         .join('');
 };
 
+// Helper function to escape special regex characters
+const escapeRegex = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 // Helper function to generate custom task ID with race condition handling
 const generateCustomTaskId = async (projectId) => {
     try {
@@ -23,9 +28,10 @@ const generateCustomTaskId = async (projectId) => {
         const projectInitials = generateProjectInitials(project.name);
 
         // Find the highest existing task number for this project
+        const escapedProjectInitials = escapeRegex(projectInitials);
         const existingTasks = await Task.find({
             projectId: projectId,
-            customId: { $regex: `^${projectInitials}-\\d+$` }
+            customId: { $regex: `^${escapedProjectInitials}-\\d+$` }
         }).sort({ customId: -1 }).limit(1);
 
         let nextTaskNumber = 1;

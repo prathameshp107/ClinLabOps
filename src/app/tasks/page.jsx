@@ -53,11 +53,9 @@ export default function TasksPage() {
   function getProjectAcronym(name) {
     if (!name) return '';
     return name
-      .replace(/[^a-zA-Z\s]/g, '') // Remove non-letters
-      .split(/\s+/)
-      .map(word => word[0])
-      .join('')
-      .toUpperCase();
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .join('');
   }
 
   // Helper to get the next custom task number for a project
@@ -126,11 +124,11 @@ export default function TasksPage() {
 
   const taskStats = React.useMemo(() => {
     const total = tasks.length
-    const completed = tasks.filter((t) => t.status === "completed").length
+    const completed = tasks.filter((t) => t.status === "done").length
     const inProgress = tasks.filter((t) => t.status === "in-progress").length
-    const pending = tasks.filter((t) => t.status === "pending").length
+    const pending = tasks.filter((t) => t.status === "todo").length
     const overdue = tasks.filter(t =>
-      new Date(t.dueDate) < new Date() && t.status !== 'completed'
+      new Date(t.dueDate) < new Date() && t.status !== 'done'
     ).length
 
     return { total, completed, inProgress, pending, overdue }
@@ -260,9 +258,9 @@ export default function TasksPage() {
     let filtered = [...tasks]
 
     if (activeTab === 'active') {
-      filtered = filtered.filter(task => ['pending', 'in-progress'].includes(task.status))
+      filtered = filtered.filter(task => ['todo', 'in-progress'].includes(task.status))
     } else if (activeTab === 'completed') {
-      filtered = filtered.filter(task => task.status === 'completed')
+      filtered = filtered.filter(task => task.status === 'done')
     }
 
     return filtered
@@ -713,17 +711,17 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col">
-        <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/50">
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 dark:bg-background/95 backdrop-blur-xl shadow-2xl flex flex-col">
+        <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 border-b border-slate-200/50 dark:border-border/50">
+          <div className="absolute inset-0 bg-white/60 dark:bg-background/60 backdrop-blur-sm"></div>
           <div className="relative">
-            <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+            <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-foreground flex items-center gap-2">
               <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               Create New Task
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-600 mt-2 flex items-center gap-1">
+            <DialogDescription className="text-sm text-slate-600 dark:text-muted-foreground mt-2 flex items-center gap-1">
               <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">⌘</kbd>
               <span>+</span>
               <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">Enter</kbd>
@@ -734,7 +732,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
         <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
           {/* Project Selector */}
           <div className="space-y-3">
-            <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
               <Folder className="h-4 w-4 text-indigo-500" />
               Project*
             </Label>
@@ -742,10 +740,10 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               value={selectedProjectId}
               onValueChange={setSelectedProjectId}
             >
-              <SelectTrigger id="task-project" className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200">
+              <SelectTrigger id="task-project" className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200">
                 <SelectValue placeholder="Select project" />
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+              <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
                 {projects.map((proj) => (
                   <SelectItem key={proj.id || proj._id} value={proj.id || proj._id}>
                     {proj.name || proj.title}
@@ -757,21 +755,21 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
 
           {/* Task ID Preview */}
           {selectedProjectId && nextTaskId && (
-            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                <Label className="text-sm font-medium text-indigo-700">Task ID Preview</Label>
+                <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Task ID Preview</Label>
               </div>
-              <div className="font-mono text-lg font-semibold text-indigo-800 bg-white/70 px-3 py-2 rounded border border-indigo-200">
+              <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
                 {nextTaskId}
               </div>
-              <p className="text-xs text-indigo-600 mt-2">This ID will be automatically assigned to your task</p>
+              <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2">This ID will be automatically assigned to your task</p>
             </div>
           )}
 
           {/* Title Input */}
           <div className="space-y-3">
-            <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
               <Target className="h-4 w-4 text-indigo-500" />
               Title*
             </Label>
@@ -785,10 +783,10 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
                 onFocus={() => setFocusedField('title')}
                 onBlur={() => setFocusedField(null)}
                 className={cn(
-                  "h-11 text-base border-2 transition-all duration-200 bg-white/50",
+                  "h-11 text-base border-2 transition-all duration-200 bg-white/50 dark:bg-muted/20",
                   focusedField === 'title'
-                    ? "border-indigo-300 shadow-lg shadow-indigo-100"
-                    : "border-slate-200 hover:border-slate-300"
+                    ? "border-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30"
+                    : "border-slate-200 hover:border-slate-300 dark:border-border/50 dark:hover:border-border"
                 )}
               />
               {focusedField === 'title' && (
@@ -798,7 +796,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
           </div>
           {/* Description */}
           <div className="space-y-3">
-            <Label htmlFor="task-description" className="text-sm font-medium text-slate-700">
+            <Label htmlFor="task-description" className="text-sm font-medium text-slate-700 dark:text-foreground">
               Description
             </Label>
             <Textarea
@@ -809,10 +807,10 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               onFocus={() => setFocusedField('description')}
               onBlur={() => setFocusedField(null)}
               className={cn(
-                "min-h-[100px] resize-none border-2 transition-all duration-200 bg-white/50",
+                "min-h-[100px] resize-none border-2 transition-all duration-200 bg-white/50 dark:bg-muted/20",
                 focusedField === 'description'
-                  ? "border-indigo-300 shadow-lg shadow-indigo-100"
-                  : "border-slate-200 hover:border-slate-300"
+                  ? "border-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30"
+                  : "border-slate-200 hover:border-slate-300 dark:border-border/50 dark:hover:border-border"
               )}
             />
           </div>
@@ -820,7 +818,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Assignee */}
             <div className="space-y-3">
-              <Label htmlFor="task-assignee" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Label htmlFor="task-assignee" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
                 <User className="h-4 w-4 text-indigo-500" />
                 Assignee
               </Label>
@@ -831,13 +829,13 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               >
                 <SelectTrigger
                   id="task-assignee"
-                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
                   <SelectValue placeholder={selectedProjectId ? (team.length ? "Select team member" : "No team members") : "Select project first"} />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
                   {team.map((member, i) => (
-                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50">
+                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
                           {member.name.charAt(0)}
@@ -851,7 +849,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
             </div>
             {/* Priority */}
             <div className="space-y-3">
-              <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
                 <Flag className="h-4 w-4 text-indigo-500" />
                 Priority
               </Label>
@@ -861,20 +859,20 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               >
                 <SelectTrigger
                   id="task-priority"
-                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
+                <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
+                  <SelectItem value="high" className="dark:hover:bg-muted/20">High</SelectItem>
+                  <SelectItem value="medium" className="dark:hover:bg-muted/20">Medium</SelectItem>
+                  <SelectItem value="low" className="dark:hover:bg-muted/20">Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             {/* Status */}
             <div className="space-y-3">
-              <Label htmlFor="task-status" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Label htmlFor="task-status" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-indigo-500" />
                 Status
               </Label>
@@ -884,23 +882,22 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               >
                 <SelectTrigger
                   id="task-status"
-                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
+                  <SelectItem value="todo" className="dark:hover:bg-muted/20">To Do</SelectItem>
+                  <SelectItem value="in-progress" className="dark:hover:bg-muted/20">In Progress</SelectItem>
+                  <SelectItem value="review" className="dark:hover:bg-muted/20">Review</SelectItem>
+                  <SelectItem value="done" className="dark:hover:bg-muted/20">Done</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           {/* Due Date */}
           <div className="space-y-3">
-            <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
               <Calendar className="h-4 w-4 text-indigo-500" />
               Due Date
             </Label>
@@ -918,7 +915,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
             />
           </div>
         </div>
-        <DialogFooter className="px-6 py-4 bg-gray-50 border-t border-slate-200/50 flex justify-end flex-shrink-0">
+        <DialogFooter className="px-6 py-4 bg-gray-50 dark:bg-muted/20 border-t border-slate-200/50 dark:border-border/50 flex justify-end flex-shrink-0">
           <Button onClick={handleSubmit} disabled={!formData.title.trim() || !selectedProjectId}>
             Create Task
           </Button>
