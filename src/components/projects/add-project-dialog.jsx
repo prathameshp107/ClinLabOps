@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers } from "lucide-react"
+import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers, Sparkles, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -66,9 +66,6 @@ import Placeholder from '@tiptap/extension-placeholder'
 import {
   projectStatuses,
   projectPriorities,
-  researchAreas,
-  studyTypes,
-  dataCollectionFrequencies,
   commonTags
 } from "@/constants"
 import { getUsers } from "@/services/userService"
@@ -105,12 +102,12 @@ const EditorMenuBar = ({ editor }) => {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-1 border-b bg-muted/30 rounded-t-md">
+    <div className="flex flex-wrap items-center gap-1 p-1.5 border-b bg-muted/30 rounded-t-lg">
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className={cn("h-8 px-2", editor.isActive('bold') ? "bg-muted" : "")}
+        className={cn("h-8 px-2 rounded-md", editor.isActive('bold') ? "bg-muted" : "")}
         onClick={() => editor.chain().focus().toggleBold().run()}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 12a4 4 0 0 0 0-8H6v8" /><path d="M15 20a4 4 0 0 0 0-8H6v8Z" /></svg>
@@ -119,7 +116,7 @@ const EditorMenuBar = ({ editor }) => {
         type="button"
         variant="ghost"
         size="sm"
-        className={cn("h-8 px-2", editor.isActive('italic') ? "bg-muted" : "")}
+        className={cn("h-8 px-2 rounded-md", editor.isActive('italic') ? "bg-muted" : "")}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" x2="10" y1="4" y2="4" /><line x1="14" x2="5" y1="20" y2="20" /><line x1="15" x2="9" y1="4" y2="20" /></svg>
@@ -128,7 +125,7 @@ const EditorMenuBar = ({ editor }) => {
         type="button"
         variant="ghost"
         size="sm"
-        className={cn("h-8 px-2", editor.isActive('underline') ? "bg-muted" : "")}
+        className={cn("h-8 px-2 rounded-md", editor.isActive('underline') ? "bg-muted" : "")}
         onClick={() => editor.chain().focus().toggleUnderline().run()}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4" /><line x1="4" x2="20" y1="20" y2="20" /></svg>
@@ -138,7 +135,7 @@ const EditorMenuBar = ({ editor }) => {
         type="button"
         variant="ghost"
         size="sm"
-        className={cn("h-8 px-2", editor.isActive('bulletList') ? "bg-muted" : "")}
+        className={cn("h-8 px-2 rounded-md", editor.isActive('bulletList') ? "bg-muted" : "")}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="9" x2="20" y1="6" y2="6" /><line x1="9" x2="20" y1="12" y2="12" /><line x1="9" x2="20" y1="18" y2="18" /><circle cx="4" cy="6" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="4" cy="18" r="1" /></svg>
@@ -147,7 +144,7 @@ const EditorMenuBar = ({ editor }) => {
         type="button"
         variant="ghost"
         size="sm"
-        className={cn("h-8 px-2", editor.isActive('orderedList') ? "bg-muted" : "")}
+        className={cn("h-8 px-2 rounded-md", editor.isActive('orderedList') ? "bg-muted" : "")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="10" x2="21" y1="6" y2="6" /><line x1="10" x2="21" y1="12" y2="12" /><line x1="10" x2="21" y1="18" y2="18" /><path d="M4 6h1v4" /><path d="M4 10h2" /><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" /></svg>
@@ -160,19 +157,19 @@ const EditorMenuBar = ({ editor }) => {
               type="button"
               variant="ghost"
               size="sm"
-              className={cn("h-8 px-2", editor.isActive('link') ? "bg-muted" : "")}
+              className={cn("h-8 px-2 rounded-md", editor.isActive('link') ? "bg-muted" : "")}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-3">
-            <div className="space-y-2">
+          <PopoverContent className="w-80 p-4 rounded-lg">
+            <div className="space-y-3">
               <h4 className="font-medium text-sm">Insert Link</h4>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Input
                   id="url"
                   placeholder="https://example.com"
-                  className="col-span-3 h-8"
+                  className="col-span-3 h-9"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault()
@@ -182,7 +179,18 @@ const EditorMenuBar = ({ editor }) => {
                     }
                   }}
                 />
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      document.getElementById('url').value = ''
+                      document.body.click() // Close popover
+                    }}
+                  >
+                    Cancel
+                  </Button>
                   <Button
                     type="button"
                     size="sm"
@@ -222,16 +230,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     tags: [],
     // New fields
     budget: "",
-    confidential: false,
-    complexity: 50,
     department: "",
     externalCollaborators: [],
     requiredEquipment: [],
     relatedDocuments: [],
-    // Additional new fields
-    principalInvestigator: null,
-    researchArea: "",
-    studyType: "",
     // Project category and type fields
     category: "miscellaneous",
     projectType: "", // New field for regulatory project type
@@ -239,12 +241,6 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
       protocol: null,
       ethics: null,
       other: []
-    },
-    experimentDetails: {
-      numberOfExperiments: 1,
-      numberOfGroups: 2,
-      dataCollectionFrequency: "Weekly",
-      studyType: "In vitro"
     }
   })
   const [formErrors, setFormErrors] = useState({})
@@ -377,20 +373,6 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   }
 
   const handleSelectChange = (value, field) => {
-    setProjectData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleSwitchChange = (checked, field) => {
-    setProjectData(prev => ({
-      ...prev,
-      [field]: checked
-    }))
-  }
-
-  const handleSliderChange = (value, field) => {
     setProjectData(prev => ({
       ...prev,
       [field]: value
@@ -566,15 +548,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           team: [],
           tags: [],
           budget: "",
-          confidential: false,
-          complexity: 50,
           department: "",
           externalCollaborators: [],
           requiredEquipment: [],
           relatedDocuments: [],
-          principalInvestigator: null,
-          researchArea: "",
-          studyType: "",
           // Reset project category and type fields
           category: "miscellaneous",
           projectType: "",
@@ -582,12 +559,6 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
             protocol: null,
             ethics: null,
             other: []
-          },
-          experimentDetails: {
-            numberOfExperiments: 1,
-            numberOfGroups: 2,
-            dataCollectionFrequency: "Weekly",
-            studyType: "In vitro"
           }
         })
         setFormErrors({})
@@ -773,55 +744,54 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           maxHeight: '90vh'
         }}
       >
-        <DialogHeader className="px-4 sm:px-8 pt-4 sm:pt-8 pb-4 sm:pb-6 border-b border-border/10 flex-shrink-0">
-          <DialogTitle className="text-lg sm:text-2xl font-bold text-foreground">Add New Project</DialogTitle>
-          <DialogDescription className="text-sm sm:text-base text-muted-foreground mt-2">
-            Create a new research project and assign team members
-          </DialogDescription>
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/10 flex-shrink-0 bg-gradient-to-r from-background to-background/80">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 rounded-xl bg-primary/10">
+              <FolderPlus className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold text-foreground">Add New Project</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
+                Create a new research project and assign team members
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1 min-h-0">
-          <TabsList className="w-full justify-start border-b border-border/10 rounded-none bg-transparent p-0 h-auto mx-4 sm:mx-8 flex-shrink-0">
+          <TabsList className="w-full justify-start border-b border-border/10 rounded-none bg-transparent p-0 h-auto px-6 flex-shrink-0">
             <TabsTrigger
               value="details"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-3.5 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Project Details</span>
-              <span className="sm:hidden">Details</span>
+              <FileText className="h-4 w-4 mr-2" />
+              Details
             </TabsTrigger>
             <TabsTrigger
               value="team"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-3.5 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <Users className="h-4 w-4 mr-2" />
               Team
             </TabsTrigger>
             <TabsTrigger
-              value="research"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
-            >
-              <Beaker className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              Research
-            </TabsTrigger>
-            <TabsTrigger
               value="documents"
-              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-3 sm:px-6 py-2 sm:py-3 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 py-3.5 font-medium transition-all hover:text-primary/80 text-xs sm:text-sm"
             >
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <FileText className="h-4 w-4 mr-2" />
               Documents
             </TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <div
-              className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6"
+              className="flex-1 overflow-y-auto px-6 py-6"
               style={{
                 maxHeight: 'calc(90vh - 200px)',
                 minHeight: '300px'
               }}
             >
-              <TabsContent value="details" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
+              <TabsContent value="details" className="mt-0 space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -829,165 +799,237 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 >
                   <div className="space-y-8">
                     {/* Project Category Selection */}
-                    <div className="space-y-3">
-                      <Label htmlFor="category" className="text-sm font-semibold">
-                        Project Category
-                      </Label>
-                      <Select
-                        value={projectData.category}
-                        onValueChange={(value) => handleSelectChange(value, "category")}
-                      >
-                        <SelectTrigger id="category" className="bg-background/50 border-border/50 h-11">
-                          <SelectValue placeholder="Select project category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="research">
-                            <div className="flex items-center gap-2">
-                              <FlaskConical className="h-4 w-4 text-blue-500" />
-                              Research
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="category" className="text-base font-semibold">
+                          Project Category
+                        </Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Select the appropriate category for this project</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <motion.div
+                          className={cn(
+                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                            projectData.category === "research"
+                              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                              : "border-border/50 bg-background/50 hover:border-primary/30"
+                          )}
+                          onClick={() => handleSelectChange("research", "category")}
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-lg bg-blue-500/10">
+                              <FlaskConical className="h-5 w-5 text-blue-500" />
                             </div>
-                          </SelectItem>
-                          <SelectItem value="regulatory">
-                            <div className="flex items-center gap-2">
-                              <FileText className="h-4 w-4 text-amber-500" />
-                              Regulatory
+                            <div>
+                              <h3 className="font-semibold text-base">Research</h3>
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                Exploratory or proof-of-concept studies
+                              </p>
                             </div>
-                          </SelectItem>
-                          <SelectItem value="miscellaneous">
-                            <div className="flex items-center gap-2">
-                              <Layers className="h-4 w-4 text-purple-500" />
-                              Miscellaneous
+                          </div>
+                        </motion.div>
+
+                        <motion.div
+                          className={cn(
+                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                            projectData.category === "regulatory"
+                              ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20"
+                              : "border-border/50 bg-background/50 hover:border-amber-300/50"
+                          )}
+                          onClick={() => handleSelectChange("regulatory", "category")}
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-lg bg-amber-500/10">
+                              <FileText className="h-5 w-5 text-amber-500" />
                             </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <div className="text-xs text-muted-foreground">
-                        Select the appropriate category for this project:
-                        <ul className="list-disc list-inside mt-1 space-y-1">
-                          <li><strong>Research:</strong> Exploratory or proof-of-concept studies</li>
-                          <li><strong>Regulatory:</strong> Guideline-driven studies for authority submissions</li>
-                          <li><strong>Miscellaneous:</strong> Pilot, academic, or client-specific studies for non-regulatory purposes</li>
-                        </ul>
+                            <div>
+                              <h3 className="font-semibold text-base">Regulatory</h3>
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                Guideline-driven studies for authority submissions
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <motion.div
+                          className={cn(
+                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                            projectData.category === "miscellaneous"
+                              ? "border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20"
+                              : "border-border/50 bg-background/50 hover:border-purple-300/50"
+                          )}
+                          onClick={() => handleSelectChange("miscellaneous", "category")}
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-lg bg-purple-500/10">
+                              <Layers className="h-5 w-5 text-purple-500" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-base">Miscellaneous</h3>
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                Pilot, academic, or client-specific studies
+                              </p>
+                            </div>
+                          </div>
+                        </motion.div>
                       </div>
                     </div>
 
                     {/* Project Type Selection - Show for Regulatory projects, hide for Miscellaneous (but still show templates) */}
                     {projectData.category === "regulatory" && (
-                      <div className="space-y-3 pt-4 border-t border-border/20">
-                        <Label htmlFor="projectType" className="text-sm font-semibold">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-4 pt-5 border-t border-border/20"
+                      >
+                        <Label htmlFor="projectType" className="text-base font-semibold flex items-center gap-1">
                           Regulatory Project Type
                         </Label>
                         <Select
                           value={projectData.projectType || ""}
                           onValueChange={(value) => handleSelectChange(value, "projectType")}
                         >
-                          <SelectTrigger id="projectType" className="bg-background/50 border-border/50 h-11">
+                          <SelectTrigger id="projectType" className="bg-background/50 border-border/50 h-12 rounded-lg">
                             <SelectValue placeholder="Select regulatory project type" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="iso">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-blue-500" />
-                                ISO Standards
+                                <span className="text-sm">ISO Standards</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="oecd">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-green-500" />
-                                OECD Guidelines
+                                <span className="text-sm">OECD Guidelines</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="fda">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-red-500" />
-                                FDA Regulations
+                                <span className="text-sm">FDA Regulations</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="ema">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-purple-500" />
-                                EMA Guidelines
+                                <span className="text-sm">EMA Guidelines</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="ich">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-orange-500" />
-                                ICH Guidelines
+                                <span className="text-sm">ICH Guidelines</span>
                               </div>
                             </SelectItem>
                             <SelectItem value="other">
                               <div className="flex items-center gap-2">
                                 <FileText className="h-4 w-4 text-gray-500" />
-                                Other Regulatory Framework
+                                <span className="text-sm">Other Regulatory Framework</span>
                               </div>
                             </SelectItem>
                           </SelectContent>
                         </Select>
-                        <p className="text-xs text-muted-foreground">
-                          Select the regulatory framework that applies to this project
-                        </p>
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Info text for Miscellaneous projects */}
                     {projectData.category === "miscellaneous" && (
-                      <div className="space-y-3 pt-4 border-t border-border/20">
-                        <Label className="text-sm font-semibold">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-4 pt-5 border-t border-border/20"
+                      >
+                        <Label className="text-base font-semibold flex items-center gap-2">
+                          <Layers className="h-4 w-4 text-primary" />
                           Miscellaneous Project
                         </Label>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           Create pilot, academic, or client-specific studies for non-regulatory purposes.
                           Select a template below to pre-fill project details or continue without a template.
                         </p>
-                      </div>
+                      </motion.div>
                     )}
 
                     {/* Predefined Templates - Show for Regulatory projects with a selected type OR for Miscellaneous projects */}
                     {(projectData.category === "regulatory" && projectData.projectType && projectData.projectType !== "other") ||
                       (projectData.category === "miscellaneous") ? (
-                      <div className="space-y-3 pt-4">
-                        <Label className="text-sm font-semibold">
-                          Predefined Templates
-                        </Label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-5 pt-5 border-t border-border/20"
+                      >
+                        <div className="flex items-center justify-between">
+                          <Label className="text-base font-semibold flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-primary" />
+                            Predefined Templates
+                          </Label>
+                          <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Recommended
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {getTemplatesForType(
                             projectData.category === "regulatory" ? projectData.projectType : "miscellaneous"
                           ).map((template) => (
-                            <div
+                            <motion.div
                               key={template.id}
-                              className="border rounded-lg p-4 bg-background/50 border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
+                              className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
                               onClick={() => handleTemplateSelect(template)}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
                             >
                               <div className="flex items-start gap-3">
-                                <div className="mt-1">
+                                <div className="mt-1 p-2 rounded-lg bg-primary/10">
                                   <FileText className="h-5 w-5 text-primary" />
                                 </div>
-                                <div>
-                                  <h4 className="font-medium text-sm">{template.name}</h4>
-                                  <p className="text-xs text-muted-foreground mt-1">{template.description}</p>
-                                  <div className="flex flex-wrap gap-1 mt-2">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-base">{template.name}</h4>
+                                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                  <div className="flex flex-wrap gap-2 mt-3">
                                     {template.tags.map((tag) => (
-                                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
+                                      <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
                                         {tag}
                                       </Badge>
                                     ))}
                                   </div>
                                 </div>
                               </div>
-                            </div>
+                            </motion.div>
                           ))}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
+                        <p className="text-xs text-muted-foreground">
                           Select a template to pre-fill project details, or skip to create a project from scratch.
                         </p>
-                      </div>
+                      </motion.div>
                     ) : null}
 
-                    <div className="space-y-3">
-                      <Label htmlFor="name" className="text-sm font-semibold flex items-center gap-1">
+                    <div className="space-y-4 pt-5 border-t border-border/20">
+                      <Label htmlFor="name" className="text-base font-semibold flex items-center gap-1">
                         Project Name <span className="text-destructive">*</span>
                       </Label>
                       <div className="relative">
+                        <FolderPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           id="name"
                           name="name"
@@ -995,27 +1037,26 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           value={projectData.name}
                           onChange={handleInputChange}
                           className={cn(
-                            "pl-10 h-11 transition-all duration-200 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 shadow-sm",
+                            "pl-10 h-12 transition-all duration-200 bg-background/50 border-border/50 focus:border-primary/50 focus:ring-1 focus:ring-primary/20 shadow-sm rounded-lg",
                             formErrors.name ? "border-destructive/50 ring-1 ring-destructive/20" : ""
                           )}
                         />
-                        <FolderPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
                       {formErrors.name && (
                         <motion.p
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="text-sm text-destructive flex items-center gap-1 mt-1.5"
+                          className="text-sm text-destructive flex items-center gap-1.5"
                         >
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          {formErrors.name}
+                          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                          <span>{formErrors.name}</span>
                         </motion.p>
                       )}
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="description" className="text-sm font-semibold flex items-center gap-1">
+                    <div className="space-y-4">
+                      <Label htmlFor="description" className="text-base font-semibold flex items-center gap-1">
                         Description <span className="text-destructive">*</span>
                       </Label>
                       <div className={cn(
@@ -1025,7 +1066,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         <EditorMenuBar editor={editor} />
                         <EditorContent
                           editor={editor}
-                          className="p-4 min-h-[160px] prose prose-sm max-w-none focus:outline-none bg-background [&_*]:outline-none [&_*]:border-none [&_*]:ring-0 [&_*]:selection:bg-primary/10 [&_*]:selection:text-inherit [&_p]:my-0 [&_p]:leading-relaxed"
+                          className="p-4 min-h-[180px] prose prose-sm max-w-none focus:outline-none bg-background [&_*]:outline-none [&_*]:border-none [&_*]:ring-0 [&_*]:selection:bg-primary/10 [&_*]:selection:text-inherit [&_p]:my-0 [&_p]:leading-relaxed"
                         />
                       </div>
                       {formErrors.description && (
@@ -1033,77 +1074,99 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
-                          className="text-sm text-destructive flex items-center gap-1 mt-1.5"
+                          className="text-sm text-destructive flex items-center gap-1.5"
                         >
-                          <AlertTriangle className="h-3.5 w-3.5" />
-                          {formErrors.description}
+                          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                          <span>{formErrors.description}</span>
                         </motion.p>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-3">
-                        <Label htmlFor="startDate" className="text-sm font-semibold">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                      <div className="space-y-4">
+                        <Label htmlFor="startDate" className="text-base font-semibold flex items-center gap-1">
                           Start Date <span className="text-destructive">*</span>
                         </Label>
-                        <DatePicker
-                          selectedDate={projectData.startDate}
-                          onDateChange={(date) => handleDateChange(date, "startDate")}
-                          placeholder="Select start date"
-                          className={cn(
-                            "w-full h-11",
-                            formErrors.startDate ? "border-destructive" : ""
-                          )}
-                          showTodayButton={true}
-                          showClearButton={false}
-                        />
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <DatePicker
+                            selectedDate={projectData.startDate}
+                            onDateChange={(date) => handleDateChange(date, "startDate")}
+                            placeholder="Select start date"
+                            className={cn(
+                              "pl-10 w-full h-12 rounded-lg",
+                              formErrors.startDate ? "border-destructive/50 ring-1 ring-destructive/20" : ""
+                            )}
+                            showTodayButton={true}
+                            showClearButton={false}
+                          />
+                        </div>
                         {formErrors.startDate && (
-                          <p className="text-sm text-destructive">{formErrors.startDate}</p>
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-sm text-destructive flex items-center gap-1.5"
+                          >
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                            <span>{formErrors.startDate}</span>
+                          </motion.p>
                         )}
                       </div>
 
-                      <div className="space-y-3">
-                        <Label htmlFor="endDate" className="text-sm font-semibold">
+                      <div className="space-y-4">
+                        <Label htmlFor="endDate" className="text-base font-semibold flex items-center gap-1">
                           End Date <span className="text-destructive">*</span>
                         </Label>
-                        <DatePicker
-                          selectedDate={projectData.endDate}
-                          onDateChange={(date) => handleDateChange(date, "endDate")}
-                          placeholder="Select end date"
-                          className={cn(
-                            "w-full h-11",
-                            formErrors.endDate ? "border-destructive" : ""
-                          )}
-                          minDate={projectData.startDate}
-                          showTodayButton={true}
-                          showClearButton={false}
-                        />
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <DatePicker
+                            selectedDate={projectData.endDate}
+                            onDateChange={(date) => handleDateChange(date, "endDate")}
+                            placeholder="Select end date"
+                            className={cn(
+                              "pl-10 w-full h-12 rounded-lg",
+                              formErrors.endDate ? "border-destructive/50 ring-1 ring-destructive/20" : ""
+                            )}
+                            minDate={projectData.startDate}
+                            showTodayButton={true}
+                            showClearButton={false}
+                          />
+                        </div>
                         {formErrors.endDate && (
-                          <p className="text-sm text-destructive">{formErrors.endDate}</p>
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-sm text-destructive flex items-center gap-1.5"
+                          >
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                            <span>{formErrors.endDate}</span>
+                          </motion.p>
                         )}
                       </div>
                     </div>
 
                     {/* Status and Priority */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-border/20">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border/20">
                       {/* Status */}
-                      <div className="space-y-3">
-                        <Label htmlFor="status" className="text-sm font-semibold">
+                      <div className="space-y-4">
+                        <Label htmlFor="status" className="text-base font-semibold flex items-center gap-1">
                           Status
                         </Label>
                         <Select
                           value={projectData.status}
                           onValueChange={(value) => handleSelectChange(value, "status")}
                         >
-                          <SelectTrigger id="status" className="bg-background/50 border-border/50 h-11">
+                          <SelectTrigger id="status" className="bg-background/50 border-border/50 h-12 rounded-lg">
                             <SelectValue placeholder="Select project status" />
                           </SelectTrigger>
                           <SelectContent>
                             {projectStatuses.map(status => (
                               <SelectItem key={status} value={status}>
                                 <div className="flex items-center gap-2">
-                                  <div className="h-2 w-2 rounded-full bg-primary" />
-                                  {status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                                  <span className="text-sm">{status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -1112,23 +1175,23 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </div>
 
                       {/* Priority */}
-                      <div className="space-y-3">
-                        <Label htmlFor="priority" className="text-sm font-semibold">
+                      <div className="space-y-4">
+                        <Label htmlFor="priority" className="text-base font-semibold flex items-center gap-1">
                           Priority
                         </Label>
                         <Select
                           value={projectData.priority}
                           onValueChange={(value) => handleSelectChange(value, "priority")}
                         >
-                          <SelectTrigger id="priority" className="bg-background/50 border-border/50 h-11">
+                          <SelectTrigger id="priority" className="bg-background/50 border-border/50 h-12 rounded-lg">
                             <SelectValue placeholder="Select project priority" />
                           </SelectTrigger>
                           <SelectContent>
                             {projectPriorities.map(priority => (
                               <SelectItem key={priority} value={priority}>
                                 <div className="flex items-center gap-2">
-                                  <div className="h-2 w-2 rounded-full bg-primary" />
-                                  {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                                  <span className="text-sm">{priority.charAt(0).toUpperCase() + priority.slice(1)}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -1137,137 +1200,144 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </div>
                     </div>
 
-                    {/* Department & Project Complexity */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-border/20">
+                    {/* Department & Budget */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-border/20">
                       {/* Department */}
-                      <div className="space-y-3">
-                        <Label htmlFor="department" className="text-sm font-semibold">
+                      <div className="space-y-4">
+                        <Label htmlFor="department" className="text-base font-semibold flex items-center gap-1">
                           Department
                         </Label>
-                        <Input
-                          id="department"
-                          name="department"
-                          value={projectData.department}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Oncology, Cardiology"
-                          className="bg-background/50 border-border/50 h-11"
-                        />
-                      </div>
-
-                      {/* Project Complexity */}
-                      <div className="space-y-4">
-                        <Label htmlFor="complexity" className="text-sm font-semibold flex items-center justify-between">
-                          Project Complexity
-                          <span className="font-normal text-muted-foreground text-sm">{projectData.complexity}/100</span>
-                        </Label>
-                        <Slider
-                          id="complexity"
-                          min={0}
-                          max={100}
-                          step={1}
-                          value={[projectData.complexity]}
-                          onValueChange={(value) => handleSliderChange(value[0], "complexity")}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Simple</span>
-                          <span>Complex</span>
+                        <div className="relative">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            <path d="M9.5 9h5L12 12z" />
+                          </svg>
+                          <Input
+                            id="department"
+                            name="department"
+                            value={projectData.department}
+                            onChange={handleInputChange}
+                            placeholder="e.g., Oncology, Cardiology"
+                            className="pl-10 bg-background/50 border-border/50 h-12 rounded-lg"
+                          />
                         </div>
                       </div>
-                    </div>
 
-                    {/* Additional Project Information */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-border/20">
                       {/* Budget */}
-                      <div className="space-y-3">
-                        <Label htmlFor="budget" className="text-sm font-semibold">
+                      <div className="space-y-4">
+                        <Label htmlFor="budget" className="text-base font-semibold flex items-center gap-1">
                           Budget (Optional)
                         </Label>
-                        <Input
-                          id="budget"
-                          name="budget"
-                          type="number"
-                          value={projectData.budget}
-                          onChange={handleInputChange}
-                          placeholder="Enter budget amount"
-                          className={cn(
-                            "bg-background/50 border-border/50 h-11",
-                            formErrors.budget ? "border-destructive/50 ring-1 ring-destructive/20" : ""
-                          )}
-                        />
-                        {formErrors.budget && (
-                          <p className="text-sm text-destructive">{formErrors.budget}</p>
-                        )}
-                      </div>
-
-                      {/* Confidential Toggle */}
-                      <div className="space-y-3">
-                        <Label htmlFor="confidential" className="text-sm font-semibold">
-                          Project Confidentiality
-                        </Label>
-                        <div className="flex items-center space-x-3 p-3 rounded-lg border border-border/50 bg-background/50">
-                          <Switch
-                            id="confidential"
-                            checked={projectData.confidential}
-                            onCheckedChange={(checked) => handleSwitchChange(checked, "confidential")}
+                        <div className="relative">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                          </svg>
+                          <Input
+                            id="budget"
+                            name="budget"
+                            type="number"
+                            value={projectData.budget}
+                            onChange={handleInputChange}
+                            placeholder="Enter budget amount"
+                            className={cn(
+                              "pl-10 bg-background/50 border-border/50 h-12 rounded-lg",
+                              formErrors.budget ? "border-destructive/50 ring-1 ring-destructive/20" : ""
+                            )}
                           />
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
-                              {projectData.confidential ? "Confidential" : "Public"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {projectData.confidential ? "Restricted access" : "Open access"}
-                            </span>
-                          </div>
                         </div>
+                        {formErrors.budget && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-sm text-destructive flex items-center gap-1.5"
+                          >
+                            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                            <span>{formErrors.budget}</span>
+                          </motion.p>
+                        )}
                       </div>
                     </div>
 
                     {/* Tags Section */}
-                    <div className="space-y-3 pt-6 border-t border-border/20">
-                      <Label className="text-sm font-semibold">Project Tags</Label>
+                    <div className="space-y-4 pt-6 border-t border-border/20">
+                      <div className="flex items-center gap-2">
+                        <Label className="text-base font-semibold">Project Tags</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Add tags to categorize and organize your project</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       <div className="flex gap-3">
-                        <Input
-                          placeholder="Add project tags"
-                          value={tagInput}
-                          onChange={(e) => setTagInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleTagAdd(tagInput)
-                            }
-                          }}
-                          className="bg-background/50 border-border/50 h-11"
-                        />
+                        <div className="relative flex-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground">
+                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+                            <path d="M7 7h.01" />
+                          </svg>
+                          <Input
+                            placeholder="Add project tags"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleTagAdd(tagInput)
+                              }
+                            }}
+                            className="pl-10 bg-background/50 border-border/50 h-12"
+                          />
+                        </div>
                         <Button
                           type="button"
-                          variant="outline"
                           onClick={() => handleTagAdd(tagInput)}
-                          className="h-11 px-6"
+                          className="h-12 px-6 bg-primary hover:bg-primary/90"
                         >
                           Add
                         </Button>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Press Enter to add a tag
-                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Press Enter or click "Add" to add a tag
+                      </p>
 
                       {projectData.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-4">
-                          {projectData.tags.map(tag => (
-                            <Badge key={tag} variant="secondary" className="px-3 py-1 gap-2 bg-primary/10 text-primary border-primary/20">
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => handleTagRemove(tag)}
-                                className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-primary/20"
-                                aria-label={`Remove ${tag}`}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="pt-2"
+                        >
+                          <div className="flex flex-wrap gap-2 mt-4">
+                            {projectData.tags.map(tag => (
+                              <motion.div
+                                key={tag}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.2 }}
                               >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
+                                <Badge variant="secondary" className="px-3 py-1.5 gap-2 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                                    <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+                                    <path d="M7 7h.01" />
+                                  </svg>
+                                  <span className="text-sm">{tag}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTagRemove(tag)}
+                                    className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-primary/30"
+                                    aria-label={`Remove ${tag}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
                       )}
                     </div>
 
@@ -1275,16 +1345,16 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 </motion.div>
               </TabsContent>
 
-              <TabsContent value="team" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
+              <TabsContent value="team" className="mt-0 space-y-6">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     {/* Principal Investigator Selection */}
-                    <div className="space-y-3">
-                      <Label htmlFor="pi" className="text-sm font-semibold flex items-center gap-1">
+                    <div className="space-y-4">
+                      <Label htmlFor="pi" className="text-base font-semibold flex items-center gap-1">
                         Principal Investigator (PI) <span className="text-destructive">*</span>
                       </Label>
                       <Select
@@ -1297,15 +1367,15 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           }))
                         }}
                       >
-                        <SelectTrigger className="w-full bg-background/50 border-border/50 h-16">
+                        <SelectTrigger className="w-full bg-background/50 border-border/50 h-16 rounded-lg">
                           <SelectValue placeholder="Select Principal Investigator">
                             {projectData.principalInvestigator?.name ? (
-                              <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                              <div className="flex items-center gap-3">
+                                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-base font-bold">
                                   {projectData.principalInvestigator.name?.split(' ').map(n => n[0]).join('') || 'PI'}
                                 </div>
                                 <div className="flex flex-col items-start">
-                                  <span className="font-medium">{projectData.principalInvestigator.name}</span>
+                                  <span className="font-semibold">{projectData.principalInvestigator.name}</span>
                                   <span className="text-xs text-muted-foreground">
                                     {projectData.principalInvestigator.department} • {projectData.principalInvestigator.institution}
                                   </span>
@@ -1323,8 +1393,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                               value={pi.id}
                               className="py-2"
                             >
-                              <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
                                   {pi.name.split(' ').map(n => n[0]).join('')}
                                 </div>
                                 <div className="flex flex-col">
@@ -1341,26 +1411,36 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                     </div>
 
                     {/* Team Members Selection */}
-                    <div className="space-y-5">
+                    <div className="space-y-5 pt-5 border-t border-border/20">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">Team Members</Label>
-                        <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
-                          {projectData.team.length} members selected
-                        </span>
+                        <Label className="text-base font-semibold flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          Team Members
+                        </Label>
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                          {projectData.team.length} selected
+                        </Badge>
                       </div>
 
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className="w-full justify-start h-11 border-dashed">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Add team member
+                          <Button variant="outline" className="w-full justify-start h-14 border-dashed hover:bg-primary/5 transition-colors">
+                            <div className="flex items-center text-muted-foreground">
+                              <Plus className="mr-2 h-4 w-4" />
+                              <span className="font-medium">Add team member</span>
+                              <span className="ml-2 text-xs bg-muted/50 px-2 py-1 rounded-full">
+                                {projectData.team.length} added
+                              </span>
+                            </div>
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[300px] p-0" align="start">
+                        <PopoverContent className="w-[350px] p-0" align="start">
                           <Command>
-                            <CommandInput placeholder="Search for a team member..." />
-                            <CommandEmpty>No results found.</CommandEmpty>
-                            <CommandGroup heading="Suggestions">
+                            <CommandInput placeholder="Search for a team member..." className="h-12" />
+                            <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                              No team members found
+                            </CommandEmpty>
+                            <CommandGroup heading="Available Team Members" className="p-2">
                               {Array.isArray(users) && users
                                 .filter(user => !projectData.team.some(member => member.id === (user._id || user.id)))
                                 .map(user => (
@@ -1372,23 +1452,24 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                       email: user.email,
                                       role: user.roles?.[0] || 'User'
                                     })}
-                                    className="flex items-center justify-between"
+                                    className="flex items-center justify-between p-3 rounded-lg mx-1 mb-1 hover:bg-primary/5 cursor-pointer transition-colors"
                                   >
                                     <div className="flex items-center">
-                                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center mr-3">
-                                        <span className="text-xs font-bold">
+                                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3 flex-shrink-0">
+                                        <span className="text-sm font-bold text-primary">
                                           {(user.name || user.firstName || 'U').charAt(0)}
                                         </span>
                                       </div>
-                                      <div>
-                                        <p className="font-medium">
+                                      <div className="min-w-0">
+                                        <p className="font-medium truncate">
                                           {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
                                         </p>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground truncate">
                                           {user.roles?.[0] || user.department || 'User'}
                                         </p>
                                       </div>
                                     </div>
+                                    <Plus className="h-4 w-4 text-muted-foreground" />
                                   </CommandItem>
                                 ))}
                             </CommandGroup>
@@ -1398,304 +1479,127 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
                       {/* Display selected team members */}
                       {projectData.team.length > 0 && (
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="space-y-4 pt-2"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {projectData.team.map(member => (
-                              <div
+                              <motion.div
                                 key={member.id}
-                                className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/50 transition-colors shadow-sm"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-background/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-md"
                               >
                                 <div className="flex items-center gap-3">
-                                  <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-base font-medium">
+                                  <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-base font-bold">
                                     {member.name.split(' ').map(n => n[0]).join('')}
                                   </div>
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{member.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {member.role} • {member.department}
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="font-semibold truncate">{member.name}</span>
+                                    <span className="text-xs text-muted-foreground truncate">
+                                      {member.role} • {member.department || 'N/A'}
                                     </span>
                                   </div>
                                 </div>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
+                                  size="icon"
                                   onClick={() => handleTeamMemberRemove(member.id)}
-                                  className="hover:bg-destructive/10 hover:text-destructive"
+                                  className="hover:bg-destructive/10 hover:text-destructive h-8 w-8 p-0"
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
-                              </div>
+                              </motion.div>
                             ))}
                           </div>
-                        </div>
+                        </motion.div>
                       )}
                     </div>
 
                     {/* External Collaborators */}
-                    <div className="space-y-3 pt-6 border-t border-border/20">
-                      <Label htmlFor="collaborators" className="text-sm font-semibold">External Collaborators / Institutions</Label>
+                    <div className="space-y-4 pt-6 border-t border-border/20">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="collaborators" className="text-base font-semibold">External Collaborators / Institutions</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Add external collaborators or institutions involved in this project</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       <div className="flex gap-3">
-                        <Input
-                          id="collaborators"
-                          placeholder="Add external collaborator or institution"
-                          value={collaboratorInput}
-                          onChange={(e) => setCollaboratorInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleCollaboratorAdd(collaboratorInput)
-                            }
-                          }}
-                          className="bg-background/50 border-border/50 h-11"
-                        />
+                        <div className="relative flex-1">
+                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="collaborators"
+                            placeholder="Add external collaborator or institution"
+                            value={collaboratorInput}
+                            onChange={(e) => setCollaboratorInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleCollaboratorAdd(collaboratorInput)
+                              }
+                            }}
+                            className="pl-10 bg-background/50 border-border/50 h-12"
+                          />
+                        </div>
                         <Button
                           type="button"
-                          variant="outline"
                           onClick={() => handleCollaboratorAdd(collaboratorInput)}
-                          className="h-11 px-6"
+                          className="h-12 px-6 bg-primary hover:bg-primary/90"
                         >
                           Add
                         </Button>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Press Enter to add a collaborator
-                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Press Enter or click "Add" to add a collaborator
+                      </p>
                     </div>
 
                     {projectData.externalCollaborators.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {projectData.externalCollaborators.map(collaborator => (
-                          <Badge key={collaborator} variant="outline" className="px-2 py-1 gap-1 bg-blue-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                              <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
-                              <circle cx="9" cy="7" r="4" />
-                              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                            {collaborator}
-                            <button
-                              type="button"
-                              onClick={() => handleCollaboratorRemove(collaborator)}
-                              className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-muted-foreground/20"
-                              aria-label={`Remove ${collaborator}`}
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="pt-2"
+                      >
+                        <div className="flex flex-wrap gap-2">
+                          {projectData.externalCollaborators.map(collaborator => (
+                            <motion.div
+                              key={collaborator}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
                             >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
+                              <Badge variant="outline" className="px-3 py-1.5 gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors">
+                                <Users className="h-3.5 w-3.5" />
+                                <span className="text-sm">{collaborator}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCollaboratorRemove(collaborator)}
+                                  className="rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-blue-200"
+                                  aria-label={`Remove ${collaborator}`}
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
                     )}
                   </div>
                 </motion.div>
               </TabsContent>
 
-              <TabsContent value="research" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="space-y-8">
-                    {/* Research Area */}
-                    <div className="space-y-3">
-                      <Label htmlFor="researchArea" className="text-sm font-semibold">
-                        Research Area
-                      </Label>
-                      <Select
-                        value={projectData.researchArea}
-                        onValueChange={(value) => handleSelectChange(value, "researchArea")}
-                      >
-                        <SelectTrigger id="researchArea" className="bg-background/50 border-border/50 h-11">
-                          <SelectValue placeholder="Select research area" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {researchAreas.map(area => (
-                            <SelectItem key={area} value={area}>
-                              <div className="flex items-center gap-2">
-                                <Beaker className="h-4 w-4 text-primary" />
-                                {area}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
 
-                    {/* Study Type */}
-                    <div className="space-y-3">
-                      <Label htmlFor="studyType" className="text-sm font-semibold">
-                        Study Type
-                      </Label>
-                      <Select
-                        value={projectData.experimentDetails?.studyType}
-                        onValueChange={(value) => {
-                          setProjectData(prev => ({
-                            ...prev,
-                            experimentDetails: {
-                              ...prev.experimentDetails,
-                              studyType: value
-                            }
-                          }))
-                        }}
-                      >
-                        <SelectTrigger id="studyType" className="bg-background/50 border-border/50 h-11">
-                          <SelectValue placeholder="Select study type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {studyTypes.map(type => (
-                            <SelectItem key={type} value={type}>
-                              <div className="flex items-center gap-2">
-                                <FileSpreadsheet className="h-4 w-4 text-primary" />
-                                {type}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Experiment Details */}
-                    <div className="pt-6 border-t border-border/20">
-                      <h3 className="text-sm font-semibold mb-6">Experiment Details</h3>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Number of Experiments */}
-                        <div className="space-y-3">
-                          <Label htmlFor="numberOfExperiments" className="text-sm font-semibold">
-                            Number of Experiments
-                          </Label>
-                          <Input
-                            id="numberOfExperiments"
-                            type="number"
-                            min="1"
-                            value={projectData.experimentDetails?.numberOfExperiments}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 1
-                              setProjectData(prev => ({
-                                ...prev,
-                                experimentDetails: {
-                                  ...prev.experimentDetails,
-                                  numberOfExperiments: value
-                                }
-                              }))
-                            }}
-                            className="bg-background/50 border-border/50 h-11"
-                          />
-                        </div>
-
-                        {/* Number of Test Groups */}
-                        <div className="space-y-3">
-                          <Label htmlFor="numberOfGroups" className="text-sm font-semibold">
-                            Number of Test Groups / Arms
-                          </Label>
-                          <Input
-                            id="numberOfGroups"
-                            type="number"
-                            min="1"
-                            value={projectData.experimentDetails?.numberOfGroups}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value) || 1
-                              setProjectData(prev => ({
-                                ...prev,
-                                experimentDetails: {
-                                  ...prev.experimentDetails,
-                                  numberOfGroups: value
-                                }
-                              }))
-                            }}
-                            className="bg-background/50 border-border/50 h-11"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Data Collection Frequency */}
-                      <div className="space-y-3 mt-6">
-                        <Label htmlFor="dataCollectionFrequency" className="text-sm font-semibold">
-                          Data Collection Frequency
-                        </Label>
-                        <Select
-                          value={projectData.experimentDetails?.dataCollectionFrequency}
-                          onValueChange={(value) => {
-                            setProjectData(prev => ({
-                              ...prev,
-                              experimentDetails: {
-                                ...prev.experimentDetails,
-                                dataCollectionFrequency: value
-                              }
-                            }))
-                          }}
-                        >
-                          <SelectTrigger id="dataCollectionFrequency" className="bg-background/50 border-border/50">
-                            <SelectValue placeholder="Select frequency" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {dataCollectionFrequencies.map(frequency => (
-                              <SelectItem key={frequency} value={frequency}>
-                                <div className="flex items-center gap-2">
-                                  <Clock className="h-4 w-4 text-primary" />
-                                  {frequency}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Required Equipment */}
-                    <div className="space-y-3 pt-6 border-t border-border/20">
-                      <Label htmlFor="equipment" className="text-sm font-semibold">Required Equipment & Resources</Label>
-                      <div className="flex gap-3">
-                        <Input
-                          id="equipment"
-                          placeholder="Add required equipment or resource"
-                          value={equipmentInput}
-                          onChange={(e) => setEquipmentInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleEquipmentAdd(equipmentInput)
-                            }
-                          }}
-                          className="bg-background/50 border-border/50 h-11"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => handleEquipmentAdd(equipmentInput)}
-                          className="h-11 px-6"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Press Enter to add equipment
-                      </div>
-
-                      {projectData.requiredEquipment.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-4">
-                          {projectData.requiredEquipment.map(equipment => (
-                            <Badge key={equipment} variant="outline" className="px-3 py-1 gap-2 bg-orange-50 text-orange-700 border-orange-200">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-                              </svg>
-                              {equipment}
-                              <button
-                                type="button"
-                                onClick={() => handleEquipmentRemove(equipment)}
-                                className="ml-1 rounded-full h-4 w-4 inline-flex items-center justify-center hover:bg-orange-200"
-                                aria-label={`Remove ${equipment}`}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              </TabsContent>
 
               {/* Documents & Attachments Tab */}
               <TabsContent value="documents" className="mt-0 space-y-4 sm:space-y-8 pr-2 sm:pr-4">
@@ -1706,18 +1610,30 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                 >
                   <div className="space-y-8">
                     {/* Related Files */}
-                    <div className="space-y-2">
-                      <Label htmlFor="relatedFiles" className="text-sm font-semibold">
-                        Related Files (PDFs, Excel, etc.)
-                      </Label>
-                      <div className="border-2 border-dashed rounded-lg p-6 bg-background/50 border-border/50 hover:border-primary/50 transition-colors">
-                        <div className="flex flex-col items-center justify-center text-center">
-                          <div className="p-3 rounded-full bg-primary/5 mb-3">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="relatedFiles" className="text-base font-semibold">
+                          Related Files
+                        </Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Upload PDFs, Excel, Word documents, or other file formats</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="border-2 border-dashed rounded-xl p-8 bg-background/30 border-border/30 hover:border-primary/50 transition-all duration-300 hover:bg-primary/5">
+                        <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto">
+                          <div className="p-4 rounded-full bg-primary/10 mb-4">
                             <FileText className="h-8 w-8 text-primary" />
                           </div>
-                          <h3 className="text-sm font-semibold mb-1">Upload Related Files</h3>
-                          <p className="text-xs text-muted-foreground mb-4">
-                            PDF, Excel, Word, or other document formats
+                          <h3 className="text-lg font-semibold mb-2">Upload Documents</h3>
+                          <p className="text-sm text-muted-foreground mb-6">
+                            Drag & drop files here or click to browse your device
                           </p>
                           <Input
                             id="relatedFiles"
@@ -1738,87 +1654,127 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             type="button"
                             variant="outline"
                             onClick={() => document.getElementById('relatedFiles').click()}
-                            className="bg-primary/5 hover:bg-primary/10"
+                            className="bg-primary/10 hover:bg-primary/20 border-primary/30 h-12 px-6 text-base font-medium"
                           >
+                            <Plus className="h-4 w-4 mr-2" />
                             Select Files
                           </Button>
+                          <p className="text-xs text-muted-foreground mt-3">
+                            Supports PDF, DOCX, XLSX, PPTX, and other common formats
+                          </p>
                         </div>
                         {projectData.relatedFiles && projectData.relatedFiles.length > 0 && (
-                          <div className="mt-4 space-y-2">
-                            {projectData.relatedFiles.map((file, index) => (
-                              <div key={index} className="p-3 bg-primary/5 rounded-md flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <FileText className="h-4 w-4 mr-2 text-primary" />
-                                  <span className="text-sm truncate max-w-[200px]">
-                                    {file.name}
-                                  </span>
-                                </div>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setProjectData(prev => ({
-                                      ...prev,
-                                      relatedFiles: prev.relatedFiles.filter((_, i) => i !== index)
-                                    }));
-                                  }}
+                          <div className="mt-6 pt-6 border-t border-border/20">
+                            <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Uploaded Files</h4>
+                            <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                              {projectData.relatedFiles.map((file, index) => (
+                                <motion.div
+                                  key={index}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className="p-4 bg-background/80 rounded-lg border border-border/50 flex items-center justify-between group hover:bg-primary/5 transition-colors"
                                 >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
+                                  <div className="flex items-center min-w-0 flex-1">
+                                    <div className="p-2 rounded-md bg-primary/10 mr-3 flex-shrink-0">
+                                      <FileText className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="text-sm font-medium truncate">{file.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setProjectData(prev => ({
+                                        ...prev,
+                                        relatedFiles: prev.relatedFiles.filter((_, i) => i !== index)
+                                      }));
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </motion.div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Document Links */}
-                    <div className="space-y-3 pt-6 border-t border-border/20">
-                      <Label htmlFor="documentLink" className="text-sm font-semibold">Document Links & References</Label>
+                    <div className="space-y-4 pt-6 border-t border-border/20">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="documentLink" className="text-base font-semibold">Document Links & References</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Add links to external documents, websites, or references</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                       <div className="flex gap-3">
-                        <Input
-                          id="documentLink"
-                          placeholder="Add document link or reference"
-                          value={documentInput}
-                          onChange={(e) => setDocumentInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleDocumentAdd(documentInput);
-                            }
-                          }}
-                          className="bg-background/50 border-border/50 h-11"
-                        />
+                        <div className="relative flex-1">
+                          <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="documentLink"
+                            placeholder="https://example.com/document"
+                            value={documentInput}
+                            onChange={(e) => setDocumentInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleDocumentAdd(documentInput);
+                              }
+                            }}
+                            className="pl-10 bg-background/50 border-border/50 h-12"
+                          />
+                        </div>
                         <Button
                           type="button"
-                          variant="outline"
                           onClick={() => handleDocumentAdd(documentInput)}
-                          className="h-11 px-6"
+                          className="h-12 px-6 bg-primary hover:bg-primary/90"
                         >
-                          Add
+                          Add Link
                         </Button>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Press Enter to add document link
-                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Press Enter or click "Add Link" to add a document reference
+                      </p>
                     </div>
 
                     {projectData.relatedDocuments.length > 0 && (
-                      <div className="space-y-3 mt-6">
-                        <h4 className="text-sm font-medium text-muted-foreground">Added Documents</h4>
+                      <div className="space-y-4 mt-6 pt-6 border-t border-border/20">
+                        <h4 className="text-base font-semibold flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          Added Document Links
+                        </h4>
                         <div className="grid gap-3">
                           {projectData.relatedDocuments.map(doc => (
-                            <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg bg-background/50 border-border/50 hover:bg-muted/50 transition-colors shadow-sm">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-md bg-primary/10">
-                                  <FileText className="h-4 w-4 text-primary" />
+                            <motion.div
+                              key={doc.id}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="flex items-center justify-between p-4 rounded-lg bg-background/50 border border-border/50 hover:bg-primary/5 transition-all duration-200 hover:shadow-md"
+                            >
+                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="p-2 rounded-md bg-primary/10 flex-shrink-0">
+                                  <Link2 className="h-4 w-4 text-primary" />
                                 </div>
                                 <a
                                   href={doc.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm hover:underline text-primary font-medium"
+                                  className="text-sm hover:underline text-primary font-medium truncate"
                                 >
                                   {doc.name}
                                 </a>
@@ -1827,11 +1783,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => handleDocumentRemove(doc.id)}
-                                className="hover:bg-destructive/10 hover:text-destructive"
+                                className="hover:bg-destructive/10 hover:text-destructive h-8 w-8 p-0"
                               >
                                 <X className="h-4 w-4" />
                               </Button>
-                            </div>
+                            </motion.div>
                           ))}
                         </div>
                       </div>
@@ -1842,7 +1798,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
             </div>
 
             <DialogFooter
-              className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-border/10 px-4 sm:px-8 pb-4 sm:pb-6 bg-background/50 flex-shrink-0"
+              className="flex flex-col-reverse sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4 pt-4 sm:pt-6 border-t border-border/10 px-6 pb-6 bg-background/50 flex-shrink-0"
               style={{ minHeight: '80px' }}
             >
               <div className="flex items-center justify-start">
@@ -1852,14 +1808,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                     variant="outline"
                     onClick={() => {
                       if (activeTab === "team") setActiveTab("details");
-                      else if (activeTab === "research") setActiveTab("team");
-                      else if (activeTab === "documents") setActiveTab("research");
+                      else if (activeTab === "documents") setActiveTab("team");
                     }}
-                    className="gap-2 bg-background border-border/50 shadow-sm hover:shadow-md transition-all h-9 sm:h-11 px-4 sm:px-6 text-sm"
+                    className="gap-2 bg-background border-border/50 shadow-sm hover:shadow-md transition-all h-10 sm:h-12 px-4 sm:px-6 text-sm rounded-lg"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-4 sm:h-4">
-                      <path d="M15 18-6-6 6-6" />
-                    </svg>
+                    <ChevronLeft className="h-4 w-4" />
                     Back
                   </Button>
                 )}
@@ -1872,24 +1825,23 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       type="button"
                       onClick={() => {
                         if (activeTab === "details") setActiveTab("team");
-                        else if (activeTab === "team") setActiveTab("research");
-                        else if (activeTab === "research") setActiveTab("documents");
+                        else if (activeTab === "team") setActiveTab("documents");
                       }}
-                      className="gap-2 shadow-md hover:shadow-lg transition-all h-9 sm:h-11 px-6 sm:px-8 bg-primary text-primary-foreground text-sm sm:text-base"
+                      className="gap-2 shadow-md hover:shadow-lg transition-all h-10 sm:h-12 px-6 sm:px-8 bg-primary text-primary-foreground text-sm sm:text-base rounded-lg"
                     >
                       Continue
-                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <ArrowRight className="h-4 w-4" />
                     </Button>
                   </motion.div>
                 ) : (
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="gap-2 py-2 sm:py-3 px-6 sm:px-8 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-sm sm:text-base flex items-center justify-center h-9 sm:h-11 min-w-[140px] sm:min-w-[160px]"
+                    className="gap-2 py-2 sm:py-3 px-6 sm:px-8 rounded-lg bg-primary text-primary-foreground font-semibold shadow-md hover:bg-primary/90 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary/30 transition-all text-sm sm:text-base flex items-center justify-center h-10 sm:h-12 min-w-[140px] sm:min-w-[160px]"
                   >
                     {isSubmitting ? (
                       <>
-                        <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -1897,7 +1849,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
                         Create Project
                       </>
                     )}
