@@ -52,7 +52,6 @@ export function ProjectManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -132,8 +131,8 @@ export function ProjectManagement() {
     }
   }, [projects]);
 
-  // Apply filters, search, and favorites tab when they change
-  useEffect(() => {
+  // Memoized filtered projects to avoid sorting issues
+  const filteredProjects = useMemo(() => {
     let filtered = [...projects];
 
     // Apply favorites filter if on favorites tab
@@ -179,8 +178,43 @@ export function ProjectManagement() {
       filtered = filtered.filter(project => getProjectCategory(project) === activeCategory);
     }
 
-    setFilteredProjects(filtered);
-  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab, activeCategory]);
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        // Handle special cases for sorting
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle date comparisons
+        if (sortConfig.key === 'startDate' || sortConfig.key === 'endDate') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+
+        // Handle progress comparisons
+        if (sortConfig.key === 'progress') {
+          aValue = aValue || 0;
+          bValue = bValue || 0;
+        }
+
+        // Handle null/undefined values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (bValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+        // Compare values
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab, activeCategory, sortConfig]);
 
   // Sorting function
   const requestSort = (key) => {
@@ -189,19 +223,6 @@ export function ProjectManagement() {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-
-    // Apply sorting
-    const sortedProjects = [...filteredProjects].sort((a, b) => {
-      if (a[key] < b[key]) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (a[key] > b[key]) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-
-    setFilteredProjects(sortedProjects);
   };
 
   const handleProjectAction = (action, project) => {
@@ -612,6 +633,7 @@ export function ProjectManagement() {
               handleProjectAction={handleProjectAction}
               sortConfig={sortConfig}
               requestSort={requestSort}
+              onClearFilters={clearFilters}
             />
           )}
         </>
@@ -689,7 +711,7 @@ export function ProjectManagement() {
 }
 
 // ProjectDisplay component to avoid duplicate code
-function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
+function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort, onClearFilters }) {
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/50 rounded-2xl bg-muted/10">
@@ -703,12 +725,7 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
         <Button
           variant="outline"
           className="gap-2"
-          onClick={() => {
-            setSearchQuery("");
-            setStatusFilter("all");
-            setPriorityFilter("all");
-            setTimeframeFilter("all");
-          }}
+          onClick={onClearFilters}
         >
           <FilterIcon className="h-4 w-4" />
           Clear Filters

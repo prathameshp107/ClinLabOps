@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers, Sparkles, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -249,6 +249,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [equipmentInput, setEquipmentInput] = useState("")
   const [documentInput, setDocumentInput] = useState("")
   const [collaboratorInput, setCollaboratorInput] = useState("")
+  const scrollAreaRef = useRef(null);
 
   // Fetch users from API
   useEffect(() => {
@@ -302,15 +303,68 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     }
   }, [editor, projectData.description])
 
-  // Focus editor when dialog opens
+  // Scroll to top and focus editor when dialog opens
   useEffect(() => {
-    if (open && editor) {
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        editor.commands.focus()
-      }, 100)
+    if (open) {
+      // Scroll to top of the dialog content with multiple fallback methods
+      const scrollToTop = () => {
+        // Method 1: Using ref
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = 0;
+          return;
+        }
+
+        // Method 2: Query selector for the scrollable area
+        const scrollableArea = document.querySelector('[role="dialog"] .overflow-y-auto');
+        if (scrollableArea) {
+          scrollableArea.scrollTop = 0;
+          return;
+        }
+
+        // Method 3: Query selector for the specific div with ref
+        const dialogScrollArea = document.querySelector('[data-dialog-scroll-area]');
+        if (dialogScrollArea) {
+          dialogScrollArea.scrollTop = 0;
+          return;
+        }
+      };
+
+      // Try immediately
+      scrollToTop();
+
+      // Try after a small delay to ensure DOM is ready
+      const timer1 = setTimeout(scrollToTop, 50);
+
+      // Try again after a longer delay for slower renders
+      const timer2 = setTimeout(scrollToTop, 200);
+
+      // Focus editor after a small delay to ensure DOM is ready
+      if (editor) {
+        setTimeout(() => {
+          editor.commands.focus();
+        }, 100);
+      }
+
+      // Cleanup timers
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
-  }, [open, editor])
+  }, [open, editor]);
+
+  // Additional scroll to top when details tab is active
+  useEffect(() => {
+    if (open && activeTab === "details" && scrollAreaRef.current) {
+      const timer = setTimeout(() => {
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = 0;
+        }
+      }, 10);
+
+      return () => clearTimeout(timer);
+    }
+  }, [open, activeTab]);
 
   const validateForm = () => {
     const errors = {}
@@ -785,6 +839,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
             <div
+              ref={scrollAreaRef}
+              data-dialog-scroll-area="true"
               className="flex-1 overflow-y-auto px-6 py-6"
               style={{
                 maxHeight: 'calc(90vh - 200px)',
