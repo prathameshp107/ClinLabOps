@@ -197,9 +197,9 @@ export default function ProjectPage({ params }) {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-background/90">
         {/* Enhanced Breadcrumb */}
-        <div className="px-6 py-4 bg-white/80 backdrop-blur-sm border-b border-border/50">
+        <div className="px-6 py-4 bg-background/80 backdrop-blur-sm border-b border-border/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center text-sm">
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground p-0 h-auto font-normal">
@@ -210,9 +210,9 @@ export default function ProjectPage({ params }) {
             </div>
             <div className="flex items-center gap-2">
               <div className={`h-2 w-2 rounded-full ${project.status === "Completed" ? "bg-green-500" :
-                  project.status === "In Progress" ? "bg-blue-500" :
-                    project.status === "On Hold" ? "bg-orange-500" :
-                      project.status === "Pending" ? "bg-yellow-500" : "bg-gray-400"
+                project.status === "In Progress" ? "bg-blue-500" :
+                  project.status === "On Hold" ? "bg-orange-500" :
+                    project.status === "Pending" ? "bg-yellow-500" : "bg-gray-400"
                 }`} />
               <span className="text-sm text-muted-foreground">{project.status}</span>
             </div>
@@ -220,7 +220,7 @@ export default function ProjectPage({ params }) {
         </div>
 
         {/* Enhanced Project Header */}
-        <div className="bg-white/60 backdrop-blur-sm border-b border-border/30">
+        <div className="bg-background/60 backdrop-blur-sm border-b border-border/30">
           <div className="px-6 py-6">
             <ProjectHeader
               project={project}
@@ -232,7 +232,7 @@ export default function ProjectPage({ params }) {
         </div>
 
         {/* Modern Project Navigation */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-border/30 sticky top-0 z-10">
+        <div className="bg-background/80 backdrop-blur-sm border-b border-border/30 sticky top-0 z-10">
           <div className="px-6">
             <div className="flex items-center justify-between py-4">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

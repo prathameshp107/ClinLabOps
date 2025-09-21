@@ -30,9 +30,9 @@ const getStatusColor = (status) => {
 };
 
 const getWorkloadStatus = (value) => {
-  if (value >= 80) return { label: 'High', color: 'text-red-600 bg-red-50' };
-  if (value >= 60) return { label: 'Medium', color: 'text-amber-600 bg-amber-50' };
-  return { label: 'Low', color: 'text-green-600 bg-green-50' };
+  if (value >= 80) return { label: 'High', color: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30' };
+  if (value >= 60) return { label: 'Medium', color: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-900/30' };
+  return { label: 'Low', color: 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30' };
 };
 
 const getAvatarFallback = (name) => {
@@ -46,7 +46,7 @@ export function TeamWorkload({ project }) {
 
     return project.team.map(member => {
       // Find tasks assigned to this member
-      const assignedTasks = project.tasks.filter(task => 
+      const assignedTasks = project.tasks.filter(task =>
         task.assigneeId === member.id || task.assignee === member.name
       );
 
@@ -79,22 +79,22 @@ export function TeamWorkload({ project }) {
   // Show message when no team data is available
   if (!project?.team || project.team.length === 0) {
     return (
-      <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-        <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 border-b border-gray-100/50">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-xl">
-              <Users className="h-5 w-5 text-purple-600" />
+      <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+        <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-900/50 dark:to-indigo-900/50 border-b border-border/50">
+          <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+              <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             Team Workload
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Users className="h-8 w-8 text-gray-400" />
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <Users className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Team Members</h3>
-            <p className="text-gray-600 text-sm max-w-md">
+            <h3 className="text-lg font-medium text-foreground mb-2">No Team Members</h3>
+            <p className="text-muted-foreground text-sm max-w-md">
               This project doesn't have any team members assigned yet. Add team members to see their workload and task assignments.
             </p>
           </div>
@@ -106,22 +106,22 @@ export function TeamWorkload({ project }) {
   // Show message when team exists but no tasks are assigned
   if (teamWorkloadData.length === 0 || teamWorkloadData.every(member => member.totalTasks === 0)) {
     return (
-      <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-        <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 border-b border-gray-100/50">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-xl">
-              <Users className="h-5 w-5 text-purple-600" />
+      <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+        <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-900/50 dark:to-indigo-900/50 border-b border-border/50">
+          <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+              <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             Team Workload
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Clock className="h-8 w-8 text-gray-400" />
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+              <Clock className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Tasks Assigned</h3>
-            <p className="text-gray-600 text-sm max-w-md">
+            <h3 className="text-lg font-medium text-foreground mb-2">No Tasks Assigned</h3>
+            <p className="text-muted-foreground text-sm max-w-md">
               Team members are available but no tasks have been assigned to them yet. Assign tasks to see workload distribution.
             </p>
           </div>
@@ -131,31 +131,31 @@ export function TeamWorkload({ project }) {
   }
 
   const totalTasks = teamWorkloadData.reduce((sum, member) => sum + member.totalTasks, 0);
-  const averageWorkload = teamWorkloadData.length > 0 
-    ? teamWorkloadData.reduce((sum, member) => sum + member.workloadPercentage, 0) / teamWorkloadData.length 
+  const averageWorkload = teamWorkloadData.length > 0
+    ? teamWorkloadData.reduce((sum, member) => sum + member.workloadPercentage, 0) / teamWorkloadData.length
     : 0;
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-      <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 border-b border-gray-100/50">
+    <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+      <CardHeader className="px-6 py-4 bg-gradient-to-r from-purple-50/50 to-indigo-50/50 dark:from-purple-900/50 dark:to-indigo-900/50 border-b border-border/50">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 rounded-xl">
-              <Users className="h-5 w-5 text-purple-600" />
+          <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+              <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             Team Workload
           </CardTitle>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 {teamWorkloadData.filter(m => m.status === 'online').length} Active
               </span>
             </div>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <a href="#" className="text-sm text-purple-600 hover:text-purple-700 hover:underline transition-colors">
+                  <a href="#" className="text-sm text-purple-600 hover:text-purple-700 hover:underline transition-colors dark:text-purple-400 dark:hover:text-purple-300">
                     Reassign work items
                   </a>
                 </TooltipTrigger>
@@ -169,15 +169,15 @@ export function TeamWorkload({ project }) {
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
-            <div className="text-sm text-blue-600 font-medium mb-1">Total Tasks</div>
-            <div className="text-2xl font-bold text-blue-900">{totalTasks}</div>
-            <div className="text-xs text-blue-600 mt-1">Across all team members</div>
+          <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50 dark:from-blue-900/30 dark:to-blue-900/20 dark:border-blue-900/50">
+            <div className="text-sm text-blue-600 font-medium mb-1 dark:text-blue-400">Total Tasks</div>
+            <div className="text-2xl font-bold text-blue-900 dark:text-blue-300">{totalTasks}</div>
+            <div className="text-xs text-blue-600 mt-1 dark:text-blue-400">Across all team members</div>
           </div>
-          <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
-            <div className="text-sm text-purple-600 font-medium mb-1">Average Workload</div>
-            <div className="text-2xl font-bold text-purple-900">{Math.round(averageWorkload)}%</div>
-            <div className="text-xs text-purple-600 mt-1">Team capacity utilization</div>
+          <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50 dark:from-purple-900/30 dark:to-purple-900/20 dark:border-purple-900/50">
+            <div className="text-sm text-purple-600 font-medium mb-1 dark:text-purple-400">Average Workload</div>
+            <div className="text-2xl font-bold text-purple-900 dark:text-purple-300">{Math.round(averageWorkload)}%</div>
+            <div className="text-xs text-purple-600 mt-1 dark:text-purple-400">Team capacity utilization</div>
           </div>
         </div>
 
@@ -185,19 +185,19 @@ export function TeamWorkload({ project }) {
           {teamWorkloadData.map((member, index) => {
             const workloadStatus = getWorkloadStatus(member.workloadPercentage);
             return (
-              <div key={member.id || index} className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/50 hover:shadow-md transition-all duration-200">
+              <div key={member.id || index} className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200/50 hover:shadow-md transition-all duration-200 dark:from-gray-900/30 dark:to-gray-900/20 dark:border-gray-800/50">
                 <div className="relative">
-                  <Avatar className="h-10 w-10 border-2 border-white shadow-md">
+                  <Avatar className="h-10 w-10 border-2 border-white shadow-md dark:border-border">
                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm font-medium">
                       {member.avatarFallback}
                     </AvatarFallback>
                   </Avatar>
-                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(member.status)}`}></div>
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${getStatusColor(member.status)} dark:border-border`}></div>
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-foreground">
                         {member.name}
                       </span>
                       <Badge variant="outline" className={`text-xs ${workloadStatus.color}`}>
@@ -205,7 +205,7 @@ export function TeamWorkload({ project }) {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
                         <Activity className="h-3 w-3" />
                         {member.lastActive}
                       </span>
@@ -215,22 +215,22 @@ export function TeamWorkload({ project }) {
                     </div>
                   </div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-500">{member.role}</span>
-                    <span className="text-xs text-gray-500">{member.totalTasks} tasks</span>
+                    <span className="text-xs text-muted-foreground">{member.role}</span>
+                    <span className="text-xs text-muted-foreground">{member.totalTasks} tasks</span>
                   </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
                     <div
                       className="h-full rounded-full transition-all duration-300"
                       style={{
                         width: `${member.workloadPercentage}%`,
-                        backgroundColor: workloadStatus.label === 'High' ? '#ef4444' : 
-                                     workloadStatus.label === 'Medium' ? '#f59e0b' : '#10b981'
+                        backgroundColor: workloadStatus.label === 'High' ? '#ef4444' :
+                          workloadStatus.label === 'Medium' ? '#f59e0b' : '#10b981'
                       }}
                     />
                   </div>
                   {/* Task breakdown */}
                   {member.totalTasks > 0 && (
-                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3 text-green-500" />
                         {member.completed} completed
@@ -253,4 +253,4 @@ export function TeamWorkload({ project }) {
       </CardContent>
     </Card>
   );
-} 
+}
