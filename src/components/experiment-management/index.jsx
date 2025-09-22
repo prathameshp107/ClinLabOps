@@ -61,6 +61,7 @@ export function ExperimentManagement() {
   const [isLoading, setIsLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [projectFilter, setProjectFilter] = useState("all") // Add project filter state
   const [sortBy, setSortBy] = useState("updatedAt")
   const [sortOrder, setSortOrder] = useState("desc")
   const [selectedExperiment, setSelectedExperiment] = useState(null)
@@ -129,6 +130,19 @@ export function ExperimentManagement() {
       result = result.filter(exp => exp.status === statusFilter)
     }
 
+    // Apply project filter
+    if (projectFilter !== "all") {
+      result = result.filter(exp => {
+        if (projectFilter === "unassigned") {
+          return !exp.projectId
+        } else {
+          // Handle different possible structures for projectId
+          const experimentProjectId = exp.projectId?._id || exp.projectId?.id || exp.projectId
+          return experimentProjectId && experimentProjectId.toString() === projectFilter.toString()
+        }
+      })
+    }
+
     // Apply sorting
     result.sort((a, b) => {
       let valueA = a[sortBy]
@@ -146,7 +160,7 @@ export function ExperimentManagement() {
     })
 
     setFilteredExperiments(result)
-  }, [experiments, searchQuery, statusFilter, sortBy, sortOrder])
+  }, [experiments, searchQuery, statusFilter, projectFilter, sortBy, sortOrder]) // Add projectFilter to dependencies
 
   // Handle experiment creation
   const handleCreateExperiment = async (experimentData) => {
@@ -212,6 +226,7 @@ export function ExperimentManagement() {
   const resetFilters = () => {
     setSearchQuery("")
     setStatusFilter("all")
+    setProjectFilter("all")
     setSortBy("updatedAt")
     setSortOrder("desc")
   }
@@ -304,6 +319,45 @@ export function ExperimentManagement() {
                 <DropdownMenuItem onClick={() => setStatusFilter("archived")}>
                   Archived
                 </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Add Project Filter Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-10">
+                  <Filter className="mr-2 h-4 w-4" />
+                  {projectFilter === "all" ? "All Projects" :
+                    projectFilter === "unassigned" ? "Unassigned" :
+                      projects.find(p => (p._id || p.id) === projectFilter)?.name || "Project"}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Filter by Project</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setProjectFilter("all")}
+                  className={projectFilter === "all" ? "bg-accent" : ""}
+                >
+                  All Projects
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setProjectFilter("unassigned")}
+                  className={projectFilter === "unassigned" ? "bg-accent" : ""}
+                >
+                  Unassigned
+                </DropdownMenuItem>
+                {projects.length > 0 && <DropdownMenuSeparator />}
+                {projects.map((project) => (
+                  <DropdownMenuItem
+                    key={project._id || project.id}
+                    onClick={() => setProjectFilter(project._id || project.id)}
+                    className={projectFilter === (project._id || project.id) ? "bg-accent" : ""}
+                  >
+                    {project.name}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -432,6 +486,20 @@ export function ExperimentManagement() {
           >
             Archived
           </Button>
+
+          {/* Project Filter Indicators */}
+          {projectFilter !== "all" && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setProjectFilter("all")}
+              className="flex items-center gap-1"
+            >
+              {projectFilter === "unassigned" ? "Unassigned" :
+                projects.find(p => (p._id || p.id) === projectFilter)?.name || "Project"}
+              <span className="text-xs">✕</span>
+            </Button>
+          )}
         </div>
       </div>
 

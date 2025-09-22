@@ -57,31 +57,9 @@ export default function ExperimentsPage() {
 
             </div>
 
-            {/* Tabs for different experiment views */}
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="mb-6 bg-muted/50 p-1 rounded-lg">
-                <TabsTrigger value="all" className="rounded-md">All Experiments</TabsTrigger>
-                <TabsTrigger value="active" className="rounded-md">Active</TabsTrigger>
-                <TabsTrigger value="completed" className="rounded-md">Completed</TabsTrigger>
-                <TabsTrigger value="archived" className="rounded-md">Archived</TabsTrigger>
-              </TabsList>
 
-              <TabsContent value="all" className="mt-0">
-                <ExperimentManagement />
-              </TabsContent>
+            <ExperimentManagement />
 
-              <TabsContent value="active" className="mt-0">
-                <ExperimentManagement filterStatus="active" />
-              </TabsContent>
-
-              <TabsContent value="completed" className="mt-0">
-                <ExperimentManagement filterStatus="completed" />
-              </TabsContent>
-
-              <TabsContent value="archived" className="mt-0">
-                <ExperimentManagement filterStatus="archived" />
-              </TabsContent>
-            </Tabs>
           </motion.div>
         </div>
       </div>
