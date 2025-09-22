@@ -294,7 +294,8 @@ exports.deleteExperiment = async (req, res) => {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
-    await experiment.remove();
+    // Use deleteOne() instead of remove()
+    await Experiment.deleteOne({ _id: req.params.id });
 
     // Log activity
     if (req.user) {
