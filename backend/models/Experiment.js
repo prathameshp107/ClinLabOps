@@ -8,6 +8,37 @@ const versionHistorySchema = new Schema({
   changes: { type: String, required: true }
 });
 
+// Define comment schema
+const commentSchema = new Schema({
+  author: {
+    type: String,
+    required: true
+  },
+  text: {
+    type: String,
+    required: true
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  replies: [{
+    author: {
+      type: String,
+      required: true
+    },
+    text: {
+      type: String,
+      required: true
+    },
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    replies: [this] // Self-referencing for nested replies
+  }]
+});
+
 const experimentSchema = new Schema({
   title: {
     type: String,
@@ -60,6 +91,8 @@ const experimentSchema = new Schema({
     ref: 'Project',
     required: false
   },
+  // Add comments field
+  comments: [commentSchema],
   version: {
     type: Number,
     default: 1

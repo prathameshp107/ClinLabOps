@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Tabs,
   TabsContent,
@@ -23,6 +23,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
   Beaker,
   Calendar,
   Clock,
@@ -34,20 +40,34 @@ import {
   MessageSquare,
   Send,
   Trash2,
-  Users
+  Users,
+  MoreHorizontal
 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { cn } from "@/lib/utils"
 import { ExperimentForm } from "./experiment-form"
 import { ExperimentChart } from "./experiment-chart"
+import {
+  addCommentToExperiment,
+  addReplyToComment,
+  deleteCommentFromExperiment,
+  deleteReplyFromComment
+} from "@/services/experimentService"
+import { useToast } from "@/components/ui/use-toast"
 
 export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState("overview")
-  const [comments, setComments] = useState([])
+  const [comments, setComments] = useState(experiment.comments || [])
   const [newComment, setNewComment] = useState("")
   const [replyingTo, setReplyingTo] = useState(null)
   const [replyText, setReplyText] = useState("")
+  const { toast } = useToast()
+
+  // Update comments when experiment changes
+  useEffect(() => {
+    setComments(experiment.comments || [])
+  }, [experiment])
 
   // Priority badge styling
   const getPriorityStyles = (priority) => {
@@ -87,82 +107,84 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
     setIsEditing(false)
   }
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim() === "") return
 
-    const comment = {
-      id: comments.length + 1,
-      author: "Current User", // This would be the actual user in a real app
-      avatar: "/avatars/default.jpg",
-      date: new Date().toISOString(),
-      text: newComment,
-      replies: []
+    try {
+      const updatedComments = await addCommentToExperiment(experiment._id, newComment)
+      setComments(updatedComments)
+      setNewComment("")
+      toast({
+        title: "Success",
+        description: "Comment added successfully",
+      })
+    } catch (error) {
+      console.error('Error adding comment:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add comment. Please try again.",
+        variant: "destructive",
+      })
     }
-
-    setComments([...comments, comment])
-    setNewComment("")
   }
 
-  const handleAddReply = (commentId, replyToReplyId = null) => {
-    if (replyText.trim() === "") return;
+  const handleAddReply = async (commentId, replyToReplyId = null) => {
+    if (replyText.trim() === "") return
 
-    const reply = {
-      id: Date.now(), // Simple ID generation
-      author: "Current User", // This would be the actual user in a real app
-      avatar: "/avatars/default.jpg",
-      date: new Date().toISOString(),
-      text: replyText,
-      replies: [] // Initialize with empty replies array
-    };
+    try {
+      const updatedComments = await addReplyToComment(experiment._id, commentId, replyText, replyToReplyId)
+      setComments(updatedComments)
+      setReplyText("")
+      setReplyingTo(null)
+      toast({
+        title: "Success",
+        description: "Reply added successfully",
+      })
+    } catch (error) {
+      console.error('Error adding reply:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add reply. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
-    const addReplyToComments = (commentsArray) => {
-      return commentsArray.map(comment => {
-        // Handle top-level comment replies
-        if (comment.id === commentId && !replyToReplyId) {
-          return {
-            ...comment,
-            replies: [...comment.replies, reply]
-          };
-        }
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const updatedComments = await deleteCommentFromExperiment(experiment._id, commentId)
+      setComments(updatedComments)
+      toast({
+        title: "Success",
+        description: "Comment deleted successfully",
+      })
+    } catch (error) {
+      console.error('Error deleting comment:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete comment. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
-        // Handle nested reply to reply
-        if (replyToReplyId) {
-          return {
-            ...comment,
-            replies: addReplyToNested(comment.replies, replyToReplyId, reply)
-          };
-        }
-
-        return comment;
-      });
-    };
-
-    const addReplyToNested = (replies, targetId, newReply) => {
-      return replies.map(replyItem => {
-        // If this is the direct reply we're replying to
-        if (replyItem.id === targetId) {
-          return {
-            ...replyItem,
-            replies: [...(replyItem.replies || []), newReply]
-          };
-        }
-
-        // If this reply has nested replies, check them recursively
-        if (replyItem.replies && replyItem.replies.length > 0) {
-          return {
-            ...replyItem,
-            replies: addReplyToNested(replyItem.replies, targetId, newReply)
-          };
-        }
-
-        return replyItem;
-      });
-    };
-
-    setComments(addReplyToComments(comments));
-    setReplyText("");
-    setReplyingTo(null);
-  };
+  const handleDeleteReply = async (commentId, replyId) => {
+    try {
+      const updatedComments = await deleteReplyFromComment(experiment._id, commentId, replyId)
+      setComments(updatedComments)
+      toast({
+        title: "Success",
+        description: "Reply deleted successfully",
+      })
+    } catch (error) {
+      console.error('Error deleting reply:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete reply. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
 
   const formatDate = (dateString) => {
     const date = parseISO(dateString)
@@ -180,7 +202,7 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
 
   const renderReply = (reply, topLevelCommentId) => {
     return (
-      <div key={reply.id} className="comment">
+      <div key={reply._id || reply.id} className="comment">
         <a className="avatar">
           <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
         </a>
@@ -192,17 +214,30 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
           <div className="text text-foreground text-sm mt-1">
             {reply.text}
           </div>
-          <div className="actions">
+          <div className="actions flex items-center gap-2">
             <a
               className="reply text-muted-foreground hover:text-foreground cursor-pointer text-sm"
-              onClick={() => setReplyingTo(replyingTo === `reply-${reply.id}` ? null : `reply-${reply.id}`)}
+              onClick={() => setReplyingTo(replyingTo === `reply-${reply._id || reply.id}` ? null : `reply-${reply._id || reply.id}`)}
             >
               Reply
             </a>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleDeleteReply(topLevelCommentId, reply._id || reply.id)}>
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Reply Form for reply */}
-          {replyingTo === `reply-${reply.id}` && (
+          {replyingTo === `reply-${reply._id || reply.id}` && (
             <div className="mt-4 flex">
               <div className="flex-shrink-0 mr-3">
                 <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
@@ -217,7 +252,7 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
-                    onClick={() => handleAddReply(topLevelCommentId, reply.id)}
+                    onClick={() => handleAddReply(topLevelCommentId, reply._id || reply.id)}
                     disabled={!replyText.trim()}
                   >
                     <Send className="h-4 w-4 mr-2" />
@@ -599,7 +634,7 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                       {comments.length > 0 ? (
                         <div className="space-y-6">
                           {comments.map((comment) => (
-                            <div key={comment.id} className="comment">
+                            <div key={comment._id || comment.id} className="comment">
                               <a className="avatar">
                                 <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
                               </a>
@@ -611,17 +646,30 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                                 <div className="text text-foreground mt-1">
                                   {comment.text}
                                 </div>
-                                <div className="actions">
+                                <div className="actions flex items-center gap-2">
                                   <a
                                     className="reply text-muted-foreground hover:text-foreground cursor-pointer"
-                                    onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                                    onClick={() => setReplyingTo(replyingTo === (comment._id || comment.id) ? null : (comment._id || comment.id))}
                                   >
                                     Reply
                                   </a>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                        <span className="sr-only">Open menu</span>
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => handleDeleteComment(comment._id || comment.id)}>
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
 
                                 {/* Reply Form for comment */}
-                                {replyingTo === comment.id && (
+                                {replyingTo === (comment._id || comment.id) && (
                                   <div className="mt-4 flex">
                                     <div className="flex-shrink-0 mr-3">
                                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
@@ -636,7 +684,7 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                                       <div className="flex space-x-2">
                                         <Button
                                           size="sm"
-                                          onClick={() => handleAddReply(comment.id)}
+                                          onClick={() => handleAddReply(comment._id || comment.id)}
                                           disabled={!replyText.trim()}
                                         >
                                           <Send className="h-4 w-4 mr-2" />
@@ -658,10 +706,10 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                                 )}
 
                                 {/* Replies */}
-                                {comment.replies.length > 0 && (
+                                {comment.replies && comment.replies.length > 0 && (
                                   <div className="comments space-y-6 mt-6">
                                     {comment.replies.map((reply) => (
-                                      renderReply(reply, comment.id)
+                                      renderReply(reply, comment._id || comment.id)
                                     ))}
                                   </div>
                                 )}

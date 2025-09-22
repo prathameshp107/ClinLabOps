@@ -365,3 +365,73 @@ export async function getProjectsForExperimentForm() {
     throw error;
   }
 }
+
+/**
+ * Add comment to experiment
+ * @param {string} experimentId
+ * @param {string} text
+ * @returns {Promise<Object>} Updated comments
+ */
+export async function addCommentToExperiment(experimentId, text) {
+  try {
+    const response = await api.post(`/experiments/${experimentId}/comments`, { text });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding comment to experiment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Add reply to comment in experiment
+ * @param {string} experimentId
+ * @param {string} commentId
+ * @param {string} text
+ * @param {string} replyToReplyId
+ * @returns {Promise<Object>} Updated comments
+ */
+export async function addReplyToComment(experimentId, commentId, text, replyToReplyId = null) {
+  try {
+    const response = await api.post(`/experiments/${experimentId}/comments/${commentId}/replies`, {
+      text,
+      replyToReplyId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding reply to comment in experiment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete comment from experiment
+ * @param {string} experimentId
+ * @param {string} commentId
+ * @returns {Promise<Object>} Updated comments
+ */
+export async function deleteCommentFromExperiment(experimentId, commentId) {
+  try {
+    const response = await api.delete(`/experiments/${experimentId}/comments/${commentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting comment from experiment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete reply from comment in experiment
+ * @param {string} experimentId
+ * @param {string} commentId
+ * @param {string} replyId
+ * @returns {Promise<Object>} Updated comments
+ */
+export async function deleteReplyFromComment(experimentId, commentId, replyId) {
+  try {
+    const response = await api.delete(`/experiments/${experimentId}/comments/${commentId}/replies/${replyId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting reply from comment in experiment:', error);
+    throw error;
+  }
+}
