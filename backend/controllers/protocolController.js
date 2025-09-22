@@ -106,30 +106,15 @@ const getProtocols = asyncHandler(async (req, res) => {
     query.status = { $ne: 'In Review' };
   }
 
-  // Build access control query
-  let accessQuery = {};
-  if (req.user) {
-    // For authenticated users, show their protocols + public ones
-    accessQuery = {
-      $or: [
-        { createdBy: req.user._id },
-        { isPublic: true }
-      ]
-    };
-  } else {
-    // For unauthenticated users, only show public protocols
-    accessQuery = { isPublic: true };
-  }
-
-  // Filter by isPublic if specified (overrides default access logic)
+  // Filter by isPublic if specified
   if (isPublic === 'true') {
-    accessQuery = { isPublic: true };
-  } else if (isPublic === 'false' && req.user) {
-    accessQuery = {
-      isPublic: false,
-      createdBy: req.user._id // Only show user's private protocols
-    };
+    // All Protocols section: Show all protocols with isPublic: true, irrespective of user
+    query.isPublic = true;
+  } else if (isPublic === 'false') {
+    // Protocols on Review section: Show all protocols with isPublic: false, irrespective of user
+    query.isPublic = false;
   }
+  // If isPublic is not specified, show all protocols (both public and private)
 
   // Build search query
   let searchQuery = {};
@@ -148,14 +133,8 @@ const getProtocols = asyncHandler(async (req, res) => {
     query = {
       ...query,
       $and: [
-        accessQuery,
         searchQuery
       ]
-    };
-  } else {
-    query = {
-      ...query,
-      ...accessQuery
     };
   }
 
@@ -807,3 +786,5 @@ module.exports = {
   getProtocolReviews,
   exportProtocol
 };
+
+

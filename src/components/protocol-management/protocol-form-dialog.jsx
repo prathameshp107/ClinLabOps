@@ -61,6 +61,16 @@ const protocolFormSchema = z.object({
   references: z.string().optional(),
   status: z.string().default("Draft"),
   isPublic: z.boolean().default(false),
+}).refine((data) => {
+  // Additional validation to ensure at least one step exists
+  if (data.steps) {
+    const steps = data.steps.split('\n').filter(step => step.trim());
+    return steps.length > 0;
+  }
+  return false;
+}, {
+  message: "Protocol must have at least one step.",
+  path: ["steps"],
 });
 
 export function ProtocolFormDialog({
@@ -154,9 +164,10 @@ export function ProtocolFormDialog({
         description: data.description,
         category: data.category,
         version: data.version,
-        // Convert string to array of step objects
+        // Convert string to array of step objects with both title and instructions
         steps: data.steps ? data.steps.split('\n').filter(step => step.trim()).map((step, index) => ({
           number: index + 1,
+          title: `Step ${index + 1}`, // Add a default title
           instructions: step.trim()
         })) : [],
         // Convert string to array of material objects
@@ -450,7 +461,7 @@ export function ProtocolFormDialog({
                         <FormLabel className="text-sm font-medium">Materials and Equipment</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="List all required materials and equipment (one per line)"
+                            placeholder="List all required materials and equipment (one per line)&#10;&#10;Example:&#10;Buffer solution - 100mL&#10;Centrifuge tubes - 15mL x 10&#10;Spectrophotometer"
                             className="min-h-[120px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
                             {...field}
                           />
@@ -489,7 +500,7 @@ export function ProtocolFormDialog({
                         <FormLabel className="text-sm font-medium">Step-by-Step Procedure</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Provide detailed step-by-step instructions (one step per line)"
+                            placeholder="Provide detailed step-by-step instructions (one step per line)&#10;&#10;Example:&#10;Prepare the reaction mixture by combining reagents A and B&#10;Incubate the mixture at 37°C for 30 minutes&#10;Add stop solution to terminate the reaction"
                             className="min-h-[300px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
                             {...field}
                           />
@@ -509,7 +520,7 @@ export function ProtocolFormDialog({
                         <FormLabel className="text-sm font-medium">References</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="List any references or supporting literature"
+                            placeholder="List any references or supporting literature (one per line)&#10;&#10;Example:&#10;Smith et al. (2023). Journal of Molecular Biology, 45(3), 123-145&#10;Protocol Database ID: PD-2023-001"
                             className="min-h-[100px] mt-1.5 bg-background/70 border-border/40 focus-visible:ring-primary/30"
                             {...field}
                           />
