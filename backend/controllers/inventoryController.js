@@ -702,6 +702,31 @@ exports.getInventoryStats = async (req, res) => {
     }
 };
 
+// Get distinct storage locations
+exports.getStorageLocations = async (req, res) => {
+    try {
+        const locations = await InventoryItem.distinct('location');
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'storage_locations_viewed',
+                description: `${req.user.name} viewed storage locations`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'inventory',
+                    locationCount: locations.length,
+                    operation: 'view_locations'
+                }
+            });
+        }
+
+        res.json(locations);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // Search inventory items
 exports.searchInventoryItems = async (req, res) => {
     try {

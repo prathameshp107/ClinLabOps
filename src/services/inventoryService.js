@@ -462,6 +462,20 @@ export async function getInventoryStats() {
     }
 }
 
+/**
+ * Get distinct storage locations
+ * @returns {Promise<Array>} List of storage locations
+ */
+export async function getStorageLocations() {
+    try {
+        const response = await api.get('/inventory/locations');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching storage locations:', error);
+        throw error;
+    }
+}
+
 // Legacy functions for backward compatibility
 export function getWarehouseItems() {
     return getInventoryItems();

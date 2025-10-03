@@ -91,6 +91,7 @@ import {
 } from "@/components/ui/progress";
 import { animalService } from '@/services/animalService';
 import { breedingService } from '@/services/breedingService';
+import { cageService } from '@/services/cageService'; // Import cage service
 import { BreedingPairDetails } from './BreedingPairDetails';
 
 const SPECIES_OPTIONS = [
@@ -145,11 +146,13 @@ export function AnimalManagement() {
     const [error, setError] = useState(null);
     const [selectedBreedingPair, setSelectedBreedingPair] = useState(null);
     const [isBreedingDetailsOpen, setIsBreedingDetailsOpen] = useState(false);
+    const [availableCages, setAvailableCages] = useState([]); // State for available cages
 
     // Load animals and breeding pairs
     useEffect(() => {
         loadAnimals();
         loadBreedingPairs();
+        loadAvailableCages(); // Load available cages
     }, []);
 
     const loadAnimals = async () => {
@@ -175,6 +178,17 @@ export function AnimalManagement() {
             console.error('Error loading breeding pairs:', error);
             // Set empty array instead of mock data
             setBreedingPairs([]);
+        }
+    };
+
+    // Load available cages
+    const loadAvailableCages = async () => {
+        try {
+            const cages = await cageService.getAvailableCages();
+            setAvailableCages(cages);
+        } catch (error) {
+            console.error('Error loading available cages:', error);
+            setAvailableCages([]);
         }
     };
 
@@ -999,15 +1013,15 @@ export function AnimalManagement() {
                                             <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
                                                 Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 text-base">
+                                            <TableHead className="cursor-pointer font-bold text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-r-2xl text-base">
                                                 Location {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
                                             </TableHead>
-                                            <TableHead className="text-right font-bold text-gray-800 dark:text-gray-200 rounded-r-2xl text-base">Actions</TableHead>
+                                            <TableHead className="text-right rounded-r-2xl text-base">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {filteredAnimals.map((animal) => (
-                                            <TableRow key={animal._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors duration-200">
+                                            <TableRow key={animal._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                                 <TableCell>
                                                     <Checkbox
                                                         checked={selectedAnimals.includes(animal._id)}
@@ -1015,6 +1029,11 @@ export function AnimalManagement() {
                                                         className="rounded-full data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 h-5 w-5"
                                                     />
                                                 </TableCell>
+                                                <TableCell className="font-medium">{animal.name}</TableCell>
+                                                <TableCell className="capitalize">{animal.species}</TableCell>
+                                                <TableCell>{animal.strain}</TableCell>
+                                                <TableCell>{animal.age} weeks</TableCell>
+                                                <TableCell>{animal.weight}g</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-3.5">
                                                         <span className="text-2xl">{getSpeciesIcon(animal.species)}</span>
@@ -1246,15 +1265,18 @@ export function AnimalManagement() {
                 onSave={handleSaveAnimal}
                 animal={selectedAnimal}
                 speciesOptions={SPECIES_OPTIONS}
+                availableCages={availableCages} // Pass available cages to the form
             />
 
             <AnimalDetails
                 isOpen={isDetailsOpen}
                 onClose={() => setIsDetailsOpen(false)}
                 animal={selectedAnimal}
-                speciesOptions={SPECIES_OPTIONS}
+                onEdit={handleEditAnimal}
+                onDelete={handleDeleteAnimal}
             />
 
+            {/* Delete Confirmation Dialog */}
             <DeleteConfirmDialog
                 isOpen={isDeleteDialogOpen}
                 onClose={() => setIsDeleteDialogOpen(false)}
@@ -1262,6 +1284,7 @@ export function AnimalManagement() {
                 animalName={animalToDelete?.name}
             />
 
+            {/* Breeding Pair Form Modal */}
             <BreedingPairForm
                 isOpen={isBreedingFormOpen}
                 onClose={() => setIsBreedingFormOpen(false)}
@@ -1269,6 +1292,7 @@ export function AnimalManagement() {
                 animals={animals}
             />
 
+            {/* Breeding Pair Details Modal */}
             <BreedingPairDetails
                 isOpen={isBreedingDetailsOpen}
                 onClose={() => setIsBreedingDetailsOpen(false)}

@@ -15,7 +15,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cageService } from '@/services/cageService'; // Import cage service
+import { cageService } from '@/services/cageService';
+import { getStorageLocations } from '@/services/inventoryService'; // Import inventory service
 
 const CAGE_TYPES = [
     { value: 'standard', label: 'Standard Cage' },
@@ -54,10 +55,12 @@ export function CageManagement() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [storageLocations, setStorageLocations] = useState([]); // State for storage locations
 
     // Load cages from API
     useEffect(() => {
         loadCages();
+        loadStorageLocations(); // Load storage locations
     }, []);
 
     const loadCages = async () => {
@@ -72,6 +75,27 @@ export function CageManagement() {
             setError('Failed to load cages. Please try again later.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Load storage locations from inventory
+    const loadStorageLocations = async () => {
+        try {
+            const locations = await getStorageLocations();
+            setStorageLocations(locations);
+        } catch (error) {
+            console.error('Error loading storage locations:', error);
+            // Set default locations if API fails
+            setStorageLocations([
+                "Main Laboratory",
+                "Storage Room A",
+                "Storage Room B",
+                "Cold Storage",
+                "Hazardous Materials Cabinet",
+                "Equipment Room",
+                "Clean Room",
+                "Warehouse"
+            ]);
         }
     };
 
@@ -510,13 +534,40 @@ export function CageManagement() {
 
                         <div className="space-y-2">
                             <Label htmlFor="location">Location *</Label>
-                            <Input
-                                id="location"
+                            <Select
                                 value={cageForm.location}
-                                onChange={(e) => setCageForm({ ...cageForm, location: e.target.value })}
-                                placeholder="e.g., Room A, Rack 1"
-                                required
-                            />
+                                onValueChange={(value) => {
+                                    if (value === 'custom') {
+                                        setCageForm({ ...cageForm, location: '' });
+                                    } else {
+                                        setCageForm({ ...cageForm, location: value });
+                                    }
+                                }}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {storageLocations.map((location) => (
+                                        <SelectItem key={location} value={location}>
+                                            {location}
+                                        </SelectItem>
+                                    ))}
+                                    <SelectItem value="custom">Custom Location</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {cageForm.location === '' && (
+                                <Input
+                                    placeholder="Enter custom location"
+                                    value={cageForm.customLocation || ''}
+                                    onChange={(e) => setCageForm({
+                                        ...cageForm,
+                                        location: e.target.value,
+                                        customLocation: e.target.value
+                                    })}
+                                    className="mt-2"
+                                />
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

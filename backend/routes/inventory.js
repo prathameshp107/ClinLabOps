@@ -27,6 +27,9 @@ router.post('/warehouses', inventoryController.createWarehouse);
 router.put('/warehouses/:id', inventoryController.updateWarehouse);
 router.delete('/warehouses/:id', inventoryController.deleteWarehouse);
 
+// STORAGE LOCATIONS ROUTE
+router.get('/locations', inventoryController.getStorageLocations);
+
 // ORDERS ROUTES
 router.get('/orders', inventoryController.getAllOrders);
 router.get('/orders/:id', inventoryController.getOrderById);

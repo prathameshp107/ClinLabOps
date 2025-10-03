@@ -82,9 +82,10 @@ const STATUS_OPTIONS = [
     { value: 'deceased', label: 'Deceased', description: 'Animal has passed away' }
 ];
 
-export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) {
+export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions, availableCages = [] }) {
     const [experiments, setExperiments] = useState([]);
     const [newExperiment, setNewExperiment] = useState('');
+    const [showCustomLocation, setShowCustomLocation] = useState(false);
 
     const {
         register,
@@ -112,6 +113,7 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
 
     const selectedSpecies = watch('species');
     const selectedStatus = watch('status');
+    const selectedLocation = watch('location');
 
     useEffect(() => {
         if (animal) {
@@ -129,6 +131,9 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                 notes: animal.notes || '',
             });
             setExperiments(animal.experiments || []);
+            // Check if the location is a custom one (not in available cages)
+            const isCustomLocation = animal.location && !availableCages.some(cage => `${cage.name} (${cage.location})` === animal.location);
+            setShowCustomLocation(isCustomLocation);
         } else {
             reset({
                 name: '',
@@ -144,8 +149,9 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                 notes: '',
             });
             setExperiments([]);
+            setShowCustomLocation(false);
         }
-    }, [animal, reset]);
+    }, [animal, reset, availableCages]);
 
     const onSubmit = (data) => {
         // Handle species field correctly
@@ -168,6 +174,7 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
         reset();
         setExperiments([]);
         setNewExperiment('');
+        setShowCustomLocation(false);
         onClose();
     };
 
@@ -180,6 +187,16 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
 
     const removeExperiment = (experiment) => {
         setExperiments(experiments.filter(exp => exp !== experiment));
+    };
+
+    const handleLocationChange = (value) => {
+        if (value === 'custom') {
+            setShowCustomLocation(true);
+            setValue('location', '');
+        } else {
+            setShowCustomLocation(false);
+            setValue('location', value);
+        }
     };
 
     return (
@@ -327,20 +344,41 @@ export function AnimalForm({ isOpen, onClose, onSave, animal, speciesOptions }) 
                                                         <Info className="h-4 w-4 text-gray-500" />
                                                     </TooltipTrigger>
                                                     <TooltipContent>
-                                                        <p>Current housing location of the animal</p>
+                                                        <p>Select an available cage or add a custom location</p>
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
                                         </div>
-                                        <div className="relative">
-                                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                            <Input
-                                                id="location"
-                                                {...register('location')}
-                                                placeholder="e.g., Cage A-101"
-                                                className="pl-10 py-5 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
-                                            />
-                                        </div>
+                                        <Select
+                                            value={showCustomLocation ? 'custom' : selectedLocation}
+                                            onValueChange={handleLocationChange}
+                                        >
+                                            <SelectTrigger className="py-5 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500">
+                                                <SelectValue placeholder="Select location" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableCages.map((cage) => (
+                                                    <SelectItem
+                                                        key={cage._id}
+                                                        value={`${cage.name} (${cage.location})`}
+                                                    >
+                                                        {cage.name} ({cage.location}) - {cage.currentOccupancy}/{cage.capacity} animals
+                                                    </SelectItem>
+                                                ))}
+                                                <SelectItem value="custom">Custom Location</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {showCustomLocation && (
+                                            <div className="relative mt-2">
+                                                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <Input
+                                                    id="customLocation"
+                                                    {...register('location')}
+                                                    placeholder="Enter custom location"
+                                                    className="pl-10 py-5 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                        )}
                                         {errors.location && (
                                             <p className="text-sm text-red-600">{errors.location.message}</p>
                                         )}

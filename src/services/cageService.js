@@ -51,6 +51,20 @@ export const cageService = {
         }
     },
 
+    // Get available cages (cages with status 'available' and currentOccupancy < capacity)
+    getAvailableCages: async () => {
+        try {
+            const response = await apiClient.get('/');
+            // Filter cages that are available and have space
+            const availableCages = response.data.filter(cage =>
+                cage.status === 'available' && cage.currentOccupancy < cage.capacity
+            );
+            return availableCages;
+        } catch (error) {
+            throw new Error(error.response?.data?.message || 'Failed to fetch available cages');
+        }
+    },
+
     // Get cage by ID
     getCageById: async (id) => {
         try {
