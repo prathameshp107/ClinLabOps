@@ -252,6 +252,7 @@ export default function InventoryPage() {
               <TabsContent value="inventory" className="mt-0 overflow-hidden">
                 <InventoryList
                   inventoryItems={inventory}
+                  locations={locations}
                   onUpdateItem={handleUpdateItem}
                   onDeleteItem={handleDeleteItem}
                 />
