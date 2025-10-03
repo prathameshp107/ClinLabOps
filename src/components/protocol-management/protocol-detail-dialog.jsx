@@ -35,6 +35,13 @@ export function ProtocolDetailDialog({
   protocol,
   onEdit
 }) {
+  // Add debugging to see what protocol data is being passed
+  useEffect(() => {
+    if (open && protocol) {
+      console.log('Protocol data being passed to detail dialog:', protocol);
+    }
+  }, [open, protocol]);
+
   // All hooks must be called before any conditional returns
   const [activeTab, setActiveTab] = useState("overview")
   const [auditTrail, setAuditTrail] = useState([])
@@ -202,19 +209,21 @@ export function ProtocolDetailDialog({
               <div>
                 <h3 className="text-lg font-medium mb-2">Materials</h3>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  {Array.isArray(protocol.materials) ? (
+                  {Array.isArray(protocol.materials) && protocol.materials.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1">
                       {protocol.materials.map((material, index) => (
                         <li key={index}>
-                          {typeof material === 'string' ? material : material.name}
-                          {typeof material === 'object' && material.quantity && (
+                          {typeof material === 'string' ? material : (material?.name || 'Unnamed material')}
+                          {typeof material === 'object' && material?.quantity && (
                             <span className="text-muted-foreground"> - {material.quantity}</span>
                           )}
                         </li>
                       ))}
                     </ul>
+                  ) : typeof protocol.materials === 'string' && protocol.materials ? (
+                    <div className="whitespace-pre-line">{protocol.materials}</div>
                   ) : (
-                    <div className="whitespace-pre-line">{protocol.materials || "No materials provided."}</div>
+                    <div className="text-muted-foreground italic">No materials provided.</div>
                   )}
                 </div>
               </div>
@@ -222,7 +231,7 @@ export function ProtocolDetailDialog({
               <div>
                 <h3 className="text-lg font-medium mb-2">Safety Notes</h3>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-line">
-                  {protocol.safetyNotes || "No safety notes provided."}
+                  {protocol.safetyNotes || <span className="text-muted-foreground italic">No safety notes provided.</span>}
                 </div>
               </div>
             </TabsContent>
@@ -231,25 +240,27 @@ export function ProtocolDetailDialog({
               <div>
                 <h3 className="text-lg font-medium mb-2">Step-by-Step Procedure</h3>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  {Array.isArray(protocol.steps) ? (
+                  {Array.isArray(protocol.steps) && protocol.steps.length > 0 ? (
                     <ol className="list-decimal list-inside space-y-2">
                       {protocol.steps.map((step, index) => (
                         <li key={index} className="mb-2">
-                          <strong>{step.title || `Step ${step.number || index + 1}`}:</strong>
+                          <strong>{step?.title || `Step ${step?.number || index + 1}`}:</strong>
                           <div className="ml-4 mt-1">
-                            {step.instructions || step.description}
-                            {step.duration && (
+                            {step?.instructions || step?.description || <span className="text-muted-foreground italic">No instructions provided.</span>}
+                            {step?.duration && (
                               <div className="text-muted-foreground text-xs mt-1">Duration: {step.duration}</div>
                             )}
-                            {step.notes && (
+                            {step?.notes && (
                               <div className="text-muted-foreground text-xs mt-1">Notes: {step.notes}</div>
                             )}
                           </div>
                         </li>
                       ))}
                     </ol>
+                  ) : typeof protocol.steps === 'string' && protocol.steps ? (
+                    <div className="whitespace-pre-line">{protocol.steps}</div>
                   ) : (
-                    <div className="whitespace-pre-line">{protocol.steps || "No procedure steps provided."}</div>
+                    <div className="text-muted-foreground italic">No procedure steps provided.</div>
                   )}
                 </div>
               </div>
@@ -257,21 +268,23 @@ export function ProtocolDetailDialog({
               <div>
                 <h3 className="text-lg font-medium mb-2">References</h3>
                 <div className="bg-muted/30 rounded-lg p-4 text-sm">
-                  {Array.isArray(protocol.references) ? (
+                  {Array.isArray(protocol.references) && protocol.references.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1">
                       {protocol.references.map((reference, index) => (
-                        <li key={index}>{reference}</li>
+                        <li key={index}>{reference || 'Unnamed reference'}</li>
                       ))}
                     </ul>
+                  ) : typeof protocol.references === 'string' && protocol.references ? (
+                    <div className="whitespace-pre-line">{protocol.references}</div>
                   ) : (
-                    <div className="whitespace-pre-line">{protocol.references || "No references provided."}</div>
+                    <div className="text-muted-foreground italic">No references provided.</div>
                   )}
                 </div>
               </div>
             </TabsContent>
 
             <TabsContent value="attachments" className="space-y-4">
-              {protocol.files && protocol.files.length > 0 ? (
+              {protocol.files && Array.isArray(protocol.files) && protocol.files.length > 0 ? (
                 <div className="space-y-2">
                   {protocol.files.map((file, index) => (
                     <div
@@ -283,9 +296,9 @@ export function ProtocolDetailDialog({
                           <FileUp className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">{typeof file === 'string' ? file : file.name}</p>
+                          <p className="font-medium">{typeof file === 'string' ? file : (file?.name || 'Unnamed file')}</p>
                           <p className="text-xs text-muted-foreground">
-                            {typeof file === 'object' && file.size ?
+                            {typeof file === 'object' && file?.size ?
                               `${(file.size / 1024).toFixed(2)} KB • Uploaded ${formatDate(file.uploadedAt)}` :
                               'File attachment'
                             }

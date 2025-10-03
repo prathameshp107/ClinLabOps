@@ -237,7 +237,7 @@ const getProtocol = asyncHandler(async (req, res) => {
 // @route   POST /api/protocols
 // @access  Private
 const createProtocol = asyncHandler(async (req, res) => {
-  const { name, description, category, steps, isPublic = false, tags = [] } = req.body;
+  const { name, description, category, steps, isPublic = false, tags = [], materials = [], safetyNotes = '', references = [] } = req.body;
 
   // Validate required fields
   if (!name) {
@@ -268,6 +268,9 @@ const createProtocol = asyncHandler(async (req, res) => {
     steps,
     isPublic,
     tags,
+    materials, // Add materials field
+    safetyNotes, // Add safetyNotes field
+    references, // Add references field
     createdBy: req.user._id
   });
 
@@ -320,7 +323,7 @@ const updateProtocol = asyncHandler(async (req, res) => {
     throw new Error('Cannot update a deleted protocol');
   }
 
-  const { name, description, category, steps, isPublic, tags, status } = req.body;
+  const { name, description, category, steps, isPublic, tags, status, materials, safetyNotes, references } = req.body;
 
   // Validate steps if provided
   if (steps && (!Array.isArray(steps) || steps.length === 0)) {
@@ -350,7 +353,10 @@ const updateProtocol = asyncHandler(async (req, res) => {
       isPublic,
       tags,
       status,
-      updatedBy: req.user._id
+      materials, // Add materials field
+      safetyNotes, // Add safetyNotes field
+      references, // Add references field
+      lastModified: Date.now() // Use lastModified instead of updatedBy
     },
     {
       new: true,
@@ -359,7 +365,7 @@ const updateProtocol = asyncHandler(async (req, res) => {
   );
 
   await protocol.populate('createdBy', 'name email');
-  await protocol.populate('updatedBy', 'name email');
+  // Remove the attempt to populate updatedBy since it doesn't exist in the schema
 
   // Log activity
   if (req.user) {
@@ -786,5 +792,11 @@ module.exports = {
   getProtocolReviews,
   exportProtocol
 };
+
+
+
+
+
+
 
 
