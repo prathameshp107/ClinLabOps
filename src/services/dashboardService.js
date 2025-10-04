@@ -24,8 +24,87 @@ api.interceptors.request.use((config) => {
  */
 export async function getDashboardStats() {
     try {
+        // First get the task distribution data to count in-progress tasks
+        const taskDistResponse = await api.get('/dashboard/task-distribution');
+        const taskDistData = taskDistResponse.data;
+
+        // Count in-progress tasks from task distribution
+        let inProgressCount = 0;
+        if (taskDistData && Array.isArray(taskDistData.byStatus)) {
+            const inProgressItem = taskDistData.byStatus.find(item =>
+                item._id?.toLowerCase() === 'in-progress');
+            inProgressCount = inProgressItem ? inProgressItem.count : 0;
+        }
+
+        // Get the main stats data
         const response = await api.get('/dashboard/stats');
-        return response.data;
+        const data = response.data;
+
+        // Transform the backend data structure to match frontend expectations
+        if (data && typeof data === 'object') {
+            return [
+                {
+                    title: "Total Tasks",
+                    value: data.tasks?.total?.toString() || "0",
+                    change: "+0%",
+                    icon: "FileText",
+                    trend: "up"
+                },
+                {
+                    title: "Completed",
+                    value: data.tasks?.completed?.toString() || "0",
+                    change: data.tasks?.completionRate ? `+${data.tasks.completionRate}%` : "+0%",
+                    icon: "CheckCircle2",
+                    trend: "up"
+                },
+                {
+                    title: "In Progress",
+                    value: inProgressCount.toString() || "0",
+                    change: "+0%",
+                    icon: "Clock",
+                    trend: "up"
+                },
+                {
+                    title: "Overdue",
+                    value: "0", // This would need to be calculated from actual overdue tasks
+                    change: "+0%",
+                    icon: "AlertTriangle",
+                    trend: "down"
+                }
+            ];
+        }
+
+        // Fallback to default data structure
+        return [
+            {
+                title: "Total Tasks",
+                value: "0",
+                change: "+0%",
+                icon: "FileText",
+                trend: "up"
+            },
+            {
+                title: "Completed",
+                value: "0",
+                change: "+0%",
+                icon: "CheckCircle2",
+                trend: "up"
+            },
+            {
+                title: "In Progress",
+                value: "0",
+                change: "+0%",
+                icon: "Clock",
+                trend: "up"
+            },
+            {
+                title: "Overdue",
+                value: "0",
+                change: "+0%",
+                icon: "AlertTriangle",
+                trend: "down"
+            }
+        ];
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);
         throw error;
@@ -38,7 +117,78 @@ export async function getDashboardStats() {
 export async function getTaskDistribution() {
     try {
         const response = await api.get('/dashboard/task-distribution');
-        return response.data;
+        const data = response.data;
+
+        // Transform the backend data structure to match frontend expectations
+        if (data && typeof data === 'object') {
+            const distribution = [];
+
+            // Process tasks by status
+            if (Array.isArray(data.byStatus)) {
+                data.byStatus.forEach(item => {
+                    let color = '#3b82f6'; // Default blue for in progress
+                    let displayName = item._id || 'Unknown';
+
+                    // Transform backend status names to frontend display names
+                    switch (item._id?.toLowerCase()) {
+                        case 'done':
+                        case 'completed':
+                            displayName = 'Completed';
+                            color = '#10b981'; // Green for completed
+                            break;
+                        case 'in-progress':
+                        case 'in progress':
+                            displayName = 'In Progress';
+                            color = '#3b82f6'; // Blue for in progress
+                            break;
+                        case 'todo':
+                        case 'pending':
+                            displayName = 'Pending';
+                            color = '#f59e0b'; // Amber for pending
+                            break;
+                        case 'review':
+                            displayName = 'Review';
+                            color = '#8b5cf6'; // Purple for review
+                            break;
+                        case 'overdue':
+                            displayName = 'Overdue';
+                            color = '#ef4444'; // Red for overdue
+                            break;
+                    }
+
+                    distribution.push({
+                        name: displayName,
+                        value: item.count || 0,
+                        color: color
+                    });
+                });
+            }
+
+            // Add missing categories with 0 values if not present
+            const existingCategories = distribution.map(item => item.name.toLowerCase());
+            if (!existingCategories.includes('completed')) {
+                distribution.push({ name: 'Completed', value: 0, color: '#10b981' });
+            }
+            if (!existingCategories.includes('in progress')) {
+                distribution.push({ name: 'In Progress', value: 0, color: '#3b82f6' });
+            }
+            if (!existingCategories.includes('pending')) {
+                distribution.push({ name: 'Pending', value: 0, color: '#f59e0b' });
+            }
+            if (!existingCategories.includes('overdue')) {
+                distribution.push({ name: 'Overdue', value: 0, color: '#ef4444' });
+            }
+
+            return distribution;
+        }
+
+        // Fallback to default data structure
+        return [
+            { name: 'Completed', value: 0, color: '#10b981' },
+            { name: 'In Progress', value: 0, color: '#3b82f6' },
+            { name: 'Pending', value: 0, color: '#f59e0b' },
+            { name: 'Overdue', value: 0, color: '#ef4444' }
+        ];
     } catch (error) {
         console.error('Error fetching task distribution:', error);
         throw error;
