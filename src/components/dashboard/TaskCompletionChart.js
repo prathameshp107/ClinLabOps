@@ -66,40 +66,7 @@ const fetchTaskData = async (range = 'week') => {
  * @param {string} range - Time range ('week', 'month', 'quarter')
  * @returns {Array} - Array of data points for the chart
  */
-const generateMockData = (range = 'week') => {
-  const today = new Date();
-  let startDate;
-
-  switch (range) {
-    case 'month':
-      startDate = subDays(today, 30);
-      break;
-    case 'quarter':
-      startDate = subDays(today, 90);
-      break;
-    case 'week':
-    default:
-      startDate = subDays(today, 7);
-  }
-
-  const days = eachDayOfInterval({
-    start: startDate,
-    end: today,
-  });
-
-  // Generate some random but realistic-looking data
-  return days.map(day => {
-    const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-    const baseCompleted = Math.floor(Math.random() * 10) + 5;
-    const baseCreated = Math.floor(Math.random() * 15) + 10;
-
-    return {
-      date: format(day, 'MMM d'),
-      completed: isWeekend ? Math.floor(baseCompleted * 0.6) : baseCompleted,
-      created: isWeekend ? Math.floor(baseCreated * 0.8) : baseCreated,
-    };
-  });
-};
+// Mock data generation has been removed to ensure we always use real data
 
 /**
  * Custom tooltip component for the line chart
@@ -155,8 +122,8 @@ const TaskCompletionChart = () => {
         setChartData(data);
       } catch (err) {
         setError(err.message);
-        // Use mock data as fallback
-        setChartData(generateMockData(timeRange));
+        // Set empty data instead of mock data
+        setChartData([]);
       } finally {
         setLoading(false);
       }

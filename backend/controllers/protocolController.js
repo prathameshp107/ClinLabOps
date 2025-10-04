@@ -603,6 +603,199 @@ const duplicateProtocol = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Approve protocol (set isPublic to true)
+// @route   PUT /api/protocols/:id/approve
+// @access  Private (Admin only)
+const approveProtocol = asyncHandler(async (req, res) => {
+  const protocol = await Protocol.findById(req.params.id);
+
+  if (!protocol) {
+    res.status(404);
+    throw new Error('Protocol not found');
+  }
+
+  // Check if user is admin
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userIsAdmin) {
+    res.status(403);
+    throw new Error('Not authorized to approve protocols');
+  }
+
+  // Prevent approving deleted protocols
+  if (protocol.isDeleted) {
+    res.status(400);
+    throw new Error('Cannot approve a deleted protocol');
+  }
+
+  // Update protocol to public
+  protocol.isPublic = true;
+  protocol.status = 'Approved';
+  await protocol.save();
+
+  await protocol.populate('createdBy', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_approved',
+      description: `${req.user.name} approved protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'approve_protocol'
+      }
+    });
+  }
+
+  res.json({
+    success: true,
+    data: protocol
+  });
+});
+
+// @desc    Reject protocol (keep isPublic as false)
+// @route   PUT /api/protocols/:id/reject
+// @access  Private (Admin only)
+const rejectProtocol = asyncHandler(async (req, res) => {
+  const protocol = await Protocol.findById(req.params.id);
+
+  if (!protocol) {
+    res.status(404);
+    throw new Error('Protocol not found');
+  }
+
+  // Check if user is admin
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userIsAdmin) {
+    res.status(403);
+    throw new Error('Not authorized to reject protocols');
+  }
+
+  // Prevent rejecting deleted protocols
+  if (protocol.isDeleted) {
+    res.status(400);
+    throw new Error('Cannot reject a deleted protocol');
+  }
+
+  // Keep protocol as private but update status
+  protocol.isPublic = false;
+  protocol.status = 'Draft';
+  await protocol.save();
+
+  await protocol.populate('createdBy', 'name email');
+
+  // Log activity
+  if (req.user) {
+    await ActivityService.logActivity({
+      type: 'protocol_rejected',
+      description: `${req.user.name} rejected protocol "${protocol.name}"`,
+      userId: req.user._id || req.user.id,
+      meta: {
+        category: 'protocol',
+        protocolId: protocol._id,
+        protocolName: protocol.name,
+        operation: 'reject_protocol'
+      }
+    });
+  }
+
+  res.json({
+    success: true,
+    data: protocol
+  });
+});
+
+// @desc    Get pending protocols (protocols with isPublic: false)
+// @route   GET /api/protocols/pending
+// @access  Private (Admin only)
+const getPendingProtocols = asyncHandler(async (req, res) => {
+  // Check if user is admin
+  const userIsAdmin = req.user.roles && req.user.roles.includes('Admin');
+
+  if (!userIsAdmin) {
+    res.status(403);
+    throw new Error('Not authorized to view pending protocols');
+  }
+
+  const { page = 1, limit = 10, category, search, status } = req.query;
+  let query = {
+    isDeleted: { $ne: true },
+    isPublic: false,
+    status: { $ne: 'Archived' }
+  };
+
+  // Filter by category if provided
+  if (category && category !== 'all') {
+    query.category = category;
+  }
+
+  // Filter by status if provided
+  if (status && status !== 'all') {
+    query.status = status;
+  }
+
+  // Build search query
+  if (search) {
+    query.$and = query.$and || [];
+    query.$and.push({
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { 'steps.instructions': { $regex: search, $options: 'i' } }
+      ]
+    });
+  }
+
+  try {
+    const protocols = await Protocol.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .populate('createdBy', 'name email')
+      .lean();
+
+    const count = await Protocol.countDocuments(query);
+
+    console.log(`Found ${protocols.length} pending protocols for query:`, query);
+
+    // Log activity
+    if (req.user) {
+      await ActivityService.logActivity({
+        type: 'pending_protocols_listed',
+        description: `${req.user.name} viewed pending protocols list`,
+        userId: req.user._id || req.user.id,
+        meta: {
+          category: 'protocol',
+          protocolCount: protocols.length,
+          filters: { category, search, status },
+          operation: 'list_pending_protocols'
+        }
+      });
+    }
+
+    res.json({
+      success: true,
+      count: protocols.length,
+      total: count,
+      pagination: {
+        total: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page),
+        limit: parseInt(limit)
+      },
+      data: protocols
+    });
+  } catch (error) {
+    console.error('Error fetching pending protocols:', error);
+    res.status(500);
+    throw new Error('Failed to fetch pending protocols');
+  }
+});
+
 // @desc    Add review to protocol
 // @route   POST /api/protocols/:id/reviews
 // @access  Private
@@ -788,10 +981,12 @@ module.exports = {
   archiveProtocol,
   restoreProtocol,
   duplicateProtocol,
-  addProtocolReview,
-  getProtocolReviews,
-  exportProtocol
+  approveProtocol,
+  rejectProtocol,
+  getPendingProtocols
 };
+
+
 
 
 

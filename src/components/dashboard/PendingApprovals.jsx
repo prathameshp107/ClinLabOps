@@ -21,6 +21,7 @@ import { ApprovalDetailsModal } from "./ApprovalDetailsModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { getPendingApprovals } from "@/services/dashboardService";
+import { approveProtocol, rejectProtocol } from "@/services/protocolService";
 
 const getPriorityBadge = (priority) => {
   switch (priority) {
@@ -65,6 +66,12 @@ const getTypeIcon = (type) => {
         icon: <FileText className="h-4 w-4" />,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10'
+      };
+    case 'protocol approval':
+      return {
+        icon: <FileText className="h-4 w-4" />,
+        color: 'text-purple-500',
+        bg: 'bg-purple-500/10'
       };
     default:
       return {
@@ -219,28 +226,26 @@ export function PendingApprovals() {
     try {
       setIsLoading(prev => ({ ...prev, [id]: 'approving' }));
 
-      // Simulate API call with error handling
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          try {
-            // Simulate a 10% chance of error
-            if (Math.random() < 0.1) {
-              throw new Error('Failed to approve request. Please try again.');
-            }
+      // Check if this is a protocol approval
+      const approval = approvals.find(a => a.id === id);
+      if (approval && approval.protocolId) {
+        // Validate that protocolId looks like a valid ObjectId
+        if (!/^[0-9a-fA-F]{24}$/.test(approval.protocolId)) {
+          throw new Error(`Invalid protocol ID format: ${approval.protocolId}`);
+        }
 
-            setApprovals(prevApprovals =>
-              prevApprovals.map(approval =>
-                approval.id === id
-                  ? { ...approval, status: 'approved' }
-                  : approval
-              )
-            );
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        }, 1000);
-      });
+        // Approve the protocol
+        await approveProtocol(approval.protocolId);
+      }
+
+      // Update the approval status in the UI
+      setApprovals(prevApprovals =>
+        prevApprovals.map(approval =>
+          approval.id === id
+            ? { ...approval, status: 'approved' }
+            : approval
+        )
+      );
 
       // Show success message
       console.log(`Successfully approved request ${id}`);
@@ -253,6 +258,8 @@ export function PendingApprovals() {
 
     } catch (error) {
       console.error('Failed to approve request:', error);
+      // Show error to user
+      alert(`Failed to approve request: ${error.message || 'Unknown error'}`);
     } finally {
       setIsLoading(prev => {
         const newState = { ...prev };
@@ -260,34 +267,32 @@ export function PendingApprovals() {
         return newState;
       });
     }
-  }, []);
+  }, [approvals]);
 
   const handleReject = useCallback(async (id) => {
     try {
       setIsLoading(prev => ({ ...prev, [id]: 'rejecting' }));
 
-      // Simulate API call with error handling
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          try {
-            // Simulate a 10% chance of error
-            if (Math.random() < 0.1) {
-              throw new Error('Failed to reject request. Please try again.');
-            }
+      // Check if this is a protocol approval
+      const approval = approvals.find(a => a.id === id);
+      if (approval && approval.protocolId) {
+        // Validate that protocolId looks like a valid ObjectId
+        if (!/^[0-9a-fA-F]{24}$/.test(approval.protocolId)) {
+          throw new Error(`Invalid protocol ID format: ${approval.protocolId}`);
+        }
 
-            setApprovals(prevApprovals =>
-              prevApprovals.map(approval =>
-                approval.id === id
-                  ? { ...approval, status: 'rejected' }
-                  : approval
-              )
-            );
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        }, 1000);
-      });
+        // Reject the protocol
+        await rejectProtocol(approval.protocolId);
+      }
+
+      // Update the approval status in the UI
+      setApprovals(prevApprovals =>
+        prevApprovals.map(approval =>
+          approval.id === id
+            ? { ...approval, status: 'rejected' }
+            : approval
+        )
+      );
 
       // Show success message
       console.log(`Successfully rejected request ${id}`);
@@ -300,6 +305,8 @@ export function PendingApprovals() {
 
     } catch (error) {
       console.error('Failed to reject request:', error);
+      // Show error to user
+      alert(`Failed to reject request: ${error.message || 'Unknown error'}`);
     } finally {
       setIsLoading(prev => {
         const newState = { ...prev };
@@ -307,7 +314,7 @@ export function PendingApprovals() {
         return newState;
       });
     }
-  }, []);
+  }, [approvals]);
 
   const handleViewDetails = useCallback((approval) => {
     setSelectedApproval(approval);
@@ -573,6 +580,7 @@ export function PendingApprovals() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="Protocol Approval">Protocol Approval</SelectItem>
                   <SelectItem value="Leave Request">Leave Request</SelectItem>
                   <SelectItem value="Purchase Order">Purchase Order</SelectItem>
                   <SelectItem value="Document Approval">Document Approval</SelectItem>
@@ -627,7 +635,7 @@ export function PendingApprovals() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{approval.type || 'Unknown Type'}</h4>
+                            <h4 className="font-medium">{approval.type}</h4>
                             <Badge variant={priorityBadge.variant} className="gap-1 text-xs">
                               {priorityBadge.icon}
                               {priorityBadge.label}
@@ -641,7 +649,7 @@ export function PendingApprovals() {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{approval.details || 'No details provided'}</p>
+                          <p className="text-sm text-muted-foreground">{approval.details}</p>
                           <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <User className="h-3.5 w-3.5" />
