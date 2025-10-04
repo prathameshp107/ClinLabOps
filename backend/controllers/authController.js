@@ -78,6 +78,46 @@ exports.getProfile = async (req, res) => {
     res.json(req.user);
 };
 
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { fullName, email, phone, department } = req.body;
+
+        // Validate email if it's being updated
+        if (email && email !== req.user.email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser && existingUser._id.toString() !== userId) {
+                return res.status(409).json({ message: 'Email already in use' });
+            }
+        }
+
+        // Prepare update data
+        const updateData = {};
+        if (fullName !== undefined) updateData.name = fullName;
+        if (email !== undefined) updateData.email = email;
+        if (phone !== undefined) updateData.phone = phone;
+        if (department !== undefined) updateData.department = department;
+
+        // Update user
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Log profile update activity
+        await ActivityService.logUserActivity('updated', updatedUser, updatedUser, { action: 'profile_update' });
+
+        res.json(updatedUser);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
 exports.changePassword = async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword) {

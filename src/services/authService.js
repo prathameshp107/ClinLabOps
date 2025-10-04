@@ -103,6 +103,36 @@ export async function getProfile() {
 }
 
 /**
+ * Update current user profile
+ * @param {Object} profileData - Profile data to update
+ * @returns {Promise<Object>} Updated user profile
+ */
+export async function updateProfile(profileData) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await api.put('/auth/profile', profileData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    // Update user data in localStorage
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Update profile error:', error);
+    throw error;
+  }
+}
+
+/**
  * Change user password
  * @param {Object} passwordData - { oldPassword, newPassword }
  * @returns {Promise<Object>} Success message

@@ -4,10 +4,9 @@ import { useState, useEffect } from "react"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileTabs } from "@/components/profile/profile-tabs"
-import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
-import { getProfile, isAuthenticated } from "@/services/authService"
+import { getProfile, isAuthenticated, updateProfile } from "@/services/authService"
 
 export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -23,7 +22,17 @@ export default function ProfilePage() {
     }
     getProfile()
       .then((data) => {
-        setUserData(data)
+        // Ensure the data structure matches what our components expect
+        const formattedData = {
+          ...data,
+          personal: {
+            fullName: data.name || data.fullName || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            department: data.department || ''
+          }
+        }
+        setUserData(formattedData)
         setLoading(false)
       })
       .catch((err) => {
@@ -38,22 +47,44 @@ export default function ProfilePage() {
   }, [])
 
   // Handle updating user data
-  const handleUpdateUserData = (section, data) => {
-    const updatedUserData = {
-      ...userData,
-      [section]: {
-        ...userData[section],
-        ...data
-      }
+  const handleUpdateUserData = async (section, data) => {
+    try {
+      // Prepare data for the API call
+      const updateData = {
+        fullName: data.fullName || userData.personal.fullName,
+        email: data.email || userData.personal.email,
+        phone: data.phone || userData.personal.phone,
+        department: data.department || userData.personal.department
+      };
+
+      // Call the updateProfile service
+      const updatedUser = await updateProfile(updateData);
+
+      // Update local state with the response
+      const formattedData = {
+        ...updatedUser,
+        personal: {
+          fullName: updatedUser.name || updatedUser.fullName || '',
+          email: updatedUser.email || '',
+          phone: updatedUser.phone || '',
+          department: updatedUser.department || ''
+        }
+      };
+
+      setUserData(formattedData);
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been successfully updated.",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile.",
+        variant: "destructive",
+      });
     }
-
-    setUserData(updatedUserData)
-
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been successfully updated.",
-      variant: "success",
-    })
   }
 
   // Handle updating profile picture
@@ -92,10 +123,7 @@ export default function ProfilePage() {
           onUpdateProfilePicture={handleUpdateProfilePicture}
         />
         <ProfileTabs
-          userData={{
-            ...userData,
-            activityLogs: userData?.activityLogs || []
-          }}
+          userData={userData}
           onUpdateUserData={handleUpdateUserData}
         />
       </div>

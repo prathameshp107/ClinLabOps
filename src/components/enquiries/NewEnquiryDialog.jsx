@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
-import { getUsers } from "@/services/userService"
+import { getAllUsers } from "@/services/userService"
 import { enquiryService } from "@/services/enquiryService"
 
 export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
@@ -32,18 +32,26 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
     useEffect(() => {
         const fetchTeamMembers = async () => {
             try {
-                const users = await getUsers();
+                // Fetch all users from user management
+                const users = await getAllUsers();
+                // Filter to only include active users
+                const activeUsers = users.filter(user => user.status === 'Active');
                 // Remove duplicates based on user ID and name
-                const uniqueUsers = users.filter((user, index, self) =>
+                const uniqueUsers = activeUsers.filter((user, index, self) =>
                     index === self.findIndex(u => u._id === user._id)
                 );
-                setTeamMembers(uniqueUsers.map((user, index) => ({
-                    id: user._id || `user-${index}`, // Fallback to index if no ID
+                setTeamMembers(uniqueUsers.map((user) => ({
+                    id: user._id,
                     name: user.name,
-                    role: user.role
+                    role: Array.isArray(user.roles) ? user.roles[0] : user.role
                 })));
             } catch (error) {
                 console.error('Failed to fetch team members:', error);
+                toast({
+                    title: "Error",
+                    description: "Failed to load team members. Please try again.",
+                    variant: "destructive",
+                });
             }
         };
         fetchTeamMembers();
@@ -240,8 +248,8 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
                                             <SelectValue placeholder="Select team member" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {teamMembers.map((member, index) => (
-                                                <SelectItem key={`${member.id}-${index}`} value={member.name}>
+                                            {teamMembers.map((member) => (
+                                                <SelectItem key={member.id} value={member.name}>
                                                     {member.name} - {member.role}
                                                 </SelectItem>
                                             ))}
@@ -295,4 +303,4 @@ export default function NewEnquiryDialog({ open, onOpenChange, onSuccess }) {
             </DialogContent>
         </Dialog>
     );
-} 
+}
