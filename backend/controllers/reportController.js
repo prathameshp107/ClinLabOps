@@ -9,6 +9,96 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const ActivityService = require('../services/activityService');
 
+// Get list of reports
+exports.getReportsList = async (req, res) => {
+    try {
+        // In a real application, this would fetch from a database
+        // For now, we'll return a static list of available reports
+        const reports = [
+            {
+                id: 'projects',
+                title: 'Project Report',
+                type: 'projects',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['projects', 'analytics']
+            },
+            {
+                id: 'tasks',
+                title: 'Task Report',
+                type: 'tasks',
+                format: 'xlsx',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['tasks', 'productivity']
+            },
+            {
+                id: 'inventory',
+                title: 'Inventory Report',
+                type: 'inventory',
+                format: 'csv',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['inventory', 'stock']
+            },
+            {
+                id: 'users',
+                title: 'User Report',
+                type: 'users',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['users', 'management']
+            },
+            {
+                id: 'compliance',
+                title: 'Compliance Report',
+                type: 'compliance',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['compliance', 'audit']
+            },
+            {
+                id: 'audits',
+                title: 'Audit Report',
+                type: 'audits',
+                format: 'xlsx',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['audit', 'compliance']
+            },
+            {
+                id: 'experiments',
+                title: 'Experiment Report',
+                type: 'experiments',
+                format: 'xlsx',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['experiments', 'research']
+            }
+        ];
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'reports_list_viewed',
+                description: `${req.user.name} viewed reports list`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'report',
+                    operation: 'view_reports_list'
+                }
+            });
+        }
+
+        res.json(reports);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // Generate project report
 exports.generateProjectReport = async (req, res) => {
     try {

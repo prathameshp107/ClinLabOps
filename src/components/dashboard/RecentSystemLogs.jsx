@@ -1,65 +1,15 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Download } from "lucide-react";
-
-// Mock data for system logs
-const systemLogs = [
-  {
-    id: 1,
-    time: '2025-06-22T10:30:00',
-    action: 'User Login',
-    user: 'admin@labtasker.com',
-    details: 'Successful login from 192.168.1.1',
-    category: 'authentication'
-  },
-  {
-    id: 2,
-    time: '2025-06-22T10:15:22',
-    action: 'Experiment Created',
-    user: 'researcher@lab.com',
-    details: 'Created new experiment "Protein Analysis 2025"',
-    category: 'experiment'
-  },
-  {
-    id: 3,
-    time: '2025-06-22T09:45:10',
-    action: 'Permission Change',
-    user: 'admin@labtasker.com',
-    details: 'Updated permissions for user: lab.assistant@lab.com',
-    category: 'security'
-  },
-  {
-    id: 4,
-    time: '2025-06-22T09:30:55',
-    action: 'File Access',
-    user: 'researcher2@lab.com',
-    details: 'Accessed file: /documents/research/protocols/protocol_v2.pdf',
-    category: 'file'
-  },
-  {
-    id: 5,
-    time: '2025-06-22T09:15:33',
-    action: 'Task Update',
-    user: 'lab.assistant@lab.com',
-    details: 'Marked task "Prepare samples for analysis" as completed',
-    category: 'task'
-  },
-  {
-    id: 6,
-    time: '2025-06-22T09:00:12',
-    action: 'Failed Login',
-    user: 'unknown@example.com',
-    details: 'Failed login attempt - Invalid credentials',
-    category: 'security'
-  }
-];
+import { getSystemLogs } from "@/services/dashboardService";
 
 const getCategoryVariant = (category) => {
-  switch (category.toLowerCase()) {
+  switch (category?.toLowerCase()) {
     case 'authentication':
       return 'default';
     case 'security':
@@ -76,6 +26,75 @@ const getCategoryVariant = (category) => {
 };
 
 export function RecentSystemLogs({ formatTime, formatDate }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        const logData = await getSystemLogs({ limit: 10 });
+        setLogs(logData.logs || logData);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching system logs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, []);
+
+  const filteredLogs = logs.filter(log => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      log.action?.toLowerCase().includes(query) ||
+      log.user?.toLowerCase().includes(query) ||
+      log.details?.toLowerCase().includes(query) ||
+      log.category?.toLowerCase().includes(query)
+    );
+  });
+
+  if (loading) {
+    return (
+      <Card className="col-span-3">
+        <CardHeader className="pb-2">
+          <CardTitle>Recent System Logs</CardTitle>
+          <CardDescription>Loading system logs...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="h-4 bg-muted rounded w-24 animate-pulse" />
+                <div className="h-4 bg-muted rounded w-32 animate-pulse" />
+                <div className="h-4 bg-muted rounded w-40 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="col-span-3">
+        <CardHeader className="pb-2">
+          <CardTitle>Recent System Logs</CardTitle>
+          <CardDescription>Error loading system logs</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Failed to load system logs: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="col-span-3">
       <CardHeader className="pb-2">
@@ -91,6 +110,8 @@ export function RecentSystemLogs({ formatTime, formatDate }) {
                 type="search"
                 placeholder="Search logs..."
                 className="w-full pl-8 sm:w-[200px] md:w-[250px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <Button variant="outline" size="sm" className="h-9">
@@ -129,36 +150,48 @@ export function RecentSystemLogs({ formatTime, formatDate }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {systemLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-muted/50 transition-colors">
-                      <td className="p-4 text-sm whitespace-nowrap">
-                        <div className="text-muted-foreground">
-                          {formatTime ? formatTime(log.time) : new Date(log.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {formatDate ? formatDate(log.time) : new Date(log.time).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="p-4 text-sm font-medium">
-                        {log.action}
-                      </td>
-                      <td className="p-4 text-sm text-muted-foreground">
-                        <div className="truncate max-w-[160px]">
-                          {log.user}
-                        </div>
-                      </td>
-                      <td className="p-4 text-sm">
-                        <div className="line-clamp-1">
-                          {log.details}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant={getCategoryVariant(log.category)} className="text-xs">
-                          {log.category}
-                        </Badge>
+                  {filteredLogs.length > 0 ? (
+                    filteredLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-muted/50 transition-colors">
+                        <td className="p-4 text-sm whitespace-nowrap">
+                          <div className="text-muted-foreground">
+                            {formatTime && log.timestamp ? formatTime(log.timestamp) :
+                              log.timestamp ? new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
+                                'Unknown time'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {formatDate && log.timestamp ? formatDate(log.timestamp) :
+                              log.timestamp ? new Date(log.timestamp).toLocaleDateString() :
+                                'Unknown date'}
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm font-medium">
+                          {log.action || log.type || 'Unknown action'}
+                        </td>
+                        <td className="p-4 text-sm text-muted-foreground">
+                          <div className="truncate max-w-[160px]">
+                            {log.user || 'System'}
+                          </div>
+                        </td>
+                        <td className="p-4 text-sm">
+                          <div className="line-clamp-1">
+                            {log.message || log.details || 'No details'}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant={getCategoryVariant(log.category)} className="text-xs">
+                            {log.category || 'general'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="p-4 text-center text-muted-foreground">
+                        No logs found matching your search criteria.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

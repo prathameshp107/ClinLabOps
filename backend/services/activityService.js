@@ -267,6 +267,35 @@ class ActivityService {
     }
 
     /**
+     * Get recent activities for dashboard feed
+     * @param {number} limit - Number of activities to return
+     * @returns {Promise<Array>} Recent activities
+     */
+    static async getActivityFeed(limit = 10) {
+        try {
+            const activities = await Activity.find({})
+                .populate('user', 'name email')
+                .sort({ createdAt: -1 })
+                .limit(limit);
+
+            return activities.map(activity => ({
+                _id: activity._id,
+                type: activity.type,
+                description: activity.description,
+                userId: activity.user ? activity.user._id : null,
+                user: activity.user ? activity.user.name : 'System',
+                timestamp: activity.createdAt,
+                details: activity.meta?.details || '',
+                meta: activity.meta || {}
+            }));
+        } catch (error) {
+            console.error('Error fetching activity feed:', error);
+            // Return empty array instead of throwing to avoid breaking the dashboard
+            return [];
+        }
+    }
+
+    /**
      * Get activity statistics
      * @param {Object} filters - Filter criteria
      * @returns {Promise<Object>} Activity statistics

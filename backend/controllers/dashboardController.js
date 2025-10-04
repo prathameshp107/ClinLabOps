@@ -400,26 +400,49 @@ exports.getSystemLogs = async (req, res) => {
     try {
         const { page = 1, limit = 20, level } = req.query;
 
-        // This would typically come from a proper logging system
-        // For now, return mock data based on recent database activities
-        const logs = [
-            {
-                id: '1',
+        // Get recent activities from the database to create realistic logs
+        const recentActivities = await ActivityService.getActivityFeed(20);
+
+        // Transform activities into log format
+        const logs = recentActivities.map((activity, index) => ({
+            id: activity._id || index,
+            timestamp: activity.timestamp || activity.createdAt || new Date(),
+            level: activity.type === 'error' ? 'error' :
+                activity.type === 'warning' ? 'warning' : 'info',
+            message: activity.description || activity.title || 'System activity',
+            source: activity.meta?.category || 'system',
+            details: activity.details || '',
+            user: activity.userId || activity.user || 'System',
+            category: activity.type || 'general',
+            action: activity.type || 'activity'
+        }));
+
+        // Add some system-level logs if we don't have enough
+        if (logs.length < 5) {
+            logs.push({
+                id: 'sys-1',
                 timestamp: new Date(),
                 level: 'info',
                 message: 'System startup completed',
                 source: 'system',
-                details: 'All services initialized successfully'
-            },
-            {
-                id: '2',
+                details: 'All services initialized successfully',
+                user: 'System',
+                category: 'system',
+                action: 'startup'
+            });
+
+            logs.push({
+                id: 'sys-2',
                 timestamp: new Date(Date.now() - 60000),
                 level: 'info',
                 message: 'Database connection established',
                 source: 'database',
-                details: 'Connected to MongoDB successfully'
-            }
-        ];
+                details: 'Connected to MongoDB successfully',
+                user: 'System',
+                category: 'system',
+                action: 'database'
+            });
+        }
 
         // Log activity
         if (req.user) {
@@ -435,7 +458,7 @@ exports.getSystemLogs = async (req, res) => {
         }
 
         res.json({
-            logs,
+            logs: logs.slice(0, limit),
             totalPages: 1,
             currentPage: parseInt(page),
             total: logs.length

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Check, X, Clock, FileText, User, AlertCircle, MoreHorizontal, Search, Filter, Download, RefreshCw } from "lucide-react";
+import { Check, X, Clock, FileText, User, AlertCircle, MoreHorizontal, Search, Filter, Download, RefreshCw, Loader2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -20,103 +20,26 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ApprovalDetailsModal } from "./ApprovalDetailsModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
-
-// Mock data for pending approvals
-const mockApprovals = [
-  {
-    id: 'AP-1001',
-    type: 'Leave Request',
-    requester: 'John Doe',
-    requesterEmail: 'john.doe@lab.com',
-    date: '2025-06-20',
-    status: 'pending',
-    details: 'Annual leave request for 3 days',
-    dateRequested: '2025-06-19T10:30:00',
-    priority: 'high',
-    additionalInfo: {
-      startDate: '2025-07-10',
-      endDate: '2025-07-12',
-      daysRequested: 3,
-      leaveType: 'Paid Time Off',
-      notes: 'Family vacation',
-      coverage: 'Sarah Johnson will cover my responsibilities'
-    },
-    attachments: []
-  },
-  {
-    id: 'AP-1002',
-    type: 'Purchase Order',
-    requester: 'Sarah Johnson',
-    requesterEmail: 'sarah.johnson@lab.com',
-    date: '2025-06-21',
-    status: 'pending',
-    details: 'Lab equipment purchase - $1,250.00',
-    dateRequested: '2025-06-19T14:15:00',
-    priority: 'medium',
-    additionalInfo: {
-      vendor: 'LabTech Solutions',
-      poNumber: 'PO-2025-0456',
-      items: [
-        { name: 'Centrifuge X-2000', quantity: 1, unitPrice: 850.00, total: 850.00 },
-        { name: 'Microscope Slides (100pk)', quantity: 4, unitPrice: 100.00, total: 400.00 }
-      ],
-      subtotal: 1250.00,
-      tax: 100.00,
-      total: 1350.00,
-      shippingAddress: '123 Research Dr, Lab Building A, Floor 3, San Francisco, CA 94107',
-      paymentTerms: 'Net 30',
-      notes: 'Urgent - needed for Q3 research project'
-    },
-    attachments: [
-      { name: 'quote.pdf', size: '2.4 MB', type: 'pdf' },
-      { name: 'specs.pdf', size: '1.8 MB', type: 'pdf' }
-    ]
-  },
-  {
-    id: 'AP-1003',
-    type: 'Document Approval',
-    requester: 'Michael Chen',
-    requesterEmail: 'michael.chen@lab.com',
-    date: '2025-06-22',
-    status: 'pending',
-    details: 'Q3 Research Report - Final Draft',
-    dateRequested: '2025-06-20T09:45:00',
-    priority: 'low',
-    additionalInfo: {
-      documentType: 'Research Report',
-      project: 'Q3 Clinical Trial Analysis',
-      version: '1.2.0',
-      pages: 42,
-      lastUpdated: '2025-06-19T16:30:00',
-      reviewers: ['Dr. Emily Wilson', 'Prof. Robert Taylor'],
-      notes: 'Please review the statistical analysis section (pages 12-18) and conclusions.'
-    },
-    attachments: [
-      { name: 'q3_research_report_v1.2.0.pdf', size: '4.7 MB', type: 'pdf' },
-      { name: 'data_analysis.xlsx', size: '1.2 MB', type: 'xlsx' },
-      { name: 'appendix_a.pdf', size: '3.1 MB', type: 'pdf' }
-    ]
-  },
-];
+import { getPendingApprovals } from "@/services/dashboardService";
 
 const getPriorityBadge = (priority) => {
   switch (priority) {
     case 'high':
-      return { 
-        variant: 'destructive', 
+      return {
+        variant: 'destructive',
         icon: <AlertCircle className="h-3.5 w-3.5" />,
         label: 'High'
       };
     case 'medium':
-      return { 
-        variant: 'warning', 
+      return {
+        variant: 'warning',
         icon: <Clock className="h-3.5 w-3.5" />,
         label: 'Medium'
       };
     case 'low':
     default:
-      return { 
-        variant: 'default', 
+      return {
+        variant: 'default',
         icon: <FileText className="h-3.5 w-3.5" />,
         label: 'Low'
       };
@@ -124,28 +47,28 @@ const getPriorityBadge = (priority) => {
 };
 
 const getTypeIcon = (type) => {
-  switch (type.toLowerCase()) {
+  switch (type?.toLowerCase()) {
     case 'leave request':
-      return { 
-        icon: <Clock className="h-4 w-4" />, 
+      return {
+        icon: <Clock className="h-4 w-4" />,
         color: 'text-amber-500',
         bg: 'bg-amber-500/10'
       };
     case 'purchase order':
-      return { 
-        icon: <FileText className="h-4 w-4" />, 
+      return {
+        icon: <FileText className="h-4 w-4" />,
         color: 'text-blue-500',
         bg: 'bg-blue-500/10'
       };
     case 'document approval':
-      return { 
-        icon: <FileText className="h-4 w-4" />, 
+      return {
+        icon: <FileText className="h-4 w-4" />,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10'
       };
     default:
-      return { 
-        icon: <FileText className="h-4 w-4" />, 
+      return {
+        icon: <FileText className="h-4 w-4" />,
         color: 'text-gray-500',
         bg: 'bg-gray-500/10'
       };
@@ -153,7 +76,7 @@ const getTypeIcon = (type) => {
 };
 
 const getStatusBadge = (status) => {
-  switch (status.toLowerCase()) {
+  switch (status?.toLowerCase()) {
     case 'approved':
       return 'bg-green-100 text-green-800';
     case 'rejected':
@@ -170,10 +93,12 @@ const formatDate = (dateString) => {
 };
 
 const formatTimeAgo = (dateString) => {
+  if (!dateString) return 'Unknown time';
+
   const now = new Date();
   const date = new Date(dateString);
   const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-  
+
   if (diffInHours < 1) {
     const diffInMinutes = Math.floor((now - date) / (1000 * 60));
     return `${diffInMinutes}m ago`;
@@ -186,8 +111,10 @@ const formatTimeAgo = (dateString) => {
 };
 
 export function PendingApprovals() {
-  const [approvals, setApprovals] = useState(mockApprovals);
+  const [approvals, setApprovals] = useState([]);
   const [isLoading, setIsLoading] = useState({});
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [dataError, setDataError] = useState(null);
   const [selectedApproval, setSelectedApproval] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -199,11 +126,32 @@ export function PendingApprovals() {
     dateRange: 'all',
   });
 
+  // Fetch approvals data
+  const fetchApprovals = useCallback(async () => {
+    try {
+      setIsDataLoading(true);
+      setDataError(null);
+      const approvalData = await getPendingApprovals();
+      setApprovals(Array.isArray(approvalData) ? approvalData : []);
+    } catch (err) {
+      console.error('Error fetching approvals:', err);
+      setDataError(err.message || 'Failed to load approvals');
+      setApprovals([]);
+    } finally {
+      setIsDataLoading(false);
+    }
+  }, []);
+
+  // Initial data load
+  useEffect(() => {
+    fetchApprovals();
+  }, [fetchApprovals]);
+
   // Memoize the filtered approvals to prevent unnecessary recalculations
   const filteredApprovals = useMemo(() => {
     const searchQueryLower = searchQuery.toLowerCase().trim();
     const typeFilterLower = filters.type?.toLowerCase() || 'all';
-    
+
     return approvals.filter(approval => {
       try {
         // Filter by search query (case-insensitive, partial match)
@@ -213,31 +161,31 @@ export function PendingApprovals() {
           approval.details?.toLowerCase(),
           approval.id?.toLowerCase()
         ].some(field => field?.includes(searchQueryLower));
-        
+
         // Filter by status tab
-        const matchesTab = 
-          activeTab === 'all' || 
+        const matchesTab =
+          activeTab === 'all' ||
           (activeTab === 'pending' && approval.status === 'pending') ||
           (activeTab === 'approved' && approval.status === 'approved') ||
           (activeTab === 'rejected' && approval.status === 'rejected');
-        
+
         // Filter by type (case-insensitive)
-        const matchesType = 
-          typeFilterLower === 'all' || 
+        const matchesType =
+          typeFilterLower === 'all' ||
           approval.type?.toLowerCase() === typeFilterLower;
-        
+
         // Filter by priority
-        const matchesPriority = 
-          filters.priority === 'all' || 
+        const matchesPriority =
+          filters.priority === 'all' ||
           approval.priority === filters.priority;
-        
+
         // Filter by date range if specified
         let matchesDateRange = true;
-        if (filters.dateRange !== 'all') {
-          const approvalDate = new Date(approval.dateRequested);
+        if (filters.dateRange !== 'all' && approval.createdAt) {
+          const approvalDate = new Date(approval.createdAt);
           const today = new Date();
           today.setHours(0, 0, 0, 0);
-          
+
           switch (filters.dateRange) {
             case 'today':
               matchesDateRange = approvalDate >= today;
@@ -254,11 +202,11 @@ export function PendingApprovals() {
             case 'older':
               const oneMonthAgo = new Date();
               oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-              matchesDateRange = new Date(approval.dateRequested) < oneMonthAgo;
+              matchesDateRange = new Date(approval.createdAt) < oneMonthAgo;
               break;
           }
         }
-        
+
         return matchesSearch && matchesTab && matchesType && matchesPriority && matchesDateRange;
       } catch (error) {
         console.error('Error filtering approval:', approval, error);
@@ -267,13 +215,10 @@ export function PendingApprovals() {
     });
   }, [approvals, searchQuery, activeTab, filters]);
 
-  const priorityBadge = getPriorityBadge('high');
-  const typeIcon = getTypeIcon('leave request');
-
   const handleApprove = useCallback(async (id) => {
     try {
       setIsLoading(prev => ({ ...prev, [id]: 'approving' }));
-      
+
       // Simulate API call with error handling
       await new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -282,11 +227,11 @@ export function PendingApprovals() {
             if (Math.random() < 0.1) {
               throw new Error('Failed to approve request. Please try again.');
             }
-            
-            setApprovals(prevApprovals => 
-              prevApprovals.map(approval => 
-                approval.id === id 
-                  ? { ...approval, status: 'approved' } 
+
+            setApprovals(prevApprovals =>
+              prevApprovals.map(approval =>
+                approval.id === id
+                  ? { ...approval, status: 'approved' }
                   : approval
               )
             );
@@ -296,22 +241,18 @@ export function PendingApprovals() {
           }
         }, 1000);
       });
-      
+
       // Show success message
       console.log(`Successfully approved request ${id}`);
-      // In a real app, you might want to show a toast notification here
-      // toast.success('Request approved successfully');
-      
+
       // Close the modal after a short delay
       setTimeout(() => {
         setIsModalOpen(false);
         setSelectedApproval(null);
       }, 500);
-      
+
     } catch (error) {
       console.error('Failed to approve request:', error);
-      // In a real app, you might want to show an error toast here
-      // toast.error(error.message || 'Failed to approve request');
     } finally {
       setIsLoading(prev => {
         const newState = { ...prev };
@@ -324,7 +265,7 @@ export function PendingApprovals() {
   const handleReject = useCallback(async (id) => {
     try {
       setIsLoading(prev => ({ ...prev, [id]: 'rejecting' }));
-      
+
       // Simulate API call with error handling
       await new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -333,11 +274,11 @@ export function PendingApprovals() {
             if (Math.random() < 0.1) {
               throw new Error('Failed to reject request. Please try again.');
             }
-            
-            setApprovals(prevApprovals => 
-              prevApprovals.map(approval => 
-                approval.id === id 
-                  ? { ...approval, status: 'rejected' } 
+
+            setApprovals(prevApprovals =>
+              prevApprovals.map(approval =>
+                approval.id === id
+                  ? { ...approval, status: 'rejected' }
                   : approval
               )
             );
@@ -347,22 +288,18 @@ export function PendingApprovals() {
           }
         }, 1000);
       });
-      
+
       // Show success message
       console.log(`Successfully rejected request ${id}`);
-      // In a real app, you might want to show a toast notification here
-      // toast.success('Request rejected successfully');
-      
+
       // Close the modal after a short delay
       setTimeout(() => {
         setIsModalOpen(false);
         setSelectedApproval(null);
       }, 500);
-      
+
     } catch (error) {
       console.error('Failed to reject request:', error);
-      // In a real app, you might want to show an error toast here
-      // toast.error(error.message || 'Failed to reject request');
     } finally {
       setIsLoading(prev => {
         const newState = { ...prev };
@@ -382,13 +319,11 @@ export function PendingApprovals() {
     setSelectedApproval(null);
   }, []);
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    // Simulate refresh
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1000);
-  }, []);
+    await fetchApprovals();
+    setIsRefreshing(false);
+  }, [fetchApprovals]);
 
   const handleComment = useCallback(async (id, comment) => {
     // In a real app, this would call an API to add the comment
@@ -408,7 +343,7 @@ export function PendingApprovals() {
   }, []);
 
   // Loading state
-  if (isRefreshing) {
+  if (isDataLoading) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -432,12 +367,35 @@ export function PendingApprovals() {
     );
   }
 
+  // Error state
+  if (dataError) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Pending Approvals</CardTitle>
+              <CardDescription>Error loading data</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Failed to load approvals: {dataError}</p>
+          <Button onClick={handleRefresh} variant="outline" size="sm">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Empty state
   if (filteredApprovals.length === 0) {
-    const hasActiveFilters = 
-      searchQuery || 
-      activeTab !== 'all' || 
-      filters.type !== 'all' || 
+    const hasActiveFilters =
+      searchQuery ||
+      activeTab !== 'all' ||
+      filters.type !== 'all' ||
       filters.priority !== 'all' ||
       filters.dateRange !== 'all';
 
@@ -448,15 +406,15 @@ export function PendingApprovals() {
             <div>
               <CardTitle className="text-lg">Pending Approvals</CardTitle>
               <CardDescription>
-                {hasActiveFilters 
-                  ? 'No approvals match the current filters' 
+                {hasActiveFilters
+                  ? 'No approvals match the current filters'
                   : 'No items requiring your approval'}
               </CardDescription>
             </div>
             {hasActiveFilters && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   setSearchQuery('');
                   setActiveTab('all');
@@ -479,7 +437,7 @@ export function PendingApprovals() {
               {hasActiveFilters ? (
                 <Search className="h-8 w-8 text-muted-foreground" />
               ) : (
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <Check className="h-8 w-8 text-green-600" />
               )}
             </div>
           </div>
@@ -492,17 +450,17 @@ export function PendingApprovals() {
               : 'You don\'t have any pending approvals at the moment.'}
           </p>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleRefresh}
             >
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
             </Button>
             {hasActiveFilters ? (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => {
                   setSearchQuery('');
@@ -561,16 +519,16 @@ export function PendingApprovals() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="h-8 gap-1.5"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >
                 {isRefreshing ? (
                   <>
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     Refreshing...
                   </>
                 ) : (
@@ -580,9 +538,9 @@ export function PendingApprovals() {
                   </>
                 )}
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="h-8 gap-1.5"
                 onClick={handleExport}
               >
@@ -605,7 +563,7 @@ export function PendingApprovals() {
               />
             </div>
             <div className="flex gap-2">
-              <Select 
+              <Select
                 value={filters.type}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
               >
@@ -620,7 +578,7 @@ export function PendingApprovals() {
                   <SelectItem value="Document Approval">Document Approval</SelectItem>
                 </SelectContent>
               </Select>
-              <Select 
+              <Select
                 value={filters.priority}
                 onValueChange={(value) => setFilters(prev => ({ ...prev, priority: value }))}
               >
@@ -637,8 +595,8 @@ export function PendingApprovals() {
               </Select>
             </div>
           </div>
-          <Tabs 
-            value={activeTab} 
+          <Tabs
+            value={activeTab}
             onValueChange={setActiveTab}
             className="mb-4"
           >
@@ -656,9 +614,9 @@ export function PendingApprovals() {
               {filteredApprovals.map((approval) => {
                 const priorityBadge = getPriorityBadge(approval.priority);
                 const typeIcon = getTypeIcon(approval.type);
-                
+
                 return (
-                  <div 
+                  <div
                     key={approval.id}
                     className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
                   >
@@ -669,34 +627,34 @@ export function PendingApprovals() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{approval.type}</h4>
+                            <h4 className="font-medium">{approval.type || 'Unknown Type'}</h4>
                             <Badge variant={priorityBadge.variant} className="gap-1 text-xs">
                               {priorityBadge.icon}
                               {priorityBadge.label}
                             </Badge>
                             {approval.status !== 'pending' && (
-                              <Badge 
-                                variant={approval.status === 'approved' ? 'success' : 'destructive'} 
+                              <Badge
+                                variant={approval.status === 'approved' ? 'success' : 'destructive'}
                                 className="text-xs"
                               >
-                                {approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}
+                                {approval.status ? approval.status.charAt(0).toUpperCase() + approval.status.slice(1) : 'Unknown'}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{approval.details}</p>
+                          <p className="text-sm text-muted-foreground">{approval.details || 'No details provided'}</p>
                           <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <User className="h-3.5 w-3.5" />
-                              <span>{approval.requester}</span>
+                              <span>{approval.requester || 'Unknown Requester'}</span>
                             </div>
-                            <div>{formatTimeAgo(approval.dateRequested)}</div>
+                            <div>{approval.createdAt ? formatTimeAgo(approval.createdAt) : 'Unknown time'}</div>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="h-8 w-8 p-0"
                           onClick={() => handleApprove(approval.id)}
                           disabled={!!isLoading[approval.id]}
@@ -707,9 +665,9 @@ export function PendingApprovals() {
                             <Check className="h-4 w-4 text-green-600" />
                           )}
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="h-8 w-8 p-0"
                           onClick={() => handleReject(approval.id)}
                           disabled={!!isLoading[approval.id]}
@@ -747,7 +705,7 @@ export function PendingApprovals() {
           </ScrollArea>
         </CardContent>
       </Card>
-      
+
       {selectedApproval && (
         <ApprovalDetailsModal
           isOpen={isModalOpen}

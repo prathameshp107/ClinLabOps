@@ -3,6 +3,9 @@ const router = express.Router();
 const reportController = require('../controllers/reportController');
 const auth = require('../middleware/authMiddleware');
 
+// Get list of reports
+router.get('/', reportController.getReportsList);
+
 // Generate project report
 router.get('/projects', reportController.generateProjectReport);
 

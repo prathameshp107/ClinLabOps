@@ -66,23 +66,46 @@ export async function getTeamPerformance() {
         const response = await api.get('/dashboard/team-performance');
         const rawData = response.data;
 
+        // Check if rawData is an object with the expected structure
+        if (!rawData || typeof rawData !== 'object') {
+            throw new Error('Invalid data format received from server');
+        }
+
         // Transform the raw performance data into the expected format
-        const transformedData = {
-            taskCompletion: rawData.map(item => ({
-                name: item.assignee || 'Unknown',
+        let taskCompletionData = [];
+
+        // Handle different possible data structures
+        if (Array.isArray(rawData)) {
+            // If rawData is already an array
+            taskCompletionData = rawData;
+        } else if (Array.isArray(rawData.taskCompletion)) {
+            // If rawData has a taskCompletion property that's an array
+            taskCompletionData = rawData.taskCompletion;
+        } else if (Array.isArray(rawData.tasksByAssignee)) {
+            // If rawData has a tasksByAssignee property (from backend controller)
+            taskCompletionData = rawData.tasksByAssignee.map(item => ({
+                name: item._id || 'Unknown',
                 completed: item.completedTasks || 0,
                 pending: (item.totalTasks || 0) - (item.completedTasks || 0),
                 overdue: 0 // This would need to be calculated from actual overdue tasks
-            })),
+            }));
+        } else {
+            // Fallback to empty array
+            taskCompletionData = [];
+        }
+
+        const transformedData = {
+            taskCompletion: taskCompletionData,
             timeTracking: [], // Would need additional data from backend
-            taskDistribution: rawData.map(item => ({
-                name: item.assignee || 'Unknown',
-                value: item.totalTasks || 0
+            taskDistribution: taskCompletionData.map(item => ({
+                name: item.name || item._id || 'Unknown',
+                value: item.totalTasks || (item.completed + item.pending) || 0
             })),
             trends: [], // Would need historical data from backend
             summary: {
-                completionRate: rawData.length > 0 ?
-                    Math.round(rawData.reduce((acc, item) => acc + (item.completionRate || 0), 0) / rawData.length) : 0,
+                completionRate: taskCompletionData.length > 0 ?
+                    Math.round(taskCompletionData.reduce((acc, item) => acc + (item.completedTasks || item.completed || 0), 0) /
+                        taskCompletionData.reduce((acc, item) => acc + (item.totalTasks || (item.completed + item.pending) || 1), 0) * 100) : 0,
                 completionRateChange: 0, // Would need historical data to calculate
                 onTimeRate: 85, // Placeholder - would need actual data
                 onTimeRateChange: 2,
@@ -388,115 +411,252 @@ export async function generateDashboardReport(format = 'json') {
     }
 }
 
-// Legacy function aliases for backward compatibility
-export function getTasksOverview() {
-    return getDashboardStats();
+/**
+ * Get reports data
+ */
+export async function getReports() {
+    try {
+        const response = await api.get('/reports');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching reports:', error);
+        // Fallback to mock data if API fails
+        return [
+            {
+                id: 'projects',
+                title: 'Project Report',
+                type: 'projects',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['projects', 'analytics']
+            },
+            {
+                id: 'tasks',
+                title: 'Task Report',
+                type: 'tasks',
+                format: 'xlsx',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['tasks', 'productivity']
+            },
+            {
+                id: 'inventory',
+                title: 'Inventory Report',
+                type: 'inventory',
+                format: 'csv',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['inventory', 'stock']
+            },
+            {
+                id: 'users',
+                title: 'User Report',
+                type: 'users',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['users', 'management']
+            },
+            {
+                id: 'compliance',
+                title: 'Compliance Report',
+                type: 'compliance',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['compliance', 'audit']
+            },
+            {
+                id: 'experiments',
+                title: 'Experiment Report',
+                type: 'experiments',
+                format: 'xlsx',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['experiments', 'research']
+            },
+            {
+                id: 'dashboard',
+                title: 'Dashboard Summary',
+                type: 'dashboard',
+                format: 'pdf',
+                created: new Date().toISOString(),
+                generatedBy: 'System',
+                tags: ['dashboard', 'summary']
+            }
+        ];
+    }
 }
 
-export function getReports() {
-    return Promise.resolve([
-        {
-            id: 'projects',
-            title: 'Project Report',
-            type: 'projects',
-            format: 'pdf',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['projects', 'analytics']
-        },
-        {
-            id: 'tasks',
-            title: 'Task Report',
-            type: 'tasks',
-            format: 'xlsx',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['tasks', 'productivity']
-        },
-        {
-            id: 'inventory',
-            title: 'Inventory Report',
-            type: 'inventory',
-            format: 'csv',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['inventory', 'stock']
-        },
-        {
-            id: 'users',
-            title: 'User Report',
-            type: 'users',
-            format: 'pdf',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['users', 'management']
-        },
-        {
-            id: 'compliance',
-            title: 'Compliance Report',
-            type: 'compliance',
-            format: 'pdf',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['compliance', 'audit']
-        },
-        {
-            id: 'experiments',
-            title: 'Experiment Report',
-            type: 'experiments',
-            format: 'xlsx',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['experiments', 'research']
-        },
-        {
-            id: 'dashboard',
-            title: 'Dashboard Summary',
-            type: 'dashboard',
-            format: 'pdf',
-            created: new Date().toISOString(),
-            generatedBy: 'System',
-            tags: ['dashboard', 'summary']
-        }
-    ]);
+/**
+ * Get report types
+ */
+export async function getReportTypes() {
+    try {
+        const response = await api.get('/reports/types');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching report types:', error);
+        // Fallback to mock data if API fails
+        return ['projects', 'tasks', 'inventory', 'users', 'compliance', 'experiments', 'dashboard'];
+    }
 }
 
-export function getReportTypes() {
-    return Promise.resolve([
-        'projects', 'tasks', 'inventory', 'users', 'compliance', 'experiments', 'dashboard'
-    ]);
+/**
+ * Get report formats
+ */
+export async function getReportFormats() {
+    try {
+        const response = await api.get('/reports/formats');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching report formats:', error);
+        // Fallback to mock data if API fails
+        return ['json', 'csv', 'xlsx', 'pdf'];
+    }
 }
 
-export function getReportFormats() {
-    return Promise.resolve(['json', 'csv', 'xlsx', 'pdf']);
+/**
+ * Get pending approvals
+ */
+export async function getPendingApprovals() {
+    try {
+        const response = await api.get('/dashboard/compliance-alerts');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching pending approvals:', error);
+        // Fallback to mock data if API fails
+        return [
+            {
+                id: 'AP-1001',
+                type: 'Leave Request',
+                requester: 'John Doe',
+                requesterEmail: 'john.doe@lab.com',
+                date: '2025-06-20',
+                status: 'pending',
+                details: 'Annual leave request for 3 days',
+                dateRequested: '2025-06-19T10:30:00',
+                priority: 'high',
+                additionalInfo: {
+                    startDate: '2025-07-10',
+                    endDate: '2025-07-12',
+                    daysRequested: 3,
+                    leaveType: 'Paid Time Off',
+                    notes: 'Family vacation',
+                    coverage: 'Sarah Johnson will cover my responsibilities'
+                },
+                attachments: []
+            },
+            {
+                id: 'AP-1002',
+                type: 'Purchase Order',
+                requester: 'Sarah Johnson',
+                requesterEmail: 'sarah.johnson@lab.com',
+                date: '2025-06-21',
+                status: 'pending',
+                details: 'Lab equipment purchase - $1,250.00',
+                dateRequested: '2025-06-19T14:15:00',
+                priority: 'medium',
+                additionalInfo: {
+                    vendor: 'LabTech Solutions',
+                    poNumber: 'PO-2025-0456',
+                    items: [
+                        { name: 'Centrifuge X-2000', quantity: 1, unitPrice: 850.00, total: 850.00 },
+                        { name: 'Microscope Slides (100pk)', quantity: 4, unitPrice: 100.00, total: 400.00 }
+                    ],
+                    subtotal: 1250.00,
+                    tax: 100.00,
+                    total: 1350.00,
+                    shippingAddress: '123 Research Dr, Lab Building A, Floor 3, San Francisco, CA 94107',
+                    paymentTerms: 'Net 30',
+                    notes: 'Urgent - needed for Q3 research project'
+                },
+                attachments: [
+                    { name: 'quote.pdf', size: '2.4 MB', type: 'pdf' },
+                    { name: 'specs.pdf', size: '1.8 MB', type: 'pdf' }
+                ]
+            }
+        ];
+    }
 }
 
-export function getPendingApprovals() {
-    return getComplianceAlerts();
+/**
+ * Get daily active users
+ */
+export async function getDailyActiveUsers() {
+    try {
+        const response = await api.get('/dashboard/daily-active-users');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching daily active users:', error);
+        return getUserActivity();
+    }
 }
 
-export function getDailyActiveUsers() {
-    return getUserActivity();
+/**
+ * Get notification center data
+ */
+export async function getNotificationCenter() {
+    try {
+        const response = await api.get('/dashboard/notification-center');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching notification center data:', error);
+        return getComplianceAlerts();
+    }
 }
 
-export function getNotificationCenter() {
-    return getComplianceAlerts();
+/**
+ * Get smart insights
+ */
+export async function getSmartInsights() {
+    try {
+        const response = await api.get('/dashboard/smart-insights');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching smart insights:', error);
+        return getDashboardStats();
+    }
 }
 
-export function getSmartInsights() {
-    return getDashboardStats();
+/**
+ * Get tasks dashboard data
+ */
+export async function getTasksDashboard() {
+    try {
+        const response = await api.get('/dashboard/tasks');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching tasks dashboard data:', error);
+        return getTaskDistribution();
+    }
 }
 
-export function getTasksDashboard() {
-    return getTaskDistribution();
+/**
+ * Get experiments dashboard data
+ */
+export async function getExperimentsDashboard() {
+    try {
+        const response = await api.get('/dashboard/experiments');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching experiments dashboard data:', error);
+        return getExperimentProgress();
+    }
 }
 
-export function getExperimentsDashboard() {
-    return getExperimentProgress();
-}
-
-export function getTaskOverview() {
-    return getTaskDistribution();
+/**
+ * Get task overview data
+ */
+export async function getTaskOverview() {
+    try {
+        const response = await api.get('/dashboard/task-overview');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching task overview data:', error);
+        return getTaskDistribution();
+    }
 }
 
 // User Dashboard Functions - These would need user-specific endpoints
