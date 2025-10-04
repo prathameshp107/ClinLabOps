@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,7 @@ import {
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { getCurrentUser } from '@/services/authService';
 
 export function ModernSidebar({ className, onToggle, isCollapsed }) {
     const pathname = usePathname();
@@ -67,6 +68,13 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
     });
     // Simulate notification for settings
     const [hasSettingsNotification] = useState(true);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    // Load current user data
+    useEffect(() => {
+        const user = getCurrentUser();
+        setCurrentUser(user);
+    }, []);
 
     // Drag-and-drop sensors
     const sensors = useSensors(
@@ -92,8 +100,9 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
     ]));
     // Item order state per group
     const [itemOrder, setItemOrder] = useState(() => getInitialOrder('sidebarItemOrder', {}));
-    // Grouped navigation items
-    const navigationGroups = [
+
+    // Grouped navigation items - using useMemo to ensure it updates when currentUser changes
+    const navigationGroups = useMemo(() => [
         {
             key: 'main',
             label: 'Main',
@@ -124,7 +133,13 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                 { name: 'user-management', label: 'User Management', icon: <Briefcase className="h-5 w-5" />, path: '/user-management', badge: null },
                 { name: 'my page', label: 'My Page', icon: <FileUser className="h-5 w-5" />, path: '/my-page', badge: null },
                 { name: 'profile', label: 'Profile', icon: <User className="h-5 w-5" />, path: '/profile', badge: null }
-            ]
+            ].filter(item => {
+                // Only show user-management for power users
+                if (item.name === 'user-management') {
+                    return currentUser?.isPowerUser === true;
+                }
+                return true;
+            })
         },
         {
             key: 'insights',
@@ -146,7 +161,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
                 { name: 'help', label: 'Help & Support', icon: <HelpCircle className="h-5 w-5" />, path: '/help', badge: null }
             ]
         }
-    ];
+    ], [currentUser]);
 
     // Save order to localStorage
     useEffect(() => {
@@ -157,12 +172,17 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
     }, [groupOrder, itemOrder]);
 
     // Helper: get group/items in current order
-    const orderedGroups = groupOrder.map(key => navigationGroups.find(g => g.key === key)).filter(Boolean);
-    const getOrderedItems = (group) => {
-        const order = itemOrder[group.key] || group.items.map(i => i.name);
-        // Remove pinning logic, just order by order array
-        return group.items.slice().sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
-    };
+    const orderedGroups = useMemo(() => {
+        return groupOrder.map(key => navigationGroups.find(g => g.key === key)).filter(Boolean);
+    }, [groupOrder, navigationGroups]);
+
+    const getOrderedItems = useMemo(() => {
+        return (group) => {
+            const order = itemOrder[group.key] || group.items.map(i => i.name);
+            // Remove pinning logic, just order by order array
+            return group.items.slice().sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+        };
+    }, [itemOrder]);
 
     // Drag-and-drop handlers
     const handleGroupDragEnd = (event) => {

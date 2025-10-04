@@ -50,7 +50,7 @@ exports.getUserById = async (req, res) => {
 // Create new user
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, roles, department, phone, status = 'Active' } = req.body;
+        const { name, email, password, roles, department, phone, status = 'Active', isPowerUser = false } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
@@ -69,6 +69,7 @@ exports.createUser = async (req, res) => {
             department,
             phone,
             status,
+            isPowerUser,
             lastLogin: null,
             isActive: status === 'Active'
         });
@@ -93,11 +94,16 @@ exports.createUser = async (req, res) => {
 // Update user
 exports.updateUser = async (req, res) => {
     try {
-        const { password, ...updateData } = req.body;
+        const { password, isPowerUser, ...updateData } = req.body;
 
         // If password is being updated, hash it
         if (password) {
             updateData.password = await bcrypt.hash(password, 10);
+        }
+
+        // Add isPowerUser to update data if provided
+        if (isPowerUser !== undefined) {
+            updateData.isPowerUser = isPowerUser;
         }
 
         const user = await User.findByIdAndUpdate(

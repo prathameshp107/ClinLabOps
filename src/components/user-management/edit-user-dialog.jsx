@@ -46,9 +46,10 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }) {
       setFormData({
         name: user.name || "",
         email: user.email || "",
-        role: user.role || "",
+        role: Array.isArray(user.roles) ? user.roles[0] : user.role || "",
         department: user.department || "",
         status: user.status || "Active",
+        isPowerUser: user.isPowerUser || false,
         enable2FA: user.twoFactorEnabled || false,
       })
     }
@@ -81,6 +82,7 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }) {
         roles: [formData.role], // Backend expects array
         department: formData.department,
         status: formData.status,
+        isPowerUser: formData.isPowerUser,
         twoFactorEnabled: formData.enable2FA,
       };
 
@@ -242,6 +244,32 @@ export function EditUserDialog({ user, open, onOpenChange, onUserUpdated }) {
                       setFormData(prev => ({
                         ...prev,
                         status: checked ? "Active" : "Inactive"
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Power User</Label>
+                <div className="flex items-center justify-between rounded-md border p-3">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="power-user">
+                      {formData.isPowerUser ? "Enabled" : "Disabled"}
+                    </Label>
+                    <div className="text-sm text-muted-foreground">
+                      {formData.isPowerUser
+                        ? "User has access to user management features"
+                        : "User has standard access permissions"}
+                    </div>
+                  </div>
+                  <Switch
+                    id="power-user"
+                    checked={formData.isPowerUser}
+                    onCheckedChange={(checked) =>
+                      setFormData(prev => ({
+                        ...prev,
+                        isPowerUser: checked
                       }))
                     }
                   />

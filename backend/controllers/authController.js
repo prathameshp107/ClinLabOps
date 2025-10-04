@@ -66,7 +66,7 @@ exports.login = async (req, res) => {
         await ActivityService.logAuthActivity('login', user);
 
         res.json({
-            user: { id: user._id, name: user.name, email: user.email, roles: user.roles },
+            user: { id: user._id, name: user.name, email: user.email, roles: user.roles, isPowerUser: user.isPowerUser },
             token,
         });
     } catch (err) {
