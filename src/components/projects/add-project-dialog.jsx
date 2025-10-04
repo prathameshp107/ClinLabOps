@@ -19,7 +19,9 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -256,7 +258,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     const fetchUsers = async () => {
       try {
         const usersData = await getUsers();
-        setUsers(Array.isArray(usersData) ? usersData : []);
+        // Handle both paginated and non-paginated responses
+        const usersArray = Array.isArray(usersData)
+          ? usersData
+          : (usersData.users || []);
+        setUsers(usersArray);
       } catch (error) {
         console.error('Failed to fetch users:', error);
         setUsers([]);
@@ -1416,10 +1422,19 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       <Select
                         value={projectData.principalInvestigator?.id}
                         onValueChange={(value) => {
-                          const selectedPI = availablePIs.find(pi => pi.id === value);
+                          // Find the selected user from the fetched users
+                          const selectedUser = users.find(user => (user._id || user.id) === value);
+                          const selectedPI = selectedUser || availablePIs.find(pi => pi.id === value);
+
                           setProjectData(prev => ({
                             ...prev,
-                            principalInvestigator: selectedPI
+                            principalInvestigator: selectedPI ? {
+                              id: selectedPI._id || selectedPI.id,
+                              name: selectedPI.name || `${selectedPI.firstName || ''} ${selectedPI.lastName || ''}`.trim() || selectedPI.email,
+                              email: selectedPI.email,
+                              department: selectedPI.department,
+                              institution: selectedPI.institution || "Internal User"
+                            } : null
                           }))
                         }}
                       >
@@ -1433,7 +1448,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                 <div className="flex flex-col items-start">
                                   <span className="font-semibold">{projectData.principalInvestigator.name}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {projectData.principalInvestigator.department} • {projectData.principalInvestigator.institution}
+                                    {projectData.principalInvestigator.department || 'N/A'} • {projectData.principalInvestigator.institution || 'Internal User'}
                                   </span>
                                 </div>
                               </div>
@@ -1443,25 +1458,109 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          {availablePIs.map(pi => (
-                            <SelectItem
-                              key={pi.id}
-                              value={pi.id}
-                              className="py-2"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
-                                  {pi.name.split(' ').map(n => n[0]).join('')}
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="font-medium">{pi.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {pi.department} • {pi.institution}
-                                  </span>
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {/* Section for internal users */}
+                          {users.length > 0 && (
+                            SelectGroup ? (
+                              <SelectGroup>
+                                <SelectLabel>Internal Users</SelectLabel>
+                                {users.map(user => (
+                                  <SelectItem
+                                    key={user._id || user.id}
+                                    value={user._id || user.id}
+                                    className="py-2"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                        {(user.name || user.firstName || 'U').charAt(0)}
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">
+                                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {user.department || 'N/A'} • Internal User
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            ) : (
+                              <>
+                                <SelectLabel>Internal Users</SelectLabel>
+                                {users.map(user => (
+                                  <SelectItem
+                                    key={user._id || user.id}
+                                    value={user._id || user.id}
+                                    className="py-2"
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                        {(user.name || user.firstName || 'U').charAt(0)}
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">
+                                          {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {user.department || 'N/A'} • Internal User
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )
+                          )}
+
+                          {/* Section for predefined PIs */}
+                          {SelectGroup ? (
+                            <SelectGroup>
+                              <SelectLabel>Predefined Principal Investigators</SelectLabel>
+                              {availablePIs.map(pi => (
+                                <SelectItem
+                                  key={pi.id}
+                                  value={pi.id}
+                                  className="py-2"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                      {pi.name.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{pi.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {pi.department} • {pi.institution}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ) : (
+                            <>
+                              <SelectLabel>Predefined Principal Investigators</SelectLabel>
+                              {availablePIs.map(pi => (
+                                <SelectItem
+                                  key={pi.id}
+                                  value={pi.id}
+                                  className="py-2"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-medium">
+                                      {pi.name.split(' ').map(n => n[0]).join('')}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{pi.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {pi.department} • {pi.institution}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -1504,9 +1603,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                     key={user._id || user.id}
                                     onSelect={() => handleTeamMemberAdd({
                                       id: user._id || user.id,
-                                      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+                                      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
                                       email: user.email,
-                                      role: user.roles?.[0] || 'User'
+                                      role: user.roles?.[0] || 'User',
+                                      department: user.department || 'N/A'
                                     })}
                                     className="flex items-center justify-between p-3 rounded-lg mx-1 mb-1 hover:bg-primary/5 cursor-pointer transition-colors"
                                   >

@@ -77,10 +77,15 @@ export function ProjectManagement() {
   useEffect(() => {
     const fetchUsersAndCurrentUser = async () => {
       try {
-        const [fetchedUsers, currentUserData] = await Promise.all([
+        const [fetchedUsersResponse, currentUserData] = await Promise.all([
           getUsers(),
           getCurrentUser()
         ]);
+
+        // Handle both paginated and non-paginated responses
+        const fetchedUsers = Array.isArray(fetchedUsersResponse)
+          ? fetchedUsersResponse
+          : (fetchedUsersResponse.users || []);
 
         // Convert users array to object for easier lookup
         const usersObj = {};
