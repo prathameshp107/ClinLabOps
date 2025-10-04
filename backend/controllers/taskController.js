@@ -71,6 +71,11 @@ exports.createTask = async (req, res) => {
     try {
         const data = { ...req.body };
 
+        // Set createdBy field if user is authenticated
+        if (req.user) {
+            data.createdBy = req.user._id || req.user.id;
+        }
+
         // Generate custom task ID if projectId is provided
         if (data.projectId) {
             let attempts = 0;
@@ -119,12 +124,15 @@ exports.createTask = async (req, res) => {
     }
 };
 
-// Get all tasks (optionally filter by projectId)
+// Get all tasks (optionally filter by projectId or createdBy)
 exports.getTasks = async (req, res) => {
     try {
         const filter = {};
         if (req.query.projectId) {
             filter.projectId = req.query.projectId;
+        }
+        if (req.query.createdBy) {
+            filter.createdBy = req.query.createdBy;
         }
         const tasks = await Task.find(filter);
         res.json(tasks);

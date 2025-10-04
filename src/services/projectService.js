@@ -24,9 +24,9 @@ api.interceptors.request.use((config) => {
  * Fetch all projects
  * @returns {Promise<Array>} List of projects
  */
-export async function getProjects() {
+export async function getProjects(filter = {}) {
   try {
-    const response = await api.get('/projects');
+    const response = await api.get('/projects', { params: filter });
     return response.data;
   } catch (error) {
     console.error('Error fetching projects:', error);

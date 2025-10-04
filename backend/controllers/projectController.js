@@ -6,10 +6,15 @@ const PDFDocument = require('pdfkit');
 const stream = require('stream');
 const ActivityService = require('../services/activityService');
 
-// Get all projects
+// Get all projects (optionally filter by createdBy)
 exports.getAllProjects = async (req, res) => {
     try {
-        const projects = await Project.find();
+        const filter = {};
+        if (req.query.createdBy) {
+            filter.createdBy = req.query.createdBy;
+        }
+
+        const projects = await Project.find(filter);
 
         // Log activity
         if (req.user) {
@@ -99,13 +104,20 @@ exports.createProject = async (req, res) => {
             projectType = validTypes.includes(req.body.projectType) ? req.body.projectType : '';
         }
 
-        // Create the project with the generated code
-        const project = new Project({
+        // Create the project with the generated code and set createdBy
+        const projectData = {
             ...req.body,
             projectCode,
             category,
             projectType
-        });
+        };
+
+        // Set createdBy field if user is authenticated
+        if (req.user) {
+            projectData.createdBy = req.user._id || req.user.id;
+        }
+
+        const project = new Project(projectData);
         await project.save();
 
         // Log activity

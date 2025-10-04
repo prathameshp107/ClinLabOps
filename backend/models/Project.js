@@ -108,7 +108,8 @@ const ProjectSchema = new mongoose.Schema({
     type: String,
     enum: ['iso', 'oecd', 'fda', 'ema', 'ich', 'other', ''],
     default: ''
-  }
+  },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Add createdBy field
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', ProjectSchema);

@@ -28,7 +28,7 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * Fetch all tasks (optionally filter by projectId)
+ * Fetch all tasks (optionally filter by projectId or createdBy)
  * @param {Object} filter
  * @returns {Promise<Array>} List of tasks
  */
