@@ -12,7 +12,7 @@ const ActivitySchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false, // Make user optional to handle cases where user is deleted
   },
   project: {
     type: mongoose.Schema.Types.ObjectId,

@@ -19,17 +19,21 @@ class ActivityService {
     static async logActivity({ type, description, userId, projectId, meta = {} }) {
         try {
             // Validate required fields
-            if (!type || !description || !userId) {
-                throw new Error('Type, description, and userId are required to log an activity');
+            if (!type || !description) {
+                throw new Error('Type and description are required to log an activity');
             }
 
             // Create activity object
             const activityData = {
                 type,
                 description,
-                user: userId,
                 meta
             };
+
+            // Add user reference if provided
+            if (userId) {
+                activityData.user = userId;
+            }
 
             // Add project reference if provided
             if (projectId) {
@@ -40,8 +44,10 @@ class ActivityService {
             const activity = new Activity(activityData);
             const savedActivity = await activity.save();
 
-            // Populate user info for immediate use
-            await savedActivity.populate('user', 'name email');
+            // Populate user info for immediate use (if user exists)
+            if (userId) {
+                await savedActivity.populate('user', 'name email');
+            }
 
             return savedActivity;
         } catch (error) {
@@ -240,7 +246,7 @@ class ActivityService {
             }
 
             const activities = await Activity.find(query)
-                .populate('user', 'name email')
+                .populate('user', 'name email') // This will populate user data or leave it as null if user doesn't exist
                 .populate('project', 'name projectCode')
                 .sort({ createdAt: -1 })
                 .limit(limit * 1)
@@ -337,7 +343,7 @@ class ActivityService {
 
             // Get recent activities
             const recentActivities = await Activity.find(query)
-                .populate('user', 'name email')
+                .populate('user', 'name email') // This will populate user data or leave it as null if user doesn't exist
                 .populate('project', 'name projectCode')
                 .sort({ createdAt: -1 })
                 .limit(5);

@@ -37,6 +37,8 @@ exports.getAllActivities = async (req, res) => {
       endDate
     } = req.query;
 
+    console.log('Fetching activities with params:', { page, limit, category, type, userId, search, startDate, endDate });
+
     // Use ActivityService to get activities
     const result = await ActivityService.getActivities({
       category,
@@ -46,31 +48,64 @@ exports.getAllActivities = async (req, res) => {
       endDate
     }, page, limit);
 
+    console.log('Activities fetched successfully. Count:', result.activities?.length || 0);
+
     // Transform activities to match frontend format for user management activities
     let transformedActivities = result.activities;
     if (category === 'user_management') {
-      transformedActivities = result.activities.map(activity => ({
-        id: activity._id,
-        timestamp: activity.createdAt,
-        user: {
+      console.log('Transforming activities for user management category');
+      transformedActivities = result.activities.map(activity => {
+        // Log activity for debugging
+        console.log('Processing activity:', {
+          id: activity._id,
+          hasUser: !!activity.user,
+          userId: activity.user?._id,
+          userName: activity.user?.name,
+          type: activity.type,
+          hasMeta: !!activity.meta
+        });
+
+        // Safely extract user information
+        const user = activity.user ? {
           id: activity.user._id,
           name: activity.user.name,
           email: activity.user.email
-        },
-        actionType: getActionTypeFromActivityType(activity.type),
-        action: activity.description,
-        target: {
-          id: activity.meta?.targetUserId,
-          name: activity.meta?.targetUserName,
+        } : {
+          id: null,
+          name: 'Unknown User',
+          email: 'Unknown Email'
+        };
+
+        // Safely extract target information
+        const target = {
+          id: activity.meta?.targetUserId || null,
+          name: activity.meta?.targetUserName || 'Unknown Target',
           type: 'user'
-        },
-        details: activity.meta?.details || activity.description
-      }));
+        };
+
+        // Safely extract other fields
+        const id = activity._id || null;
+        const timestamp = activity.createdAt || new Date();
+        const actionType = getActionTypeFromActivityType(activity.type);
+        const action = activity.description || 'Unknown Action';
+        const details = activity.meta?.details || activity.description || '';
+
+        return {
+          id,
+          timestamp,
+          user,
+          actionType,
+          action,
+          target,
+          details
+        };
+      });
       result.activities = transformedActivities;
     }
 
     res.json(result);
   } catch (err) {
+    console.error('Error in getAllActivities:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -89,6 +124,7 @@ exports.getActivityById = async (req, res) => {
 
     res.json(activity);
   } catch (err) {
+    console.error('Error in getActivityById:', err);
     res.status(500).json({ error: err.message });
   }
 };

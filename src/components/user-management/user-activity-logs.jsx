@@ -45,7 +45,7 @@ export function UserActivityLogs() {
   // Fetch activities from backend
   useEffect(() => {
     fetchActivities()
-  }, [searchQuery, activeFilters])
+  }, [searchQuery, activeFilters, pagination.currentPage])
 
   const fetchActivities = async () => {
     try {
@@ -75,19 +75,22 @@ export function UserActivityLogs() {
       const response = await getUserActivities(params)
       console.log('Received response:', response)
 
-      setActivities(response.activities || [])
+      // Ensure activities is always an array
+      const activitiesData = Array.isArray(response.activities) ? response.activities : []
+
+      setActivities(activitiesData)
       setPagination({
         currentPage: response.currentPage || 1,
         totalPages: response.totalPages || 1,
         total: response.total || 0
       })
 
-      console.log('Set activities:', response.activities?.length || 0, 'activities')
+      console.log('Set activities:', activitiesData.length, 'activities')
     } catch (error) {
       console.error('Failed to fetch activities:', error)
       toast({
         title: "Error loading activities",
-        description: "Failed to load user activity logs.",
+        description: error.response?.data?.error || "Failed to load user activity logs.",
         variant: "destructive"
       })
       setActivities([])
@@ -98,6 +101,8 @@ export function UserActivityLogs() {
 
   // Refresh data
   const handleRefresh = () => {
+    // Reset to first page when refreshing
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
     fetchActivities()
   }
 
@@ -128,6 +133,8 @@ export function UserActivityLogs() {
       }
     })
     setSearchQuery("")
+    // Reset to first page when filters change
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
   // Filter logs based on search query and active filters (for local filtering)
@@ -200,7 +207,7 @@ export function UserActivityLogs() {
                     <input
                       type="checkbox"
                       checked={activeFilters.actionType.create}
-                      onChange={() => { }}
+                      onChange={(e) => updateFilter("create", e.target.checked)}
                       className="rounded"
                     />
                   </div>
@@ -215,7 +222,7 @@ export function UserActivityLogs() {
                     <input
                       type="checkbox"
                       checked={activeFilters.actionType.update}
-                      onChange={() => { }}
+                      onChange={(e) => updateFilter("update", e.target.checked)}
                       className="rounded"
                     />
                   </div>
@@ -230,7 +237,7 @@ export function UserActivityLogs() {
                     <input
                       type="checkbox"
                       checked={activeFilters.actionType.security}
-                      onChange={() => { }}
+                      onChange={(e) => updateFilter("security", e.target.checked)}
                       className="rounded"
                     />
                   </div>
@@ -245,7 +252,7 @@ export function UserActivityLogs() {
                     <input
                       type="checkbox"
                       checked={activeFilters.actionType.deactivate}
-                      onChange={() => { }}
+                      onChange={(e) => updateFilter("deactivate", e.target.checked)}
                       className="rounded"
                     />
                   </div>
@@ -260,7 +267,7 @@ export function UserActivityLogs() {
                     <input
                       type="checkbox"
                       checked={activeFilters.actionType.activate}
-                      onChange={() => { }}
+                      onChange={(e) => updateFilter("activate", e.target.checked)}
                       className="rounded"
                     />
                   </div>
@@ -275,7 +282,7 @@ export function UserActivityLogs() {
                     <input
                       type="checkbox"
                       checked={activeFilters.actionType.delete}
-                      onChange={() => { }}
+                      onChange={(e) => updateFilter("delete", e.target.checked)}
                       className="rounded"
                     />
                   </div>
@@ -313,14 +320,20 @@ export function UserActivityLogs() {
             <FilterX className="h-6 w-6 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium">No matching logs found</h3>
-          <p className="text-muted-foreground mt-1">Try adjusting your search or filter criteria</p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={resetFilters}
-          >
-            Reset Filters
-          </Button>
+          <p className="text-muted-foreground mt-1">
+            {searchQuery || filterCount < Object.keys(activeFilters.actionType).length
+              ? "Try adjusting your search or filter criteria"
+              : "No user activity logs available"}
+          </p>
+          {(searchQuery || filterCount < Object.keys(activeFilters.actionType).length) && (
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={resetFilters}
+            >
+              Reset Filters
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-4 mt-6">
@@ -349,7 +362,6 @@ export function UserActivityLogs() {
                 size="sm"
                 onClick={() => {
                   setPagination(prev => ({ ...prev, currentPage: Math.max(1, prev.currentPage - 1) }))
-                  fetchActivities()
                 }}
                 disabled={pagination.currentPage <= 1}
               >
@@ -363,7 +375,6 @@ export function UserActivityLogs() {
                 size="sm"
                 onClick={() => {
                   setPagination(prev => ({ ...prev, currentPage: Math.min(prev.totalPages, prev.currentPage + 1) }))
-                  fetchActivities()
                 }}
                 disabled={pagination.currentPage >= pagination.totalPages}
               >
@@ -421,6 +432,12 @@ function ActivityLogItem({ log }) {
 
   const styles = getActionTypeStyles(log.actionType)
   const formattedTime = formatDistanceToNow(parseISO(log.timestamp), { addSuffix: true })
+  const exactTime = new Date(log.timestamp).toLocaleString()
+
+  // Safely extract user and target information
+  const userName = log.user?.name || 'Unknown User'
+  const targetName = log.target?.name || 'Unknown Target'
+  const actionDescription = log.action || 'Unknown Action'
 
   return (
     <div className="flex group hover:bg-muted/50 p-4 rounded-lg transition-colors border">
@@ -430,18 +447,24 @@ function ActivityLogItem({ log }) {
 
       <div className="flex-1 space-y-1 overflow-hidden">
         <div className="flex items-start justify-between">
-          <div className="font-medium truncate">{log.action}</div>
+          <div className="font-medium truncate">{actionDescription}</div>
           <div className="text-xs text-muted-foreground whitespace-nowrap ml-4">
             {formattedTime}
           </div>
         </div>
 
         <div className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{log.user.name}</span> performed action on <span className="font-medium text-foreground">{log.target.name}</span>
+          <span className="font-medium text-foreground">{userName}</span> performed action on <span className="font-medium text-foreground">{targetName}</span>
         </div>
 
-        <div className="text-sm text-muted-foreground truncate">
-          {log.details}
+        {log.details && (
+          <div className="text-sm text-muted-foreground truncate">
+            {log.details}
+          </div>
+        )}
+
+        <div className="text-xs text-muted-foreground">
+          {exactTime}
         </div>
       </div>
     </div>
