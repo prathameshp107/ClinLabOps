@@ -36,7 +36,7 @@ export async function login(credentials) {
 
 /**
  * Register new user
- * @param {Object} userData - { name, email, password, roles }
+ * @param {Object} userData - { name, email, password }
  * @returns {Promise<Object>} Success message
  */
 export async function register(userData) {

@@ -10,7 +10,7 @@ export default function AnimalsPage() {
         <DashboardLayout>
             <div className="w-full px-4 py-6">
                 {/* Breadcrumb Navigation */}
-                <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <nav className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-6">
                     <Home className="h-4 w-4" />
                     <span>/</span>
                     <PawPrint className="h-4 w-4" />
@@ -28,7 +28,7 @@ export default function AnimalsPage() {
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+                            <div className="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
                                 <span className="inline-block h-2 w-2 rounded-full bg-blue-500"></span>
                                 Live System
                             </div>

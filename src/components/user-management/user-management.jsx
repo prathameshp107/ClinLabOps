@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, PlusCircle, Filter, User, UserPlus, Shield, Users,
   AlertTriangle, CheckCircle, Lock, Unlock, UserX, RefreshCw,
-  ArrowUpDown, ChevronDown, Download, FileSpreadsheet, FileText
+  ArrowUpDown, ChevronDown, Download, FileSpreadsheet, FileText, ChevronsLeft, ChevronRight
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -80,7 +80,6 @@ export function UserManagement() {
   })
   const [activeTab, setActiveTab] = useState("all-users")
   const [selectedUser, setSelectedUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
 
   // Dialog states
   const [showAddUserDialog, setShowAddUserDialog] = useState(false)
@@ -88,26 +87,69 @@ export function UserManagement() {
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false)
   const [showDeleteUserDialog, setShowDeleteUserDialog] = useState(false)
 
-  // State for users
+  // State for users and pagination
   const [users, setUsers] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    limit: 10
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch users from API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setIsLoading(true);
-        const usersData = await getUsers();
-        setUsers(Array.isArray(usersData) ? usersData : []);
+        // Build query parameters
+        const params = {
+          page: pagination.currentPage,
+          limit: pagination.limit
+        };
+
+        // Add search query if present
+        if (searchQuery) {
+          params.search = searchQuery;
+        }
+
+        // Add filters
+        // For simplicity, we'll just use the first active role filter
+        const activeRoles = Object.keys(activeFilters.role).filter(role => activeFilters.role[role]);
+        if (activeRoles.length > 0 && activeRoles.length < Object.keys(activeFilters.role).length) {
+          params.role = activeRoles[0]; // Backend API supports single role filter
+        }
+
+        // Add status filter
+        const activeStatuses = Object.keys(activeFilters.status).filter(status => activeFilters.status[status]);
+        if (activeStatuses.length > 0 && activeStatuses.length < Object.keys(activeFilters.status).length) {
+          params.status = activeStatuses[0]; // Backend API supports single status filter
+        }
+
+        const usersData = await getUsers(params);
+        setUsers(Array.isArray(usersData.users) ? usersData.users : []);
+        setPagination({
+          currentPage: usersData.currentPage || 1,
+          totalPages: usersData.totalPages || 1,
+          total: usersData.total || 0,
+          limit: usersData.limit || 10
+        });
       } catch (error) {
         console.error('Failed to fetch users:', error);
         setUsers([]);
+        setPagination({
+          currentPage: 1,
+          totalPages: 1,
+          total: 0,
+          limit: 10
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [pagination.currentPage, pagination.limit, searchQuery, activeFilters]);
 
   // Count active filters
   const filterCounts = {
@@ -124,7 +166,9 @@ export function UserManagement() {
         ...activeFilters[category],
         [option]: value
       }
-    })
+    });
+    // Reset to first page when filters change
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   }
 
   // Reset all filters
@@ -133,8 +177,10 @@ export function UserManagement() {
       role: { Admin: true, Scientist: true, Technician: true, Reviewer: true },
       status: { Active: true, Inactive: true, Pending: true },
       lastLogin: { recent: true, older: true, never: true }
-    })
-    setSearchQuery("")
+    });
+    setSearchQuery("");
+    // Reset to first page when filters change
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   }
 
   // Last login filter logic
@@ -149,48 +195,10 @@ export function UserManagement() {
 
   // Filter users based on search query and active filters
   const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase()
-        const userRole = Array.isArray(user.roles) ? user.roles[0] : user.role; // Handle both formats
-        if (
-          !user.name.toLowerCase().includes(query) &&
-          !user.email.toLowerCase().includes(query) &&
-          !userRole?.toLowerCase().includes(query) &&
-          !user.department?.toLowerCase().includes(query)
-        ) {
-          return false
-        }
-      }
-
-      // Role filter - handle both array and string formats
-      const userRole = Array.isArray(user.roles) ? user.roles[0] : user.role;
-      if (!activeFilters.role[userRole]) {
-        return false
-      }
-
-      // Status filter
-      if (!activeFilters.status[user.status]) {
-        return false
-      }
-
-      // Last login filter
-      const isRecent = isWithinDays(user.lastLogin, 7)
-      const isOlder = user.lastLogin && !isRecent
-      const hasNeverLoggedIn = !user.lastLogin
-
-      if (
-        (isRecent && !activeFilters.lastLogin.recent) ||
-        (isOlder && !activeFilters.lastLogin.older) ||
-        (hasNeverLoggedIn && !activeFilters.lastLogin.never)
-      ) {
-        return false
-      }
-
-      return true
-    })
-  }, [searchQuery, activeFilters, users])
+    // Since we're now using server-side filtering, we can just return all users
+    // The filtering is handled by the backend API
+    return users;
+  }, [users])
 
   // Add user handler: refetch users from API and add to state
   const handleAddUser = async (userData) => {
@@ -202,8 +210,17 @@ export function UserManagement() {
   const refreshUsers = async () => {
     try {
       setIsLoading(true);
-      const usersData = await getUsers();
-      setUsers(Array.isArray(usersData) ? usersData : []);
+      const usersData = await getUsers({
+        page: pagination.currentPage,
+        limit: pagination.limit
+      });
+      setUsers(Array.isArray(usersData.users) ? usersData.users : []);
+      setPagination({
+        currentPage: usersData.currentPage || 1,
+        totalPages: usersData.totalPages || 1,
+        total: usersData.total || 0,
+        limit: usersData.limit || 10
+      });
     } catch (error) {
       console.error('Failed to refresh users:', error);
       toast({
@@ -380,7 +397,11 @@ export function UserManagement() {
                     placeholder="Search by name, email, role..."
                     className="pl-8"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      // Reset to first page when search changes
+                      setPagination(prev => ({ ...prev, currentPage: 1 }));
+                    }}
                   />
                 </div>
                 <DropdownMenu>
@@ -388,15 +409,18 @@ export function UserManagement() {
                     <Button variant="outline" className="gap-2">
                       <Filter className="h-4 w-4" />
                       Filters
-                      {Object.values(filterCounts).some(count => count < Object.keys(activeFilters[Object.keys(activeFilters)[Object.values(filterCounts).indexOf(count)]]).length) && (
-                        <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs font-normal">
-                          {Object.values(filterCounts).reduce((acc, count, index) => {
-                            const key = Object.keys(activeFilters)[index]
-                            const total = Object.keys(activeFilters[key]).length
-                            return acc + (total - count)
-                          }, 0)}
-                        </Badge>
-                      )}
+                      {Object.values(filterCounts).some((count, index) => {
+                        const key = Object.keys(activeFilters)[index];
+                        return count < Object.keys(activeFilters[key]).length;
+                      }) && (
+                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs font-normal">
+                            {Object.values(filterCounts).reduce((acc, count, index) => {
+                              const key = Object.keys(activeFilters)[index];
+                              const total = Object.keys(activeFilters[key]).length;
+                              return acc + (total - count);
+                            }, 0)}
+                          </Badge>
+                        )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
@@ -541,14 +565,57 @@ export function UserManagement() {
 
                   <div className="flex items-center gap-2 mb-4">
                     <span className="text-sm text-muted-foreground">
-                      {filteredUsers.length} of {users.length} users
+                      {users.length} users
                     </span>
                   </div>
                   <UserTable
-                    users={filteredUsers}
+                    users={users}
                     onUserAction={handleUserAction}
                     className="table-auto w-full"
                   />
+                  {/* Pagination Controls */}
+                  <div className="flex items-center justify-between py-4">
+                    <div className="text-sm text-muted-foreground">
+                      Showing {(pagination.currentPage - 1) * pagination.limit + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.total)} of {pagination.total} users
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPagination(prev => ({ ...prev, currentPage: 1 }))}
+                        disabled={pagination.currentPage === 1}
+                      >
+                        <ChevronsLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }))}
+                        disabled={pagination.currentPage === 1}
+                      >
+                        <ChevronsLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="text-sm font-medium">
+                        Page {pagination.currentPage} of {pagination.totalPages}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPagination(prev => ({ ...prev, currentPage: pagination.totalPages }))}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>

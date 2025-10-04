@@ -12,7 +12,7 @@ if (!JWT_SECRET) {
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, roles } = req.body;
+        const { name, email, password, department } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
@@ -25,7 +25,8 @@ exports.register = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            roles: Array.isArray(roles) ? roles : []
+            department: department || '',
+            roles: ['User'] // Default role
         });
         await user.save();
 
