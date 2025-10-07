@@ -212,6 +212,11 @@ export function ProjectTeam({ team, onAddMember }) {
   const [isLoading, setIsLoading] = useState(false);
   const [recentActivities, setRecentActivities] = useState([]);
 
+  // Sync realTimeTeam with the team prop when it changes
+  useEffect(() => {
+    setRealTimeTeam(team || []);
+  }, [team]);
+
   // Real-time status updates
   useEffect(() => {
     const updateMemberStatus = () => {

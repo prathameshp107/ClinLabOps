@@ -29,6 +29,7 @@ import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { getTasks, createTask, getNextTaskId, deleteTask } from "@/services/taskService"
 import { getProjects, getProjectById } from "@/services/projectService"
+import { getAllUsers } from "@/services/userService"
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
@@ -67,7 +68,7 @@ export default function TasksPage() {
     return numbers.length ? Math.max(...numbers) + 1 : 1;
   }
 
-  function mapTask(task, projects = [], allTasks = []) {
+  function mapTask(task, projects = [], allTasks = [], users = []) {
     const project = projects.find(p => (p._id || p.id) === (task.projectId || task.project?._id || task.project?.id));
     let customId = undefined;
     if (project && project.name) {
@@ -81,11 +82,28 @@ export default function TasksPage() {
         customId = `${acronym}-${nextNum}`;
       }
     }
+
+    // Resolve assignee name from users array if possible
+    let assignedToName = 'Unassigned';
+    if (task.assignee) {
+      // First try to find by ID match
+      const assigneeUser = users.find(user =>
+        (user._id || user.id) === task.assignee
+      );
+
+      // If not found by ID, use the assignee value directly (might be a name)
+      if (assigneeUser) {
+        assignedToName = assigneeUser.name || `${assigneeUser.firstName || ''} ${assigneeUser.lastName || ''}`.trim() || assigneeUser.email || task.assignee;
+      } else {
+        assignedToName = task.assignee;
+      }
+    }
+
     return {
       ...task,
       id: task._id || task.id,
       customId,
-      assignedTo: task.assignee ? { name: task.assignee } : { name: 'Unassigned' },
+      assignedTo: { name: assignedToName },
       project: project || { name: '-' },
     };
   }
@@ -93,15 +111,17 @@ export default function TasksPage() {
   const fetchTasksData = React.useCallback(async () => {
     try {
       setError(null)
-      const [data, allProjects] = await Promise.all([
+      const [data, allProjects, allUsers] = await Promise.all([
         getTasks(selectedStatus !== 'all' ? { status: selectedStatus } : {}),
-        getProjects()
+        getProjects(),
+        getAllUsers()
       ]);
       setProjects(allProjects);
+      setTeam(allUsers || []);
       // Map all tasks and assign customId
       let mappedTasks = [];
       for (const task of data) {
-        mappedTasks.push(mapTask(task, allProjects, mappedTasks));
+        mappedTasks.push(mapTask(task, allProjects, mappedTasks, allUsers || []));
       }
       setTasks(mappedTasks);
       setLastRefreshed(new Date());

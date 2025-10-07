@@ -28,8 +28,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-// Remove Calendar import
-// import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, PlusCircle, Save, X, Clock } from "lucide-react"
@@ -40,7 +38,6 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { TaskSubtasks } from "./task-subtasks"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-// Add DatePicker import
 import { DatePicker } from "@/components/ui/date-picker"
 import { getUsers } from "@/services/userService"
 
@@ -123,13 +120,35 @@ export const TaskFormDialog = ({
   useEffect(() => {
     if (open) {
       if (mode === "edit" && task) {
+        // For editing, we need to find the assignee ID from the user array
+        // The task.assignee might be a name or ID
+        let assigneeId = "unassigned";
+        if (task.assignee) {
+          // First try to find by ID match
+          const assigneeUser = userArray.find(user =>
+            (user._id || user.id) === task.assignee ||
+            (user._id || user.id) === task.assigneeId
+          );
+
+          // If not found by ID, try to find by name match
+          if (!assigneeUser) {
+            const assigneeUser = userArray.find(user =>
+              user.name === task.assignee ||
+              `${user.firstName || ''} ${user.lastName || ''}`.trim() === task.assignee ||
+              user.email === task.assignee
+            );
+          }
+
+          assigneeId = assigneeUser ? (assigneeUser._id || assigneeUser.id) : "unassigned";
+        }
+
         form.reset({
           title: task.title,
           description: task.description,
           status: task.status,
           priority: task.priority || "medium",
           dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-          assigneeId: task.assigneeId || "unassigned",
+          assigneeId: assigneeId,
           experimentId: task.experimentId || "none_experiment",
           parentTaskId: task.parentTaskId || "none_task",
           tags: task.tags || [],
@@ -153,7 +172,7 @@ export const TaskFormDialog = ({
         setSelectedTemplate(null);
       }
     }
-  }, [open, mode, task, form]);
+  }, [open, mode, task, form, userArray]);
 
   // Handle applying a template
   const handleApplyTemplate = (template) => {
@@ -184,13 +203,9 @@ export const TaskFormDialog = ({
       experimentName: experiments.find(e => e.id === data.experimentId)?.name || "",
       tags,
       subtasks,
-      // Add assignee information
-      assignee: assignee ? {
-        id: assignee.id,
-        name: assignee.name,
-        avatar: assignee.avatar || null
-      } : null,
-      assigneeName: assignee?.name || "Unassigned"
+      // Set assignee as the user ID or name (string), not an object
+      assignee: assignee ? (assignee._id || assignee.id) : null,
+      assigneeName: assignee?.name || `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim() || assignee?.email || "Unassigned"
     };
 
     // If editing, add the id
@@ -486,8 +501,6 @@ export const TaskFormDialog = ({
                                 minDate={new Date(new Date().setHours(0, 0, 0, 0))}
                                 showTodayButton={true}
                                 showClearButton={false}
-                              // Remove the disabled prop that's causing the error
-                              // disabled={disabled}
                               />
                             </FormControl>
                             <FormMessage className="text-xs mt-1.5" />
@@ -524,42 +537,11 @@ export const TaskFormDialog = ({
                                     Select an assignee
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="user1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400"></div>
-                                    John Doe
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user2">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                                    Jane Smith
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user3">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400"></div>
-                                    Sarah Johnson
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user4">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400"></div>
-                                    Jenny Parker
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user5">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500 dark:bg-orange-400"></div>
-                                    Harry Potter
-                                  </div>
-                                </SelectItem>
-
                                 {userArray.map((user) => (
-                                  <SelectItem key={user.id} value={user.id}>
+                                  <SelectItem key={user._id || user.id} value={user._id || user.id}>
                                     <div className="flex items-center gap-2">
                                       <div className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400"></div>
-                                      {user.name}
+                                      {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
                                     </div>
                                   </SelectItem>
                                 ))}

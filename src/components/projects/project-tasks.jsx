@@ -359,7 +359,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                 <SelectItem value="dueDate">Due Date</SelectItem>
                 <SelectItem value="priority">Priority</SelectItem>
                 <SelectItem value="status">Status</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="title">Title</SelectItem>
               </SelectContent>
             </Select>
 
@@ -401,7 +401,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
-                      className="grid grid-cols-[0.5fr_4fr_1.5fr_1.5fr_2fr_2fr_0.5fr] gap-4 items-center px-6 py-4 hover:bg-background/60 backdrop-blur-sm transition-colors"
+                      className="grid grid-cols-[0.5fr_1fr_2fr_1fr_1fr_1fr_1.5fr_0.5fr] gap-4 items-center px-6 py-4 hover:bg-background/60 backdrop-blur-sm transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
@@ -415,13 +415,19 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <label htmlFor={`task-${task.id}`} className="text-sm font-semibold text-foreground cursor-pointer hover:text-blue-600 transition-colors">
-                            {task.name}
-                          </label>
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
+                          {task.customId || `TASK-${task.id?.substring(0, 6)}`}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label htmlFor={`task-${task.id}`} className="text-sm font-semibold text-foreground cursor-pointer hover:text-blue-600 transition-colors">
+                          {task.title}
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {task.description || "No description provided"}
+                        </p>
                       </div>
 
                       <div>
@@ -434,10 +440,12 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
 
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>{task.dueDate}</span>
+                        <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}</span>
                       </div>
 
-                      {renderAssignee(task)}
+                      <div className="flex items-center gap-2">
+                        {renderAssignee(task)}
+                      </div>
 
                       <div className="flex justify-end">
                         <DropdownMenu>
