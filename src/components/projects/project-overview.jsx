@@ -12,6 +12,7 @@ import { UpcomingMilestones } from "./upcoming-milestones"
 import { TaskStatusOverview } from "./task-status-overview"
 import { PriorityBreakdown } from "./priority-breakdown"
 import { TeamWorkload } from "./team-workload"
+import { ProjectActivityTimeline } from "./project-activity-timeline"
 import { statProgressColors } from "@/constants"
 import { sanitizeHtml } from "@/lib/utils"
 
@@ -123,7 +124,7 @@ export function ProjectOverview({ project }) {
 
                 {project?.description ? (
                   <div className="bg-gradient-to-r from-gray-50/50 to-blue-50/20 dark:from-gray-900/50 dark:to-blue-900/20 rounded-xl p-5 border border-border/50">
-                    <p 
+                    <p
                       className="text-foreground/80 leading-relaxed text-base"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
                     />
@@ -243,6 +244,9 @@ export function ProjectOverview({ project }) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Project Activity Timeline */}
+        {project?.id && <ProjectActivityTimeline projectId={project.id} />}
 
         {/* Upcoming Milestones */}
         <UpcomingMilestones project={project} />

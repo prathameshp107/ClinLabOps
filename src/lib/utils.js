@@ -51,7 +51,7 @@ export function sanitizeHtml(html) {
     if (!html) return '';
     return html.replace(/<[^>]*>/g, '');
   }
-  
+
   // Client-side: use DOMPurify
   const DOMPurify = require('dompurify');
   return DOMPurify.sanitize(html, {

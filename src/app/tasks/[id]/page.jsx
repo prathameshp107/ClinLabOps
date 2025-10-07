@@ -670,7 +670,7 @@ export default function TaskDetailPage() {
                   </div>
                   <TabsContent value="overview" className="space-y-6 w-full">
                     <TaskOverview task={safeTask} className="w-full" />
-                    <RelatedTasksCard taskId={safeTask.id} className="w-full" />
+                    <RelatedTasksCard taskId={safeTask.id} task={safeTask} className="w-full" />
                     <TaskActivityLog taskId={safeTask.id} className="w-full" />
                   </TabsContent>
                   <TabsContent value="subtasks" className="space-y-6 w-full">

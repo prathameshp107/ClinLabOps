@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import UserAvatar from "@/components/tasks/user-avatar";
-import { getRelatedTasks } from "@/services/taskService";
+import { getRelatedTasks, getTasks } from "@/services/taskService";
 
 const statusColor = (status) => {
     switch (status) {
@@ -31,7 +31,7 @@ const statusOptions = [
     { value: "completed", label: "Completed" },
 ];
 
-export function RelatedTasksCard({ taskId }) {
+export function RelatedTasksCard({ taskId, task }) {
     const [search, setSearch] = useState("");
     const [showAdd, setShowAdd] = useState(false);
     const [tasks, setTasks] = useState([]);
@@ -46,12 +46,32 @@ export function RelatedTasksCard({ taskId }) {
 
     useEffect(() => {
         if (!taskId || taskId === 'unknown') return;
-        setLoading(true);
-        getRelatedTasks(taskId)
-            .then(setTasks)
-            .catch(err => setError(err.message))
-            .finally(() => setLoading(false));
-    }, [taskId]);
+
+        const fetchRelatedTasks = async () => {
+            setLoading(true);
+            try {
+                // If the task belongs to a project, fetch all tasks from that project
+                if (task && task.projectId) {
+                    // Fetch all tasks from the same project, excluding the current task
+                    const projectTasks = await getTasks({ projectId: task.projectId });
+                    const filteredTasks = projectTasks.filter(t => t._id !== taskId && t.id !== taskId);
+                    setTasks(filteredTasks);
+                } else {
+                    // Fallback to related tasks if no project ID
+                    const relatedTasks = await getRelatedTasks(taskId);
+                    setTasks(relatedTasks);
+                }
+            } catch (err) {
+                setError(err.message);
+                // Fallback to empty array
+                setTasks([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRelatedTasks();
+    }, [taskId, task]);
 
     const filteredTasks = useMemo(() => {
         if (!search) return tasks;
@@ -78,6 +98,9 @@ export function RelatedTasksCard({ taskId }) {
         setShowAdd(false);
     }
 
+    // Get project name for display
+    const projectName = task?.project?.name || 'Unknown Project';
+
     return (
         <Card className="relative overflow-hidden border-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200/50 dark:ring-gray-700/50 hover:shadow-3xl transition-all duration-500 flex flex-col p-6 rounded-2xl">
             <CardHeader className="pb-4 border-b border-gray-200/20 dark:border-gray-700/20 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-indigo-500/10 to-transparent gap-4">
@@ -85,7 +108,9 @@ export function RelatedTasksCard({ taskId }) {
                     <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/10 shadow-md">
                         <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                    <CardTitle className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Related Tasks</CardTitle>
+                    <CardTitle className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                        {task?.projectId ? `Project Tasks (${projectName})` : 'Related Tasks'}
+                    </CardTitle>
                 </div>
                 <div className="w-full sm:w-auto flex items-center gap-3">
                     <div className="relative flex-1 sm:w-72">
@@ -115,7 +140,7 @@ export function RelatedTasksCard({ taskId }) {
                         {filteredTasks.length > 0 ? (
                             filteredTasks.map((relatedTask, i) => (
                                 <motion.div
-                                    key={relatedTask.id}
+                                    key={relatedTask.id || relatedTask._id}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
@@ -127,13 +152,19 @@ export function RelatedTasksCard({ taskId }) {
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <span className={`inline-block h-3 w-3 rounded-full ${statusColor(relatedTask.status || 'not_started')}`} aria-label={relatedTask.status || 'not_started'} />
-                                                <Badge variant="outline" className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs px-3 py-1 rounded-full">T{relatedTask.id || 'Unknown'}</Badge>
+                                                <Badge variant="outline" className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs px-3 py-1 rounded-full">
+                                                    {relatedTask.customId || `T-${relatedTask.id?.substring(0, 6) || relatedTask._id?.substring(0, 6) || 'Unknown'}`}
+                                                </Badge>
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <span className="text-lg font-semibold truncate max-w-[140px] sm:max-w-[200px] text-gray-900 dark:text-gray-100 cursor-help">{relatedTask.title || 'Untitled Task'}</span>
+                                                            <span className="text-lg font-semibold truncate max-w-[140px] sm:max-w-[200px] text-gray-900 dark:text-gray-100 cursor-help">
+                                                                {relatedTask.title || 'Untitled Task'}
+                                                            </span>
                                                         </TooltipTrigger>
-                                                        <TooltipContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">{relatedTask.title || 'Untitled Task'}</TooltipContent>
+                                                        <TooltipContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                                                            {relatedTask.title || 'Untitled Task'}
+                                                        </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
                                             </div>
@@ -163,6 +194,10 @@ export function RelatedTasksCard({ taskId }) {
                                         size="sm"
                                         className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900 rounded-xl shadow-md transition-all duration-300 scale-95 group-hover:scale-100"
                                         tabIndex={-1}
+                                        onClick={() => {
+                                            // Navigate to task detail page
+                                            window.location.href = `/tasks/${relatedTask.id || relatedTask._id}`;
+                                        }}
                                     >
                                         View Details
                                     </Button>
@@ -171,8 +206,14 @@ export function RelatedTasksCard({ taskId }) {
                         ) : (
                             <div className="flex flex-col items-center justify-center p-10 text-center text-gray-600 dark:text-gray-400">
                                 <img src="/empty-tasks.svg" alt="No related tasks" className="h-24 w-24 mb-6 opacity-90" />
-                                <p className="text-xl font-semibold">No Related Tasks</p>
-                                <p className="text-sm mt-2 max-w-xs">Add or link tasks to display dependencies and related work here.</p>
+                                <p className="text-xl font-semibold">
+                                    {task?.projectId ? `No Other Tasks in ${projectName}` : 'No Related Tasks'}
+                                </p>
+                                <p className="text-sm mt-2 max-w-xs">
+                                    {task?.projectId
+                                        ? 'All tasks from this project will appear here.'
+                                        : 'Add or link tasks to display dependencies and related work here.'}
+                                </p>
                             </div>
                         )}
                     </div>
