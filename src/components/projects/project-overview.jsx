@@ -13,6 +13,7 @@ import { TaskStatusOverview } from "./task-status-overview"
 import { PriorityBreakdown } from "./priority-breakdown"
 import { TeamWorkload } from "./team-workload"
 import { statProgressColors } from "@/constants"
+import { sanitizeHtml } from "@/lib/utils"
 
 const StatProgress = ({ label, value, total, progress, color = "blue", icon: Icon, trend, description }) => {
   const colorClasses = statProgressColors[color] || statProgressColors.blue;
@@ -81,8 +82,6 @@ const ActivityItem = ({ activity, index }) => (
   </div>
 );
 
-
-
 export function ProjectOverview({ project }) {
 
   return (
@@ -124,9 +123,10 @@ export function ProjectOverview({ project }) {
 
                 {project?.description ? (
                   <div className="bg-gradient-to-r from-gray-50/50 to-blue-50/20 dark:from-gray-900/50 dark:to-blue-900/20 rounded-xl p-5 border border-border/50">
-                    <p className="text-foreground/80 leading-relaxed text-base">
-                      {project.description}
-                    </p>
+                    <p 
+                      className="text-foreground/80 leading-relaxed text-base"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
+                    />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center bg-gradient-to-r from-gray-50/30 to-blue-50/10 dark:from-gray-900/30 dark:to-blue-900/10 rounded-xl border-2 border-dashed border-border/50">
@@ -243,8 +243,6 @@ export function ProjectOverview({ project }) {
             </div>
           </CardContent>
         </Card>
-
-
 
         {/* Upcoming Milestones */}
         <UpcomingMilestones project={project} />

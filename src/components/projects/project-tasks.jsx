@@ -417,7 +417,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
 
                       <div className="flex flex-col">
                         <span className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
-                          {task.customId || `TASK-${task.id?.substring(0, 6)}`}
+                          {task.customId || `TASK-${(task._id || task.id)?.substring(0, 6)}`}
                         </span>
                       </div>
 

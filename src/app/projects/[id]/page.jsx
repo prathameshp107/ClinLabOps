@@ -74,7 +74,13 @@ export default function ProjectPage({ params }) {
       setTasksLoading(true);
       try {
         const data = await getTasks({ projectId: id });
-        setTasks(data);
+        // Ensure tasks have the correct structure for display
+        const formattedTasks = data.map(task => ({
+          ...task,
+          id: task._id || task.id,
+          customId: task.customId || `TASK-${(task._id || task.id)?.substring(0, 6)}`
+        }));
+        setTasks(formattedTasks);
       } catch (err) {
         setTasks([]);
       } finally {
@@ -113,7 +119,14 @@ export default function ProjectPage({ params }) {
     if (!project) return;
     try {
       const newTask = await createTask({ ...taskData, projectId: project.id });
-      setTasks(prev => [...prev, newTask]);
+      // Ensure the task has the correct structure for display
+      const formattedTask = {
+        ...newTask,
+        id: newTask._id || newTask.id,
+        customId: newTask.customId || `TASK-${(newTask._id || newTask.id)?.substring(0, 6)}`,
+        assignee: newTask.assignee || 'Unassigned'
+      };
+      setTasks(prev => [...prev, formattedTask]);
       setShowAddTaskModal(false);
     } catch (err) {
       alert("Failed to create task: " + err.message);
