@@ -247,7 +247,7 @@ export async function removeTaskComment(taskId, commentId) {
 export async function getTaskComments(taskId) {
     try {
         const response = await api.get(`/tasks/${taskId}/comments`);
-        return response.data;
+        return response?.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error fetching comments:', error);
         throw error;

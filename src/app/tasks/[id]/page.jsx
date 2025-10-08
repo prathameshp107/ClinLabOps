@@ -130,17 +130,39 @@ export default function TaskDetailPage() {
   // New feature: AI suggestions
   useEffect(() => {
     if (task) {
-      // Simulate AI analysis
+      // Simulate AI analysis based on actual task data
       setTimeout(() => {
+        // Generate realistic bottlenecks based on task data
+        const bottlenecks = [];
+        if (task.dueDate) {
+          bottlenecks.push("Timeline constraints");
+        }
+        if (task.priority === 'high') {
+          bottlenecks.push("Resource allocation");
+        }
+        if (task.subtasks && task.subtasks.length > 5) {
+          bottlenecks.push("Task complexity");
+        }
+
+        // Generate realistic recommendations based on task data
+        const recommendations = [];
+        if (task.assignee) {
+          recommendations.push(`Coordinate with ${task.assignee.name || 'assignee'} for task updates`);
+        } else {
+          recommendations.push("Assign this task to a team member");
+        }
+        if (task.dueDate) {
+          recommendations.push("Review timeline and adjust if needed");
+        }
+        if (task.priority === 'high') {
+          recommendations.push("Prioritize this task in team meetings");
+        }
+
         setAiSuggestions({
-          riskLevel: task.priority === 'high' ? 'high' : 'medium',
-          estimatedCompletion: addDays(new Date(), 5).toISOString(),
-          bottlenecks: ["Sample processing time", "Equipment availability"],
-          recommendations: [
-            "Consider parallel processing for samples 6-10",
-            "Schedule equipment usage in advance",
-            "Consult with Dr. Chen about optimized protocol"
-          ]
+          riskLevel: task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low',
+          estimatedCompletion: task.dueDate || addDays(new Date(), 7).toISOString(),
+          bottlenecks: bottlenecks.length > 0 ? bottlenecks : ["General project constraints"],
+          recommendations: recommendations.length > 0 ? recommendations : ["Continue with current approach"]
         });
       }, 100);
     }
@@ -206,203 +228,37 @@ export default function TaskDetailPage() {
       // Only use fallback if API call failed and we're in development
       const fallbackTask = {
         id: id,
-        title: "PCR Analysis of Sample Group B",
-        description: "Perform PCR analysis on the collected samples from Group B. Follow the standard protocol and document all results in the lab system.",
-        status: "in_progress",
-        priority: "high",
-        progress: 65,
+        title: "Task Details",
+        description: "Task description will appear here.",
+        status: "not_started",
+        priority: "medium",
+        progress: 0,
         progressDetails: {
-          timeEstimate: 40, // hours
-          timeSpent: 26, // hours
-          milestones: [
-            { name: "Planning", complete: true, date: "2023-10-16" },
-            { name: "Sample Preparation", complete: true, date: "2023-10-18" },
-            { name: "Initial Analysis", complete: true, date: "2023-10-20" },
-            { name: "Full Analysis", complete: false, date: "2023-10-25" },
-            { name: "Documentation", complete: false, date: "2023-11-01" }
-          ],
-          riskFactors: [
-            { name: "Equipment Failure", probability: "low", impact: "high" },
-            { name: "Sample Contamination", probability: "medium", impact: "high" },
-            { name: "Staff Availability", probability: "medium", impact: "medium" }
-          ],
-          weeklyProgress: [
-            { week: "Week 1", planned: 30, actual: 25 },
-            { week: "Week 2", planned: 60, actual: 65 },
-            { week: "Week 3", planned: 90, actual: 0 }
-          ]
+          timeEstimate: 0,
+          timeSpent: 0,
+          milestones: [],
+          riskFactors: [],
+          weeklyProgress: []
         },
-        createdAt: "2023-10-15T10:30:00Z",
+        createdAt: new Date().toISOString(),
         createdBy: {
           id: "u1",
-          name: "Dr. Jane Doe",
-          avatar: "JD"
+          name: "System",
+          avatar: "S"
         },
-        dueDate: "2023-11-05T23:59:59Z",
-        assignee: {
-          id: "u2",
-          name: "John Smith",
-          avatar: "JS"
-        },
+        dueDate: null,
+        assignee: null,
         project: {
-          id: "p1",
-          name: "Laboratory Management System"
+          id: "unknown",
+          name: "No Project"
         },
-        tags: ["PCR", "Analysis", "Group B", "Lab Work"],
-        subtasks: [
-          {
-            id: "ST-101",
-            title: "Prepare PCR reagents",
-            completed: true,
-            status: "completed",
-            progress: 100,
-            priority: "high",
-            assignee: {
-              id: "u2",
-              name: "John Smith",
-              avatar: "JS"
-            },
-            startDate: "2023-10-16T09:00:00Z",
-            endDate: "2023-10-16T14:00:00Z",
-            notes: "Used the new batch of reagents from Lab Supply Co."
-          },
-          {
-            id: "ST-102",
-            title: "Set up PCR machine",
-            completed: true,
-            status: "completed",
-            progress: 100,
-            priority: "high",
-            assignee: {
-              id: "u2",
-              name: "John Smith",
-              avatar: "JS"
-            },
-            startDate: "2023-10-17T09:00:00Z",
-            endDate: "2023-10-17T11:00:00Z",
-            notes: "Machine calibrated and settings verified before run."
-          },
-          {
-            id: "ST-103",
-            title: "Run PCR on samples 1-5",
-            completed: true,
-            status: "completed",
-            progress: 100,
-            priority: "medium",
-            assignee: {
-              id: "u2",
-              name: "John Smith",
-              avatar: "JS"
-            },
-            startDate: "2023-10-18T09:00:00Z",
-            endDate: "2023-10-18T16:00:00Z",
-            notes: "All samples processed successfully. Results look promising."
-          },
-          {
-            id: "ST-104",
-            title: "Run PCR on samples 6-10",
-            completed: false,
-            status: "in_progress",
-            progress: 60,
-            priority: "medium",
-            assignee: {
-              id: "u3",
-              name: "Emily Chen",
-              avatar: "EC"
-            },
-            startDate: "2023-10-21T09:00:00Z",
-            endDate: "2023-10-21T16:00:00Z",
-            notes: "Samples 6-8 completed, working on 9-10."
-          },
-          {
-            id: "ST-105",
-            title: "Document results in lab system",
-            completed: false,
-            status: "not_started",
-            progress: 0,
-            priority: "low",
-            assignee: {
-              id: "u4",
-              name: "Michael Brown",
-              avatar: "MB"
-            },
-            startDate: "2023-10-22T09:00:00Z",
-            endDate: "2023-10-22T16:00:00Z",
-            notes: ""
-          }
-        ],
-        files: [
-          { id: "f1", name: "PCR_Protocol.pdf", size: "1.2 MB", uploadedAt: "2023-10-16T14:20:00Z", uploadedBy: "Dr. Jane Doe" },
-          { id: "f2", name: "Sample_Group_B_Data.xlsx", size: "3.5 MB", uploadedAt: "2023-10-18T09:45:00Z", uploadedBy: "John Smith" },
-          { id: "f3", name: "PCR_Results_Partial.docx", size: "2.1 MB", uploadedAt: "2023-10-20T16:30:00Z", uploadedBy: "John Smith" }
-        ],
-        comments: [
-          {
-            id: "c1",
-            text: "I've started the PCR analysis. The first batch of samples is running now.",
-            createdAt: "2023-10-17T11:20:00Z",
-            user: { id: "u2", name: "John Smith", avatar: "JS" }
-          },
-          {
-            id: "c2",
-            text: "Great! Make sure to follow the updated protocol we discussed in the meeting.",
-            createdAt: "2023-10-17T13:45:00Z",
-            user: { id: "u1", name: "Dr. Jane Doe", avatar: "JD" }
-          },
-          {
-            id: "c3",
-            text: "I've completed the first 5 samples. Results look promising. Will continue with the rest tomorrow.",
-            createdAt: "2023-10-19T17:30:00Z",
-            user: { id: "u2", name: "John Smith", avatar: "JS" }
-          }
-        ],
-        activityLog: [
-          { id: "a1", type: "task_created", timestamp: "2023-10-15T10:30:00Z", user: "Dr. Jane Doe" },
-          { id: "a2", type: "task_assigned", timestamp: "2023-10-15T10:35:00Z", user: "Dr. Jane Doe", details: "Assigned to John Smith" },
-          { id: "a3", type: "comment_added", timestamp: "2023-10-17T11:20:00Z", user: "John Smith" },
-          { id: "a4", type: "comment_added", timestamp: "2023-10-17T13:45:00Z", user: "Dr. Jane Doe" },
-          { id: "a5", type: "file_uploaded", timestamp: "2023-10-18T09:45:00Z", user: "John Smith", details: "Sample_Group_B_Data.xlsx" },
-          { id: "a6", type: "subtask_completed", timestamp: "2023-10-18T14:20:00Z", user: "John Smith", details: "Prepare PCR reagents" },
-          { id: "a7", type: "subtask_completed", timestamp: "2023-10-18T16:45:00Z", user: "John Smith", details: "Set up PCR machine" },
-          { id: "a8", type: "comment_added", timestamp: "2023-10-19T17:30:00Z", user: "John Smith" },
-          { id: "a9", type: "file_uploaded", timestamp: "2023-10-20T16:30:00Z", user: "John Smith", details: "PCR_Results_Partial.docx" }
-        ],
-        teamMembers: [
-          { id: "u1", name: "Dr. Jane Doe", role: "Principal Investigator", avatar: "JD" },
-          { id: "u2", name: "John Smith", role: "Lab Technician", avatar: "JS" },
-          { id: "u3", name: "Emily Chen", role: "Research Assistant", avatar: "EC" },
-          { id: "u4", name: "Michael Brown", role: "Data Analyst", avatar: "MB" }
-        ],
-        relatedTasks: [
-          {
-            id: "T10",
-            title: "Data Analysis for Group A",
-            status: "completed",
-            dueDate: "2023-10-25T23:59:59Z",
-            assignee: { id: "u4", name: "Michael Brown", avatar: "MB" }
-          },
-          {
-            id: "T11",
-            title: "Equipment Calibration",
-            status: "in_progress",
-            dueDate: "2023-11-10T23:59:59Z",
-            assignee: { id: "u2", name: "John Smith", avatar: "JS" }
-          },
-          {
-            id: "T12",
-            title: "Lab Inventory Check",
-            status: "not_started",
-            dueDate: "2023-11-15T23:59:59Z",
-            assignee: { id: "u3", name: "Emily Chen", avatar: "EC" }
-          },
-          {
-            id: "T13",
-            title: "Reagent Order",
-            status: "completed",
-            dueDate: "2023-10-30T23:59:59Z",
-            assignee: { id: "u1", name: "Dr. Jane Doe", avatar: "JD" }
-          }
-        ]
+        tags: [],
+        subtasks: [],
+        files: [],
+        comments: [],
+        activityLog: [],
+        teamMembers: [],
+        relatedTasks: []
       };
 
       // Only use fallback in development when API fails

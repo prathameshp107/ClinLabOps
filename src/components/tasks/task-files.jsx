@@ -114,7 +114,7 @@ export function TaskFiles({ task }) {
 
         <div className="space-y-3">
           <AnimatePresence>
-            {files.map((file) => (
+            {files?.map((file) => (
               <motion.div
                 key={file.id}
                 initial={{ opacity: 0, y: 10 }}
