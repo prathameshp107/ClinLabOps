@@ -120,7 +120,7 @@ export default function TasksPage() {
       setTeam(allUsers || []);
       // Map all tasks and assign customId
       let mappedTasks = [];
-      for (const task of data) {
+      for (const task of data?.data) {
         mappedTasks.push(mapTask(task, allProjects, mappedTasks, allUsers || []));
       }
       setTasks(mappedTasks);
