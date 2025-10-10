@@ -106,6 +106,10 @@ app.use('/api/breeding', breedingRouter);
 // Cage management routes
 const cagesRouter = require('./routes/cages');
 app.use('/api/cages', cagesRouter);
+
+// Uploaded reports routes
+const uploadedReportsRouter = require('./routes/uploadedReports');
+app.use('/api/uploaded-reports', uploadedReportsRouter);
 // Only start the server if this file is run directly
 if (require.main === module) {
     app.listen(config.port, () => {

@@ -2,11 +2,29 @@ import axios from 'axios';
 import config from '@/config/config';
 
 const REPORTS_API_URL = `${config.api.backendUrl}/api/reports`;
+const UPLOADED_REPORTS_API_URL = `${config.api.backendUrl}/api/uploaded-reports`;
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: config.api.backendUrl,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 // Get all reports
-export const getReports = async () => {
+export const getReports = async (params = {}) => {
     try {
-        const response = await axios.get(REPORTS_API_URL);
+        const response = await api.get('/api/uploaded-reports', { params });
         return response.data;
     } catch (error) {
         console.error('Failed to fetch reports:', error);
@@ -15,9 +33,13 @@ export const getReports = async () => {
 };
 
 // Create a new report
-export const createReport = async (reportData) => {
+export const createReport = async (formData) => {
     try {
-        const response = await axios.post(REPORTS_API_URL, reportData);
+        const response = await api.post('/api/uploaded-reports', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
         return response.data;
     } catch (error) {
         console.error('Failed to create report:', error);
@@ -28,7 +50,7 @@ export const createReport = async (reportData) => {
 // Upload a report file
 export const uploadReport = async (formData) => {
     try {
-        const response = await axios.post(`${REPORTS_API_URL}/upload`, formData, {
+        const response = await api.post('/api/uploaded-reports', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -43,7 +65,7 @@ export const uploadReport = async (formData) => {
 // Update a report
 export const updateReport = async (id, reportData) => {
     try {
-        const response = await axios.put(`${REPORTS_API_URL}/${id}`, reportData);
+        const response = await api.put(`/api/uploaded-reports/${id}`, reportData);
         return response.data;
     } catch (error) {
         console.error('Failed to update report:', error);
@@ -54,7 +76,7 @@ export const updateReport = async (id, reportData) => {
 // Delete a report
 export const deleteReport = async (id) => {
     try {
-        const response = await axios.delete(`${REPORTS_API_URL}/${id}`);
+        const response = await api.delete(`/api/uploaded-reports/${id}`);
         return response.data;
     } catch (error) {
         console.error('Failed to delete report:', error);
@@ -71,7 +93,7 @@ export const generateReport = async (reportType, params = {}) => {
         if (reportType === "research") endpointType = "experiments";
         if (reportType === "miscellaneous") endpointType = "projects";
 
-        const response = await axios.get(`${REPORTS_API_URL}/${endpointType}`, { params });
+        const response = await api.get(`/api/reports/${endpointType}`, { params });
         return response.data;
     } catch (error) {
         console.error('Failed to generate report:', error);
@@ -80,17 +102,27 @@ export const generateReport = async (reportType, params = {}) => {
 };
 
 // Download a report
-export const downloadReport = async (reportType, format = 'pdf') => {
+export const downloadReport = async (id) => {
     try {
-        const response = await axios.get(`${REPORTS_API_URL}/${reportType}?format=${format}`, {
+        const response = await api.get(`/api/uploaded-reports/download/${id}`, {
             responseType: 'blob'
         });
+
+        // Get the filename from the Content-Disposition header if available
+        const contentDisposition = response.headers['content-disposition'];
+        let filename = 'report.pdf';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+            if (filenameMatch.length === 2) {
+                filename = filenameMatch[1];
+            }
+        }
 
         // Create a download link
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `report.${format}`);
+        link.setAttribute('download', filename);
         document.body.appendChild(link);
         link.click();
 
