@@ -18,7 +18,7 @@ const reportSchema = new mongoose.Schema({
     format: {
         type: String,
         required: true,
-        enum: ['pdf', 'xlsx', 'csv', 'docx', 'json']
+        enum: ['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif']
     },
     fileName: {
         type: String,

@@ -25,11 +25,11 @@ const upload = multer({
         // Accept only specific file types
         const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'text/csv', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/json'];
+            'application/json', 'image/jpeg', 'image/png', 'image/gif'];
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Invalid file type. Only PDF, XLSX, CSV, DOCX, and JSON files are allowed.'));
+            cb(new Error('Invalid file type. Only PDF, XLSX, CSV, DOCX, JSON, and image files (JPG, PNG, GIF) are allowed.'));
         }
     }
 });

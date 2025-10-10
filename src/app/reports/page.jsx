@@ -22,7 +22,8 @@ import {
     FileSpreadsheet,
     FileTextIcon,
     FileJson,
-    FileBarChart
+    FileBarChart,
+    Image
 } from "lucide-react"
 import { reportService } from "@/services/reportService"
 import { formatFileSize } from "@/lib/utils"
@@ -73,18 +74,26 @@ function ReportsPage() {
     }, [reports])
 
     const handleUploadReport = async () => {
-        if (!newReport.title || !newReport.type || !newReport.file) {
+        if (!newReport.type || !newReport.file) {
             toast({
                 title: "Validation Error",
-                description: "Please fill in all required fields and select a file.",
+                description: "Please select a report type and file.",
                 variant: "destructive",
             })
             return
         }
 
+        // If no title is provided, use the filename (without extension) as the title
+        let reportTitle = newReport.title;
+        if (!reportTitle && newReport.file) {
+            // Extract filename without extension
+            const fileNameWithoutExt = newReport.file.name.replace(/\.[^/.]+$/, "");
+            reportTitle = fileNameWithoutExt;
+        }
+
         try {
             const formData = new FormData()
-            formData.append('title', newReport.title)
+            formData.append('title', reportTitle)
             formData.append('type', newReport.type)
             formData.append('description', newReport.description)
             formData.append('format', newReport.format)
@@ -186,6 +195,9 @@ function ReportsPage() {
                                 Format
                             </th>
                             <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+                                Uploaded By
+                            </th>
+                            <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
                                 Uploaded
                             </th>
                             <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
@@ -213,6 +225,11 @@ function ReportsPage() {
                                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
                                     <div className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize">
                                         {report.format}
+                                    </div>
+                                </td>
+                                <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+                                    <div className="text-sm text-muted-foreground">
+                                        {report.uploadedBy?.name || "Unknown User"}
                                     </div>
                                 </td>
                                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
@@ -260,6 +277,11 @@ function ReportsPage() {
                 return <FileTextIcon className="h-8 w-8 text-blue-700" />
             case 'json':
                 return <FileJson className="h-8 w-8 text-yellow-500" />
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif':
+                return <Image className="h-8 w-8 text-purple-500" />
             default:
                 return <File className="h-8 w-8 text-gray-500" />
         }
@@ -365,7 +387,7 @@ function ReportsPage() {
                                                     setNewReport({ ...newReport, file })
                                                     // Auto-detect format from file extension
                                                     const ext = file.name.split('.').pop().toLowerCase()
-                                                    if (['pdf', 'xlsx', 'csv', 'docx', 'json'].includes(ext)) {
+                                                    if (['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
                                                         setNewReport(prev => ({ ...prev, format: ext }))
                                                     }
                                                 }
@@ -382,12 +404,12 @@ function ReportsPage() {
                                                         setNewReport({ ...newReport, file })
                                                         // Auto-detect format from file extension
                                                         const ext = file.name.split('.').pop().toLowerCase()
-                                                        if (['pdf', 'xlsx', 'csv', 'docx', 'json'].includes(ext)) {
+                                                        if (['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
                                                             setNewReport(prev => ({ ...prev, format: ext }))
                                                         }
                                                     }
                                                 }}
-                                                accept=".pdf,.xlsx,.csv,.docx,.json"
+                                                accept=".pdf,.xlsx,.csv,.docx,.json,.jpg,.jpeg,.png,.gif"
                                             />
                                             {newReport.file ? (
                                                 <div className="flex flex-col items-center">
@@ -421,7 +443,7 @@ function ReportsPage() {
                                                         or click to browse files
                                                     </p>
                                                     <div className="inline-flex items-center rounded-md bg-muted px-3 py-1 text-sm font-medium mt-3">
-                                                        PDF, XLSX, CSV, DOCX, JSON
+                                                        PDF, XLSX, CSV, DOCX, JSON, JPG, PNG, GIF
                                                     </div>
                                                 </div>
                                             )}
@@ -442,7 +464,7 @@ function ReportsPage() {
                                     </Button>
                                     <Button
                                         onClick={handleUploadReport}
-                                        disabled={!newReport.title || !newReport.type || !newReport.file}
+                                        disabled={!newReport.type || !newReport.file}
                                         className="h-11 gap-2 px-6"
                                     >
                                         <Upload className="h-4 w-4" />

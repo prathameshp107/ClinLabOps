@@ -104,7 +104,7 @@ exports.createReport = async (req, res) => {
         }
 
         // Validate format
-        if (!['pdf', 'xlsx', 'csv', 'docx', 'json'].includes(format)) {
+        if (!['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(format)) {
             return res.status(400).json({ error: 'Invalid file format' });
         }
 
