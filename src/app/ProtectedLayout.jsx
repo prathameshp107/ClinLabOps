@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { isAuthenticated } from "@/services/authService"
+import { ReportsProvider } from "@/contexts/ReportsContext"
 
 export default function ProtectedLayout({ children }) {
     const router = useRouter();
@@ -124,5 +125,9 @@ export default function ProtectedLayout({ children }) {
         );
     }
 
-    return children;
-} 
+    return (
+        <ReportsProvider>
+            {children}
+        </ReportsProvider>
+    );
+}

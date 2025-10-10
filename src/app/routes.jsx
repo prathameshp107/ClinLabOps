@@ -8,6 +8,7 @@ import Tasks from "@/app/tasks/page";
 import Projects from "@/app/projects/page";
 import Inventory from "@/app/inventory/page";
 import Settings from "@/app/settings/page";
+import Reports from "@/app/reports/page";
 
 // Define routes
 const router = createBrowserRouter([
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
       {
         path: "inventory",
         element: <Inventory />,
+      },
+      {
+        path: "reports",
+        element: <Reports />,
       },
       {
         path: "settings",

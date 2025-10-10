@@ -147,7 +147,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             icon: <BarChart2 className="h-4 w-4" />,
             items: [
                 { name: 'analytics', label: 'Analytics', icon: <BarChart2 className="h-5 w-5" />, path: '#', badge: null, comingSoon: true },
-                { name: 'reports', label: 'Reports', icon: <FileText className="h-5 w-5" />, path: '#', badge: null, comingSoon: true },
+                { name: 'reports', label: 'Reports', icon: <FileText className="h-5 w-5" />, path: '/reports', badge: null },
                 { name: 'enquiries', label: 'Enquiries', icon: <MessageSquare className="h-5 w-5" />, path: '/enquiries', badge: null }
             ]
         },
@@ -421,3 +421,5 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
         </aside>
     );
 }
+
+export { ModernSidebar };
