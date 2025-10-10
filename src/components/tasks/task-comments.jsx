@@ -55,8 +55,9 @@ export const TaskComments = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Get currentUser from users prop
+  // Get currentUser from users prop or fallback
   const currentUser = users.find(u => u.id === currentUserId) || users[0] || { id: 'current-user', name: 'Current User' };
+  console.log('TaskComments currentUser:', currentUser, 'currentUserId:', currentUserId, 'users:', users);
 
   // Fetch comments from backend
   useEffect(() => {
@@ -151,11 +152,17 @@ export const TaskComments = ({
     try {
       const newComment = await addTaskComment(taskId, {
         text: commentText,
-        author: currentUser.id,
+        author: currentUser.id, // Use the actual user ID
+        authorName: currentUser.name, // Store the author name for display
         createdAt: new Date().toISOString(),
         replies: [],
       });
-      setComments(prev => [...prev, newComment]);
+      // Ensure the comment has the author name for display
+      const commentWithAuthor = {
+        ...newComment,
+        authorName: newComment.authorName || currentUser.name
+      };
+      setComments(prev => [...prev, commentWithAuthor]);
       setCommentText("");
     } catch (err) {
       setError(err.message);
@@ -227,11 +234,46 @@ export const TaskComments = ({
 
   // Render a single comment and its replies, joined by a vertical line
   const renderComment = (comment, isReply = false, isLastReply = false) => {
-    // Hydrate author from users array
-    const authorUser = users.find(u => u.id === comment.author) || {};
-    const authorName = authorUser.name || 'Unknown';
-    const authorAvatar = authorUser.avatarUrl || '';
-    const authorInitial = authorName.charAt ? authorName.charAt(0) : '?';
+    // Hydrate author from users array or use stored authorName
+    let authorName = 'Unknown';
+    let authorAvatar = '';
+    let authorInitial = '?';
+
+    // Try to find the author in the users array first
+    if (comment.author) {
+      const authorUser = users.find(u => u.id === comment.author) ||
+        users.find(u => u._id === comment.author);
+      if (authorUser) {
+        authorName = authorUser.name || authorUser.firstName + ' ' + authorUser.lastName || 'Unknown User';
+        authorAvatar = authorUser.avatarUrl || authorUser.avatar || '';
+        authorInitial = authorName.charAt(0).toUpperCase();
+      }
+    }
+
+    // Fallback to stored authorName if available
+    if (authorName === 'Unknown' && comment.authorName) {
+      authorName = comment.authorName;
+      authorInitial = comment.authorName.charAt(0).toUpperCase();
+    }
+
+    // Safely format the date
+    let timeAgo = '';
+    try {
+      if (comment.createdAt) {
+        const date = new Date(comment.createdAt);
+        if (!isNaN(date.getTime())) {
+          timeAgo = formatDistanceToNow(date, { addSuffix: true });
+        } else {
+          timeAgo = 'Invalid date';
+        }
+      } else {
+        timeAgo = 'Unknown time';
+      }
+    } catch (error) {
+      console.error('Error formatting date:', error, comment.createdAt);
+      timeAgo = 'Unknown time';
+    }
+
     return (
       <div className={`flex gap-3 group relative ${isReply ? 'ml-10' : ''} py-4`}>
         {/* Vertical line for replies */}
@@ -245,7 +287,7 @@ export const TaskComments = ({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{authorName}</span>
-            <span className="text-xs text-zinc-500">{formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}</span>
+            <span className="text-xs text-zinc-500">{timeAgo}</span>
           </div>
           <div className="text-[15px] mt-1 text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: comment.text }} />
           {/* Attachments */}

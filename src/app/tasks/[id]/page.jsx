@@ -74,8 +74,13 @@ import { format, addDays } from "date-fns";
 // API Services
 import { fetchTaskById } from "@/lib/api/tasks";
 
-export default function TaskDetailPage() {
-  const { id } = useParams();
+import { useAuth } from '@/contexts/AuthContext';
+import { getAllUsers } from '@/services/userService';
+
+export default function TaskDetailPage({ params }) {
+  const { id } = params;
+  const { user: currentUser } = useAuth();
+  const [users, setUsers] = useState([]);
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
@@ -221,6 +226,21 @@ export default function TaskDetailPage() {
       fetchTask();
     }
   }, [id]);
+
+  // Fetch users for comments and activity logs
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userData = await getAllUsers();
+        setUsers(userData || []);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   // Fallback mock data for development (remove this in production)
   useEffect(() => {
@@ -527,7 +547,7 @@ export default function TaskDetailPage() {
                   <TabsContent value="overview" className="space-y-6 w-full">
                     <TaskOverview task={safeTask} className="w-full" />
                     <RelatedTasksCard taskId={safeTask.id} task={safeTask} className="w-full" />
-                    <TaskActivityLog taskId={safeTask.id} className="w-full" />
+                    <TaskActivityLog taskId={safeTask.id} className="w-full" users={users} />
                   </TabsContent>
                   <TabsContent value="subtasks" className="space-y-6 w-full">
                     <SubtasksList task={safeTask} setTask={setTask} className="w-full" />
@@ -536,7 +556,12 @@ export default function TaskDetailPage() {
                     <TaskFiles task={safeTask} className="w-full" />
                   </TabsContent>
                   <TabsContent value="comments" className="space-y-6 w-full">
-                    <TaskComments taskId={safeTask.id} className="w-full" />
+                    <TaskComments
+                      taskId={safeTask.id}
+                      className="w-full"
+                      users={users}
+                      currentUserId={currentUser?.id}
+                    />
                   </TabsContent>
                 </Tabs>
               </TooltipProvider>

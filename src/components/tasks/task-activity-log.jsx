@@ -34,7 +34,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getTaskActivityLog } from "@/services/taskService";
 
-export function TaskActivityLog({ taskId, className }) {
+export function TaskActivityLog({ taskId, className, users = [] }) {
   const [activities, setActivities] = useState([]);
   const [filter, setFilter] = useState('all');
   const [showDetails, setShowDetails] = useState({});
@@ -143,7 +143,22 @@ export function TaskActivityLog({ taskId, className }) {
   };
 
   const getActivityText = (activity) => {
-    const userName = activity.user || 'Unknown User';
+    // Try to find the user name from the users array
+    let userName = 'Unknown User';
+
+    if (activity.userId || activity.user) {
+      const userId = activity.userId || activity.user;
+      const user = users.find(u => u.id === userId || u._id === userId);
+      if (user) {
+        userName = user.name || user.firstName + ' ' + user.lastName || user.email || 'Unknown User';
+      } else if (typeof activity.user === 'string' && activity.user !== 'Unknown User') {
+        // If user is already a string name, use it
+        userName = activity.user;
+      }
+    } else if (activity.user && typeof activity.user === 'string') {
+      // If user is already a string name, use it
+      userName = activity.user;
+    }
 
     switch (activity.action || activity.type) {
       case 'task_created':
