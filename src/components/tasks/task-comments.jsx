@@ -34,7 +34,7 @@ export const TaskComments = ({
   users = [],
   currentUserId = null
 }) => {
-  console.log('TaskComments received taskId:', taskId);
+  console.log('TaskComments received props:', { taskId, users, currentUserId });
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [files, setFiles] = useState([]);
@@ -64,7 +64,9 @@ export const TaskComments = ({
     if (!taskId || taskId === 'unknown') return;
     setLoading(true);
     getTaskComments(taskId)
-      .then(setComments)
+      .then(commentsData => {
+        setComments(commentsData);
+      })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [taskId]);
@@ -244,7 +246,9 @@ export const TaskComments = ({
       const authorUser = users.find(u => u.id === comment.author) ||
         users.find(u => u._id === comment.author);
       if (authorUser) {
-        authorName = authorUser.name || authorUser.firstName + ' ' + authorUser.lastName || 'Unknown User';
+        authorName = authorUser.name || (authorUser.firstName && authorUser.lastName ?
+          `${authorUser.firstName} ${authorUser.lastName}` :
+          authorUser.firstName || authorUser.lastName || 'Unknown User');
         authorAvatar = authorUser.avatarUrl || authorUser.avatar || '';
         authorInitial = authorName.charAt(0).toUpperCase();
       }
@@ -256,6 +260,14 @@ export const TaskComments = ({
       authorInitial = comment.authorName.charAt(0).toUpperCase();
     }
 
+    // Additional fallback to currentUser if no author info
+    if (authorName === 'Unknown' && currentUser) {
+      authorName = currentUser.name || (currentUser.firstName && currentUser.lastName ?
+        `${currentUser.firstName} ${currentUser.lastName}` :
+        currentUser.firstName || currentUser.lastName || 'Current User');
+      authorInitial = authorName.charAt(0).toUpperCase();
+    }
+    
     // Safely format the date
     let timeAgo = '';
     try {

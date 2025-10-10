@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -78,7 +78,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getAllUsers } from '@/services/userService';
 
 export default function TaskDetailPage({ params }) {
-  const { id } = params;
+  // Unwrap the params Promise using React.use()
+  const unwrappedParams = use(params);
+  const { id } = unwrappedParams;
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [task, setTask] = useState(null);
@@ -560,7 +562,7 @@ export default function TaskDetailPage({ params }) {
                       taskId={safeTask.id}
                       className="w-full"
                       users={users}
-                      currentUserId={currentUser?.id}
+                      currentUserId={currentUser?.id || currentUser?._id}
                     />
                   </TabsContent>
                 </Tabs>
