@@ -101,6 +101,21 @@ export function RelatedTasksCard({ taskId, task }) {
     // Get project name for display
     const projectName = task?.project?.name || 'Unknown Project';
 
+    // Helper function to get priority variant
+    const getPriorityVariant = (priority) => {
+        switch (priority) {
+            case 'high':
+            case 'urgent':
+                return 'destructive';
+            case 'medium':
+                return 'warning';
+            case 'low':
+                return 'success';
+            default:
+                return 'outline';
+        }
+    };
+
     return (
         <Card className="relative overflow-hidden border-none bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl ring-1 ring-gray-200/50 dark:ring-gray-700/50 hover:shadow-3xl transition-all duration-500 flex flex-col p-6 rounded-2xl">
             <CardHeader className="pb-4 border-b border-gray-200/20 dark:border-gray-700/20 flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-indigo-500/10 to-transparent gap-4">
@@ -136,29 +151,39 @@ export function RelatedTasksCard({ taskId, task }) {
             </CardHeader>
             <CardContent className="p-0 flex-1 flex flex-col">
                 <ScrollArea className="h-[360px] custom-scrollbar">
-                    <div className="divide-y divide-gray-200/10 dark:divide-gray-700/10">
-                        {filteredTasks.length > 0 ? (
-                            filteredTasks.map((relatedTask, i) => (
-                                <motion.div
-                                    key={relatedTask.id || relatedTask._id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
-                                    className="group flex flex-col sm:flex-row justify-between items-center gap-4 p-4 hover:bg-indigo-500/10 dark:hover:bg-indigo-500/5 rounded-xl transition-all duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-indigo-500/50"
-                                    tabIndex={0}
-                                >
-                                    <div className="flex items-center gap-4 min-w-0 flex-1 w-full">
-                                        <UserAvatar user={relatedTask.assignee} size="lg" />
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <span className={`inline-block h-3 w-3 rounded-full ${statusColor(relatedTask.status || 'not_started')}`} aria-label={relatedTask.status || 'not_started'} />
+                    {filteredTasks.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Task ID</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Title</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Due Date</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Assignee</th>
+                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredTasks.map((relatedTask, i) => (
+                                        <motion.tr
+                                            key={relatedTask.id || relatedTask._id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: i * 0.05, type: "spring", stiffness: 100 }}
+                                            className="border-b border-gray-100 dark:border-gray-800 hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10 transition-colors duration-200"
+                                        >
+                                            <td className="py-3 px-4">
                                                 <Badge variant="outline" className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs px-3 py-1 rounded-full">
                                                     {relatedTask.customId || `T-${relatedTask.id?.substring(0, 6) || relatedTask._id?.substring(0, 6) || 'Unknown'}`}
                                                 </Badge>
+                                            </td>
+                                            <td className="py-3 px-4">
                                                 <TooltipProvider>
                                                     <Tooltip>
                                                         <TooltipTrigger asChild>
-                                                            <span className="text-lg font-semibold truncate max-w-[140px] sm:max-w-[200px] text-gray-900 dark:text-gray-100 cursor-help">
+                                                            <span className="font-medium text-gray-900 dark:text-gray-100 cursor-help truncate max-w-[150px] inline-block">
                                                                 {relatedTask.title || 'Untitled Task'}
                                                             </span>
                                                         </TooltipTrigger>
@@ -167,56 +192,69 @@ export function RelatedTasksCard({ taskId, task }) {
                                                         </TooltipContent>
                                                     </Tooltip>
                                                 </TooltipProvider>
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                                            </td>
+                                            <td className="py-3 px-4">
                                                 <Badge
                                                     variant={
                                                         relatedTask.status === 'completed' ? 'success' :
-                                                            relatedTask.status === 'in_progress' ? 'warning' : 'outline'
+                                                            relatedTask.status === 'in_progress' ? 'warning' :
+                                                                relatedTask.status === 'blocked' ? 'destructive' : 'outline'
                                                     }
-                                                    className="capitalize px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300"
+                                                    className="capitalize px-3 py-1 rounded-full text-xs"
                                                 >
-                                                    {relatedTask.status?.replace('_', ' ') || 'Unknown'}
+                                                    {relatedTask.status?.replace('_', ' ') || 'Not Started'}
                                                 </Badge>
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-4 w-4" />
-                                                    {relatedTask.dueDate ? format(new Date(relatedTask.dueDate), 'MMM d, yyyy') : 'No due date'}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Users className="h-4 w-4" />
-                                                    {relatedTask.assignee?.name || 'Unassigned'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900 rounded-xl shadow-md transition-all duration-300 scale-95 group-hover:scale-100"
-                                        tabIndex={-1}
-                                        onClick={() => {
-                                            // Navigate to task detail page
-                                            window.location.href = `/tasks/${relatedTask.id || relatedTask._id}`;
-                                        }}
-                                    >
-                                        View Details
-                                    </Button>
-                                </motion.div>
-                            ))
-                        ) : (
-                            <div className="flex flex-col items-center justify-center p-10 text-center text-gray-600 dark:text-gray-400">
-                                <img src="/empty-tasks.svg" alt="No related tasks" className="h-24 w-24 mb-6 opacity-90" />
-                                <p className="text-xl font-semibold">
-                                    {task?.projectId ? `No Other Tasks in ${projectName}` : 'No Related Tasks'}
-                                </p>
-                                <p className="text-sm mt-2 max-w-xs">
-                                    {task?.projectId
-                                        ? 'All tasks from this project will appear here.'
-                                        : 'Add or link tasks to display dependencies and related work here.'}
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <Badge
+                                                    variant={getPriorityVariant(relatedTask.priority)}
+                                                    className="capitalize px-3 py-1 rounded-full text-xs"
+                                                >
+                                                    {relatedTask.priority || 'medium'}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                                                {relatedTask.dueDate ? format(new Date(relatedTask.dueDate), 'MMM d, yyyy') : 'No due date'}
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <div className="flex items-center gap-2">
+                                                    <UserAvatar user={relatedTask.assignee} size="sm" />
+                                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                        {relatedTask.assignee?.name || 'Unassigned'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900 rounded-lg shadow-sm transition-all duration-300"
+                                                    onClick={() => {
+                                                        // Navigate to task detail page
+                                                        window.location.href = `/tasks/${relatedTask.id || relatedTask._id}`;
+                                                    }}
+                                                >
+                                                    View
+                                                </Button>
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center p-10 text-center text-gray-600 dark:text-gray-400">
+                            <img src="/empty-tasks.svg" alt="No related tasks" className="h-24 w-24 mb-6 opacity-90" />
+                            <p className="text-xl font-semibold">
+                                {task?.projectId ? `No Other Tasks in ${projectName}` : 'No Related Tasks'}
+                            </p>
+                            <p className="text-sm mt-2 max-w-xs">
+                                {task?.projectId
+                                    ? 'All tasks from this project will appear here.'
+                                    : 'Add or link tasks to display dependencies and related work here.'}
+                            </p>
+                        </div>
+                    )}
                 </ScrollArea>
             </CardContent>
             <Dialog open={showAdd} onOpenChange={setShowAdd}>
