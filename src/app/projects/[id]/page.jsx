@@ -73,15 +73,19 @@ export default function ProjectPage({ params }) {
     const fetchTasks = async () => {
       setTasksLoading(true);
       try {
+        console.log('Fetching tasks for project ID:', id);
         const data = await getTasks({ projectId: id });
+        console.log('Received tasks data:', data);
         // Ensure tasks have the correct structure for display
-        const formattedTasks = data.map(task => ({
+        const formattedTasks = (data.data || data).map(task => ({
           ...task,
           id: task._id || task.id,
           customId: task.customId || `TASK-${(task._id || task.id)?.substring(0, 6)}`
         }));
+        console.log('Formatted tasks:', formattedTasks);
         setTasks(formattedTasks);
       } catch (err) {
+        console.error('Error fetching tasks:', err);
         setTasks([]);
       } finally {
         setTasksLoading(false);

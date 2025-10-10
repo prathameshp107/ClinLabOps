@@ -34,8 +34,11 @@ api.interceptors.request.use((config) => {
  */
 export async function getTasks(filter = {}) {
     try {
+        console.log('TaskService: Fetching tasks with filter:', filter);
         const response = await api.get('/tasks', { params: filter });
-        return response.data;
+        console.log('TaskService: Received response:', response.data);
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error fetching tasks:', error);
         throw error;
@@ -50,7 +53,8 @@ export async function getTasks(filter = {}) {
 export async function getTaskById(id) {
     try {
         const response = await api.get(`/tasks/${id}`);
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         if (error.response?.status === 404) {
             return null;
@@ -68,7 +72,8 @@ export async function getTaskById(id) {
 export async function getNextTaskId(projectId) {
     try {
         const response = await api.get(`/tasks/project/${projectId}/next-id`);
-        return response.data.nextTaskId;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error getting next task ID:', error);
         throw error;
@@ -83,7 +88,8 @@ export async function getNextTaskId(projectId) {
 export async function createTask(taskData) {
     try {
         const response = await api.post('/tasks', taskData);
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error creating task:', error);
         throw error;
@@ -99,7 +105,8 @@ export async function createTask(taskData) {
 export async function updateTask(id, taskData) {
     try {
         const response = await api.put(`/tasks/${id}`, taskData);
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         if (error.response?.status === 404) {
             return null;
@@ -116,8 +123,9 @@ export async function updateTask(id, taskData) {
  */
 export async function deleteTask(id) {
     try {
-        await api.delete(`/tasks/${id}`);
-        return true;
+        const response = await api.delete(`/tasks/${id}`);
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error deleting task:', error);
         throw error;
@@ -247,7 +255,8 @@ export async function removeTaskComment(taskId, commentId) {
 export async function getTaskComments(taskId) {
     try {
         const response = await api.get(`/tasks/${taskId}/comments`);
-        return response?.data?.data ? response.data.data : response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error fetching comments:', error);
         throw error;
@@ -297,12 +306,14 @@ export async function getTaskActivityLog(taskId) {
         const frontendResponse = await fetch(`/api/tasks/${taskId}/activity`);
         if (frontendResponse.ok) {
             const result = await frontendResponse.json();
-            return result.data || [];
+            // Handle both wrapped and unwrapped response formats
+            return result?.data ? result.data : result;
         }
 
         // Fallback to direct backend API
         const response = await api.get(`/tasks/${taskId}/activity`);
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error fetching activity log:', error);
         // Return empty array instead of throwing to prevent UI crashes
@@ -316,7 +327,8 @@ export async function getTaskActivityLog(taskId) {
 export async function getRelatedTasks(taskId) {
     try {
         const response = await api.get(`/tasks/${taskId}/related`);
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error fetching related tasks:', error);
         throw error;
@@ -434,7 +446,8 @@ export async function updateTaskComment(taskId, commentId, comment) {
 export async function getTaskAttachments(taskId) {
     try {
         const response = await api.get(`/tasks/${taskId}/files`);
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error fetching task attachments:', error);
         throw error;
