@@ -401,7 +401,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
-                      className="grid grid-cols-[0.5fr_1fr_2fr_1fr_1fr_1fr_1.5fr_0.5fr] gap-4 items-center px-6 py-4 hover:bg-background/60 backdrop-blur-sm transition-colors"
+                      className="grid grid-cols-[40px_100px_1.5fr_100px_100px_120px_150px_80px_60px] gap-4 items-center px-6 py-4 hover:bg-background/60 backdrop-blur-sm transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
