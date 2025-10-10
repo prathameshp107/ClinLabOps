@@ -35,7 +35,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { DataTablePagination } from "@/components/tasks-v2/data-table-pagination";
 import { subtaskPriorities, subtaskStatuses } from "@/constants";
 import { addTaskSubtask, updateTaskSubtask, removeTaskSubtask } from "@/services/taskService";
-import { getUsers } from "@/services/userService";
+import { getAllUsers } from "@/services/userService";
 
 // Helper function to generate unique task ID
 const generateTaskId = (existingSubtasks) => {
@@ -128,10 +128,13 @@ export function SubtasksList({ task, setTask }) {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const fetchedUsers = await getUsers();
-        setUsers(fetchedUsers);
+        const fetchedUsers = await getAllUsers();
+        // Ensure we have an array
+        const usersArray = Array.isArray(fetchedUsers) ? fetchedUsers : [];
+        setUsers(usersArray);
       } catch (error) {
         console.error('Failed to fetch users:', error);
+        setUsers([]); // Set to empty array on error
       }
     };
     fetchUsers();
@@ -149,8 +152,10 @@ export function SubtasksList({ task, setTask }) {
       let bVal = b[sortConfig.key];
 
       if (sortConfig.key === "assignee") {
-        aVal = users.find(u => u._id === a.assignee)?.name || "";
-        bVal = users.find(u => u._id === b.assignee)?.name || "";
+        // Ensure users is an array before calling find
+        const usersArray = Array.isArray(users) ? users : [];
+        aVal = usersArray.find(u => u._id === a.assignee)?.name || "";
+        bVal = usersArray.find(u => u._id === b.assignee)?.name || "";
       }
 
       if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
@@ -297,7 +302,7 @@ export function SubtasksList({ task, setTask }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {users.map(user => (
+              {Array.isArray(users) && users.map(user => (
                 <SelectItem key={user._id} value={user._id}>
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
@@ -313,11 +318,11 @@ export function SubtasksList({ task, setTask }) {
           <div className="flex items-center gap-2">
             <Avatar className="h-6 w-6">
               <AvatarFallback className="text-xs">
-                {users.find(u => u._id === subtask.assignee)?.name?.charAt(0) || "?"}
+                {Array.isArray(users) && users.find(u => u._id === subtask.assignee)?.name?.charAt(0) || "?"}
               </AvatarFallback>
             </Avatar>
             <span className="text-sm">
-              {users.find(u => u._id === subtask.assignee)?.name || "Unassigned"}
+              {Array.isArray(users) && users.find(u => u._id === subtask.assignee)?.name || "Unassigned"}
             </span>
           </div>
         )}

@@ -36,7 +36,7 @@ export async function login(credentials) {
 
 /**
  * Register new user
- * @param {Object} userData - { name, email, password, roles }
+ * @param {Object} userData - { name, email, password }
  * @returns {Promise<Object>} Success message
  */
 export async function register(userData) {
@@ -98,6 +98,36 @@ export async function getProfile() {
     return response.data;
   } catch (error) {
     console.error('Get profile error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update current user profile
+ * @param {Object} profileData - Profile data to update
+ * @returns {Promise<Object>} Updated user profile
+ */
+export async function updateProfile(profileData) {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await api.put('/auth/profile', profileData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    // Update user data in localStorage
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error('Update profile error:', error);
     throw error;
   }
 }

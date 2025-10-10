@@ -29,15 +29,15 @@ const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         return (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+            <div className="bg-background border border-border rounded-lg shadow-lg p-3">
                 <div className="flex items-center gap-2 mb-1">
                     <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: data.color }}
                     />
-                    <span className="font-medium text-gray-900">{data.name}</span>
+                    <span className="font-medium text-foreground">{data.name}</span>
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                     <div>Value: {data.value}%</div>
                     <div className="mt-1 text-xs">{data.description}</div>
                     <div className="mt-2 flex items-center gap-1">
@@ -140,8 +140,8 @@ export function TaskStatusOverview({ project }) {
     // Show message when no tasks are available
     if (!project?.tasks || project.tasks.length === 0) {
         return (
-            <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-                <CardHeader className="px-6 py-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-b border-gray-100/50">
+            <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+                <CardHeader className="px-6 py-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-b border-border/50">
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
                             <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
@@ -172,8 +172,8 @@ export function TaskStatusOverview({ project }) {
                         <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                             <ChartPie className="h-8 w-8 text-gray-400" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Tasks Available</h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm max-w-md">
+                        <h3 className="text-lg font-medium text-foreground mb-2">No Tasks Available</h3>
+                        <p className="text-muted-foreground text-sm max-w-md">
                             This project doesn't have any tasks yet. Add tasks to see the status breakdown and progress analysis.
                         </p>
                     </div>
@@ -183,8 +183,8 @@ export function TaskStatusOverview({ project }) {
     }
 
     return (
-        <Card className="bg-white/80 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-            <CardHeader className="px-6 py-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-b border-gray-100/50">
+        <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+            <CardHeader className="px-6 py-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-b border-border/50">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-3">
                         <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
@@ -195,7 +195,7 @@ export function TaskStatusOverview({ project }) {
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            <span className="text-sm text-gray-600">{completionRate}% Completion Rate</span>
+                            <span className="text-sm text-muted-foreground">{completionRate}% Completion Rate</span>
                         </div>
                         <TooltipProvider>
                             <Tooltip>
@@ -265,8 +265,8 @@ export function TaskStatusOverview({ project }) {
                                     </PieChart>
                                 </ResponsiveContainer>
                                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                    <div className="text-2xl font-semibold text-gray-900">{totalTasks}%</div>
-                                    <div className="text-xs text-gray-500">Total Progress</div>
+                                    <div className="text-2xl font-semibold text-foreground">{totalTasks}%</div>
+                                    <div className="text-xs text-muted-foreground">Total Progress</div>
                                 </div>
                             </div>
 
@@ -284,7 +284,7 @@ export function TaskStatusOverview({ project }) {
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between">
-                                                <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                                                <div className="text-sm font-medium text-foreground">{item.name}</div>
                                                 <div className="flex items-center gap-1">
                                                     {item.trendDirection === "up" ? (
                                                         <TrendingUp className="h-3 w-3 text-green-500" />
@@ -297,10 +297,10 @@ export function TaskStatusOverview({ project }) {
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between mt-1">
-                                                <div className="text-sm text-gray-500">{item.count} tasks</div>
-                                                <div className="text-sm font-medium text-gray-900">{item.value}%</div>
+                                                <div className="text-sm text-muted-foreground">{item.count} tasks</div>
+                                                <div className="text-sm font-medium text-foreground">{item.value}%</div>
                                             </div>
-                                            <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                            <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
                                                 <div
                                                     className="h-full rounded-full transition-all duration-300"
                                                     style={{
@@ -362,23 +362,23 @@ export function TaskStatusOverview({ project }) {
                                                     (memberTasks.filter(t => t.status === 'completed').length / memberTasks.length) * 100 : 0;
 
                                                 return (
-                                                <div key={idx} className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Avatar className="h-8 w-8">
-                                                            <AvatarFallback className="bg-primary/10 text-primary">
+                                                    <div key={idx} className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Avatar className="h-8 w-8">
+                                                                <AvatarFallback className="bg-primary/10 text-primary">
                                                                     {member.name.split(' ').map(n => n[0]).join('')}
-                                                            </AvatarFallback>
-                                                        </Avatar>
-                                                        <div>
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <div>
                                                                 <p className="text-sm font-medium">{member.name}</p>
                                                                 <p className="text-xs text-muted-foreground">{member.role}</p>
                                                             </div>
-                                                    </div>
-                                                    <Progress
+                                                        </div>
+                                                        <Progress
                                                             value={memberProgress}
-                                                        className="w-24 h-2"
-                                                    />
-                                                </div>
+                                                            className="w-24 h-2"
+                                                        />
+                                                    </div>
                                                 );
                                             })}
                                         </div>

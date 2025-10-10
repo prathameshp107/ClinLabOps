@@ -22,17 +22,32 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * Fetch all users
+ * Fetch all users with pagination support
  * @param {Object} params - Query parameters (page, limit, role, status, search)
- * @returns {Promise<Array>} Array of users
+ * @returns {Promise<Object>} Object containing users array and pagination info
  */
 export async function getUsers(params = {}) {
     try {
         const response = await api.get('/users', { params });
-        // Return just the users array for compatibility with task management
-        return response.data.users || response.data;
+        // Return the full response object with pagination info
+        return response.data;
     } catch (error) {
         console.error('Error fetching users:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fetch all users without pagination
+ * @returns {Promise<Array>} Array of all users
+ */
+export async function getAllUsers() {
+    try {
+        // Fetch all users with a high limit to get everything
+        const response = await api.get('/users', { params: { limit: 1000 } });
+        return response.data.users || response.data;
+    } catch (error) {
+        console.error('Error fetching all users:', error);
         throw error;
     }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Table,
   TableBody,
@@ -37,7 +37,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Checkbox } from "@/components/ui/checkbox"
+import { cn } from "@/lib/utils"
 import {
   AlertCircle,
   AlertTriangle,
@@ -54,11 +67,39 @@ import {
   Trash2,
   Upload,
   MapPin,
-  Users
+  Users,
+  ChevronDown
 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 
-export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
+export function InventoryList({ inventoryItems, locations, onUpdateItem, onDeleteItem }) {
+  // Predefined categories and types
+  const predefinedCategories = [
+    "Chemicals",
+    "Biological Materials",
+    "Equipment",
+    "Reagents",
+    "Consumables",
+    "Glassware",
+    "Plastics",
+    "Instruments",
+    "Antibodies",
+    "Buffers"
+  ];
+
+  const predefinedTypes = [
+    "Reagent",
+    "Instrument",
+    "Consumable",
+    "Chemical",
+    "Biological",
+    "Glassware",
+    "Plasticware",
+    "Antibody",
+    "Buffer",
+    "Media"
+  ];
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
@@ -73,7 +114,7 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [currentEditItem, setCurrentEditItem] = useState(null)
   const [stockUpdateItem, setStockUpdateItem] = useState(null)
-  const [stockUpdateAmount, setStockUpdateAmount] = useState(0)
+  const [stockUpdateAmount, setStockUpdateAmount] = useState("")
   const [stockUpdateType, setStockUpdateType] = useState("add")
   // Add these missing state variables
   const [isSupplierEditOpen, setIsSupplierEditOpen] = useState(false)
@@ -90,13 +131,13 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
     name: "",
     category: "",
     type: "",
-    currentStock: 0,
-    minStock: 0,
-    maxStock: 100,
+    currentStock: "",
+    minStock: "",
+    maxStock: "",
     unit: "pcs",
     location: "",
     supplier: "",
-    cost: 0,
+    cost: "",
     expiryDate: "",
     batchNumber: "",
     notes: "",
@@ -104,6 +145,27 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
     hazardous: false,
     storageConditions: ""
   })
+
+  // State for combobox open states
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+  const [isTypeOpen, setIsTypeOpen] = useState(false)
+  const [isLocationOpen, setIsLocationOpen] = useState(false)
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false)
+  const [isEditTypeOpen, setIsEditTypeOpen] = useState(false)
+  const [isEditLocationOpen, setIsEditLocationOpen] = useState(false)
+
+  // State for custom entry modals
+  const [isCustomCategoryOpen, setIsCustomCategoryOpen] = useState(false)
+  const [isCustomTypeOpen, setIsCustomTypeOpen] = useState(false)
+  const [isCustomLocationOpen, setIsCustomLocationOpen] = useState(false)
+  const [isEditCustomCategoryOpen, setIsEditCustomCategoryOpen] = useState(false)
+  const [isEditCustomTypeOpen, setIsEditCustomTypeOpen] = useState(false)
+  const [isEditCustomLocationOpen, setIsEditCustomLocationOpen] = useState(false)
+
+  // State for custom entry values
+  const [customCategoryValue, setCustomCategoryValue] = useState("")
+  const [customTypeValue, setCustomTypeValue] = useState("")
+  const [customLocationValue, setCustomLocationValue] = useState("")
 
   // Get unique suppliers for filter
   const suppliers = ["all", ...new Set(inventoryItems.map(item => item.supplier).filter(Boolean))]
@@ -182,10 +244,10 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
     const itemToAdd = {
       ...newItem,
-      currentStock: parseInt(newItem.currentStock) || 0,
-      minStock: parseInt(newItem.minStock) || 0,
-      maxStock: parseInt(newItem.maxStock) || 100,
-      cost: parseFloat(newItem.cost) || 0,
+      currentStock: newItem.currentStock !== "" ? parseInt(newItem.currentStock) : 0,
+      minStock: newItem.minStock !== "" ? parseInt(newItem.minStock) : 0,
+      maxStock: newItem.maxStock !== "" ? parseInt(newItem.maxStock) : 100,
+      cost: newItem.cost !== "" ? parseFloat(newItem.cost) : 0,
       expiryDate: newItem.expiryDate ? new Date(newItem.expiryDate) : null
     }
 
@@ -195,13 +257,13 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
       name: "",
       category: "",
       type: "",
-      currentStock: 0,
-      minStock: 0,
-      maxStock: 100,
+      currentStock: "",
+      minStock: "",
+      maxStock: "",
       unit: "pcs",
       location: "",
       supplier: "",
-      cost: 0,
+      cost: "",
       expiryDate: "",
       batchNumber: "",
       notes: "",
@@ -217,10 +279,10 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
     const updatedItem = {
       ...currentEditItem,
-      currentStock: parseInt(currentEditItem.currentStock) || 0,
-      minStock: parseInt(currentEditItem.minStock) || 0,
-      maxStock: parseInt(currentEditItem.maxStock) || 100,
-      cost: parseFloat(currentEditItem.cost) || 0,
+      currentStock: currentEditItem.currentStock !== "" ? parseInt(currentEditItem.currentStock) : 0,
+      minStock: currentEditItem.minStock !== "" ? parseInt(currentEditItem.minStock) : 0,
+      maxStock: currentEditItem.maxStock !== "" ? parseInt(currentEditItem.maxStock) : 100,
+      cost: currentEditItem.cost !== "" ? parseFloat(currentEditItem.cost) : 0,
       expiryDate: currentEditItem.expiryDate ? new Date(currentEditItem.expiryDate) : null
     }
 
@@ -231,8 +293,15 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
 
   // Handle opening edit dialog
   const openEditDialog = (item) => {
-    setCurrentEditItem({ ...item })
-    setIsEditDialogOpen(true)
+    // Convert numeric values to strings for editing
+    const editItem = {
+      ...item,
+      currentStock: item.currentStock !== undefined && item.currentStock !== null ? item.currentStock.toString() : "",
+      minStock: item.minStock !== undefined && item.minStock !== null ? item.minStock.toString() : "",
+      cost: item.cost !== undefined && item.cost !== null ? item.cost.toString() : ""
+    };
+    setCurrentEditItem(editItem);
+    setIsEditDialogOpen(true);
   }
 
   // Handle deleting selected items
@@ -274,6 +343,12 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
   const handleStockUpdate = () => {
     if (!stockUpdateItem) return
 
+    // Check if amount is provided
+    if (stockUpdateAmount === "" || stockUpdateAmount === undefined) {
+      alert("Please enter an amount");
+      return;
+    }
+
     let newStock = stockUpdateItem.currentStock
     if (stockUpdateType === "add") {
       newStock += parseInt(stockUpdateAmount || 0)
@@ -292,15 +367,15 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
     onUpdateItem(updatedItem)
     setIsUpdateStockOpen(false)
     setStockUpdateItem(null)
-    setStockUpdateAmount(0)
+    setStockUpdateAmount("") // Changed from 0 to empty string
   }
 
   // Open stock update dialog
   const openStockUpdateDialog = (item) => {
-    setStockUpdateItem({ ...item })
-    setStockUpdateAmount(0)
-    setStockUpdateType("add")
-    setIsUpdateStockOpen(true)
+    setStockUpdateItem({ ...item });
+    setStockUpdateAmount(""); // Changed from 0 to empty string
+    setStockUpdateType("add");
+    setIsUpdateStockOpen(true);
   }
 
   // After your other handler functions like handleStockUpdate, openStockUpdateDialog, etc.
@@ -509,23 +584,107 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="category" className="text-sm font-medium">Category *</label>
-                      <Input
-                        id="category"
-                        value={newItem.category}
-                        onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                        placeholder="e.g., Chemicals, Equipment"
-                        className="border-2"
-                      />
+                      <Popover open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={isCategoryOpen}
+                            className="w-full justify-between border-2 hover:border-blue-400 transition-colors"
+                          >
+                            {newItem.category || "Select category..."}
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0 border-2 shadow-lg">
+                          <Command className="border-none">
+                            <CommandInput placeholder="Search category..." className="h-10" />
+                            <CommandEmpty>No category found.</CommandEmpty>
+                            <CommandGroup className="max-h-60 overflow-y-auto">
+                              {predefinedCategories.map((category) => (
+                                <CommandItem
+                                  key={category}
+                                  onSelect={(currentValue) => {
+                                    setNewItem({ ...newItem, category: currentValue })
+                                    setIsCategoryOpen(false)
+                                  }}
+                                  className="cursor-pointer hover:bg-blue-50 transition-colors"
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newItem.category === category ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {category}
+                                </CommandItem>
+                              ))}
+                              <CommandItem
+                                onSelect={(currentValue) => {
+                                  setIsCustomCategoryOpen(true)
+                                  setIsCategoryOpen(false)
+                                }}
+                                className="cursor-pointer hover:bg-blue-50 transition-colors text-blue-600"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add custom category...
+                              </CommandItem>
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="type" className="text-sm font-medium">Type *</label>
-                      <Input
-                        id="type"
-                        value={newItem.type}
-                        onChange={(e) => setNewItem({ ...newItem, type: e.target.value })}
-                        placeholder="e.g., Reagent, Instrument"
-                        className="border-2"
-                      />
+                      <Popover open={isTypeOpen} onOpenChange={setIsTypeOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={isTypeOpen}
+                            className="w-full justify-between border-2 hover:border-blue-400 transition-colors"
+                          >
+                            {newItem.type || "Select type..."}
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0 border-2 shadow-lg">
+                          <Command className="border-none">
+                            <CommandInput placeholder="Search type..." className="h-10" />
+                            <CommandEmpty>No type found.</CommandEmpty>
+                            <CommandGroup className="max-h-60 overflow-y-auto">
+                              {predefinedTypes.map((type) => (
+                                <CommandItem
+                                  key={type}
+                                  onSelect={(currentValue) => {
+                                    setNewItem({ ...newItem, type: currentValue })
+                                    setIsTypeOpen(false)
+                                  }}
+                                  className="cursor-pointer hover:bg-blue-50 transition-colors"
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newItem.type === type ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {type}
+                                </CommandItem>
+                              ))}
+                              <CommandItem
+                                onSelect={(currentValue) => {
+                                  setIsCustomTypeOpen(true)
+                                  setIsTypeOpen(false)
+                                }}
+                                className="cursor-pointer hover:bg-blue-50 transition-colors text-blue-600"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add custom type...
+                              </CommandItem>
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 
@@ -537,8 +696,8 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                         type="number"
                         min="0"
                         value={newItem.currentStock}
-                        onChange={(e) => setNewItem({ ...newItem, currentStock: parseInt(e.target.value) || 0 })}
-                        placeholder="0"
+                        onChange={(e) => setNewItem({ ...newItem, currentStock: e.target.value })}
+                        placeholder="Enter current stock"
                         className="border-2"
                       />
                     </div>
@@ -549,8 +708,8 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                         type="number"
                         min="0"
                         value={newItem.minStock}
-                        onChange={(e) => setNewItem({ ...newItem, minStock: parseInt(e.target.value) || 0 })}
-                        placeholder="5"
+                        onChange={(e) => setNewItem({ ...newItem, minStock: e.target.value })}
+                        placeholder="Enter minimum stock level"
                         className="border-2"
                       />
                     </div>
@@ -562,24 +721,65 @@ export function InventoryList({ inventoryItems, onUpdateItem, onDeleteItem }) {
                         min="0"
                         step="0.01"
                         value={newItem.cost}
-                        onChange={(e) => setNewItem({ ...newItem, cost: parseFloat(e.target.value) || 0 })}
-                        placeholder="0.00"
+                        onChange={(e) => setNewItem({ ...newItem, cost: e.target.value })}
+                        placeholder="Enter unit price"
                         className="border-2"
                       />
                     </div>
                   </div>
 
-                  <div classNremove the new task button and also the remove the New project button for the
-ame="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label htmlFor="location" className="text-sm font-medium">Storage Location *</label>
-                      <Input
-                        id="location"
-                        value={newItem.location}
-                        onChange={(e) => setNewItem({ ...newItem, location: e.target.value })}
-                        placeholder="e.g., Lab Room A, Shelf 3"
-                        className="border-2"
-                      />
+                      <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={isLocationOpen}
+                            className="w-full justify-between border-2 hover:border-blue-400 transition-colors"
+                          >
+                            {newItem.location || "Select location..."}
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0 border-2 shadow-lg">
+                          <Command className="border-none">
+                            <CommandInput placeholder="Search location..." className="h-10" />
+                            <CommandEmpty>No location found.</CommandEmpty>
+                            <CommandGroup className="max-h-60 overflow-y-auto">
+                              {locations && locations.map((location) => (
+                                <CommandItem
+                                  key={location._id}
+                                  onSelect={(currentValue) => {
+                                    setNewItem({ ...newItem, location: location.name })
+                                    setIsLocationOpen(false)
+                                  }}
+                                  className="cursor-pointer hover:bg-blue-50 transition-colors"
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      newItem.location === location.name ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {location.name}
+                                </CommandItem>
+                              ))}
+                              <CommandItem
+                                onSelect={(currentValue) => {
+                                  setIsCustomLocationOpen(true)
+                                  setIsLocationOpen(false)
+                                }}
+                                className="cursor-pointer hover:bg-blue-50 transition-colors text-blue-600"
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add custom location...
+                              </CommandItem>
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="supplier" className="text-sm font-medium">Supplier</label>
@@ -927,12 +1127,55 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="edit-category" className="text-sm font-medium">Category</label>
-                  <Input
-                    id="edit-category"
-                    value={currentEditItem.category}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, category: e.target.value })}
-                    placeholder="Category"
-                  />
+                  <Popover open={isEditCategoryOpen} onOpenChange={setIsEditCategoryOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={isEditCategoryOpen}
+                        className="w-full justify-between hover:border-blue-400 transition-colors"
+                      >
+                        {currentEditItem.category || "Select category..."}
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 border-2 shadow-lg">
+                      <Command className="border-none">
+                        <CommandInput placeholder="Search category..." className="h-10" />
+                        <CommandEmpty>No category found.</CommandEmpty>
+                        <CommandGroup className="max-h-60 overflow-y-auto">
+                          {predefinedCategories.map((category) => (
+                            <CommandItem
+                              key={category}
+                              onSelect={(currentValue) => {
+                                setCurrentEditItem({ ...currentEditItem, category: currentValue })
+                                setIsEditCategoryOpen(false)
+                              }}
+                              className="cursor-pointer hover:bg-blue-50 transition-colors"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  currentEditItem.category === category ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {category}
+                            </CommandItem>
+                          ))}
+                          <CommandItem
+                            onSelect={(currentValue) => {
+                              setIsEditCustomCategoryOpen(true)
+                              setIsEditCategoryOpen(false)
+                            }}
+                            className="cursor-pointer hover:bg-blue-50 transition-colors text-blue-600"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add custom category...
+                          </CommandItem>
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -942,8 +1185,8 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                     id="edit-currentStock"
                     type="number"
                     value={currentEditItem.currentStock}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, currentStock: parseInt(e.target.value) })}
-                    placeholder="0"
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, currentStock: e.target.value })}
+                    placeholder="Enter current stock"
                   />
                 </div>
                 <div className="space-y-2">
@@ -952,8 +1195,8 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                     id="edit-minStock"
                     type="number"
                     value={currentEditItem.minStock}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, minStock: parseInt(e.target.value) })}
-                    placeholder="0"
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, minStock: e.target.value })}
+                    placeholder="Enter minimum stock level"
                   />
                 </div>
                 <div className="space-y-2">
@@ -962,20 +1205,63 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                     id="edit-cost"
                     type="number"
                     value={currentEditItem.cost}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, cost: parseFloat(e.target.value) })}
-                    placeholder="0.00"
+                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, cost: e.target.value })}
+                    placeholder="Enter unit price"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label htmlFor="edit-location" className="text-sm font-medium">Location</label>
-                  <Input
-                    id="edit-location"
-                    value={currentEditItem.location}
-                    onChange={(e) => setCurrentEditItem({ ...currentEditItem, location: e.target.value })}
-                    placeholder="Storage location"
-                  />
+                  <Popover open={isEditLocationOpen} onOpenChange={setIsEditLocationOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={isEditLocationOpen}
+                        className="w-full justify-between hover:border-blue-400 transition-colors"
+                      >
+                        {currentEditItem.location || "Select location..."}
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 border-2 shadow-lg">
+                      <Command className="border-none">
+                        <CommandInput placeholder="Search location..." className="h-10" />
+                        <CommandEmpty>No location found.</CommandEmpty>
+                        <CommandGroup className="max-h-60 overflow-y-auto">
+                          {locations && locations.map((location) => (
+                            <CommandItem
+                              key={location._id}
+                              onSelect={(currentValue) => {
+                                setCurrentEditItem({ ...currentEditItem, location: location.name })
+                                setIsEditLocationOpen(false)
+                              }}
+                              className="cursor-pointer hover:bg-blue-50 transition-colors"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  currentEditItem.location === location.name ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {location.name}
+                            </CommandItem>
+                          ))}
+                          <CommandItem
+                            onSelect={(currentValue) => {
+                              setIsEditCustomLocationOpen(true)
+                              setIsEditLocationOpen(false)
+                            }}
+                            className="cursor-pointer hover:bg-blue-50 transition-colors text-blue-600"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add custom location...
+                          </CommandItem>
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="edit-supplier" className="text-sm font-medium">Supplier</label>
@@ -995,6 +1281,58 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                     placeholder="Unit (e.g., pcs, boxes)"
                   />
                 </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="edit-type" className="text-sm font-medium">Type</label>
+                <Popover open={isEditTypeOpen} onOpenChange={setIsEditTypeOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isEditTypeOpen}
+                      className="w-full justify-between hover:border-blue-400 transition-colors"
+                    >
+                      {currentEditItem.type || "Select type..."}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 border-2 shadow-lg">
+                    <Command className="border-none">
+                      <CommandInput placeholder="Search type..." className="h-10" />
+                      <CommandEmpty>No type found.</CommandEmpty>
+                      <CommandGroup className="max-h-60 overflow-y-auto">
+                        {predefinedTypes.map((type) => (
+                          <CommandItem
+                            key={type}
+                            onSelect={(currentValue) => {
+                              setCurrentEditItem({ ...currentEditItem, type: currentValue })
+                              setIsEditTypeOpen(false)
+                            }}
+                            className="cursor-pointer hover:bg-blue-50 transition-colors"
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                currentEditItem.type === type ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {type}
+                          </CommandItem>
+                        ))}
+                        <CommandItem
+                          onSelect={(currentValue) => {
+                            setIsEditCustomTypeOpen(true)
+                            setIsEditTypeOpen(false)
+                          }}
+                          className="cursor-pointer hover:bg-blue-50 transition-colors text-blue-600"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add custom type...
+                        </CommandItem>
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           )}
@@ -1046,6 +1384,7 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                   min="0"
                   value={stockUpdateAmount}
                   onChange={(e) => setStockUpdateAmount(e.target.value)}
+                  placeholder="Enter amount"
                 />
               </div>
 
@@ -1053,10 +1392,10 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <span className="text-sm font-medium">New Stock Level:</span>
                 <span>
                   {stockUpdateType === "add"
-                    ? stockUpdateItem.currentStock + parseInt(stockUpdateAmount || 0)
+                    ? stockUpdateItem.currentStock + (stockUpdateAmount ? parseInt(stockUpdateAmount) : 0)
                     : stockUpdateType === "subtract"
-                      ? Math.max(0, stockUpdateItem.currentStock - parseInt(stockUpdateAmount || 0))
-                      : parseInt(stockUpdateAmount || 0)
+                      ? Math.max(0, stockUpdateItem.currentStock - (stockUpdateAmount ? parseInt(stockUpdateAmount) : 0))
+                      : (stockUpdateAmount ? parseInt(stockUpdateAmount) : 0)
                   } {stockUpdateItem.unit || "pcs"}
                 </span>
               </div>
@@ -1118,6 +1457,246 @@ ame="grid grid-cols-1 md:grid-cols-3 gap-4">
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsLocationEditOpen(false)}>Cancel</Button>
             <Button onClick={handleLocationEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Category Modal for Add Item */}
+      <Dialog open={isCustomCategoryOpen} onOpenChange={setIsCustomCategoryOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg shadow-xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl">Add Custom Category</DialogTitle>
+            <DialogDescription>
+              Enter a custom category name for your inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="custom-category" className="text-sm font-medium">Category Name</label>
+              <Input
+                id="custom-category"
+                value={customCategoryValue}
+                onChange={(e) => setCustomCategoryValue(e.target.value)}
+                placeholder="Enter category name"
+                className="border-2 focus:border-blue-400"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setIsCustomCategoryOpen(false)
+              setCustomCategoryValue("")
+            }}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              if (!customCategoryValue.trim()) {
+                alert("Please enter a category name")
+                return
+              }
+              setNewItem({ ...newItem, category: customCategoryValue.trim() })
+              setIsCategoryOpen(false)
+              setIsCustomCategoryOpen(false)
+              setCustomCategoryValue("")
+            }}>Add Category</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Type Modal for Add Item */}
+      <Dialog open={isCustomTypeOpen} onOpenChange={setIsCustomTypeOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg shadow-xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl">Add Custom Type</DialogTitle>
+            <DialogDescription>
+              Enter a custom type name for your inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="custom-type" className="text-sm font-medium">Type Name</label>
+              <Input
+                id="custom-type"
+                value={customTypeValue}
+                onChange={(e) => setCustomTypeValue(e.target.value)}
+                placeholder="Enter type name"
+                className="border-2 focus:border-blue-400"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setIsCustomTypeOpen(false)
+              setCustomTypeValue("")
+            }}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              if (!customTypeValue.trim()) {
+                alert("Please enter a type name")
+                return
+              }
+              setNewItem({ ...newItem, type: customTypeValue.trim() })
+              setIsTypeOpen(false)
+              setIsCustomTypeOpen(false)
+              setCustomTypeValue("")
+            }}>Add Type</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Location Modal for Add Item */}
+      <Dialog open={isCustomLocationOpen} onOpenChange={setIsCustomLocationOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg shadow-xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl">Add Custom Location</DialogTitle>
+            <DialogDescription>
+              Enter a custom location name for your inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="custom-location" className="text-sm font-medium">Location Name</label>
+              <Input
+                id="custom-location"
+                value={customLocationValue}
+                onChange={(e) => setCustomLocationValue(e.target.value)}
+                placeholder="Enter location name"
+                className="border-2 focus:border-blue-400"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setIsCustomLocationOpen(false)
+              setCustomLocationValue("")
+            }}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              if (!customLocationValue.trim()) {
+                alert("Please enter a location name")
+                return
+              }
+              setNewItem({ ...newItem, location: customLocationValue.trim() })
+              setIsLocationOpen(false)
+              setIsCustomLocationOpen(false)
+              setCustomLocationValue("")
+            }}>Add Location</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Category Modal for Edit Item */}
+      <Dialog open={isEditCustomCategoryOpen} onOpenChange={setIsEditCustomCategoryOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg shadow-xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl">Add Custom Category</DialogTitle>
+            <DialogDescription>
+              Enter a custom category name for your inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-custom-category" className="text-sm font-medium">Category Name</label>
+              <Input
+                id="edit-custom-category"
+                value={customCategoryValue}
+                onChange={(e) => setCustomCategoryValue(e.target.value)}
+                placeholder="Enter category name"
+                className="border-2 focus:border-blue-400"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setIsEditCustomCategoryOpen(false)
+              setCustomCategoryValue("")
+            }}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              if (!customCategoryValue.trim()) {
+                alert("Please enter a category name")
+                return
+              }
+              setCurrentEditItem({ ...currentEditItem, category: customCategoryValue.trim() })
+              setIsEditCategoryOpen(false)
+              setIsEditCustomCategoryOpen(false)
+              setCustomCategoryValue("")
+            }}>Add Category</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Type Modal for Edit Item */}
+      <Dialog open={isEditCustomTypeOpen} onOpenChange={setIsEditCustomTypeOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg shadow-xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl">Add Custom Type</DialogTitle>
+            <DialogDescription>
+              Enter a custom type name for your inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-custom-type" className="text-sm font-medium">Type Name</label>
+              <Input
+                id="edit-custom-type"
+                value={customTypeValue}
+                onChange={(e) => setCustomTypeValue(e.target.value)}
+                placeholder="Enter type name"
+                className="border-2 focus:border-blue-400"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setIsEditCustomTypeOpen(false)
+              setCustomTypeValue("")
+            }}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              if (!customTypeValue.trim()) {
+                alert("Please enter a type name")
+                return
+              }
+              setCurrentEditItem({ ...currentEditItem, type: customTypeValue.trim() })
+              setIsEditTypeOpen(false)
+              setIsEditCustomTypeOpen(false)
+              setCustomTypeValue("")
+            }}>Add Type</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Location Modal for Edit Item */}
+      <Dialog open={isEditCustomLocationOpen} onOpenChange={setIsEditCustomLocationOpen}>
+        <DialogContent className="sm:max-w-[425px] rounded-lg shadow-xl">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-xl">Add Custom Location</DialogTitle>
+            <DialogDescription>
+              Enter a custom location name for your inventory item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-custom-location" className="text-sm font-medium">Location Name</label>
+              <Input
+                id="edit-custom-location"
+                value={customLocationValue}
+                onChange={(e) => setCustomLocationValue(e.target.value)}
+                placeholder="Enter location name"
+                className="border-2 focus:border-blue-400"
+              />
+            </div>
+          </div>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setIsEditCustomLocationOpen(false)
+              setCustomLocationValue("")
+            }}>Cancel</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => {
+              if (!customLocationValue.trim()) {
+                alert("Please enter a location name")
+                return
+              }
+              setCurrentEditItem({ ...currentEditItem, location: customLocationValue.trim() })
+              setIsEditLocationOpen(false)
+              setIsEditCustomLocationOpen(false)
+              setCustomLocationValue("")
+            }}>Add Location</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

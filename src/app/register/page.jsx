@@ -52,7 +52,6 @@ import {
   Mail,
   Lock,
   User,
-  Briefcase,
   FileCheck,
   Beaker,
   Microscope,
@@ -80,9 +79,6 @@ const formSchema = z.object({
     .regex(/[0-9]/, { message: "Password must contain at least one number" })
     .regex(/[^A-Za-z0-9]/, { message: "Password must contain at least one special character" }),
   confirmPassword: z.string(),
-  role: z.string({
-    required_error: "Please select a role",
-  }),
   department: z.string().optional(),
   termsAccepted: z.boolean().refine(val => val === true, {
     message: "You must accept the terms and conditions",
@@ -139,7 +135,6 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "",
       department: "",
       termsAccepted: false,
     },
@@ -147,7 +142,6 @@ export default function RegisterPage() {
 
   // Watch password to calculate strength
   const watchPassword = form.watch("password")
-  const watchRole = form.watch("role")
 
   useEffect(() => {
     // Calculate password strength
@@ -172,7 +166,6 @@ export default function RegisterPage() {
         name: data.fullName,
         email: data.email,
         password: data.password,
-        roles: [data.role || 'User'],
       })
 
       if (!response) {
@@ -206,18 +199,6 @@ export default function RegisterPage() {
     if (passwordStrength < 40) return "Weak"
     if (passwordStrength < 80) return "Medium"
     return "Strong"
-  }
-
-  // Get role icon
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case 'researcher': return <Microscope className="h-4 w-4" />;
-      case 'lab_technician': return <Beaker className="h-4 w-4" />;
-      case 'manager': return <Briefcase className="h-4 w-4" />;
-      case 'scientist': return <FlaskConical className="h-4 w-4" />;
-      case 'admin': return <FileCheck className="h-4 w-4" />;
-      default: return <User className="h-4 w-4" />;
-    }
   }
 
   // Success animation
@@ -697,34 +678,35 @@ export default function RegisterPage() {
                                 />
                               </motion.div>
 
-                              {/* Role Selection */}
+                              {/* Department Selection */}
                               <motion.div
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.3, delay: 0.5 }}
+                                transition={{ duration: 0.3 }}
                               >
                                 <FormField
                                   control={form.control}
-                                  name="role"
+                                  name="department"
                                   render={({ field }) => (
                                     <FormItem>
                                       <FormLabel className="flex items-center gap-2">
-                                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                                        Laboratory Role
+                                        <Microscope className="h-4 w-4 text-muted-foreground" />
+                                        Department (Optional)
                                       </FormLabel>
                                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
                                           <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
-                                            <SelectValue placeholder="Select your role" />
+                                            <SelectValue placeholder="Select your department" />
                                           </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                          <SelectItem value="researcher">Research Scientist</SelectItem>
-                                          <SelectItem value="lab_technician">Lab Technician</SelectItem>
-                                          <SelectItem value="manager">Lab Manager</SelectItem>
-                                          <SelectItem value="pathologist">Pathologist</SelectItem>
-                                          <SelectItem value="toxicologist">Toxicologist</SelectItem>
-                                          <SelectItem value="admin">Administrator</SelectItem>
+                                          <SelectItem value="toxicology">Toxicology</SelectItem>
+                                          <SelectItem value="pathology">Pathology</SelectItem>
+                                          <SelectItem value="bioanalysis">Bioanalysis</SelectItem>
+                                          <SelectItem value="pharmacology">Pharmacology</SelectItem>
+                                          <SelectItem value="molecular_biology">Molecular Biology</SelectItem>
+                                          <SelectItem value="histology">Histology</SelectItem>
+                                          <SelectItem value="clinical_pathology">Clinical Pathology</SelectItem>
                                         </SelectContent>
                                       </Select>
                                       <FormMessage />
@@ -732,45 +714,6 @@ export default function RegisterPage() {
                                   )}
                                 />
                               </motion.div>
-
-                              {/* Department Selection - Only shown for certain roles */}
-                              {(watchRole && watchRole !== "admin") && (
-                                <motion.div
-                                  initial={{ y: 20, opacity: 0 }}
-                                  animate={{ y: 0, opacity: 1 }}
-                                  transition={{ duration: 0.3 }}
-                                >
-                                  <FormField
-                                    control={form.control}
-                                    name="department"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel className="flex items-center gap-2">
-                                          <Microscope className="h-4 w-4 text-muted-foreground" />
-                                          Department
-                                        </FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                          <FormControl>
-                                            <SelectTrigger className="transition-all focus:ring-2 focus:ring-primary/20">
-                                              <SelectValue placeholder="Select your department" />
-                                            </SelectTrigger>
-                                          </FormControl>
-                                          <SelectContent>
-                                            <SelectItem value="toxicology">Toxicology</SelectItem>
-                                            <SelectItem value="pathology">Pathology</SelectItem>
-                                            <SelectItem value="bioanalysis">Bioanalysis</SelectItem>
-                                            <SelectItem value="pharmacology">Pharmacology</SelectItem>
-                                            <SelectItem value="molecular_biology">Molecular Biology</SelectItem>
-                                            <SelectItem value="histology">Histology</SelectItem>
-                                            <SelectItem value="clinical_pathology">Clinical Pathology</SelectItem>
-                                          </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </motion.div>
-                              )}
 
                               {/* Terms and Conditions */}
                               <motion.div

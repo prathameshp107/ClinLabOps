@@ -62,14 +62,15 @@ export default function MyPage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        const currentUser = await getCurrentUser();
+
+        // Fetch all tasks and projects, then filter on frontend
         const [
-          currentUser,
           tasks,
           projects,
           activities,
           notifications
         ] = await Promise.all([
-          getCurrentUser(),
           getTasks(),
           getProjects(),
           getUserDashboardActivities().catch(() => []),
@@ -270,7 +271,7 @@ export default function MyPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y">
-                      {assignedTasks.slice(0, 5).map((task, index) => (
+                      {createdTasks.slice(0, 5).map((task, index) => (
                         <motion.div
                           key={task.id}
                           initial={{ opacity: 0, x: -10 }}
@@ -335,7 +336,7 @@ export default function MyPage() {
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="divide-y">
-                      {memberProjects.slice(0, 3).map((project, index) => (
+                      {ownedProjects.slice(0, 3).map((project, index) => (
                         <motion.div
                           key={project.id}
                           initial={{ opacity: 0, x: -10 }}
@@ -393,30 +394,11 @@ export default function MyPage() {
 
           {/* Tasks Tab */}
           <TabsContent value="tasks" className="space-y-6 mt-6">
-            <Tabs defaultValue="assigned">
+            <Tabs defaultValue="created">
               <TabsList>
-                <TabsTrigger value="assigned">Assigned to Me</TabsTrigger>
                 <TabsTrigger value="created">Created by Me</TabsTrigger>
+                <TabsTrigger value="assigned">Assigned to Me</TabsTrigger>
               </TabsList>
-              <TabsContent value="assigned" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle>Tasks Assigned to Me</CardTitle>
-                      <Button variant="outline" size="sm" className="gap-1">
-                        <Filter size={16} />
-                        <span>Filter</span>
-                      </Button>
-                    </div>
-                    <CardDescription>
-                      Manage and track all tasks assigned to you
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <TaskList tasks={assignedTasks} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
               <TabsContent value="created" className="mt-6">
                 <Card>
                   <CardHeader>
@@ -436,35 +418,35 @@ export default function MyPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </Tabs>
-          </TabsContent>
-
-          {/* Projects Tab */}
-          <TabsContent value="projects" className="space-y-6 mt-6">
-            <Tabs defaultValue="member">
-              <TabsList>
-                <TabsTrigger value="member">Member Of</TabsTrigger>
-                <TabsTrigger value="owned">Created by Me</TabsTrigger>
-              </TabsList>
-              <TabsContent value="member" className="mt-6">
+              <TabsContent value="assigned" className="mt-6">
                 <Card>
                   <CardHeader>
                     <div className="flex justify-between items-center">
-                      <CardTitle>Projects I'm a Member Of</CardTitle>
+                      <CardTitle>Tasks Assigned to Me</CardTitle>
                       <Button variant="outline" size="sm" className="gap-1">
                         <Filter size={16} />
                         <span>Filter</span>
                       </Button>
                     </div>
                     <CardDescription>
-                      Projects where you are a team member or collaborator
+                      Manage and track all tasks assigned to you
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ProjectGrid projects={memberProjects} />
+                    <TaskList tasks={assignedTasks} />
                   </CardContent>
                 </Card>
               </TabsContent>
+            </Tabs>
+          </TabsContent>
+
+          {/* Projects Tab */}
+          <TabsContent value="projects" className="space-y-6 mt-6">
+            <Tabs defaultValue="owned">
+              <TabsList>
+                <TabsTrigger value="owned">Created by Me</TabsTrigger>
+                <TabsTrigger value="member">Member Of</TabsTrigger>
+              </TabsList>
               <TabsContent value="owned" className="mt-6">
                 <Card>
                   <CardHeader>
@@ -481,6 +463,25 @@ export default function MyPage() {
                   </CardHeader>
                   <CardContent>
                     <ProjectGrid projects={ownedProjects} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="member" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle>Projects I'm a Member Of</CardTitle>
+                      <Button variant="outline" size="sm" className="gap-1">
+                        <Filter size={16} />
+                        <span>Filter</span>
+                      </Button>
+                    </div>
+                    <CardDescription>
+                      Projects where you are a team member or collaborator
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ProjectGrid projects={memberProjects} />
                   </CardContent>
                 </Card>
               </TabsContent>

@@ -46,6 +46,7 @@ import {
   getReportFormats
 } from "@/services/dashboardService";
 import { getProjects } from "@/services/projectService";
+import { getTasks } from "@/services/taskService";
 
 // Components
 import { ReportsTab } from "@/components/dashboard/ReportsTab";
@@ -138,6 +139,7 @@ export default function DashboardPage() {
   const [reportTypes, setReportTypes] = useState([]);
   const [reportFormats, setReportFormats] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [tasks, setTasks] = useState([]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -152,7 +154,8 @@ export default function DashboardPage() {
           reportsListData,
           reportTypesData,
           reportFormatsData,
-          projectsData
+          projectsData,
+          tasksData
         ] = await Promise.all([
           getDashboardStats().catch(() => []),
           getTaskDistribution().catch(() => []),
@@ -161,7 +164,8 @@ export default function DashboardPage() {
           getReports().catch(() => []),
           getReportTypes().catch(() => []),
           getReportFormats().catch(() => []),
-          getProjects().catch(() => [])
+          getProjects().catch(() => []),
+          getTasks().catch(() => [])
         ]);
 
         // Ensure dashboardStats is an array with fallback data
@@ -212,6 +216,7 @@ export default function DashboardPage() {
         setReportTypes(reportTypesData);
         setReportFormats(reportFormatsData);
         setProjects(Array.isArray(projectsData) ? projectsData : []);
+        setTasks(Array.isArray(tasksData) ? tasksData : []);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -233,13 +238,15 @@ export default function DashboardPage() {
         taskDistData,
         activitiesData,
         teamPerfData,
-        projectsData
+        projectsData,
+        tasksData
       ] = await Promise.all([
         getDashboardStats().catch(() => []),
         getTaskDistribution().catch(() => []),
         getRecentActivities().catch(() => []),
         getTeamPerformance().catch(() => []),
-        getProjects().catch(() => [])
+        getProjects().catch(() => []),
+        getTasks().catch(() => [])
       ]);
 
       // Ensure dashboardStats is an array with fallback data
@@ -287,6 +294,7 @@ export default function DashboardPage() {
       setRecentActivities(activitiesData);
       setTeamPerformance(teamPerfData);
       setProjects(Array.isArray(projectsData) ? projectsData : []);
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (error) {
       console.error('Failed to refresh dashboard data:', error);
     } finally {
@@ -307,7 +315,59 @@ export default function DashboardPage() {
     }
   };
 
-  const recentTasks = tasksOverviewData.recentTasks;
+  // Function to check if a date is in the current month
+  const isDateInCurrentMonth = (dateString) => {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  // Function to get upcoming deadlines for the current month
+  const getUpcomingDeadlines = () => {
+    const upcomingDeadlines = [];
+
+    // Add tasks with due dates in the current month
+    if (Array.isArray(tasks)) {
+      tasks
+        .filter(task => task?.dueDate && isDateInCurrentMonth(task.dueDate))
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+        .slice(0, 5)
+        .forEach(task => {
+          upcomingDeadlines.push({
+            id: `task-${task.id}`,
+            title: task.title,
+            dueDate: task.dueDate,
+            status: task.status,
+            type: 'task'
+          });
+        });
+    }
+
+    // Add projects with end dates in the current month
+    if (Array.isArray(projects)) {
+      projects
+        .filter(project => project?.endDate && isDateInCurrentMonth(project.endDate))
+        .sort((a, b) => new Date(a.endDate) - new Date(b.endDate))
+        .slice(0, 5 - upcomingDeadlines.length) // Fill remaining slots
+        .forEach(project => {
+          upcomingDeadlines.push({
+            id: `project-${project.id}`,
+            title: project.name,
+            dueDate: project.endDate,
+            status: project.status,
+            type: 'project'
+          });
+        });
+    }
+
+    // Sort all deadlines by date
+    return upcomingDeadlines
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5);
+  };
+
+  const recentTasks = getUpcomingDeadlines();
 
   // Format time for system logs
   const formatTime = (dateString) => {
@@ -533,7 +593,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle className="text-lg">Upcoming Deadlines</CardTitle>
-                          <CardDescription className="text-sm">Tasks due soon</CardDescription>
+                          <CardDescription className="text-sm">Tasks and projects due this month</CardDescription>
                         </div>
                         <Button variant="ghost" size="sm" className="text-xs h-8 text-muted-foreground">
                           View All
@@ -543,22 +603,22 @@ export default function DashboardPage() {
                     <CardContent>
                       <div className="flex flex-col gap-2">
                         {recentTasks
-                          .filter(task => task?.dueDate)
+                          .filter(item => item?.dueDate)
                           .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-                          .slice(0, 3)
-                          .map((task) => (
-                            <div key={`deadline-${task.id}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                          .slice(0, 5)
+                          .map((item) => (
+                            <div key={`deadline-${item.id}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
                               <div className="flex-shrink-0">
-                                <div className="h-2 w-2 rounded-full bg-primary"></div>
+                                <div className={`h-2 w-2 rounded-full ${item.type === 'project' ? 'bg-purple-500' : 'bg-primary'}`}></div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{task.title}</p>
+                                <p className="text-sm font-medium truncate">{item.title}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  Due {new Date(task.dueDate).toLocaleDateString()}
+                                  Due {new Date(item.dueDate).toLocaleDateString()}
                                 </p>
                               </div>
-                              <Badge variant={getStatusVariant(task.status)} className="text-xs">
-                                {task.status || 'Unknown'}
+                              <Badge variant={getStatusVariant(item.status)} className="text-xs">
+                                {item.status || 'Unknown'}
                               </Badge>
                             </div>
                           ))}

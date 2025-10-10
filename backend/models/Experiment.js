@@ -8,6 +8,37 @@ const versionHistorySchema = new Schema({
   changes: { type: String, required: true }
 });
 
+// Define comment schema
+const commentSchema = new Schema({
+  author: {
+    type: String,
+    required: true
+  },
+  text: {
+    type: String,
+    required: true
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  replies: [{
+    author: {
+      type: String,
+      required: true
+    },
+    text: {
+      type: String,
+      required: true
+    },
+    date: {
+      type: Date,
+      default: Date.now
+    },
+    replies: [this] // Self-referencing for nested replies
+  }]
+});
+
 const experimentSchema = new Schema({
   title: {
     type: String,
@@ -43,7 +74,7 @@ const experimentSchema = new Schema({
     type: Date,
     required: [true, 'End date is required'],
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         // End date should be after start date
         return this.startDate ? value > this.startDate : true;
       },
@@ -54,6 +85,14 @@ const experimentSchema = new Schema({
     type: String,
     trim: true
   }],
+  // Add project reference
+  projectId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Project',
+    required: false
+  },
+  // Add comments field
+  comments: [commentSchema],
   version: {
     type: Number,
     default: 1
@@ -78,7 +117,7 @@ experimentSchema.index({
 });
 
 // Pre-save hook to manage version history
-experimentSchema.pre('save', function(next) {
+experimentSchema.pre('save', function (next) {
   if (this.isNew) {
     // For new documents, add initial version
     this.versionHistory.push({
@@ -101,7 +140,7 @@ experimentSchema.pre('save', function(next) {
 });
 
 // Static method to get experiment statistics
-experimentSchema.statics.getStats = async function() {
+experimentSchema.statics.getStats = async function () {
   const stats = await this.aggregate([
     {
       $group: {

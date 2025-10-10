@@ -276,3 +276,49 @@ export async function deleteProtocolFile(protocolId, fileId) {
     throw error.response?.data || error.message;
   }
 }
+
+/**
+ * Get pending protocols (protocols with isPublic: false)
+ * @param {Object} params - Query parameters (page, limit, category, search)
+ * @returns {Promise<Object>} Response with pending protocols data and pagination info
+ */
+export async function getPendingProtocols(params = {}) {
+  try {
+    // Use the dedicated endpoint for pending protocols
+    const response = await api.get('/protocols/pending', { params });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching pending protocols:', error);
+    throw error.response?.data || error.message;
+  }
+}
+
+/**
+ * Approve a protocol (set isPublic to true)
+ * @param {string} id - Protocol ID to approve
+ * @returns {Promise<Object>} Approved protocol
+ */
+export async function approveProtocol(id) {
+  try {
+    const response = await api.put(`/protocols/${id}/approve`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error approving protocol ${id}:`, error);
+    throw error.response?.data || error.message;
+  }
+}
+
+/**
+ * Reject a protocol (keep isPublic as false)
+ * @param {string} id - Protocol ID to reject
+ * @returns {Promise<Object>} Rejected protocol
+ */
+export async function rejectProtocol(id) {
+  try {
+    const response = await api.put(`/protocols/${id}/reject`);
+    return response.data.data;
+  } catch (error) {
+    console.error(`Error rejecting protocol ${id}:`, error);
+    throw error.response?.data || error.message;
+  }
+}

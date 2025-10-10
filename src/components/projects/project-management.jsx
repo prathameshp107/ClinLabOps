@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils"
 import { ProjectTable } from "./project-table"
 import { ProjectCardView } from "./project-card-view"
+import { CategorizedProjects, getProjectCategory } from "./categorized-projects"
 import { AddProjectDialog } from "./add-project-dialog"
 import { EditProjectDialog } from "./edit-project-dialog"
 import { DeleteProjectDialog } from "./delete-project-dialog"
@@ -51,7 +52,6 @@ export function ProjectManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [filteredProjects, setFilteredProjects] = useState(projects);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -60,6 +60,7 @@ export function ProjectManagement() {
   const [activeTab, setActiveTab] = useState("all"); // "all" or "favorites"
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
+  const [activeCategory, setActiveCategory] = useState("all"); // "all", "research", "regulatory", "miscellaneous"
 
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
@@ -76,10 +77,15 @@ export function ProjectManagement() {
   useEffect(() => {
     const fetchUsersAndCurrentUser = async () => {
       try {
-        const [fetchedUsers, currentUserData] = await Promise.all([
+        const [fetchedUsersResponse, currentUserData] = await Promise.all([
           getUsers(),
           getCurrentUser()
         ]);
+
+        // Handle both paginated and non-paginated responses
+        const fetchedUsers = Array.isArray(fetchedUsersResponse)
+          ? fetchedUsersResponse
+          : (fetchedUsersResponse.users || []);
 
         // Convert users array to object for easier lookup
         const usersObj = {};
@@ -130,8 +136,8 @@ export function ProjectManagement() {
     }
   }, [projects]);
 
-  // Apply filters, search, and favorites tab when they change
-  useEffect(() => {
+  // Memoized filtered projects to avoid sorting issues
+  const filteredProjects = useMemo(() => {
     let filtered = [...projects];
 
     // Apply favorites filter if on favorites tab
@@ -146,7 +152,7 @@ export function ProjectManagement() {
         project =>
           project.name.toLowerCase().includes(query) ||
           project.description.toLowerCase().includes(query) ||
-          project.tags.some(tag => tag.toLowerCase().includes(query))
+          (project.tags && project.tags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
 
@@ -172,8 +178,48 @@ export function ProjectManagement() {
       filtered = filtered.filter(project => new Date(project.endDate) < now);
     }
 
-    setFilteredProjects(filtered);
-  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab]);
+    // Apply category filter
+    if (activeCategory !== "all") {
+      filtered = filtered.filter(project => getProjectCategory(project) === activeCategory);
+    }
+
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered = [...filtered].sort((a, b) => {
+        // Handle special cases for sorting
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Handle date comparisons
+        if (sortConfig.key === 'startDate' || sortConfig.key === 'endDate') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+
+        // Handle progress comparisons
+        if (sortConfig.key === 'progress') {
+          aValue = aValue || 0;
+          bValue = bValue || 0;
+        }
+
+        // Handle null/undefined values
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (bValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+        // Compare values
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab, activeCategory, sortConfig]);
 
   // Sorting function
   const requestSort = (key) => {
@@ -182,19 +228,6 @@ export function ProjectManagement() {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-
-    // Apply sorting
-    const sortedProjects = [...filteredProjects].sort((a, b) => {
-      if (a[key] < b[key]) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (a[key] > b[key]) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-
-    setFilteredProjects(sortedProjects);
   };
 
   const handleProjectAction = (action, project) => {
@@ -379,6 +412,14 @@ export function ProjectManagement() {
     setProjects(updatedProjects);
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setTimeframeFilter("all");
+    setActiveCategory("all");
+  };
+
   if (loading) return <ProjectsLoading />;
   if (error) {
     return (
@@ -486,6 +527,42 @@ export function ProjectManagement() {
         </Tabs>
       </div>
 
+      {/* Category Filter Tabs */}
+      <div className="border-b border-border/50">
+        <Tabs
+          value={activeCategory}
+          onValueChange={setActiveCategory}
+          className="w-full"
+        >
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6">
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
+            >
+              All Projects
+            </TabsTrigger>
+            <TabsTrigger
+              value="research"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-blue-500 transition-colors"
+            >
+              Research
+            </TabsTrigger>
+            <TabsTrigger
+              value="regulatory"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-amber-500 transition-colors"
+            >
+              Regulatory
+            </TabsTrigger>
+            <TabsTrigger
+              value="miscellaneous"
+              className="data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-purple-500 transition-colors"
+            >
+              Miscellaneous
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       {/* Main Content Area */}
       {activeView === "projects" && (
         <>
@@ -544,13 +621,26 @@ export function ProjectManagement() {
           </div>
 
           {/* Projects Display */}
-          <ProjectDisplay
-            projects={filteredProjects}
-            viewMode={viewMode}
-            handleProjectAction={handleProjectAction}
-            sortConfig={sortConfig}
-            requestSort={requestSort}
-          />
+          {activeCategory === "all" ? (
+            <CategorizedProjects
+              projects={filteredProjects}
+              viewMode={viewMode}
+              handleProjectAction={handleProjectAction}
+              sortConfig={sortConfig}
+              requestSort={requestSort}
+              searchQuery={searchQuery}
+              onClearFilters={clearFilters}
+            />
+          ) : (
+            <ProjectDisplay
+              projects={filteredProjects}
+              viewMode={viewMode}
+              handleProjectAction={handleProjectAction}
+              sortConfig={sortConfig}
+              requestSort={requestSort}
+              onClearFilters={clearFilters}
+            />
+          )}
         </>
       )}
 
@@ -626,7 +716,7 @@ export function ProjectManagement() {
 }
 
 // ProjectDisplay component to avoid duplicate code
-function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort }) {
+function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort, onClearFilters }) {
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-16 border border-dashed border-border/50 rounded-2xl bg-muted/10">
@@ -640,12 +730,7 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
         <Button
           variant="outline"
           className="gap-2"
-          onClick={() => {
-            setSearchQuery("");
-            setStatusFilter("all");
-            setPriorityFilter("all");
-            setTimeframeFilter("all");
-          }}
+          onClick={onClearFilters}
         >
           <FilterIcon className="h-4 w-4" />
           Clear Filters

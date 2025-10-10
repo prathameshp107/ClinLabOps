@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const ActivityService = require('../services/activityService');
 
 // Helper function to map activity types to frontend action types
 function getActionTypeFromActivityType(type) {
@@ -36,80 +37,75 @@ exports.getAllActivities = async (req, res) => {
       endDate
     } = req.query;
 
-    // Build filter object
-    const filter = {};
+    console.log('Fetching activities with params:', { page, limit, category, type, userId, search, startDate, endDate });
 
-    if (category) {
-      filter['meta.category'] = category;
-    }
+    // Use ActivityService to get activities
+    const result = await ActivityService.getActivities({
+      category,
+      type,
+      userId,
+      startDate,
+      endDate
+    }, page, limit);
 
-    if (type) {
-      filter.type = type;
-    }
-
-    if (userId) {
-      filter.$or = [
-        { user: userId },
-        { 'meta.targetUserId': userId }
-      ];
-    }
-
-    if (search) {
-      filter.$or = [
-        { description: { $regex: search, $options: 'i' } },
-        { type: { $regex: search, $options: 'i' } },
-        { 'meta.details': { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Date range filter
-    if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) {
-        filter.createdAt.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        filter.createdAt.$lte = new Date(endDate);
-      }
-    }
-
-    const activities = await Activity.find(filter)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-
-    const total = await Activity.countDocuments(filter);
+    console.log('Activities fetched successfully. Count:', result.activities?.length || 0);
 
     // Transform activities to match frontend format for user management activities
-    let transformedActivities = activities;
+    let transformedActivities = result.activities;
     if (category === 'user_management') {
-      transformedActivities = activities.map(activity => ({
-        id: activity._id,
-        timestamp: activity.createdAt,
-        user: {
+      console.log('Transforming activities for user management category');
+      transformedActivities = result.activities.map(activity => {
+        // Log activity for debugging
+        console.log('Processing activity:', {
+          id: activity._id,
+          hasUser: !!activity.user,
+          userId: activity.user?._id,
+          userName: activity.user?.name,
+          type: activity.type,
+          hasMeta: !!activity.meta
+        });
+
+        // Safely extract user information
+        const user = activity.user ? {
           id: activity.user._id,
           name: activity.user.name,
           email: activity.user.email
-        },
-        actionType: getActionTypeFromActivityType(activity.type),
-        action: activity.description,
-        target: {
-          id: activity.meta?.targetUserId,
-          name: activity.meta?.targetUserName,
+        } : {
+          id: null,
+          name: 'Unknown User',
+          email: 'Unknown Email'
+        };
+
+        // Safely extract target information
+        const target = {
+          id: activity.meta?.targetUserId || null,
+          name: activity.meta?.targetUserName || 'Unknown Target',
           type: 'user'
-        },
-        details: activity.meta?.details || activity.description
-      }));
+        };
+
+        // Safely extract other fields
+        const id = activity._id || null;
+        const timestamp = activity.createdAt || new Date();
+        const actionType = getActionTypeFromActivityType(activity.type);
+        const action = activity.description || 'Unknown Action';
+        const details = activity.meta?.details || activity.description || '';
+
+        return {
+          id,
+          timestamp,
+          user,
+          actionType,
+          action,
+          target,
+          details
+        };
+      });
+      result.activities = transformedActivities;
     }
 
-    res.json({
-      activities: transformedActivities,
-      totalPages: Math.ceil(total / limit),
-      currentPage: parseInt(page),
-      total
-    });
+    res.json(result);
   } catch (err) {
+    console.error('Error in getAllActivities:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -128,6 +124,7 @@ exports.getActivityById = async (req, res) => {
 
     res.json(activity);
   } catch (err) {
+    console.error('Error in getActivityById:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -145,17 +142,17 @@ exports.createActivity = async (req, res) => {
       return res.status(400).json({ error: 'User authentication required' });
     }
 
-    const activity = new Activity({
+    // Use ActivityService to log activity
+    const activity = await ActivityService.logActivity({
       type,
       description,
-      user: userId,
+      userId,
       meta
     });
 
-    await activity.save();
-
-    // Populate user info before returning
-    await activity.populate('user', 'name email');
+    if (!activity) {
+      return res.status(500).json({ error: 'Failed to log activity' });
+    }
 
     res.status(201).json(activity);
   } catch (err) {
@@ -170,75 +167,14 @@ exports.getActivityStats = async (req, res) => {
   try {
     const { category, startDate, endDate } = req.query;
 
-    const filter = {};
-    if (category) {
-      filter['meta.category'] = category;
-    }
-
-    if (startDate || endDate) {
-      filter.createdAt = {};
-      if (startDate) {
-        filter.createdAt.$gte = new Date(startDate);
-      }
-      if (endDate) {
-        filter.createdAt.$lte = new Date(endDate);
-      }
-    }
-
-    // Get total activities
-    const totalActivities = await Activity.countDocuments(filter);
-
-    // Get activities by type
-    const activitiesByType = await Activity.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: '$type',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } }
-    ]);
-
-    // Get activities by user
-    const activitiesByUser = await Activity.aggregate([
-      { $match: filter },
-      {
-        $group: {
-          _id: '$user',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: 'users',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'user'
-        }
-      },
-      {
-        $project: {
-          count: 1,
-          user: { $arrayElemAt: ['$user.name', 0] }
-        }
-      }
-    ]);
-
-    // Get recent activities
-    const recentActivities = await Activity.find(filter)
-      .populate('user', 'name email')
-      .sort({ createdAt: -1 })
-      .limit(5);
-
-    res.json({
-      totalActivities,
-      activitiesByType,
-      activitiesByUser,
-      recentActivities
+    // Use ActivityService to get statistics
+    const stats = await ActivityService.getActivityStats({
+      category,
+      startDate,
+      endDate
     });
+
+    res.json(stats);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

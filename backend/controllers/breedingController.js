@@ -1,11 +1,27 @@
 const BreedingPair = require('../models/BreedingPair');
 const Animal = require('../models/Animal');
 const mongoose = require('mongoose');
+const ActivityService = require('../services/activityService');
 
 // Get all breeding pairs
 const getBreedingPairs = async (req, res) => {
     try {
         const breedingPairs = await BreedingPair.find().sort({ createdAt: -1 });
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'breeding_pairs_listed',
+                description: `${req.user.name} viewed the list of breeding pairs`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'breeding',
+                    breedingPairCount: breedingPairs.length,
+                    operation: 'list'
+                }
+            });
+        }
+        
         res.status(200).json(breedingPairs);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching breeding pairs', error: error.message });
@@ -25,6 +41,20 @@ const getBreedingPairById = async (req, res) => {
 
         if (!breedingPair) {
             return res.status(404).json({ message: 'Breeding pair not found' });
+        }
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'breeding_pair_viewed',
+                description: `${req.user.name} viewed breeding pair`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'breeding',
+                    breedingPairId: breedingPair._id,
+                    operation: 'view'
+                }
+            });
         }
 
         res.status(200).json(breedingPair);
@@ -67,6 +97,24 @@ const createBreedingPair = async (req, res) => {
 
         const savedBreedingPair = await breedingPair.save();
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'breeding_pair_created',
+                description: `${req.user.name} created breeding pair for ${maleAnimal.name} and ${femaleAnimal.name}`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'breeding',
+                    breedingPairId: savedBreedingPair._id,
+                    maleId: maleAnimal._id,
+                    femaleId: femaleAnimal._id,
+                    maleName: maleAnimal.name,
+                    femaleName: femaleAnimal.name,
+                    operation: 'create'
+                }
+            });
+        }
+
         res.status(201).json(savedBreedingPair);
     } catch (error) {
         res.status(500).json({ message: 'Error creating breeding pair', error: error.message });
@@ -93,6 +141,20 @@ const updateBreedingPair = async (req, res) => {
             return res.status(404).json({ message: 'Breeding pair not found' });
         }
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'breeding_pair_updated',
+                description: `${req.user.name} updated breeding pair`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'breeding',
+                    breedingPairId: breedingPair._id,
+                    operation: 'update'
+                }
+            });
+        }
+
         res.status(200).json(breedingPair);
     } catch (error) {
         res.status(500).json({ message: 'Error updating breeding pair', error: error.message });
@@ -112,6 +174,19 @@ const deleteBreedingPair = async (req, res) => {
 
         if (!breedingPair) {
             return res.status(404).json({ message: 'Breeding pair not found' });
+        }
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'breeding_pair_deleted',
+                description: `${req.user.name} deleted breeding pair`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'breeding',
+                    operation: 'delete'
+                }
+            });
         }
 
         res.status(200).json({ message: 'Breeding pair deleted successfully' });

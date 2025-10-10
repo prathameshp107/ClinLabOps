@@ -13,7 +13,8 @@ const project1 = {
     complexity: 4,
     department: "Research & Development",
     projectCode: "LMS-2024-001",
-    tags: ["laboratory", "management", "automation", "research", "equipment", "monitoring", "data-analysis"],
+    tags: ["laboratory", "management", "automation", "research", "equipment", "monitoring", "data-analysis", "research"],
+    category: "research",
 
     team: [
         {
@@ -548,7 +549,8 @@ const project2 = {
     complexity: 5,
     department: "Pharmaceutical Research",
     projectCode: "DDP-2024-002",
-    tags: ["drug-discovery", "ai", "machine-learning", "pharmaceutical", "automation", "molecular-analysis"],
+    tags: ["drug-discovery", "ai", "machine-learning", "pharmaceutical", "automation", "molecular-analysis", "research"],
+    category: "research",
 
     team: [
         {
@@ -726,7 +728,9 @@ const project3 = {
     complexity: 3,
     department: "Environmental Science",
     projectCode: "EMS-2024-003",
-    tags: ["environmental", "monitoring", "iot", "sensors", "analytics", "compliance"],
+    tags: ["environmental", "monitoring", "iot", "sensors", "analytics", "compliance", "regulatory"],
+    category: "regulatory",
+    projectType: "iso", // Added projectType field
 
     team: [
         {
@@ -837,7 +841,8 @@ const project4 = {
     complexity: 4,
     department: "Genomics",
     projectCode: "GRP-2024-004",
-    tags: ["genomics", "dna-sequencing", "bioinformatics", "personalized-medicine", "research"],
+    tags: ["genomics", "dna-sequencing", "bioinformatics", "personalized-medicine", "research", "research"],
+    category: "research",
 
     team: [
         {
@@ -1007,7 +1012,9 @@ const project5 = {
     complexity: 5,
     department: "Biomedical Engineering",
     projectCode: "BDT-2024-005",
-    tags: ["biomedical", "device-testing", "validation", "regulatory", "safety", "medical-devices"],
+    tags: ["biomedical", "device-testing", "validation", "regulatory", "safety", "medical-devices", "regulatory"],
+    category: "regulatory",
+    projectType: "fda", // Added projectType field
 
     team: [
         {

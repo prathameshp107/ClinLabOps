@@ -28,8 +28,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-// Remove Calendar import
-// import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, PlusCircle, Save, X, Clock } from "lucide-react"
@@ -40,7 +38,6 @@ import { useForm } from "react-hook-form"
 import * as z from "zod"
 import { TaskSubtasks } from "./task-subtasks"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-// Add DatePicker import
 import { DatePicker } from "@/components/ui/date-picker"
 import { getUsers } from "@/services/userService"
 
@@ -123,13 +120,35 @@ export const TaskFormDialog = ({
   useEffect(() => {
     if (open) {
       if (mode === "edit" && task) {
+        // For editing, we need to find the assignee ID from the user array
+        // The task.assignee might be a name or ID
+        let assigneeId = "unassigned";
+        if (task.assignee) {
+          // First try to find by ID match
+          const assigneeUser = userArray.find(user =>
+            (user._id || user.id) === task.assignee ||
+            (user._id || user.id) === task.assigneeId
+          );
+
+          // If not found by ID, try to find by name match
+          if (!assigneeUser) {
+            const assigneeUser = userArray.find(user =>
+              user.name === task.assignee ||
+              `${user.firstName || ''} ${user.lastName || ''}`.trim() === task.assignee ||
+              user.email === task.assignee
+            );
+          }
+
+          assigneeId = assigneeUser ? (assigneeUser._id || assigneeUser.id) : "unassigned";
+        }
+
         form.reset({
           title: task.title,
           description: task.description,
           status: task.status,
           priority: task.priority || "medium",
           dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
-          assigneeId: task.assigneeId || "unassigned",
+          assigneeId: assigneeId,
           experimentId: task.experimentId || "none_experiment",
           parentTaskId: task.parentTaskId || "none_task",
           tags: task.tags || [],
@@ -153,7 +172,7 @@ export const TaskFormDialog = ({
         setSelectedTemplate(null);
       }
     }
-  }, [open, mode, task, form]);
+  }, [open, mode, task, form, userArray]);
 
   // Handle applying a template
   const handleApplyTemplate = (template) => {
@@ -184,13 +203,9 @@ export const TaskFormDialog = ({
       experimentName: experiments.find(e => e.id === data.experimentId)?.name || "",
       tags,
       subtasks,
-      // Add assignee information
-      assignee: assignee ? {
-        id: assignee.id,
-        name: assignee.name,
-        avatar: assignee.avatar || null
-      } : null,
-      assigneeName: assignee?.name || "Unassigned"
+      // Set assignee as the user ID or name (string), not an object
+      assignee: assignee ? (assignee._id || assignee.id) : null,
+      assigneeName: assignee?.name || `${assignee?.firstName || ''} ${assignee?.lastName || ''}`.trim() || assignee?.email || "Unassigned"
     };
 
     // If editing, add the id
@@ -227,7 +242,7 @@ export const TaskFormDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden p-0 gap-0 border border-border/40 shadow-lg rounded-lg bg-background/95 backdrop-blur-sm flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/30">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/30 bg-background">
           <DialogTitle className="text-xl font-semibold flex items-center gap-2">
             {mode === "create" ? (
               <>
@@ -254,7 +269,7 @@ export const TaskFormDialog = ({
 
         <div className="px-6 py-4 overflow-y-auto flex-1 min-h-0">
           {mode === "create" && templatesArray.length > 0 && (
-            <div className="mb-5 bg-muted/50 p-4 rounded-lg border border-border/30">
+            <div className="mb-5 bg-muted/50 p-4 rounded-lg border border-border/30 dark:bg-muted/20">
               <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
                 <span className="bg-primary/10 p-1 rounded-full">
                   <CalendarIcon className="h-4 w-4 text-primary" />
@@ -265,7 +280,7 @@ export const TaskFormDialog = ({
                 const template = templatesArray.find(t => t.id === value);
                 handleApplyTemplate(template);
               }}>
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-background dark:bg-muted/20">
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
@@ -308,7 +323,7 @@ export const TaskFormDialog = ({
             <TabsContent value="details" className="pt-2 space-y-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                  <div className="bg-muted/20 p-4 rounded-lg border border-border/30">
+                  <div className="bg-muted/20 p-4 rounded-lg border border-border/30 dark:bg-muted/10">
                     <FormField
                       control={form.control}
                       name="title"
@@ -357,7 +372,7 @@ export const TaskFormDialog = ({
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-muted/20 p-4 rounded-lg border border-border/30 space-y-5">
+                    <div className="bg-muted/20 p-4 rounded-lg border border-border/30 space-y-5 dark:bg-muted/10">
                       <h3 className="text-sm font-medium text-foreground/80 mb-2 flex items-center gap-2">
                         <span className="bg-green-500/10 p-1 rounded-full">
                           <CalendarIcon className="h-3.5 w-3.5 text-green-500" />
@@ -377,26 +392,26 @@ export const TaskFormDialog = ({
                               value={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="focus-visible:ring-primary/70 shadow-sm">
+                                <SelectTrigger className="focus-visible:ring-primary/70 shadow-sm bg-background dark:bg-muted/20">
                                   <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="pending">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 mr-2 dark:bg-yellow-400"></div>
                                     Pending
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="in-progress">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2 dark:bg-blue-400"></div>
                                     In Progress
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="completed">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-2 dark:bg-green-400"></div>
                                     Completed
                                   </div>
                                 </SelectItem>
@@ -419,32 +434,32 @@ export const TaskFormDialog = ({
                               value={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="focus-visible:ring-primary/70 shadow-sm">
+                                <SelectTrigger className="focus-visible:ring-primary/70 shadow-sm bg-background dark:bg-muted/20">
                                   <SelectValue placeholder="Select priority" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="low">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 mr-2 dark:bg-green-400"></div>
                                     Low
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="medium">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2 dark:bg-blue-400"></div>
                                     Medium
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="high">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-orange-500 mr-2 dark:bg-orange-400"></div>
                                     High
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="critical">
                                   <div className="flex items-center">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 mr-2"></div>
+                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 dark:bg-red-400"></div>
                                     Critical
                                   </div>
                                 </SelectItem>
@@ -456,7 +471,7 @@ export const TaskFormDialog = ({
                       />
                     </div>
 
-                    <div className="bg-muted/20 p-4 rounded-lg border border-border/30 space-y-5">
+                    <div className="bg-muted/20 p-4 rounded-lg border border-border/30 space-y-5 dark:bg-muted/10">
                       <h3 className="text-sm font-medium text-foreground/80 mb-2 flex items-center gap-2">
                         <span className="bg-purple-500/10 p-1 rounded-full">
                           <Clock className="h-3.5 w-3.5 text-purple-500" />
@@ -480,14 +495,12 @@ export const TaskFormDialog = ({
                                 onDateChange={field.onChange}
                                 placeholder="Pick a date"
                                 className={cn(
-                                  "w-full focus-visible:ring-primary/70 shadow-sm",
-                                  field.value && "border-purple-500/30 bg-purple-500/5"
+                                  "w-full focus-visible:ring-primary/70 shadow-sm bg-background dark:bg-muted/20",
+                                  field.value && "border-purple-500/30 bg-purple-500/5 dark:bg-purple-900/20"
                                 )}
                                 minDate={new Date(new Date().setHours(0, 0, 0, 0))}
                                 showTodayButton={true}
                                 showClearButton={false}
-                              // Remove the disabled prop that's causing the error
-                              // disabled={disabled}
                               />
                             </FormControl>
                             <FormMessage className="text-xs mt-1.5" />
@@ -511,8 +524,8 @@ export const TaskFormDialog = ({
                             >
                               <FormControl>
                                 <SelectTrigger className={cn(
-                                  "focus-visible:ring-primary/70",
-                                  field.value === "unassigned" && "border-red-300 bg-red-50/50"
+                                  "focus-visible:ring-primary/70 bg-background dark:bg-muted/20",
+                                  field.value === "unassigned" && "border-red-300 bg-red-50/50 dark:bg-red-900/20"
                                 )}>
                                   <SelectValue placeholder="Assign to..." />
                                 </SelectTrigger>
@@ -520,46 +533,15 @@ export const TaskFormDialog = ({
                               <SelectContent>
                                 <SelectItem value="unassigned" disabled>
                                   <div className="flex items-center gap-2 text-muted-foreground">
-                                    <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300"></div>
                                     Select an assignee
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="user1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                    John Doe
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user2">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                    Jane Smith
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user3">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                                    Sarah Johnson
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user4">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                                    Jenny Parker
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="user5">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                                    Harry Potter
-                                  </div>
-                                </SelectItem>
-
                                 {userArray.map((user) => (
-                                  <SelectItem key={user.id} value={user.id}>
+                                  <SelectItem key={user._id || user.id} value={user._id || user.id}>
                                     <div className="flex items-center gap-2">
-                                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                                      {user.name}
+                                      <div className="w-2 h-2 rounded-full bg-purple-500 dark:bg-purple-400"></div>
+                                      {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email}
                                     </div>
                                   </SelectItem>
                                 ))}
@@ -584,14 +566,14 @@ export const TaskFormDialog = ({
                               value={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger className="focus-visible:ring-primary/70">
+                                <SelectTrigger className="focus-visible:ring-primary/70 bg-background dark:bg-muted/20">
                                   <SelectValue placeholder="Select experiment" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="none_experiment">
                                   <div className="flex items-center gap-2 text-muted-foreground">
-                                    <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                                    <div className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-300"></div>
                                     No experiment
                                   </div>
                                 </SelectItem>
@@ -599,19 +581,19 @@ export const TaskFormDialog = ({
                                 {/* Default experiment options */}
                                 <SelectItem value="exp1">
                                   <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                    <div className="w-2 h-2 rounded-full bg-indigo-500 dark:bg-indigo-400"></div>
                                     Compound A Toxicity Study
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="exp2">
                                   <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                                    <div className="w-2 h-2 rounded-full bg-pink-500 dark:bg-pink-400"></div>
                                     Compound B Efficacy Test
                                   </div>
                                 </SelectItem>
                                 <SelectItem value="exp3">
                                   <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                    <div className="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400"></div>
                                     Compound C Cellular Study
                                   </div>
                                 </SelectItem>
@@ -620,7 +602,7 @@ export const TaskFormDialog = ({
                                 {experimentsArray.map((experiment) => (
                                   <SelectItem key={experiment.id} value={experiment.id}>
                                     <div className="flex items-center gap-2">
-                                      <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+                                      <div className="w-2 h-2 rounded-full bg-teal-500 dark:bg-teal-400"></div>
                                       {experiment.name}
                                     </div>
                                   </SelectItem>
@@ -636,7 +618,7 @@ export const TaskFormDialog = ({
                       />
                     </div>
 
-                    <div className="bg-muted/20 p-4 rounded-lg border border-border/30 space-y-5 col-span-2">
+                    <div className="bg-muted/20 p-4 rounded-lg border border-border/30 space-y-5 col-span-2 dark:bg-muted/10">
                       <h3 className="text-sm font-medium text-foreground/80 flex items-center gap-2">
                         <span className="bg-indigo-500/10 p-1 rounded-full">
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
@@ -647,7 +629,7 @@ export const TaskFormDialog = ({
                         Task Tags
                       </h3>
 
-                      <div className="flex flex-wrap gap-2 mb-3 min-h-[36px] bg-background/50 p-2 rounded-md border border-border/20">
+                      <div className="flex flex-wrap gap-2 mb-3 min-h-[36px] bg-background/50 p-2 rounded-md border border-border/20 dark:bg-background/30">
                         {tags.length > 0 ? (
                           tags.map((tag, index) => (
                             <div
@@ -720,7 +702,7 @@ export const TaskFormDialog = ({
           </Tabs>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-border/30 flex justify-end gap-2 flex-shrink-0">
+        <DialogFooter className="px-6 py-4 border-t border-border/30 flex justify-end gap-2 flex-shrink-0 bg-background">
           <Button
             type="button"
             variant="outline"

@@ -8,26 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export function TaskOverview({ task = {
-  id: "1",
-  title: "Design System Implementation",
-  description: "Create a comprehensive design system with reusable components, establish design tokens for colors, typography, and spacing. This will serve as the foundation for all future UI development and ensure consistency across the platform.",
-  priority: "high",
-  status: "in-progress",
-  createdBy: {
-    name: "Alex Johnson",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face&auto=format",
-    role: "Product Designer"
-  },
-  assignee: {
-    name: "Sarah Chen",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face&auto=format",
-    role: "Frontend Developer"
-  },
-  createdAt: new Date("2024-12-01"),
-  dueDate: new Date("2024-12-15"),
-  tags: ["design", "frontend", "urgent"]
-} }) {
+export function TaskOverview({ task }) {
   const [isEditing, setIsEditing] = useState(false);
   const [description, setDescription] = useState(task?.description || '');
 

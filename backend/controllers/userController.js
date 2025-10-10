@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const ActivityService = require('../services/activityService');
 
 // Get all users
 exports.getAllUsers = async (req, res) => {
@@ -49,7 +50,7 @@ exports.getUserById = async (req, res) => {
 // Create new user
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, roles, department, phone, status = 'Active' } = req.body;
+        const { name, email, password, roles, department, phone, status = 'Active', isPowerUser = false } = req.body;
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
@@ -68,11 +69,17 @@ exports.createUser = async (req, res) => {
             department,
             phone,
             status,
+            isPowerUser,
             lastLogin: null,
             isActive: status === 'Active'
         });
 
         await user.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('created', user, req.user);
+        }
 
         // Return user without password
         const userResponse = user.toObject();
@@ -87,11 +94,16 @@ exports.createUser = async (req, res) => {
 // Update user
 exports.updateUser = async (req, res) => {
     try {
-        const { password, ...updateData } = req.body;
+        const { password, isPowerUser, ...updateData } = req.body;
 
         // If password is being updated, hash it
         if (password) {
             updateData.password = await bcrypt.hash(password, 10);
+        }
+
+        // Add isPowerUser to update data if provided
+        if (isPowerUser !== undefined) {
+            updateData.isPowerUser = isPowerUser;
         }
 
         const user = await User.findByIdAndUpdate(
@@ -101,6 +113,12 @@ exports.updateUser = async (req, res) => {
         ).select('-password');
 
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('updated', user, req.user);
+        }
+
         res.json(user);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -112,6 +130,12 @@ exports.deleteUser = async (req, res) => {
     try {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('deleted', user, req.user);
+        }
+
         res.json({ message: 'User deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -128,6 +152,12 @@ exports.activateUser = async (req, res) => {
         ).select('-password');
 
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('activated', user, req.user);
+        }
+
         res.json(user);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -144,6 +174,12 @@ exports.deactivateUser = async (req, res) => {
         ).select('-password');
 
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('deactivated', user, req.user);
+        }
+
         res.json(user);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -160,6 +196,12 @@ exports.lockUser = async (req, res) => {
         ).select('-password');
 
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('deactivated', user, req.user, { reason: 'locked' });
+        }
+
         res.json(user);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -176,6 +218,12 @@ exports.unlockUser = async (req, res) => {
         ).select('-password');
 
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('activated', user, req.user, { reason: 'unlocked' });
+        }
+
         res.json(user);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -200,6 +248,12 @@ exports.resetUserPassword = async (req, res) => {
         ).select('-password');
 
         if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('updated', user, req.user, { action: 'password_reset' });
+        }
+
         res.json({ message: 'Password reset successfully' });
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -233,6 +287,11 @@ exports.inviteUser = async (req, res) => {
         });
 
         await user.save();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logUserActivity('created', user, req.user, { action: 'invited' });
+        }
 
         // Return user without password but include temp password for email
         const userResponse = user.toObject();

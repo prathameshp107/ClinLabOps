@@ -241,6 +241,7 @@ export function AddUserDialog({ open, onOpenChange, onAddUser, onUserCreated }) 
         department: formData.department,
         phone: formData.phone,
         status: formData.status,
+        isPowerUser: formData.isPowerUser,
         twoFactorEnabled: formData.enable2FA,
         // Note: avatar upload would need separate implementation
       };

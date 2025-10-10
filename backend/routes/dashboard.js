@@ -15,14 +15,11 @@ router.get('/recent-activities', dashboardController.getRecentActivities);
 // Get team performance data
 router.get('/team-performance', dashboardController.getTeamPerformance);
 
-// Get project health data
-router.get('/project-health', dashboardController.getProjectHealth);
+// Get system health data (was project-health)
+router.get('/system-health', dashboardController.getSystemHealth);
 
-// Get experiment progress data
-router.get('/experiment-progress', dashboardController.getExperimentProgress);
-
-// Get user activity data
-router.get('/user-activity', dashboardController.getUserActivity);
+// Get user activity timeline (was experiment-progress)
+router.get('/user-activity-timeline', dashboardController.getUserActivityTimeline);
 
 // Get compliance alerts
 router.get('/compliance-alerts', dashboardController.getComplianceAlerts);

@@ -36,43 +36,7 @@ export async function GET(request, { params }) {
             console.warn('Backend API not available, using fallback:', backendError.message);
         }
 
-        // Fallback: Return mock data for development
-        if (process.env.NODE_ENV === 'development') {
-            const mockTask = {
-                id: id,
-                title: "Sample Task",
-                description: "This is a sample task loaded from the API fallback.",
-                status: "in_progress",
-                priority: "medium",
-                progress: 50,
-                createdAt: new Date().toISOString(),
-                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                assignee: {
-                    id: "u1",
-                    name: "John Doe",
-                    avatar: "JD"
-                },
-                project: {
-                    id: "p1",
-                    name: "Sample Project"
-                },
-                tags: ["sample", "api", "fallback"],
-                subtasks: [],
-                files: [],
-                comments: [],
-                activityLog: [],
-                teamMembers: [],
-                relatedTasks: []
-            };
-
-            console.log('Returning mock task:', mockTask);
-            return NextResponse.json({
-                success: true,
-                data: mockTask,
-            });
-        }
-
-        // Production: Return error if backend is not available
+        // Return error if backend is not available
         return NextResponse.json(
             { success: false, error: 'Task service unavailable' },
             { status: 503 }

@@ -8,7 +8,11 @@ const {
   createExperiment,
   getExperimentById,
   updateExperiment,
-  deleteExperiment
+  deleteExperiment,
+  addCommentToExperiment,
+  addReplyToComment,
+  deleteCommentFromExperiment,
+  deleteReplyFromComment
 } = require('../controllers/experimentController');
 
 // @route   GET /api/experiments
@@ -66,5 +70,25 @@ router.put(
 // @desc    Delete experiment
 // @access  Private
 router.delete('/:id', auth.protect, deleteExperiment);
+
+// @route   POST /api/experiments/:id/comments
+// @desc    Add comment to experiment
+// @access  Private
+router.post('/:id/comments', auth.protect, addCommentToExperiment);
+
+// @route   POST /api/experiments/:id/comments/:comment_id/replies
+// @desc    Add reply to comment in experiment
+// @access  Private
+router.post('/:id/comments/:comment_id/replies', auth.protect, addReplyToComment);
+
+// @route   DELETE /api/experiments/:id/comments/:comment_id
+// @desc    Delete comment from experiment
+// @access  Private
+router.delete('/:id/comments/:comment_id', auth.protect, deleteCommentFromExperiment);
+
+// @route   DELETE /api/experiments/:id/comments/:comment_id/replies/:reply_id
+// @desc    Delete reply from comment in experiment
+// @access  Private
+router.delete('/:id/comments/:comment_id/replies/:reply_id', auth.protect, deleteReplyFromComment);
 
 module.exports = router;

@@ -71,8 +71,14 @@ const ProjectSchema = new mongoose.Schema({
   description: String,
   startDate: String,
   endDate: String,
-  status: String,
-  priority: String,
+  status: {
+    type: String,
+    default: 'planning'
+  },
+  priority: {
+    type: String,
+    default: 'medium'
+  },
   progress: Number,
   isFavorite: Boolean,
   budget: String,
@@ -91,6 +97,19 @@ const ProjectSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  // Add category field
+  category: {
+    type: String,
+    enum: ['research', 'regulatory', 'miscellaneous'],
+    default: 'miscellaneous'
+  },
+  // Add projectType field for regulatory projects
+  projectType: {
+    type: String,
+    enum: ['iso', 'oecd', 'fda', 'ema', 'ich', 'other', ''],
+    default: ''
+  },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Add createdBy field
 }, { timestamps: true });
 
-module.exports = mongoose.model('Project', ProjectSchema); 
+module.exports = mongoose.model('Project', ProjectSchema);

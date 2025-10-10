@@ -82,18 +82,18 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 backdrop-blur-xl shadow-2xl flex flex-col">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 dark:bg-background/95 backdrop-blur-xl shadow-2xl flex flex-col">
         {/* Header with gradient */}
-        <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-slate-200/50">
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
+        <DialogHeader className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 border-b border-slate-200/50 dark:border-border/50">
+          <div className="absolute inset-0 bg-white/60 dark:bg-background/60 backdrop-blur-sm"></div>
           <div className="relative">
-            <DialogTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+            <DialogTitle className="text-xl font-semibold text-slate-800 dark:text-foreground flex items-center gap-2">
               <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               Create New Task
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-600 mt-2 flex items-center gap-1">
+            <DialogDescription className="text-sm text-slate-600 dark:text-muted-foreground mt-2 flex items-center gap-1">
               <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">⌘</kbd>
               <span>+</span>
               <kbd className="px-2 py-1 bg-white/70 border border-slate-200 rounded text-xs font-mono">Enter</kbd>
@@ -105,7 +105,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
         <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
           {/* Title Input */}
           <div className="space-y-3">
-            <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Label htmlFor="task-name" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
               <Target className="h-4 w-4 text-indigo-500" />
               Title*
             </Label>
@@ -119,10 +119,10 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
                 onFocus={() => setFocusedField('title')}
                 onBlur={() => setFocusedField(null)}
                 className={cn(
-                  "h-11 text-base border-2 transition-all duration-200 bg-white/50",
+                  "h-11 text-base border-2 transition-all duration-200 bg-white/50 dark:bg-muted/20",
                   focusedField === 'title'
-                    ? "border-indigo-300 shadow-lg shadow-indigo-100"
-                    : "border-slate-200 hover:border-slate-300"
+                    ? "border-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30"
+                    : "border-slate-200 hover:border-slate-300 dark:border-border/50 dark:hover:border-border"
                 )}
               />
               {focusedField === 'title' && (
@@ -133,7 +133,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
 
           {/* Description */}
           <div className="space-y-3">
-            <Label htmlFor="task-description" className="text-sm font-medium text-slate-700">
+            <Label htmlFor="task-description" className="text-sm font-medium text-slate-700 dark:text-foreground">
               Description
             </Label>
             <Textarea
@@ -144,10 +144,10 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
               onFocus={() => setFocusedField('description')}
               onBlur={() => setFocusedField(null)}
               className={cn(
-                "min-h-[100px] resize-none border-2 transition-all duration-200 bg-white/50",
+                "min-h-[100px] resize-none border-2 transition-all duration-200 bg-white/50 dark:bg-muted/20",
                 focusedField === 'description'
-                  ? "border-indigo-300 shadow-lg shadow-indigo-100"
-                  : "border-slate-200 hover:border-slate-300"
+                  ? "border-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/30"
+                  : "border-slate-200 hover:border-slate-300 dark:border-border/50 dark:hover:border-border"
               )}
             />
           </div>
@@ -156,7 +156,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Assignee */}
             <div className="space-y-3">
-              <Label htmlFor="task-assignee" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Label htmlFor="task-assignee" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
                 <User className="h-4 w-4 text-indigo-500" />
                 Assignee
               </Label>
@@ -166,13 +166,13 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
               >
                 <SelectTrigger
                   id="task-assignee"
-                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
                   <SelectValue placeholder="Select team member" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
                   {(project?.team || []).map((member, i) => (
-                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50">
+                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
                           {member.name.charAt(0)}
@@ -187,7 +187,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
 
             {/* Priority */}
             <div className="space-y-3">
-              <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
                 <Flag className="h-4 w-4 text-indigo-500" />
                 Priority
               </Label>
@@ -197,16 +197,16 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
               >
                 <SelectTrigger
                   id="task-priority"
-                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
                   <SelectValue placeholder="Set priority level" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
                   {Object.entries(priorityConfig).map(([key, config]) => {
                     const Icon = config.icon
                     return (
-                      <SelectItem key={key} value={key} className="hover:bg-indigo-50">
-                        <div className={cn("flex items-center gap-3 p-2 rounded-md", config.bg)}>
+                      <SelectItem key={key} value={key} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                        <div className={cn("flex items-center gap-3 p-2 rounded-md", config.bg, "dark:bg-muted/20")}>
                           <Icon className={cn("h-4 w-4", config.color)} />
                           <span className="font-medium capitalize">{key}</span>
                         </div>
@@ -222,7 +222,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Status */}
             <div className="space-y-3">
-              <Label htmlFor="task-status" className="text-sm font-medium text-slate-700">
+              <Label htmlFor="task-status" className="text-sm font-medium text-slate-700 dark:text-foreground">
                 Status
               </Label>
               <Select
@@ -231,32 +231,32 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
               >
                 <SelectTrigger
                   id="task-status"
-                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 transition-all duration-200"
+                  className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
-                  <SelectItem value="todo" className="hover:bg-indigo-50">
-                    <div className="flex items-center gap-3 p-2 rounded-md bg-slate-50">
-                      <div className="w-3 h-3 rounded-full bg-slate-400"></div>
+                <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
+                  <SelectItem value="todo" className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                    <div className="flex items-center gap-3 p-2 rounded-md bg-slate-50 dark:bg-muted/20">
+                      <div className="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-500"></div>
                       <span>To Do</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="in-progress" className="hover:bg-indigo-50">
-                    <div className="flex items-center gap-3 p-2 rounded-md bg-blue-50">
-                      <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                  <SelectItem value="in-progress" className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                    <div className="flex items-center gap-3 p-2 rounded-md bg-blue-50 dark:bg-blue-900/20">
+                      <div className="w-3 h-3 rounded-full bg-blue-400 dark:bg-blue-500"></div>
                       <span>In Progress</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="review" className="hover:bg-indigo-50">
-                    <div className="flex items-center gap-3 p-2 rounded-md bg-purple-50">
-                      <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+                  <SelectItem value="review" className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                    <div className="flex items-center gap-3 p-2 rounded-md bg-purple-50 dark:bg-purple-900/20">
+                      <div className="w-3 h-3 rounded-full bg-purple-400 dark:bg-purple-500"></div>
                       <span>In Review</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="done" className="hover:bg-indigo-50">
-                    <div className="flex items-center gap-3 p-2 rounded-md bg-green-50">
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  <SelectItem value="done" className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                    <div className="flex items-center gap-3 p-2 rounded-md bg-green-50 dark:bg-green-900/20">
+                      <div className="w-3 h-3 rounded-full bg-green-400 dark:bg-green-500"></div>
                       <span>Done</span>
                     </div>
                   </SelectItem>
@@ -266,7 +266,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
 
             {/* Due Date */}
             <div className="space-y-3">
-              <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-indigo-500" />
                 Due Date
               </Label>
@@ -283,7 +283,7 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
                     {formData.dueDate ? format(formData.dueDate, "PPP") : "Select due date"}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white/95 backdrop-blur-sm border-slate-200 shadow-xl">
+                <PopoverContent className="w-auto p-0 bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
                   <Calendar
                     mode="single"
                     selected={formData.dueDate}
@@ -298,11 +298,11 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
 
           {/* Labels */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+            <Label className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
               <Tag className="h-4 w-4 text-indigo-500" />
               Labels
             </Label>
-            <div className="flex flex-wrap gap-2 min-h-[44px] p-3 border-2 border-slate-200 rounded-lg bg-white/50 transition-all duration-200 hover:border-slate-300">
+            <div className="flex flex-wrap gap-2 min-h-[44px] p-3 border-2 border-slate-200 rounded-lg bg-white/50 dark:bg-muted/20 transition-all duration-200 hover:border-slate-300 dark:border-border dark:hover:border-border">
               {formData.labels.map((label, i) => (
                 <Badge
                   key={i}
@@ -335,12 +335,12 @@ export function AddTaskModal({ open, onOpenChange, project, onAddTask }) {
         </div>
 
         {/* Footer */}
-        <DialogFooter className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 border-t border-slate-200/50 flex-shrink-0">
+        <DialogFooter className="px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-muted/20 dark:to-muted/30 border-t border-slate-200/50 dark:border-border/50 flex-shrink-0">
           <div className="flex gap-3 w-full sm:w-auto">
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-slate-300 hover:bg-slate-50 transition-all duration-200"
+              className="border-slate-300 hover:bg-slate-50 dark:border-border dark:hover:bg-muted/20 transition-all duration-200"
             >
               Cancel
             </Button>

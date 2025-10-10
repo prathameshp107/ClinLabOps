@@ -29,11 +29,20 @@ export function DataTable({
   data,
   onRowClick,
   Toolbar,
+  onRowSelectionChange,
+  selectedRows,
 }) {
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [rowSelection, setRowSelection] = React.useState(selectedRows || {})
   const [columnVisibility, setColumnVisibility] = React.useState({})
   const [columnFilters, setColumnFilters] = React.useState([])
   const [sorting, setSorting] = React.useState([])
+
+  // Update row selection when selectedRows prop changes
+  React.useEffect(() => {
+    if (selectedRows) {
+      setRowSelection(selectedRows);
+    }
+  }, [selectedRows]);
 
   const table = useReactTable({
     data,
@@ -45,7 +54,13 @@ export function DataTable({
       columnFilters,
     },
     enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      const newSelection = updater instanceof Function ? updater(rowSelection) : updater;
+      setRowSelection(newSelection);
+      if (onRowSelectionChange) {
+        onRowSelectionChange(newSelection);
+      }
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -64,16 +79,18 @@ export function DataTable({
       <ToolbarComponent table={table} />
       <div className="w-full overflow-hidden rounded-lg border border-border/30 bg-card/40 backdrop-blur-sm">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-          <Table className="min-w-full" style={{ tableLayout: 'auto' }}>
+          <Table className="min-w-full" style={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHeader className="sticky top-0 z-10 bg-white dark:bg-gray-950">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     const columnMeta = header.column.columnDef.meta
+                    const columnSize = header.column.columnDef.size
                     return (
                       <TableHead
                         key={header.id}
                         colSpan={header.colSpan}
+                        style={{ width: columnSize ? `${columnSize}px` : 'auto' }}
                         className={`font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900/60 whitespace-nowrap px-2 sm:px-4 ${columnMeta?.className || ''
                           }`}
                       >
@@ -106,9 +123,11 @@ export function DataTable({
                   >
                     {row.getVisibleCells().map((cell, cidx) => {
                       const columnMeta = cell.column.columnDef.meta
+                      const columnSize = cell.column.columnDef.size
                       return (
                         <TableCell
                           key={cell.id}
+                          style={{ width: columnSize ? `${columnSize}px` : 'auto' }}
                           className={`${cidx === 1 ? "font-semibold text-sm sm:text-[15px]" : "text-xs sm:text-sm"
                             } whitespace-nowrap px-2 sm:px-4 ${columnMeta?.className || ''}`}
                         >

@@ -45,6 +45,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getTeamPerformance } from "@/services/dashboardService";
 
 // Status colors for the chart
 const statusColors = {
@@ -118,15 +119,65 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-const TeamWorkloadChart = ({ teamPerformance = { metrics: [] } }) => {
+const TeamWorkloadChart = ({ teamPerformance: initialTeamPerformance = { metrics: [] } }) => {
+  const [teamPerformance, setTeamPerformance] = useState(initialTeamPerformance);
   const [sortBy, setSortBy] = useState('total');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [expandedMember, setExpandedMember] = useState(null);
   const [filters, setFilters] = useState({
     role: 'all',
     performance: 'all',
     showDetails: false
   });
+
+  // Fetch team performance data
+  useEffect(() => {
+    const fetchTeamPerformance = async () => {
+      // Only fetch if we don't have initial data or if we want to refresh
+      if ((!initialTeamPerformance || initialTeamPerformance.metrics?.length === 0) || isLoading) {
+        try {
+          setIsLoading(true);
+          setError(null);
+          const perfData = await getTeamPerformance();
+
+          // Transform the data to match our component's expected structure
+          const transformedData = {
+            metrics: perfData.taskCompletion?.map((member, index) => ({
+              id: member._id || index,
+              name: member.name || `User ${index + 1}`,
+              role: member.role || 'Team Member',
+              avatar: member.avatar || null,
+              performance: member.completed / (member.completed + member.pending + 1), // Avoid division by zero
+              tasks: {
+                total: member.completed + member.pending,
+                completed: member.completed || 0,
+                inProgress: member.pending || 0,
+                overdue: member.overdue || 0,
+                efficiency: 0.7 + Math.random() * 0.3, // Mock efficiency data
+                onTimeRate: 0.8 + Math.random() * 0.2 // Mock on-time rate data
+              },
+              skills: member.skills || ['Task Management', 'Team Collaboration']
+            })) || []
+          };
+
+          setTeamPerformance(transformedData);
+        } catch (err) {
+          setError(err.message);
+          console.error('Error fetching team performance:', err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchTeamPerformance();
+  }, [initialTeamPerformance, isLoading]);
+
+  const handleRefresh = () => {
+    setIsLoading(true);
+    // This will trigger the useEffect to fetch fresh data
+  };
 
   // Filter and sort team members
   const filteredTeamData = useMemo(() => {
@@ -160,18 +211,10 @@ const TeamWorkloadChart = ({ teamPerformance = { metrics: [] } }) => {
         return (b.tasks[sortBy] || 0) - (a.tasks[sortBy] || 0);
       }
     });
-  }, [sortBy, filters]);
+  }, [sortBy, filters, teamPerformance]);
 
   const toggleMemberExpansion = (memberId) => {
     setExpandedMember(expandedMember === memberId ? null : memberId);
-  };
-
-  const handleRefresh = () => {
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
   };
 
   // Pagination logic
@@ -250,6 +293,87 @@ const TeamWorkloadChart = ({ teamPerformance = { metrics: [] } }) => {
     }
     return items;
   };
+
+  // Loading state
+  if (isLoading && (!teamPerformance || teamPerformance.metrics?.length === 0)) {
+    return (
+      <Card className="w-full overflow-hidden">
+        <CardHeader className="pb-2 px-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <span>Team Workload</span>
+                  <Badge variant="outline" className="text-xs font-medium">
+                    Loading...
+                  </Badge>
+                </CardTitle>
+                <CardDescription>Loading team performance metrics</CardDescription>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" disabled>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-muted/50 p-3 rounded-lg animate-pulse">
+                  <div className="h-3 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-5 bg-muted rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="space-y-2 py-2 px-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="border rounded-lg overflow-hidden bg-card h-16 animate-pulse"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Error state
+  if (error && (!teamPerformance || teamPerformance.metrics?.length === 0)) {
+    return (
+      <Card className="w-full overflow-hidden">
+        <CardHeader className="pb-2 px-6">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <span>Team Workload</span>
+                  <Badge variant="outline" className="text-xs font-medium">
+                    Error
+                  </Badge>
+                </CardTitle>
+                <CardDescription>Error loading team performance: {error}</CardDescription>
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={handleRefresh}>
+                  <RefreshCw className="h-4 w-4" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <p className="text-muted-foreground">Failed to load team performance data</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full overflow-hidden">

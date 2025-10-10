@@ -5,6 +5,7 @@ This directory contains scripts to seed the MongoDB database with dummy data for
 ## Files
 
 - `seed-project-data.js` - Seeds the database with comprehensive project data including team members, tasks, documents, milestones, and activity logs.
+- `make-admin-power-user.js` - Sets the admin user as a power user
 
 ## Prerequisites
 
@@ -24,6 +25,9 @@ npm run seed:dev
 
 # For production (uses environment variable)
 npm run seed
+
+# Make admin user a power user
+node scripts/make-admin-power-user.js
 ```
 
 ### Option 2: Direct execution
@@ -37,6 +41,9 @@ node scripts/seed-project-data.js
 
 # Or with custom MongoDB URI
 MONGODB_URI=mongodb://localhost:27017/labtasker node scripts/seed-project-data.js
+
+# Make admin user a power user
+node scripts/make-admin-power-user.js
 ```
 
 ## Environment Variables
@@ -106,11 +113,34 @@ The script will create a comprehensive project with:
 - Document uploads and modifications
 - Milestone status changes
 
+## make-admin-power-user.js
+
+This script sets the `isPowerUser` field to `true` for the admin user (admin@labtasker.com).
+
+### Purpose:
+- Grants power user privileges to the admin user
+- Allows access to user management features
+- Enables viewing of all users in the system
+
+### Usage:
+```bash
+node scripts/make-admin-power-user.js
+```
+
+### Output:
+```
+✅ Connected to MongoDB
+✅ Found admin user: John Admin (admin@labtasker.com)
+Current isPowerUser status: false
+✅ Successfully updated admin user to power user
+New isPowerUser status: true
+```
+
 ## Output
 
 The script will display detailed information about what was seeded:
 
-```
+```bash
 🚀 Starting project data seeding...
 
 🔌 Connecting to MongoDB...

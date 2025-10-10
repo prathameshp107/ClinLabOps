@@ -1,10 +1,26 @@
 const Animal = require('../models/Animal');
 const mongoose = require('mongoose');
+const ActivityService = require('../services/activityService');
 
 // Get all animals
 const getAnimals = async (req, res) => {
     try {
         const animals = await Animal.find({});
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'animals_listed',
+                description: `${req.user.name} viewed the list of animals`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'animal',
+                    animalCount: animals.length,
+                    operation: 'list'
+                }
+            });
+        }
+        
         res.status(200).json(animals);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching animals', error: error.message });
@@ -24,6 +40,22 @@ const getAnimalById = async (req, res) => {
 
         if (!animal) {
             return res.status(404).json({ message: 'Animal not found' });
+        }
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'animal_viewed',
+                description: `${req.user.name} viewed animal "${animal.name}" (${animal.species})`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'animal',
+                    animalId: animal._id,
+                    animalName: animal.name,
+                    species: animal.species,
+                    operation: 'view'
+                }
+            });
         }
 
         res.status(200).json(animal);
@@ -63,6 +95,22 @@ const createAnimal = async (req, res) => {
         const animal = new Animal(animalData);
         const savedAnimal = await animal.save();
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'animal_created',
+                description: `${req.user.name} created animal "${savedAnimal.name}" (${savedAnimal.species})`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'animal',
+                    animalId: savedAnimal._id,
+                    animalName: savedAnimal.name,
+                    species: savedAnimal.species,
+                    operation: 'create'
+                }
+            });
+        }
+
         res.status(201).json(savedAnimal);
     } catch (error) {
         res.status(500).json({ message: 'Error creating animal', error: error.message });
@@ -85,6 +133,22 @@ const updateAnimal = async (req, res) => {
             return res.status(404).json({ message: 'Animal not found' });
         }
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'animal_updated',
+                description: `${req.user.name} updated animal "${animal.name}" (${animal.species})`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'animal',
+                    animalId: animal._id,
+                    animalName: animal.name,
+                    species: animal.species,
+                    operation: 'update'
+                }
+            });
+        }
+
         res.status(200).json(animal);
     } catch (error) {
         res.status(500).json({ message: 'Error updating animal', error: error.message });
@@ -104,6 +168,21 @@ const deleteAnimal = async (req, res) => {
 
         if (!animal) {
             return res.status(404).json({ message: 'Animal not found' });
+        }
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'animal_deleted',
+                description: `${req.user.name} deleted animal "${animal.name}" (${animal.species})`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'animal',
+                    animalName: animal.name,
+                    species: animal.species,
+                    operation: 'delete'
+                }
+            });
         }
 
         res.status(200).json({ message: 'Animal deleted successfully' });
@@ -129,6 +208,21 @@ const searchAnimals = async (req, res) => {
                 { location: { $regex: searchTerm, $options: 'i' } }
             ]
         });
+        
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'animals_searched',
+                description: `${req.user.name} searched for animals with term "${searchTerm}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'animal',
+                    searchTerm: searchTerm,
+                    resultCount: animals.length,
+                    operation: 'search'
+                }
+            });
+        }
 
         res.status(200).json(animals);
     } catch (error) {

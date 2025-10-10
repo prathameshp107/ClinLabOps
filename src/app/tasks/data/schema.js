@@ -3,8 +3,8 @@ import { CheckCircle2, Clock, AlertCircle, XCircle } from "lucide-react"
 
 export const statuses = [
   {
-    value: "pending",
-    label: "Pending",
+    value: "todo",
+    label: "To Do",
     icon: Clock,
     color: "text-yellow-500",
   },
@@ -15,16 +15,16 @@ export const statuses = [
     color: "text-blue-500",
   },
   {
-    value: "completed",
-    label: "Completed",
-    icon: CheckCircle2,
-    color: "text-green-500",
+    value: "review",
+    label: "Review",
+    icon: AlertCircle,
+    color: "text-purple-500",
   },
   {
-    value: "cancelled",
-    label: "Cancelled",
-    icon: XCircle,
-    color: "text-red-500",
+    value: "done",
+    label: "Done",
+    icon: CheckCircle2,
+    color: "text-green-500",
   },
 ]
 

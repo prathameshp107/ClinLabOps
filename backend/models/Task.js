@@ -28,7 +28,6 @@ const FileSchema = new mongoose.Schema({
   size: { type: String },
   uploadedAt: { type: Date, default: Date.now },
   uploadedBy: { type: String },
-  path: { type: String },
 });
 
 const ActivitySchema = new mongoose.Schema({
@@ -55,6 +54,7 @@ const TaskSchema = new mongoose.Schema({
   files: [FileSchema],
   activity: [ActivitySchema],
   relatedTasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Add createdBy field
 }, { timestamps: true });
 
 module.exports = mongoose.model('Task', TaskSchema); 

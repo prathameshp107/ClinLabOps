@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const ActivityService = require('../services/activityService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -11,7 +12,7 @@ if (!JWT_SECRET) {
 
 exports.register = async (req, res) => {
     try {
-        const { name, email, password, roles } = req.body;
+        const { name, email, password, department } = req.body;
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
@@ -24,9 +25,14 @@ exports.register = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            roles: Array.isArray(roles) ? roles : []
+            department: department || '',
+            roles: ['User'] // Default role
         });
         await user.save();
+
+        // Log activity
+        await ActivityService.logAuthActivity('register', user);
+
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
@@ -41,15 +47,26 @@ exports.login = async (req, res) => {
         }
         const user = await User.findOne({ email });
         if (!user) {
+            // Log failed login attempt
+            await ActivityService.logAuthActivity('failed_login', null, { email, reason: 'User not found' });
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            // Log failed login attempt
+            await ActivityService.logAuthActivity('failed_login', null, { email: user.email, reason: 'Invalid password' });
             return res.status(401).json({ message: 'Invalid credentials' });
         }
         const token = jwt.sign({ userId: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: '1d' });
+
+        // Update last login
+        await user.updateLastLogin();
+
+        // Log successful login
+        await ActivityService.logAuthActivity('login', user);
+
         res.json({
-            user: { id: user._id, name: user.name, email: user.email, roles: user.roles },
+            user: { id: user._id, name: user.name, email: user.email, roles: user.roles, isPowerUser: user.isPowerUser },
             token,
         });
     } catch (err) {
@@ -59,6 +76,46 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
     res.json(req.user);
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { fullName, email, phone, department } = req.body;
+
+        // Validate email if it's being updated
+        if (email && email !== req.user.email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser && existingUser._id.toString() !== userId) {
+                return res.status(409).json({ message: 'Email already in use' });
+            }
+        }
+
+        // Prepare update data
+        const updateData = {};
+        if (fullName !== undefined) updateData.name = fullName;
+        if (email !== undefined) updateData.email = email;
+        if (phone !== undefined) updateData.phone = phone;
+        if (department !== undefined) updateData.department = department;
+
+        // Update user
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Log profile update activity
+        await ActivityService.logUserActivity('updated', updatedUser, updatedUser, { action: 'profile_update' });
+
+        res.json(updatedUser);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
 };
 
 exports.changePassword = async (req, res) => {
@@ -81,6 +138,9 @@ exports.changePassword = async (req, res) => {
         user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
 
+        // Log password change activity
+        await ActivityService.logUserActivity('updated', user, user, { action: 'password_change' });
+
         res.json({ message: 'Password changed successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
@@ -88,5 +148,9 @@ exports.changePassword = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
+    // Log logout activity if user is available
+    if (req.user) {
+        ActivityService.logAuthActivity('logout', req.user);
+    }
     res.json({ message: 'Logout successful' });
-}; 
+};

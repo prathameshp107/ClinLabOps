@@ -130,6 +130,7 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
     switch (type) {
       case 'room': return <Home className="h-4 w-4" />;
       case 'cabinet': return <FileBox className="h-4 w-4" />;
+      case 'cage': return <Package className="h-4 w-4" />;
       case 'shelf': return <Archive className="h-4 w-4" />;
       case 'refrigerator': return <Refrigerator className="h-4 w-4" />;
       case 'freezer': return <Thermometer className="h-4 w-4" />;
@@ -237,6 +238,12 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
                             <div className="flex items-center gap-2">
                               <FileBox className="h-4 w-4" />
                               <span>Cabinet</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="cage">
+                            <div className="flex items-center gap-2">
+                              <Package className="h-4 w-4" />
+                              <span>Cage</span>
                             </div>
                           </SelectItem>
                           <SelectItem value="shelf">
@@ -370,6 +377,11 @@ export function LocationsList({ locations, onUpdateLocation, onDeleteLocation })
             <div className="text-sm font-medium text-purple-600">Cabinets</div>
             <div className="text-2xl font-bold">{locations.filter(l => l.type === 'cabinet').length}</div>
           </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-orange-100">
+            <div className="text-sm font-medium text-orange-600">Cages</div>
+            <div className="text-2xl font-bold">{locations.filter(l => l.type === 'cage').length}</div>
+          </div>
+
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-cyan-100">
             <div className="text-sm font-medium text-cyan-600">Cold Storage</div>
             <div className="text-2xl font-bold">{locations.filter(l => ['refrigerator', 'freezer'].includes(l.type)).length}</div>

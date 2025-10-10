@@ -3,6 +3,9 @@ const router = express.Router();
 const reportController = require('../controllers/reportController');
 const auth = require('../middleware/authMiddleware');
 
+// Get list of reports
+router.get('/', reportController.getReportsList);
+
 // Generate project report
 router.get('/projects', reportController.generateProjectReport);
 
@@ -18,10 +21,10 @@ router.get('/users', reportController.generateUserReport);
 // Generate compliance report
 router.get('/compliance', reportController.generateComplianceReport);
 
-// Generate experiment report
-router.get('/experiments', reportController.generateExperimentReport);
+// Generate audit report (was experiments)
+router.get('/audits', reportController.generateAuditReport);
 
-// Generate dashboard summary report
-router.get('/dashboard', reportController.generateDashboardReport);
+// Generate experiment report (was dashboard)
+router.get('/experiments', reportController.generateExperimentReport);
 
 module.exports = router;

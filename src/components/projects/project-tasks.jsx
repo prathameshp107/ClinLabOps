@@ -259,8 +259,8 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
 
   return (
     <>
-      <Card className="bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/20 border border-gray-200/50 backdrop-blur-sm">
-        <CardHeader className="px-6 py-6 border-b border-gray-200/50">
+      <Card className="bg-gradient-to-br from-background via-blue-50/30 to-indigo-50/20 dark:via-blue-950/30 dark:to-indigo-950/20 border border-border/50 backdrop-blur-sm">
+        <CardHeader className="px-6 py-6 border-b border-border/50">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -270,11 +270,11 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                   Project Tasks
                 </h2>
                 <div className="flex items-center gap-3">
-                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-white/60 backdrop-blur-sm border border-gray-200/50">
+                  <Badge variant="secondary" className="text-xs px-3 py-1 bg-background/60 backdrop-blur-sm border border-border/50">
                     {tasks?.length || 0} tasks
                   </Badge>
                   <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -302,7 +302,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search tasks..."
-                className="pl-11 h-11 w-full text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm"
+                className="pl-11 h-11 w-full text-sm bg-background/60 backdrop-blur-sm border-border/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
@@ -318,15 +318,15 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-11 w-[160px] text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
+              <SelectTrigger className="h-11 w-[160px] text-sm bg-background/60 backdrop-blur-sm border-border/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
+              <SelectContent className="bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="todo">To Do</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
                 <SelectItem value="review">In Review</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
               </SelectContent>
             </Select>
 
@@ -337,10 +337,10 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                 setCurrentPage(1)
               }}
             >
-              <SelectTrigger className="h-11 w-[160px] text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
+              <SelectTrigger className="h-11 w-[160px] text-sm bg-background/60 backdrop-blur-sm border-border/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
                 <SelectValue placeholder="Priority" />
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
+              <SelectContent className="bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
                 <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
@@ -349,24 +349,42 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
             </Select>
 
             <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => {
+                setItemsPerPage(Number(value))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="h-11 w-[100px] text-sm bg-background/60 backdrop-blur-sm border-border/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
+                <SelectValue placeholder="Per Page" />
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
+                <SelectItem value="5">5 per page</SelectItem>
+                <SelectItem value="10">10 per page</SelectItem>
+                <SelectItem value="20">20 per page</SelectItem>
+                <SelectItem value="50">50 per page</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
               value={sortBy}
               onValueChange={setSortBy}
             >
-              <SelectTrigger className="h-11 w-[160px] text-sm bg-white/60 backdrop-blur-sm border-gray-200/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
+              <SelectTrigger className="h-11 w-[160px] text-sm bg-background/60 backdrop-blur-sm border-border/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
+              <SelectContent className="bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
                 <SelectItem value="dueDate">Due Date</SelectItem>
                 <SelectItem value="priority">Priority</SelectItem>
                 <SelectItem value="status">Status</SelectItem>
-                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="title">Title</SelectItem>
               </SelectContent>
             </Select>
 
             <Button
               variant="outline"
               size="icon"
-              className="h-11 w-11 bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50 rounded-xl shadow-sm"
+              className="h-11 w-11 bg-background/60 backdrop-blur-sm border-border/50 hover:bg-muted rounded-xl shadow-sm"
               onClick={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
             >
               <ArrowUpDown className="h-5 w-5" />
@@ -378,16 +396,16 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
           {paginatedTasks.length > 0 ? (
             <div>
               {selectedTasks.length > 0 && (
-                <div className="flex justify-between items-center px-6 py-3 bg-white/60 backdrop-blur-sm border-b border-gray-200/50">
+                <div className="flex justify-between items-center px-6 py-3 bg-background/60 backdrop-blur-sm border-b border-border/50">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-sm hover:bg-gray-100 rounded-lg"
+                    className="text-sm hover:bg-muted rounded-lg"
                     onClick={handleSelectAllTasks}
                   >
                     {selectedTasks.length === paginatedTasks.length ? "Deselect All" : "Select All"}
                   </Button>
-                  <span className="text-sm text-gray-600 font-medium">
+                  <span className="text-sm text-muted-foreground font-medium">
                     {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''} selected
                   </span>
                 </div>
@@ -401,7 +419,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
-                      className="grid grid-cols-[0.5fr_4fr_1.5fr_1.5fr_2fr_2fr_0.5fr] gap-4 items-center px-6 py-4 hover:bg-white/60 backdrop-blur-sm transition-colors"
+                      className="grid grid-cols-[40px_100px_1.5fr_100px_100px_120px_150px_80px_60px] gap-4 items-center px-6 py-4 hover:bg-background/60 backdrop-blur-sm transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <Checkbox
@@ -415,13 +433,19 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <label htmlFor={`task-${task.id}`} className="text-sm font-semibold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors">
-                            {task.name}
-                          </label>
-                          <p className="text-sm text-gray-500 mt-1 line-clamp-1">{task.description}</p>
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400">
+                          {task.customId || `TASK-${(task._id || task.id)?.substring(0, 6)}`}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label htmlFor={`task-${task.id}`} className="text-sm font-semibold text-foreground cursor-pointer hover:text-blue-600 transition-colors">
+                          {task.title}
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {task.description || "No description provided"}
+                        </p>
                       </div>
 
                       <div>
@@ -432,21 +456,23 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                         <TaskPriority priority={task.priority} />
                       </div>
 
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
-                        <span>{task.dueDate}</span>
+                        <span>{task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}</span>
                       </div>
 
-                      {renderAssignee(task)}
+                      <div className="flex items-center gap-2">
+                        {renderAssignee(task)}
+                      </div>
 
                       <div className="flex justify-end">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-gray-100">
-                              <MoreHorizontal className="h-5 w-5 text-gray-500" />
+                            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg hover:bg-muted">
+                              <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-64 p-2 bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-xl">
+                          <DropdownMenuContent align="end" className="w-64 p-2 bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-blue-50 transition-colors">
                               <Edit className="h-4 w-4 mr-3 text-blue-600" />
                               Edit Task
@@ -477,13 +503,13 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
               </ScrollArea>
 
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 px-6 py-4 border-t border-gray-200/50 bg-white/60 backdrop-blur-sm">
+                <div className="flex justify-center items-center gap-2 px-6 py-4 border-t border-border/50 bg-background/60 backdrop-blur-sm">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="h-9 w-9 p-0 rounded-lg bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50"
+                    className="h-9 w-9 p-0 rounded-lg bg-background/60 backdrop-blur-sm border-border/50 hover:bg-muted"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -496,7 +522,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                       disabled={typeof page !== 'number'}
                       className={`h-9 w-9 p-0 rounded-lg ${page === currentPage
                         ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
-                        : 'bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50 text-gray-600'
+                        : 'bg-background/60 backdrop-blur-sm border-border/50 hover:bg-muted text-muted-foreground'
                         }`}
                     >
                       {page}
@@ -507,7 +533,7 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                     size="sm"
                     onClick={() => goToPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="h-9 w-9 p-0 rounded-lg bg-white/60 backdrop-blur-sm border-gray-200/50 hover:bg-gray-50"
+                    className="h-9 w-9 p-0 rounded-lg bg-background/60 backdrop-blur-sm border-border/50 hover:bg-muted"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -519,8 +545,8 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
               <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 rounded-2xl mb-6">
                 <LayoutList className="h-12 w-12 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No tasks found</h3>
-              <p className="text-sm text-gray-500 mb-6 max-w-sm">Try adjusting your filters or add a new task to get started.</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No tasks found</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-sm">Try adjusting your filters or add a new task to get started.</p>
               <Button
                 onClick={() => setIsAddTaskModalOpen(true)}
                 className="h-11 px-6 text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"

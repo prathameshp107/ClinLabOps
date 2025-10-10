@@ -16,14 +16,14 @@ const AvatarGroup = ({ children }) => {
 };
 
 const StatItem = ({ icon: Icon, label, value, className = "", trend = null }) => (
-  <div className={`group flex items-center gap-3 text-sm p-3 rounded-xl bg-gradient-to-br from-gray-50/50 to-gray-100/30 hover:from-blue-50/50 hover:to-blue-100/30 transition-all duration-300 hover:shadow-sm ${className}`}>
-    <div className="p-2 rounded-lg bg-white shadow-sm group-hover:shadow-md transition-shadow duration-300">
+  <div className={`group flex items-center gap-3 text-sm p-3 rounded-xl bg-gradient-to-br from-background/50 to-muted/30 hover:from-blue-50/50 hover:to-blue-100/30 dark:hover:from-blue-950/50 dark:hover:to-blue-900/30 transition-all duration-300 hover:shadow-sm ${className}`}>
+    <div className="p-2 rounded-lg bg-background shadow-sm group-hover:shadow-md transition-shadow duration-300">
       <Icon className="h-4 w-4 text-blue-600 group-hover:text-blue-700 transition-colors" />
     </div>
     <div className="flex flex-col">
-      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
+      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
       <div className="flex items-center gap-2">
-        <span className="font-semibold text-gray-900">{value}</span>
+        <span className="font-semibold text-foreground">{value}</span>
         {trend && (
           <div className="flex items-center gap-1">
             <TrendingUp className="h-3 w-3 text-green-500" />
@@ -55,7 +55,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/20 border-b border-gray-200/50 backdrop-blur-sm">
+    <div className="bg-gradient-to-br from-background via-blue-50/30 to-indigo-50/20 dark:via-blue-950/30 dark:to-indigo-950/20 border-b border-border/50 backdrop-blur-sm">
       <div className="max-w-[1400px] mx-auto px-6 py-6">
         {/* Main Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
@@ -69,7 +69,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
 
             <div className="space-y-3">
               <div className="flex items-center gap-4 flex-wrap">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                   {project.name ? project.name : project.title}
                 </h1>
                 <Button
@@ -88,13 +88,13 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
               </div>
 
               <div className="flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-lg shadow-sm">
-                  <span className="text-gray-500 font-medium">ID:</span>
-                  <span className="font-mono text-gray-800 bg-gray-100 px-2 py-0.5 rounded text-xs">{project.id}</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-background/60 rounded-lg shadow-sm">
+                  <span className="text-muted-foreground font-medium">ID:</span>
+                  <span className="font-mono text-foreground bg-muted px-2 py-0.5 rounded text-xs">{project.id}</span>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/60 rounded-lg shadow-sm">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="text-gray-600">Created {new Date(project.createdAt).toLocaleDateString()}</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-background/60 rounded-lg shadow-sm">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground/80">Created {new Date(project.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
@@ -112,7 +112,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
                   <MoreHorizontal className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 p-2 bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-2xl overflow-visible">
+              <DropdownMenuContent align="end" className="w-64 p-2 bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-2xl overflow-visible">
                 <DropdownMenuItem onClick={onAddTask} className="text-sm py-3 px-3 rounded-xl hover:bg-blue-50 transition-colors">
                   <ListTodo className="h-4 w-4 mr-3 text-blue-600" />
                   Add Task
@@ -135,7 +135,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
                     <Download className="h-4 w-4 mr-3 text-gray-600" />
                     Export Data
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="min-w-[180px] bg-white/95 backdrop-blur-md border-gray-200/50 shadow-xl rounded-2xl z-[60]">
+                  <DropdownMenuSubContent className="min-w-[180px] bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-2xl z-[60]">
                     <DropdownMenuItem onClick={() => onExport && onExport('csv')} className="text-sm px-4 py-2 hover:bg-blue-50 rounded-t-xl">Export as CSV</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onExport && onExport('xlsx')} className="text-sm px-4 py-2 hover:bg-green-50">Export as Excel</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onExport && onExport('pdf')} className="text-sm px-4 py-2 hover:bg-red-50">Export as PDF</DropdownMenuItem>
@@ -152,7 +152,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
         </div>
 
         {/* Enhanced Stats Bar */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-gray-200/50">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-border/50">
           <StatItem
             icon={Target}
             label="Progress"
@@ -161,7 +161,7 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
                 <div className="flex-1">
                   <Progress
                     value={project.progress || 65}
-                    className="h-2 w-full bg-gray-200 rounded-full overflow-hidden"
+                    className="h-2 w-full bg-muted rounded-full overflow-hidden"
                   />
                 </div>
                 <span className="font-bold text-lg text-blue-600">{project.progress || 65}%</span>

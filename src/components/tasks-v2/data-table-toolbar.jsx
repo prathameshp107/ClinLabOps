@@ -3,30 +3,43 @@
 import * as React from "react"
 import { Cross2Icon } from "@radix-ui/react-icons"
 import { SlidersHorizontal } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 import { statuses, priorities } from "@/app/tasks/data/schema"
-
-// Example static project list (replace with dynamic if available)
-const projectOptions = [
-  { value: "Cell Culture", label: "Cell Culture" },
-  { value: "DNA Sequencing", label: "DNA Sequencing" },
-  { value: "Chemical Analysis", label: "Chemical Analysis" },
-]
+import { getProjects } from "@/services/projectService"
 
 export function DataTableToolbar({ table }) {
   const isFiltered = table.getState().columnFilters.length > 0
   const [showFilters, setShowFilters] = useState(false)
-  const [projectSearch, setProjectSearch] = useState("")
+  const [projects, setProjects] = useState([])
+  const [loadingProjects, setLoadingProjects] = useState(false)
 
-  // Filtered project options for search
-  const filteredProjects = projectOptions.filter(opt =>
-    opt.label.toLowerCase().includes(projectSearch.toLowerCase())
-  )
+  // Fetch projects when filters are shown
+  useEffect(() => {
+    if (showFilters && projects.length === 0 && !loadingProjects) {
+      setLoadingProjects(true)
+      getProjects()
+        .then(fetchedProjects => {
+          // Transform projects to the format expected by the filter
+          const projectOptions = fetchedProjects.map(project => ({
+            value: project.name || project.title,
+            label: project.name || project.title
+          }))
+          setProjects(projectOptions)
+        })
+        .catch(error => {
+          console.error("Error fetching projects:", error)
+          setProjects([])
+        })
+        .finally(() => {
+          setLoadingProjects(false)
+        })
+    }
+  }, [showFilters, projects.length, loadingProjects])
 
   return (
     <div className="space-y-4">
@@ -91,12 +104,13 @@ export function DataTableToolbar({ table }) {
               options={priorities}
             />
           )}
-          {/* Project Filter - same structure as others, with checkboxes */}
+          {/* Project Filter - dynamically loaded */}
           {table.getColumn("project") && (
             <DataTableFacetedFilter
               column={table.getColumn("project")}
               title="Project"
-              options={projectOptions}
+              options={projects}
+              loading={loadingProjects}
             />
           )}
         </div>

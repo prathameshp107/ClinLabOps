@@ -36,61 +36,7 @@ export async function GET(request, { params }) {
             console.warn('Backend API not available for activity log, using fallback:', backendError.message);
         }
 
-        // Fallback: Return mock activity data for development
-        if (process.env.NODE_ENV === 'development') {
-            const mockActivities = [
-                {
-                    id: "a1",
-                    action: "task_created",
-                    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-                    user: "System",
-                    details: null
-                },
-                {
-                    id: "a2",
-                    action: "task_assigned",
-                    timestamp: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
-                    user: "Admin",
-                    details: "John Doe"
-                },
-                {
-                    id: "a3",
-                    action: "comment_added",
-                    timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-                    user: "John Doe",
-                    details: null
-                },
-                {
-                    id: "a4",
-                    action: "subtask_added",
-                    timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-                    user: "John Doe",
-                    details: "Review documentation"
-                },
-                {
-                    id: "a5",
-                    action: "file_uploaded",
-                    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-                    user: "John Doe",
-                    details: "requirements.pdf"
-                },
-                {
-                    id: "a6",
-                    action: "status_changed",
-                    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                    user: "John Doe",
-                    details: "in_progress"
-                }
-            ];
-
-            console.log('Returning mock activity log for task:', id);
-            return NextResponse.json({
-                success: true,
-                data: mockActivities,
-            });
-        }
-
-        // Production: Return error if backend is not available
+        // Return error if backend is not available
         return NextResponse.json(
             { success: false, error: 'Activity service unavailable' },
             { status: 503 }

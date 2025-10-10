@@ -138,7 +138,8 @@ export async function deleteTask(id) {
       throw new Error(error.message || 'Failed to delete task');
     }
 
-    return true;
+    const result = await response.json();
+    return result.success;
   } catch (error) {
     console.error(`Error deleting task ${id}:`, error);
     throw error;

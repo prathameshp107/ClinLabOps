@@ -15,6 +15,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cageService } from '@/services/cageService';
+import { getStorageLocations } from '@/services/inventoryService'; // Import inventory service
 
 const CAGE_TYPES = [
     { value: 'standard', label: 'Standard Cage' },
@@ -51,74 +53,51 @@ export function CageManagement() {
         status: 'available',
         notes: ''
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [storageLocations, setStorageLocations] = useState([]); // State for storage locations
 
-    // Initialize with mock data
+    // Load cages from API
     useEffect(() => {
-        const mockCages = [
-            {
-                id: 1,
-                name: 'Cage A-101',
-                type: 'standard',
-                location: 'Room A, Rack 1',
-                capacity: 5,
-                currentOccupancy: 3,
-                status: 'occupied',
-                lastCleaned: '2024-06-15',
-                nextCleaning: '2024-06-22',
-                notes: 'Standard rat cage'
-            },
-            {
-                id: 2,
-                name: 'Cage B-205',
-                type: 'breeding',
-                location: 'Room B, Rack 2',
-                capacity: 2,
-                currentOccupancy: 2,
-                status: 'occupied',
-                lastCleaned: '2024-06-10',
-                nextCleaning: '2024-06-17',
-                notes: 'Breeding pair cage'
-            },
-            {
-                id: 3,
-                name: 'Quarantine Q-01',
-                type: 'quarantine',
-                location: 'Quarantine Room',
-                capacity: 1,
-                currentOccupancy: 1,
-                status: 'quarantine',
-                lastCleaned: '2024-06-18',
-                nextCleaning: '2024-06-25',
-                notes: 'New arrival quarantine'
-            },
-            {
-                id: 4,
-                name: 'Cage C-301',
-                type: 'standard',
-                location: 'Room C, Rack 3',
-                capacity: 4,
-                currentOccupancy: 0,
-                status: 'available',
-                lastCleaned: '2024-06-20',
-                nextCleaning: '2024-06-27',
-                notes: 'Ready for new animals'
-            },
-            {
-                id: 5,
-                name: 'Cage D-405',
-                type: 'isolation',
-                location: 'Isolation Room',
-                capacity: 1,
-                currentOccupancy: 0,
-                status: 'maintenance',
-                lastCleaned: '2024-06-01',
-                nextCleaning: null,
-                notes: 'Under maintenance'
-            }
-        ];
-        setCages(mockCages);
-        setFilteredCages(mockCages);
+        loadCages();
+        loadStorageLocations(); // Load storage locations
     }, []);
+
+    const loadCages = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const cagesData = await cageService.getAllCages();
+            setCages(cagesData);
+            setFilteredCages(cagesData);
+        } catch (error) {
+            console.error('Error loading cages:', error);
+            setError('Failed to load cages. Please try again later.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load storage locations from inventory
+    const loadStorageLocations = async () => {
+        try {
+            const locations = await getStorageLocations();
+            setStorageLocations(locations);
+        } catch (error) {
+            console.error('Error loading storage locations:', error);
+            // Set default locations if API fails
+            setStorageLocations([
+                "Main Laboratory",
+                "Storage Room A",
+                "Storage Room B",
+                "Cold Storage",
+                "Hazardous Materials Cabinet",
+                "Equipment Room",
+                "Clean Room",
+                "Warehouse"
+            ]);
+        }
+    };
 
     // Apply filters
     useEffect(() => {
@@ -170,30 +149,36 @@ export function CageManagement() {
         setIsDialogOpen(true);
     };
 
-    const handleDeleteCage = (cageId) => {
-        setCages(cages.filter(cage => cage.id !== cageId));
+    const handleDeleteCage = async (cageId) => {
+        try {
+            await cageService.deleteCage(cageId);
+            setCages(cages.filter(cage => cage._id !== cageId)); // Use _id for MongoDB
+        } catch (error) {
+            console.error('Error deleting cage:', error);
+            setError('Failed to delete cage. Please try again.');
+        }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (editingCage) {
-            // Update existing cage
-            setCages(cages.map(cage =>
-                cage.id === editingCage.id
-                    ? { ...cageForm, id: editingCage.id }
-                    : cage
-            ));
-        } else {
-            // Add new cage
-            const newCage = {
-                ...cageForm,
-                id: Math.max(...cages.map(c => c.id), 0) + 1
-            };
-            setCages([...cages, newCage]);
+        try {
+            if (editingCage) {
+                // Update existing cage
+                const updatedCage = await cageService.updateCage(editingCage._id, cageForm); // Use _id for MongoDB
+                setCages(cages.map(cage =>
+                    cage._id === editingCage._id ? updatedCage : cage
+                ));
+            } else {
+                // Add new cage
+                const newCage = await cageService.createCage(cageForm);
+                setCages([...cages, newCage]);
+            }
+            setIsDialogOpen(false);
+        } catch (error) {
+            console.error('Error saving cage:', error);
+            setError('Failed to save cage. Please try again.');
         }
-
-        setIsDialogOpen(false);
     };
 
     const getStatusColor = (status) => {
@@ -217,6 +202,26 @@ export function CageManagement() {
 
     return (
         <div className="space-y-6">
+            {/* Error message */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                    <p className="text-red-700">{error}</p>
+                    <Button
+                        onClick={loadCages}
+                        className="mt-3 bg-red-600 hover:bg-red-700 text-white"
+                    >
+                        Retry
+                    </Button>
+                </div>
+            )}
+
+            {/* Loading indicator */}
+            {loading && (
+                <div className="flex justify-center items-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+            )}
+
             {/* Header Actions */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -404,7 +409,7 @@ export function CageManagement() {
             {/* Cages Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredCages.map((cage) => (
-                    <Card key={cage.id} className="hover:shadow-lg transition-shadow">
+                    <Card key={cage._id} className="hover:shadow-lg transition-shadow"> {/* Use _id for MongoDB */}
                         <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-lg flex items-center gap-2">
@@ -456,7 +461,7 @@ export function CageManagement() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleDeleteCage(cage.id)}
+                                    onClick={() => handleDeleteCage(cage._id)} // Use _id for MongoDB
                                     className="text-red-600 hover:text-red-700"
                                 >
                                     <Trash2 className="h-4 w-4" />
@@ -467,7 +472,7 @@ export function CageManagement() {
                 ))}
             </div>
 
-            {filteredCages.length === 0 && (
+            {filteredCages.length === 0 && !loading && (
                 <Card>
                     <CardContent className="p-8 text-center">
                         <div className="text-6xl mb-4">🏠</div>
@@ -529,13 +534,40 @@ export function CageManagement() {
 
                         <div className="space-y-2">
                             <Label htmlFor="location">Location *</Label>
-                            <Input
-                                id="location"
+                            <Select
                                 value={cageForm.location}
-                                onChange={(e) => setCageForm({ ...cageForm, location: e.target.value })}
-                                placeholder="e.g., Room A, Rack 1"
-                                required
-                            />
+                                onValueChange={(value) => {
+                                    if (value === 'custom') {
+                                        setCageForm({ ...cageForm, location: '' });
+                                    } else {
+                                        setCageForm({ ...cageForm, location: value });
+                                    }
+                                }}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {storageLocations.map((location) => (
+                                        <SelectItem key={location} value={location}>
+                                            {location}
+                                        </SelectItem>
+                                    ))}
+                                    <SelectItem value="custom">Custom Location</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {cageForm.location === '' && (
+                                <Input
+                                    placeholder="Enter custom location"
+                                    value={cageForm.customLocation || ''}
+                                    onChange={(e) => setCageForm({
+                                        ...cageForm,
+                                        location: e.target.value,
+                                        customLocation: e.target.value
+                                    })}
+                                    className="mt-2"
+                                />
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

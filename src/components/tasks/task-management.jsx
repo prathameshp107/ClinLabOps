@@ -60,7 +60,7 @@ import {
   deleteTask as deleteTaskAPI,
   updateTaskStatus as updateTaskStatusAPI
 } from "@/services/taskService"
-import { getUsers } from "@/services/userService"
+import { getAllUsers } from "@/services/userService"
 import { getExperiments } from "@/services/experimentService"
 import {
   taskStatusConfig,
@@ -170,7 +170,7 @@ export const TaskManagement = ({ view = "all" }) => {
         setIsLoading(true);
         const [tasksData, usersData, experimentsData] = await Promise.all([
           getTasks(),
-          getUsers(),
+          getAllUsers(),
           getExperiments()
         ]);
 

@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PersonalInfoTab } from "./tabs/personal-info-tab"
-import { ActivityTab } from "./tabs/activity-tab"
 import { motion } from "framer-motion"
 
 export function ProfileTabs({ userData, onUpdateUserData }) {
@@ -16,9 +15,8 @@ export function ProfileTabs({ userData, onUpdateUserData }) {
       onValueChange={setActiveTab}
       className="space-y-6"
     >
-      <TabsList className="grid grid-cols-2 w-full">
+      <TabsList className="grid grid-cols-1 w-full">
         <TabsTrigger value="personal">Personal</TabsTrigger>
-        <TabsTrigger value="activity">Activity</TabsTrigger>
       </TabsList>
 
       <motion.div
@@ -32,10 +30,6 @@ export function ProfileTabs({ userData, onUpdateUserData }) {
             personalData={userData.personal}
             onUpdatePersonalData={(data) => onUpdateUserData('personal', data)}
           />
-        </TabsContent>
-
-        <TabsContent value="activity" className="mt-0">
-          <ActivityTab activityLogs={userData.activityLogs} />
         </TabsContent>
       </motion.div>
     </Tabs>

@@ -39,3 +39,23 @@ export function withSuppressHydration(props = {}) {
     suppressHydrationWarning: true,
   };
 }
+
+/**
+ * Sanitizes HTML content to prevent XSS attacks
+ * @param {string} html - HTML content to sanitize
+ * @returns {string} Sanitized HTML content
+ */
+export function sanitizeHtml(html) {
+  if (typeof window === 'undefined') {
+    // Server-side: return plain text without HTML tags
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, '');
+  }
+
+  // Client-side: use DOMPurify
+  const DOMPurify = require('dompurify');
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'p', 'br', 'span'],
+    ALLOWED_ATTR: ['class', 'style']
+  });
+}

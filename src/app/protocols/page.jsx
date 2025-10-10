@@ -97,7 +97,8 @@ export default function ProtocolsPage() {
         limit: pagination.limit,
         search: searchQuery || undefined,
         category: categoryFilter !== "all" ? categoryFilter : undefined,
-        // For All protocols section, exclude "In Review" protocols unless specifically filtered
+        // For All protocols section, show all public protocols (isPublic=true)
+        isPublic: true, // Only show public protocols
         status: statusFilter !== "all" ? statusFilter : undefined,
         excludeInReview: statusFilter === "all" // Exclude "In Review" when no specific status filter is applied
       }
@@ -129,10 +130,12 @@ export default function ProtocolsPage() {
         limit: pagination.limit,
         search: searchQuery || undefined,
         category: categoryFilter !== "all" ? categoryFilter : undefined,
-        status: "In Review" // Always filter to "In Review" for My protocols on review section
+        // For Protocols on Review section, show all non-public protocols (isPublic=false)
+        isPublic: false, // Only show non-public protocols
+        status: statusFilter !== "all" ? statusFilter : undefined
       }
 
-      const response = await getMyProtocols(params)
+      const response = await getProtocols(params)
       setMyProtocols(response.data)
       setPagination(prev => ({
         ...prev,
@@ -268,15 +271,15 @@ export default function ProtocolsPage() {
       let updatedProtocol
 
       if (formMode === "create") {
-        // Ensure new protocols are created with isPublic: false for review
-        const protocolWithReviewStatus = {
+        // Ensure new protocols are created with isPublic: false (private) by default
+        const protocolWithPrivateStatus = {
           ...protocolData,
           isPublic: false
         }
 
-        updatedProtocol = await createProtocolApi(protocolWithReviewStatus)
+        updatedProtocol = await createProtocolApi(protocolWithPrivateStatus)
 
-        // Add to myProtocols list since it's created by current user and in review
+        // Add to myProtocols list since it's created by current user and is private
         setMyProtocols([updatedProtocol, ...myProtocols])
 
         // Store the created protocol for the success modal
@@ -354,18 +357,18 @@ export default function ProtocolsPage() {
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base mt-2">
                 {activeTab === "all"
-                  ? "Browse approved and published protocols from all users"
-                  : "Manage your protocols currently under review"
+                  ? "Browse all public protocols from all users"
+                  : "View all protocols under review (private protocols)"
                 }
               </p>
               <div className="flex flex-wrap gap-2 mt-3">
                 <Badge className="bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                  {currentProtocols.length} {activeTab === "all" ? "Total" : "My"} Protocols
+                  {currentProtocols.length} {activeTab === "all" ? "Public" : "Private"} Protocols
                 </Badge>
                 {activeTab === "my" ? (
                   <>
                     <Badge className="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                      {myProtocols.length} In Review
+                      {myProtocols.length} Private
                     </Badge>
                   </>
                 ) : (
@@ -410,7 +413,7 @@ export default function ProtocolsPage() {
               )}
             >
               <Globe className="h-4 w-4 mr-2" />
-              All Protocols
+              Public Protocols
               <Badge className="ml-2 bg-background/50 text-foreground/70">
                 {protocols.length}
               </Badge>
@@ -425,7 +428,7 @@ export default function ProtocolsPage() {
               )}
             >
               <User className="h-4 w-4 mr-2" />
-              My Protocols on Review
+              Private Protocols
               <Badge className="ml-2 bg-background/50 text-foreground/70">
                 {myProtocols.length}
               </Badge>
@@ -509,31 +512,21 @@ export default function ProtocolsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  {activeTab === "all" && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-foreground/80">Status</label>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="bg-background/50 border-border/30 focus:ring-primary/30">
-                          <SelectValue placeholder="Filter by status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statuses.map(status => (
-                            <SelectItem key={status} value={status}>
-                              {status === "all" ? "All Statuses" : status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                  {activeTab === "my" && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-foreground/80">Status</label>
-                      <div className="bg-background/50 border border-border/30 rounded-md px-3 py-2 text-sm text-muted-foreground">
-                        In Review (Fixed Filter)
-                      </div>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground/80">Status</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="bg-background/50 border-border/30 focus:ring-primary/30">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statuses.map(status => (
+                          <SelectItem key={status} value={status}>
+                            {status === "all" ? "All Statuses" : status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -561,7 +554,9 @@ export default function ProtocolsPage() {
                 </div>
                 <h3 className="text-2xl font-bold mb-3">No protocols found</h3>
                 <p className="text-muted-foreground max-w-md mb-8 text-base">
-                  We couldn't find any protocols matching your search criteria. Try adjusting your search or create a new protocol.
+                  {activeTab === "all"
+                    ? "We couldn't find any public protocols matching your search criteria. Try adjusting your search or create a new protocol."
+                    : "We couldn't find any private protocols matching your search criteria. Try adjusting your search."}
                 </p>
                 <Button
                   onClick={handleCreateProtocol}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
   Scatter
 } from 'recharts';
 import { Badge } from "@/components/ui/badge";
+import { getProjects } from "@/services/projectService";
 
 const COLORS = {
   'on track': '#10B981',
@@ -52,108 +53,6 @@ const STATUS_DESCRIPTIONS = {
   'on hold': 'Projects currently paused',
   'completed': 'Successfully completed projects'
 };
-
-// Mock data - in a real app, this would come from an API
-// const mockProjects = [
-//   {
-//     id: 'p1',
-//     name: 'Website Redesign',
-//     status: 'on track',
-//     progress: 0.65,
-//     startDate: '2025-05-15',
-//     endDate: '2025-07-20',
-//     budget: 50000,
-//     spent: 32000,
-//     tasks: {
-//       total: 45,
-//       completed: 28,
-//       inProgress: 12,
-//       overdue: 5
-//     },
-//     risks: [
-//       'Potential delay in content delivery from marketing team',
-//       'Third-party API integration pending approval'
-//     ]
-//   },
-//   {
-//     id: 'p2',
-//     name: 'Mobile App',
-//     status: 'at risk',
-//     progress: 0.35,
-//     startDate: '2025-06-01',
-//     endDate: '2025-08-15',
-//     budget: 75000,
-//     spent: 60000,
-//     tasks: {
-//       total: 68,
-//       completed: 22,
-//       inProgress: 25,
-//       overdue: 8
-//     },
-//     risks: [
-//       'Backend API performance issues',
-//       'App store review process may cause delays'
-//     ]
-//   },
-//   {
-//     id: 'p3',
-//     name: 'Data Migration',
-//     status: 'delayed',
-//     progress: 0.2,
-//     startDate: '2025-05-01',
-//     endDate: '2025-06-30',
-//     budget: 30000,
-//     spent: 28000,
-//     tasks: {
-//       total: 30,
-//       completed: 6,
-//       inProgress: 8,
-//       overdue: 4
-//     },
-//     risks: [
-//       'Data validation taking longer than expected',
-//       'Legacy system compatibility issues'
-//     ]
-//   },
-//   {
-//     id: 'p4',
-//     name: 'Marketing Campaign',
-//     status: 'on track',
-//     progress: 0.8,
-//     startDate: '2025-06-10',
-//     endDate: '2025-07-30',
-//     budget: 45000,
-//     spent: 35000,
-//     tasks: {
-//       total: 38,
-//       completed: 31,
-//       inProgress: 5,
-//       overdue: 2
-//     },
-//     risks: [
-//       'Creative assets approval pending'
-//     ]
-//   },
-//   {
-//     id: 'p5',
-//     name: 'Server Upgrade',
-//     status: 'on hold',
-//     progress: 0.1,
-//     startDate: '2025-06-20',
-//     endDate: '2025-07-10',
-//     budget: 20000,
-//     spent: 5000,
-//     tasks: {
-//       total: 15,
-//       completed: 2,
-//       inProgress: 3,
-//       overdue: 0
-//     },
-//     risks: [
-//       'Waiting for hardware delivery'
-//     ]
-//   }
-// ];
 
 // Enhanced Custom Tooltip
 const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) => {
@@ -188,13 +87,42 @@ const EnhancedCustomTooltip = ({ active, payload, label, dataKey, unit, name }) 
   return null;
 };
 
-const ProjectAnalytics = ({ projects = [] }) => {
+const ProjectAnalytics = ({ projects: initialProjects = [] }) => {
+  const [projects, setProjects] = useState(initialProjects);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('month');
+
+  // Fetch projects data
+  useEffect(() => {
+    const fetchProjects = async () => {
+      // Only fetch if we don't have initial projects or if we want to refresh
+      if (initialProjects.length === 0 || isLoading) {
+        try {
+          setIsLoading(true);
+          setError(null);
+          const projectData = await getProjects();
+          setProjects(Array.isArray(projectData) ? projectData : []);
+        } catch (err) {
+          setError(err.message);
+          console.error('Error fetching projects:', err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchProjects();
+  }, [initialProjects.length, isLoading]);
+
+  const handleRefresh = () => {
+    setIsLoading(true);
+    // This will trigger the useEffect to fetch fresh data
+  };
 
   // Process data for charts with enhanced status information
   const statusCounts = projects.reduce((acc, project) => {
-    const status = project.status;
+    const status = project.status?.toLowerCase() || 'unknown';
     if (!acc[status]) {
       acc[status] = {
         count: 0,
@@ -205,8 +133,16 @@ const ProjectAnalytics = ({ projects = [] }) => {
     }
     acc[status].count += 1;
     acc[status].projects.push(project);
-    acc[status].totalTasks += project.tasks.total;
-    acc[status].completedTasks += project.tasks.completed;
+
+    // Calculate task counts if available
+    if (project.tasks) {
+      const totalTasks = project.tasks.total || project.tasks.length || 0;
+      const completedTasks = project.tasks.completed ||
+        (Array.isArray(project.tasks) ? project.tasks.filter(t => t.status === 'completed').length : 0) || 0;
+      acc[status].totalTasks += totalTasks;
+      acc[status].completedTasks += completedTasks;
+    }
+
     return acc;
   }, {});
 
@@ -224,16 +160,29 @@ const ProjectAnalytics = ({ projects = [] }) => {
     status: status
   }));
 
-  const progressData = projects.map(project => ({
-    name: project.name,
-    progress: project.progress * 100,
-    status: project.status,
-    budget: project.budget / 1000, // in thousands for better scaling
-    spent: project.spent / 1000,
-    budgetUtilization: (project.spent / project.budget) * 100,
-    tasks: project.tasks.completed / project.tasks.total * 100,
-    daysRemaining: Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24))
-  }));
+  const progressData = projects.map(project => {
+    // Calculate progress based on available data
+    let progress = 0;
+    if (project.progress !== undefined) {
+      progress = project.progress * 100;
+    } else if (project.tasks) {
+      const totalTasks = project.tasks.total || project.tasks.length || 0;
+      const completedTasks = project.tasks.completed ||
+        (Array.isArray(project.tasks) ? project.tasks.filter(t => t.status === 'completed').length : 0) || 0;
+      progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    }
+
+    return {
+      name: project.name || 'Unnamed Project',
+      progress: progress,
+      status: project.status?.toLowerCase() || 'unknown',
+      budget: (project.budget || 0) / 1000, // in thousands for better scaling
+      spent: (project.spent || 0) / 1000,
+      budgetUtilization: (project.budget && project.spent) ? (project.spent / project.budget) * 100 : 0,
+      tasks: progress,
+      daysRemaining: project.endDate ? Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : 0
+    };
+  });
 
   const CustomLabel = (props) => {
     const { x, y, width, value } = props;
@@ -244,13 +193,101 @@ const ProjectAnalytics = ({ projects = [] }) => {
     );
   };
 
-  const handleRefresh = () => {
-    setIsLoading(true);
-    // Simulate data refresh
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  };
+  // Loading state
+  if (isLoading && projects.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Project Analytics</h2>
+            <p className="text-muted-foreground">
+              Loading project performance and metrics...
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Refreshing
+            </Button>
+            <Tabs value={timeRange} className="w-[180px]">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="quarter">Quarter</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        <div className="grid gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="h-6 w-48 bg-muted rounded animate-pulse"></div>
+                    <div className="h-4 w-64 bg-muted rounded animate-pulse"></div>
+                  </div>
+                  <Button variant="outline" size="sm" disabled>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Refreshing
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] flex items-center justify-center">
+                  <div className="animate-pulse">Loading chart data...</div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && projects.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Project Analytics</h2>
+            <p className="text-muted-foreground">
+              Error loading project data: {error}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+            <Tabs value={timeRange} className="w-[180px]">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="month">Month</TabsTrigger>
+                <TabsTrigger value="quarter">Quarter</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        <Card>
+          <CardContent className="h-[400px] flex items-center justify-center">
+            <div className="text-center">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Failed to load project data</h3>
+              <p className="text-muted-foreground mb-4">
+                There was an error loading the project analytics. Please try again.
+              </p>
+              <Button onClick={handleRefresh}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -619,6 +656,14 @@ const ProjectAnalytics = ({ projects = [] }) => {
                     </ul>
                   </div>
                 ))}
+
+              {/* Show message if no risks found */}
+              {projects.filter(p => p.risks && p.risks.length > 0).length === 0 && (
+                <div className="text-center py-6 text-muted-foreground">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500" />
+                  <p>No significant risks identified in current projects</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

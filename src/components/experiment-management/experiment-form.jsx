@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -27,6 +27,7 @@ import { DatePicker } from "@/components/ui/date-picker" // Import the custom Da
 import { Beaker, Users, ArrowRight, ArrowLeft, AlertTriangle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { getProjectsForExperimentForm } from "@/services/experimentService"
 
 // Form validation schema
 const experimentFormSchema = z.object({
@@ -52,12 +53,28 @@ const experimentFormSchema = z.object({
   budget: z.string().optional(),
   tags: z.string().optional(),
   expectedOutcome: z.string().optional(),
+  // Add projectId field
+  projectId: z.string().optional(),
 })
 
 export function ExperimentForm({ experiment, onSubmit, onCancel }) {
   const isEditing = !!experiment
   const [step, setStep] = useState(1)
   const totalSteps = 2
+  const [projects, setProjects] = useState([])
+
+  // Fetch projects for dropdown
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const projectData = await getProjectsForExperimentForm()
+        setProjects(projectData)
+      } catch (error) {
+        console.error("Failed to fetch projects:", error)
+      }
+    }
+    fetchProjects()
+  }, [])
 
   // Initialize form with default values or existing experiment data
   const form = useForm({
@@ -76,6 +93,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         budget: experiment.budget || "",
         tags: experiment.tags?.join(", ") || "",
         expectedOutcome: experiment.expectedOutcome || "",
+        projectId: experiment.projectId || "",
       }
       : {
         title: "",
@@ -90,6 +108,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         budget: "",
         tags: "",
         expectedOutcome: "",
+        projectId: "",
       },
   })
 
@@ -106,6 +125,8 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
       // Convert dates to ISO strings
       startDate: data.startDate.toISOString(),
       endDate: data.endDate.toISOString(),
+      // Handle project ID - if it's the special "no project" value, set to undefined
+      projectId: data.projectId === "__none__" ? undefined : data.projectId,
     }
 
     onSubmit(processedData)
@@ -137,6 +158,39 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                 <Beaker className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 <h3 className="text-base sm:text-lg font-medium">Experiment Details</h3>
               </div>
+
+              {/* Add Project Selection Dropdown */}
+              <FormField
+                control={form.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm sm:text-base">Project</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || "__none__"}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="text-sm sm:text-base h-8 sm:h-10 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1">
+                          <SelectValue placeholder="Select a project" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">No Project</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project._id} value={project._id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-xs sm:text-sm">
+                      Select the project this experiment belongs to
+                    </FormDescription>
+                    <FormMessage className="text-xs sm:text-sm" />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

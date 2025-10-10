@@ -1,4 +1,5 @@
 const Notification = require('../models/Notification');
+const ActivityService = require('../services/activityService');
 
 // Get all notifications for a user
 exports.getUserNotifications = async (req, res) => {
@@ -56,6 +57,21 @@ exports.createNotification = async (req, res) => {
         await notification.populate('sender', 'name email');
         await notification.populate('recipient', 'name email');
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notification_created',
+                description: `${req.user.name} created notification "${notification.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    notificationId: notification._id,
+                    notificationTitle: notification.title,
+                    operation: 'create'
+                }
+            });
+        }
+
         res.status(201).json(notification);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -71,6 +87,21 @@ exports.markAsRead = async (req, res) => {
         }
 
         await notification.markAsRead();
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notification_read',
+                description: `${req.user.name} marked notification as read`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    notificationId: notification._id,
+                    operation: 'read'
+                }
+            });
+        }
+
         res.json(notification);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -82,6 +113,19 @@ exports.markAllAsRead = async (req, res) => {
     try {
         const userId = req.params.userId || req.user?.id;
         await Notification.markAllAsRead(userId);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notifications_all_read',
+                description: `${req.user.name} marked all notifications as read`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    operation: 'read_all'
+                }
+            });
+        }
 
         res.json({ message: 'All notifications marked as read' });
     } catch (err) {
@@ -97,6 +141,20 @@ exports.deleteNotification = async (req, res) => {
             return res.status(404).json({ error: 'Notification not found' });
         }
 
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notification_deleted',
+                description: `${req.user.name} deleted notification "${notification.title}"`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    notificationTitle: notification.title,
+                    operation: 'delete'
+                }
+            });
+        }
+
         res.json({ message: 'Notification deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -108,6 +166,19 @@ exports.deleteAllNotifications = async (req, res) => {
     try {
         const userId = req.params.userId || req.user?.id;
         await Notification.deleteMany({ recipient: userId });
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notifications_all_deleted',
+                description: `${req.user.name} deleted all notifications`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    operation: 'delete_all'
+                }
+            });
+        }
 
         res.json({ message: 'All notifications deleted successfully' });
     } catch (err) {
@@ -147,6 +218,20 @@ exports.sendBulkNotifications = async (req, res) => {
         }));
 
         const createdNotifications = await Notification.insertMany(notifications);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notifications_bulk_sent',
+                description: `${req.user.name} sent ${createdNotifications.length} notifications`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    notificationCount: createdNotifications.length,
+                    operation: 'bulk_send'
+                }
+            });
+        }
 
         res.status(201).json({
             message: `${createdNotifications.length} notifications sent successfully`,

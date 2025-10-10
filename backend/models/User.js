@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isPowerUser: {
+        type: Boolean,
+        default: false,
+    },
     preferences: {
         theme: {
             type: String,
