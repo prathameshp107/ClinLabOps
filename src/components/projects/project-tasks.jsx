@@ -323,10 +323,10 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
               </SelectTrigger>
               <SelectContent className="bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="todo">To Do</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
                 <SelectItem value="review">In Review</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="done">Done</SelectItem>
               </SelectContent>
             </Select>
 
@@ -345,6 +345,24 @@ export function ProjectTasks({ tasks = [], team = [], onAddTask, onDeleteTask })
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => {
+                setItemsPerPage(Number(value))
+                setCurrentPage(1)
+              }}
+            >
+              <SelectTrigger className="h-11 w-[100px] text-sm bg-background/60 backdrop-blur-sm border-border/50 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl shadow-sm">
+                <SelectValue placeholder="Per Page" />
+              </SelectTrigger>
+              <SelectContent className="bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-xl">
+                <SelectItem value="5">5 per page</SelectItem>
+                <SelectItem value="10">10 per page</SelectItem>
+                <SelectItem value="20">20 per page</SelectItem>
+                <SelectItem value="50">50 per page</SelectItem>
               </SelectContent>
             </Select>
 

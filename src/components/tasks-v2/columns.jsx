@@ -202,7 +202,19 @@ export const columns = [
       </div>
     ),
     filterFn: (row, id, value) => {
-      return row.getValue(id)?.name === value
+      // Handle case where value might be an array (multiple selections)
+      const projectValue = row.getValue(id);
+      const projectName = projectValue?.name;
+
+      if (!projectName) return false;
+
+      // If value is an array, check if projectName matches any of the values
+      if (Array.isArray(value)) {
+        return value.includes(projectName);
+      }
+
+      // If value is a string, check direct match
+      return projectName === value;
     },
     enableSorting: false,
     enableHiding: true,
