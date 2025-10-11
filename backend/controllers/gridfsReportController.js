@@ -3,6 +3,7 @@ const ActivityService = require('../services/activityService');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
+const gridfsService = require('../services/gridfsService');
 
 // Get all reports
 exports.getAllReports = async (req, res) => {
@@ -85,7 +86,7 @@ exports.getReportById = async (req, res) => {
     }
 };
 
-// Create a new report
+// Create a new report with GridFS
 exports.createReport = async (req, res) => {
     try {
         if (!req.file) {
@@ -109,6 +110,38 @@ exports.createReport = async (req, res) => {
             return res.status(400).json({ error: 'Invalid file format' });
         }
 
+        // Read file buffer
+        const fileBuffer = fs.readFileSync(req.file.path);
+
+        // Upload file to GridFS
+        console.log('Uploading file to GridFS:', req.file.filename);
+        let gridFSFile;
+        try {
+            gridFSFile = await gridfsService.uploadFile(fileBuffer, req.file.filename, {
+                originalname: req.file.originalname,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
+                uploadedBy: req.user._id
+            });
+        } catch (uploadErr) {
+            console.error('GridFS upload failed:', uploadErr);
+            throw new Error(`Failed to upload file to GridFS: ${uploadErr.message}`);
+        }
+
+        // Debug log to see what gridFSFile contains
+        console.log('GridFS file upload result:', gridFSFile);
+
+        // Check if gridFSFile is valid
+        if (!gridFSFile) {
+            throw new Error('Failed to upload file to GridFS - no response received');
+        }
+
+        // The GridFS file object should have an _id property
+        const fileId = gridFSFile._id || gridFSFile.id;
+        if (!fileId) {
+            throw new Error('Failed to upload file to GridFS - missing file ID');
+        }
+
         const report = new Report({
             title,
             type,
@@ -116,14 +149,20 @@ exports.createReport = async (req, res) => {
             format,
             fileName: req.file.filename,
             fileSize: req.file.size,
-            fileUrl: `/uploads/reports/${req.file.filename}`,
-            uploadedBy: req.user._id
+            fileUrl: `/api/gridfs-reports/gridfs-download/${fileId}`,
+            uploadedBy: req.user._id,
+            gridFSFileId: fileId
         });
 
         const savedReport = await report.save();
 
         // Populate the uploadedBy field
         await savedReport.populate('uploadedBy', 'name email');
+
+        // Delete the temporary file
+        if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
 
         // Log activity
         if (req.user) {
@@ -141,13 +180,11 @@ exports.createReport = async (req, res) => {
 
         res.status(201).json(savedReport);
     } catch (err) {
-        // Delete the uploaded file if report creation fails
-        if (req.file) {
-            const filePath = path.join(__dirname, '..', 'uploads', 'reports', req.file.filename);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
+        // Delete the temporary file if report creation fails
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
         }
+        console.error('Error creating report:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -194,7 +231,7 @@ exports.updateReport = async (req, res) => {
     }
 };
 
-// Delete a report
+// Delete a report with GridFS file
 exports.deleteReport = async (req, res) => {
     try {
         const report = await Report.findById(req.params.id);
@@ -202,10 +239,13 @@ exports.deleteReport = async (req, res) => {
             return res.status(404).json({ error: 'Report not found' });
         }
 
-        // Delete the file from the filesystem
-        const filePath = path.join(__dirname, '..', 'uploads', 'reports', report.fileName);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Delete the file from GridFS if it exists
+        if (report.gridFSFileId) {
+            try {
+                await gridfsService.deleteFile(report.gridFSFileId);
+            } catch (err) {
+                console.error('Error deleting file from GridFS:', err);
+            }
         }
 
         // Delete the report from the database
@@ -231,7 +271,7 @@ exports.deleteReport = async (req, res) => {
     }
 };
 
-// Download a report
+// Download a report from GridFS
 exports.downloadReport = async (req, res) => {
     try {
         const report = await Report.findById(req.params.id);
@@ -239,33 +279,71 @@ exports.downloadReport = async (req, res) => {
             return res.status(404).json({ error: 'Report not found' });
         }
 
-        const filePath = path.join(__dirname, '..', 'uploads', 'reports', report.fileName);
+        // Check if file exists in GridFS
+        if (!report.gridFSFileId) {
+            // Fall back to filesystem download for older reports
+            const filePath = path.join(__dirname, '..', 'uploads', 'reports', report.fileName);
 
-        if (!fs.existsSync(filePath)) {
-            return res.status(404).json({ error: 'File not found' });
-        }
+            if (!fs.existsSync(filePath)) {
+                return res.status(404).json({ error: 'File not found' });
+            }
 
-        // Set headers for file download
-        res.setHeader('Content-Disposition', `attachment; filename="${report.fileName}"`);
-        res.setHeader('Content-Type', 'application/octet-stream');
+            // Set headers for file download
+            res.setHeader('Content-Disposition', `attachment; filename="${report.fileName}"`);
+            res.setHeader('Content-Type', 'application/octet-stream');
 
-        // Log activity
-        if (req.user) {
-            await ActivityService.logActivity({
-                type: 'report_downloaded',
-                description: `${req.user.name} downloaded report: ${report.title}`,
-                userId: req.user._id,
-                meta: {
-                    category: 'report',
-                    operation: 'download',
-                    reportId: report._id
+            // Log activity
+            if (req.user) {
+                await ActivityService.logActivity({
+                    type: 'report_downloaded',
+                    description: `${req.user.name} downloaded report: ${report.title}`,
+                    userId: req.user._id,
+                    meta: {
+                        category: 'report',
+                        operation: 'download',
+                        reportId: report._id
+                    }
+                });
+            }
+
+            // Stream the file
+            const fileStream = fs.createReadStream(filePath);
+            fileStream.pipe(res);
+        } else {
+            // Download from GridFS
+            try {
+                // Set headers for file download
+                res.setHeader('Content-Disposition', `attachment; filename="${report.fileName}"`);
+
+                // Get file info to set content type
+                const file = await gridfsService.findFile(report.gridFSFileId);
+                if (file && file.metadata && file.metadata.mimetype) {
+                    res.setHeader('Content-Type', file.metadata.mimetype);
+                } else {
+                    res.setHeader('Content-Type', 'application/octet-stream');
                 }
-            });
-        }
 
-        // Stream the file
-        const fileStream = fs.createReadStream(filePath);
-        fileStream.pipe(res);
+                // Log activity
+                if (req.user) {
+                    await ActivityService.logActivity({
+                        type: 'report_downloaded',
+                        description: `${req.user.name} downloaded report: ${report.title}`,
+                        userId: req.user._id,
+                        meta: {
+                            category: 'report',
+                            operation: 'download',
+                            reportId: report._id
+                        }
+                    });
+                }
+
+                // Stream the file from GridFS
+                await gridfsService.downloadFile(report.gridFSFileId, res);
+            } catch (err) {
+                console.error('Error downloading from GridFS:', err);
+                return res.status(404).json({ error: 'File not found in GridFS' });
+            }
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

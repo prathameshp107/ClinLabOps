@@ -32,6 +32,10 @@ const reportSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    gridFSFileId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: false // Not required for existing records
+    },
     uploadedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

@@ -8,9 +8,6 @@ const app = express();
 // Import logger middleware
 const logger = require('./middleware/logger');
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static('uploads'));
-
 // Load configuration
 const config = require('./config/config');
 
@@ -23,6 +20,9 @@ app.use(express.json());
 
 // Log all requests
 app.use(logger);
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
 // Health check route
 app.get('/', (req, res) => {
@@ -110,9 +110,14 @@ app.use('/api/breeding', breedingRouter);
 const cagesRouter = require('./routes/cages');
 app.use('/api/cages', cagesRouter);
 
-// Uploaded reports routes
+// Uploaded reports routes (original)
 const uploadedReportsRouter = require('./routes/uploadedReports');
 app.use('/api/uploaded-reports', uploadedReportsRouter);
+
+// GridFS reports routes (new)
+const gridfsReportsRouter = require('./routes/gridfsReports');
+app.use('/api/gridfs-reports', gridfsReportsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     app.listen(config.port, () => {

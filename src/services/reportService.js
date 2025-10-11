@@ -2,7 +2,7 @@ import axios from 'axios';
 import config from '@/config/config';
 
 const REPORTS_API_URL = `${config.api.backendUrl}/api/reports`;
-const UPLOADED_REPORTS_API_URL = `${config.api.backendUrl}/api/uploaded-reports`;
+const UPLOADED_REPORTS_API_URL = `${config.api.backendUrl}/api/gridfs-reports`;
 
 // Create axios instance with default config
 const api = axios.create({
@@ -24,7 +24,7 @@ api.interceptors.request.use((config) => {
 // Get all reports
 export const getReports = async (params = {}) => {
     try {
-        const response = await api.get('/api/uploaded-reports', { params });
+        const response = await api.get('/api/gridfs-reports', { params });
         return response.data;
     } catch (error) {
         console.error('Failed to fetch reports:', error);
@@ -35,7 +35,7 @@ export const getReports = async (params = {}) => {
 // Create a new report
 export const createReport = async (formData) => {
     try {
-        const response = await api.post('/api/uploaded-reports', formData, {
+        const response = await api.post('/api/gridfs-reports', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -50,7 +50,7 @@ export const createReport = async (formData) => {
 // Upload a report file
 export const uploadReport = async (formData) => {
     try {
-        const response = await api.post('/api/uploaded-reports', formData, {
+        const response = await api.post('/api/gridfs-reports', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
@@ -65,7 +65,7 @@ export const uploadReport = async (formData) => {
 // Update a report
 export const updateReport = async (id, reportData) => {
     try {
-        const response = await api.put(`/api/uploaded-reports/${id}`, reportData);
+        const response = await api.put(`/api/gridfs-reports/${id}`, reportData);
         return response.data;
     } catch (error) {
         console.error('Failed to update report:', error);
@@ -76,7 +76,7 @@ export const updateReport = async (id, reportData) => {
 // Delete a report
 export const deleteReport = async (id) => {
     try {
-        const response = await api.delete(`/api/uploaded-reports/${id}`);
+        const response = await api.delete(`/api/gridfs-reports/${id}`);
         return response.data;
     } catch (error) {
         console.error('Failed to delete report:', error);
@@ -104,7 +104,7 @@ export const generateReport = async (reportType, params = {}) => {
 // Download a report
 export const downloadReport = async (id) => {
     try {
-        const response = await api.get(`/api/uploaded-reports/download/${id}`, {
+        const response = await api.get(`/api/gridfs-reports/gridfs-download/${id}`, {
             responseType: 'blob'
         });
 
