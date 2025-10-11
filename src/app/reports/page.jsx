@@ -23,10 +23,15 @@ import {
     FileTextIcon,
     FileJson,
     FileBarChart,
-    Image
+    Image,
+    Eye,
+    Download,
+    Calendar,
+    User
 } from "lucide-react"
 import { reportService } from "@/services/reportService"
 import { formatFileSize } from "@/lib/utils"
+import config from '@/config/config'
 
 function ReportsPage() {
     const router = useRouter()
@@ -36,6 +41,8 @@ function ReportsPage() {
     const [loading, setLoading] = useState(true)
     const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false)
     const [isDragOver, setIsDragOver] = useState(false)
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+    const [selectedReport, setSelectedReport] = useState(null)
 
     const [newReport, setNewReport] = useState({
         title: "",
@@ -140,16 +147,22 @@ function ReportsPage() {
         }
     }
 
-    const handleViewReport = (report) => {
-        if (report.fileUrl) {
-            window.open(report.fileUrl, '_blank')
-        } else {
+    const handleDownloadReport = async (report) => {
+        try {
+            await reportService.download(report._id)
+        } catch (error) {
+            console.error('Download error:', error)
             toast({
                 title: "Error",
-                description: "Report file not available.",
+                description: "Failed to download report. Please try again.",
                 variant: "destructive",
             })
         }
+    }
+
+    const handleViewReport = (report) => {
+        setSelectedReport(report)
+        setIsViewModalOpen(true)
     }
 
     const renderReportTable = (reportsToRender) => {
@@ -242,6 +255,13 @@ function ReportsPage() {
                                         <Button
                                             variant="outline"
                                             size="sm"
+                                            onClick={() => handleDownloadReport(report)}
+                                        >
+                                            <Download className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             onClick={() => handleViewReport(report)}
                                         >
                                             View
@@ -303,6 +323,126 @@ function ReportsPage() {
                             Upload Report
                         </Button>
                     </div>
+
+                    {/* View Report Modal */}
+                    <Dialog open={isViewModalOpen} onOpenChange={(open) => setIsViewModalOpen(open)}>
+                        <DialogContent className="sm:max-w-[600px] max-w-[95vw]">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                    {selectedReport && getFormatIcon(selectedReport.format)}
+                                    {selectedReport?.title}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Detailed information about the report
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            {selectedReport && (
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label className="text-right">Type</Label>
+                                        <div className="col-span-3">
+                                            <div className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize">
+                                                {selectedReport.type?.replace(/([A-Z])/g, ' $1').trim() || 'N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label className="text-right">Format</Label>
+                                        <div className="col-span-3">
+                                            <div className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase">
+                                                {selectedReport.format || 'N/A'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label className="text-right">File Size</Label>
+                                        <div className="col-span-3">
+                                            <div className="flex items-center gap-2">
+                                                <File className="h-4 w-4 text-muted-foreground" />
+                                                <span>{selectedReport.fileSize ? formatFileSize(selectedReport.fileSize) : 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label className="text-right">Uploaded By</Label>
+                                        <div className="col-span-3">
+                                            <div className="flex items-center gap-2">
+                                                <User className="h-4 w-4 text-muted-foreground" />
+                                                <span>{selectedReport.uploadedBy?.name || 'Unknown User'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label className="text-right">Uploaded</Label>
+                                        <div className="col-span-3">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                <span>
+                                                    {selectedReport.createdAt
+                                                        ? new Date(selectedReport.createdAt).toLocaleString()
+                                                        : 'N/A'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-start gap-4">
+                                        <Label className="text-right pt-2">Description</Label>
+                                        <div className="col-span-3">
+                                            <div className="text-sm">
+                                                {selectedReport.description || 'No description provided'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-4 items-start gap-4">
+                                        <Label className="text-right pt-2">Preview</Label>
+                                        <div className="col-span-3">
+                                            {['jpg', 'jpeg', 'png', 'gif'].includes(selectedReport.format?.toLowerCase()) ? (
+                                                <div className="border rounded-md overflow-hidden">
+                                                    <img
+                                                        src={`${config.api.backendUrl}${selectedReport.fileUrl}`}
+                                                        alt={selectedReport.title}
+                                                        className="w-full max-h-64 object-contain"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="border rounded-md p-4 bg-muted flex items-center justify-center min-h-32">
+                                                    <div className="text-center">
+                                                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                                        <p className="text-sm text-muted-foreground">
+                                                            Preview not available for {selectedReport.format?.toUpperCase()} files
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <DialogFooter className="gap-2 sm:justify-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => selectedReport && window.open(`${config.api.backendUrl}${selectedReport.fileUrl}`, '_blank')}
+                                >
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Open in New Tab
+                                </Button>
+                                <Button
+                                    onClick={() => selectedReport && handleDownloadReport(selectedReport)}
+                                >
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Download
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
 
                     {/* Upload Report Dialog */}
                     <Dialog open={isUploadDialogOpen} onOpenChange={(open) => {

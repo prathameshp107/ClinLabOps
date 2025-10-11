@@ -8,6 +8,9 @@ const app = express();
 // Import logger middleware
 const logger = require('./middleware/logger');
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 // Load configuration
 const config = require('./config/config');
 

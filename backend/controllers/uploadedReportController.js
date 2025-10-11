@@ -238,9 +238,13 @@ exports.downloadReport = async (req, res) => {
             return res.status(404).json({ error: 'Report not found' });
         }
 
+        // Fix the file path - use the same path as configured in multer
         const filePath = path.join(__dirname, '..', 'uploads', 'reports', report.fileName);
 
         if (!fs.existsSync(filePath)) {
+            // Try alternative path - check if file exists in current directory structure
+            console.log('File not found at:', filePath);
+            console.log('Current working directory:', process.cwd());
             return res.status(404).json({ error: 'File not found' });
         }
 
