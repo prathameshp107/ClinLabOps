@@ -56,7 +56,8 @@ function ReportsPage() {
     const fetchReports = useCallback(async () => {
         try {
             setLoading(true)
-            const response = await reportService.getAll({ type: filterType === "all" ? undefined : filterType })
+            // Always fetch all reports to enable local filtering
+            const response = await reportService.getAll()
             const reportsData = response.reports || (Array.isArray(response) ? response : [])
             setReports(reportsData)
         } catch (error) {
@@ -70,15 +71,20 @@ function ReportsPage() {
         } finally {
             setLoading(false)
         }
-    }, [filterType])
+    }, [])
 
     useEffect(() => {
         fetchReports()
     }, [fetchReports])
 
     useEffect(() => {
-        setFilteredReports(reports)
-    }, [reports])
+        // Filter reports locally based on filterType
+        if (filterType === "all") {
+            setFilteredReports(reports)
+        } else {
+            setFilteredReports(reports.filter(report => report.type === filterType))
+        }
+    }, [reports, filterType])
 
     const handleUploadReport = async () => {
         if (!newReport.type || !newReport.file) {
@@ -631,22 +637,10 @@ function ReportsPage() {
                     <Tabs defaultValue="all" className="w-full">
                         <div className="flex items-center justify-between">
                             <TabsList>
-                                <TabsTrigger value="all" onClick={() => {
-                                    setFilterType("all")
-                                    fetchReports()
-                                }}>All Reports</TabsTrigger>
-                                <TabsTrigger value="regulatory" onClick={() => {
-                                    setFilterType("regulatory")
-                                    fetchReports()
-                                }}>Regulatory Reports</TabsTrigger>
-                                <TabsTrigger value="research" onClick={() => {
-                                    setFilterType("research")
-                                    fetchReports()
-                                }}>Research Reports</TabsTrigger>
-                                <TabsTrigger value="miscellaneous" onClick={() => {
-                                    setFilterType("miscellaneous")
-                                    fetchReports()
-                                }}>Miscellaneous Reports</TabsTrigger>
+                                <TabsTrigger value="all" onClick={() => setFilterType("all")}>All Reports</TabsTrigger>
+                                <TabsTrigger value="regulatory" onClick={() => setFilterType("regulatory")}>Regulatory Reports</TabsTrigger>
+                                <TabsTrigger value="research" onClick={() => setFilterType("research")}>Research Reports</TabsTrigger>
+                                <TabsTrigger value="miscellaneous" onClick={() => setFilterType("miscellaneous")}>Miscellaneous Reports</TabsTrigger>
                             </TabsList>
                             <div className="flex items-center gap-2">
                                 <Button
