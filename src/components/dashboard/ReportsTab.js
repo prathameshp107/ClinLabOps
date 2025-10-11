@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
-import { Search, Filter, Download, Eye, Trash2, FileText, FileSpreadsheet, Plus, FileArchive, FilePieChart, FileBarChart2, RefreshCw, Upload } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Search, Filter, Download, Eye, FileText, FileSpreadsheet, Plus, FileArchive, FilePieChart, FileBarChart2, RefreshCw, Upload } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,39 +15,89 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PreviewReportDialog } from './PreviewReportDialog';
 import { UploadReportDialog } from './UploadReportDialog';
 import { ReportsPagination } from './ReportsPagination';
+import { reportService } from '@/services/reportService';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 export function ReportsTab({ reports, reportTypes, reportFormats }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedFormat, setSelectedFormat] = useState('all');
-  const [sortConfig, setSortConfig] = useState({ key: 'created', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [previewReport, setPreviewReport] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [recentReports, setRecentReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch the 10 most recent reports
+  useEffect(() => {
+    const fetchRecentReports = async () => {
+      try {
+        setLoading(true);
+        const response = await reportService.getAll();
+        const reports = response.reports || (Array.isArray(response) ? response : []);
+        setRecentReports(reports.slice(0, 10));
+      } catch (error) {
+        console.error('Failed to fetch recent reports:', error);
+        setRecentReports([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentReports();
+  }, []);
 
   // Filter and sort reports
   const filteredReports = useMemo(() => {
-    return reports.filter(report => {
+    const reportsToFilter = recentReports.length > 0 ? recentReports : reports;
+
+    return reportsToFilter.filter(report => {
+      // Search filter - check title and description
       const matchesSearch = (report?.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (report?.tags || []).some(tag => (tag || '').toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesType = selectedType === 'all' || report?.type === selectedType;
-      const matchesFormat = selectedFormat === 'all' || report?.format === selectedFormat;
+        (report?.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Type filter - handle the actual report type from database
+      const reportType = report?.type || '';
+      const matchesType = selectedType === 'all' ||
+        reportType === selectedType;
+
+      // Format filter - handle the actual report format from database
+      const reportFormat = report?.format || '';
+      const matchesFormat = selectedFormat === 'all' ||
+        reportFormat === selectedFormat;
 
       return matchesSearch && matchesType && matchesFormat;
     }).sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
+      // Fix sorting to work with actual database fields
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle nested properties and date objects
+      if (sortConfig.key === 'createdAt' || sortConfig.key === 'created') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      }
+
+      // Handle nested properties like uploadedBy.name
+      if (sortConfig.key === 'uploadedBy.name') {
+        aValue = a?.uploadedBy?.name || '';
+        bValue = b?.uploadedBy?.name || '';
+      }
+
+      if (aValue < bValue) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
+      if (aValue > bValue) {
         return sortConfig.direction === 'asc' ? 1 : -1;
       }
       return 0;
     });
-  }, [reports, searchQuery, selectedType, selectedFormat, sortConfig]);
+  }, [recentReports, reports, searchQuery, selectedType, selectedFormat, sortConfig]);
 
   // Pagination logic
   const totalItems = filteredReports.length;
@@ -71,53 +122,41 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
     setIsPreviewOpen(true);
   };
 
-  const handleDownload = (reportId, e) => {
+  const handleDownload = async (reportId, e) => {
     if (e) e.stopPropagation();
-    const report = reports.find(r => r.id === reportId);
-    console.log(`Downloading report: ${report?.title || 'Unknown'}`);
-    // Simulate download
-    const link = document.createElement('a');
-    link.href = '#';
-    link.download = `${(report?.title || 'report').replace(/\s+/g, '_')}.${(report?.format || 'pdf').toLowerCase()}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleDelete = (reportId, e) => {
-    if (e) e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
-      console.log(`Deleting report ${reportId}`);
-      // In a real app, this would call an API to delete the report
+    try {
+      await reportService.download(reportId);
+    } catch (error) {
+      console.error('Failed to download report:', error);
     }
   };
 
-  const handleUploadReport = (uploadedReport) => {
-    // In a real app, this would add the uploaded report to the backend
-    console.log('Report uploaded:', uploadedReport);
+  const handleUploadReport = async (uploadedReport) => {
+    try {
+      // Refresh the reports list after upload
+      const response = await reportService.getAll({ limit: 10 });
+      const reports = response.reports || (Array.isArray(response) ? response : []);
+      setRecentReports(reports.slice(0, 10));
 
-    // Show success message
-    alert(`Successfully uploaded report: ${uploadedReport?.title || 'Unknown'}\n\n` +
-      `File: ${uploadedReport?.file || 'Unknown'}\n` +
-      `Type: ${uploadedReport?.type || 'Unknown'}\n` +
-      `Size: ${uploadedReport?.size || 'Unknown'}`);
-
-    // In a real app, you would update the reports list by either:
-    // 1. Adding the uploaded report to the reports array
-    // setReports(prev => [uploadedReport, ...prev]);
-    // 
-    // 2. Or refreshing the reports list from the server
-    // fetchReports();
+      // Show success message
+      alert(`Successfully uploaded report: ${uploadedReport?.title || 'Unknown'}`);
+    } catch (error) {
+      console.error('Failed to refresh reports after upload:', error);
+    }
   };
 
   const getFileIcon = (format) => {
-    switch (format) {
-      case 'PDF':
+    switch (format?.toLowerCase()) {
+      case 'pdf':
         return <FileText className="h-4 w-4 text-red-500" />;
-      case 'Excel':
+      case 'xlsx':
+      case 'xls':
         return <FileSpreadsheet className="h-4 w-4 text-green-600" />;
-      case 'CSV':
+      case 'csv':
         return <FileBarChart2 className="h-4 w-4 text-blue-500" />;
+      case 'docx':
+      case 'doc':
+        return <FileText className="h-4 w-4 text-blue-700" />;
       default:
         return <FileText className="h-4 w-4 text-gray-500" />;
     }
@@ -166,15 +205,25 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              {reportTypes.map((type) => {
-                const value = typeof type === 'object' ? type.value : type;
-                const label = typeof type === 'object' ? type.label : type;
-                return (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                );
-              })}
+              {reportTypes && reportTypes.length > 0 ? (
+                reportTypes.map((type) => {
+                  // Handle both string and object formats
+                  const value = typeof type === 'object' ? (type.value || type.label || type.toString()) : type;
+                  const label = typeof type === 'object' ? (type.label || type.value || type.toString()) : type;
+                  return (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  );
+                })
+              ) : (
+                // Fallback to common report types if none provided
+                <>
+                  <SelectItem value="regulatory">Regulatory Reports</SelectItem>
+                  <SelectItem value="research">Research Reports</SelectItem>
+                  <SelectItem value="miscellaneous">Miscellaneous Reports</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
           <Select value={selectedFormat} onValueChange={setSelectedFormat}>
@@ -184,15 +233,26 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Formats</SelectItem>
-              {reportFormats.map((format) => {
-                const value = typeof format === 'object' ? format.value : format;
-                const label = typeof format === 'object' ? format.label : format;
-                return (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                );
-              })}
+              {reportFormats && reportFormats.length > 0 ? (
+                reportFormats.map((format) => {
+                  // Handle both string and object formats
+                  const value = typeof format === 'object' ? (format.value || format.label || format.toString()) : format;
+                  const label = typeof format === 'object' ? (format.label || format.value || format.toString()) : format;
+                  return (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  );
+                })
+              ) : (
+                // Fallback to common formats if none provided
+                <>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="xlsx">Excel</SelectItem>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="docx">Word</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
           <Button
@@ -202,134 +262,150 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
             <Upload className="mr-2 h-4 w-4" />
             Upload Report
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/reports')}
+          >
+            See Reports
+          </Button>
         </div>
       </div>
 
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Reports</CardTitle>
+          <CardTitle>Recent Reports</CardTitle>
           <CardDescription>
-            View and manage your reports
+            Showing the 10 most recent reports from your database
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[300px] cursor-pointer" onClick={() => requestSort('title')}>
-                    <div className="flex items-center">
-                      Title
-                      {sortConfig.key === 'title' && (
-                        <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Format</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => requestSort('created')}>
-                    <div className="flex items-center">
-                      Created
-                      {sortConfig.key === 'created' && (
-                        <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead>Generated By</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedReports.length > 0 ? (
-                  paginatedReports.map((report) => (
-                    <TableRow
-                      key={report.id}
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
-                      onClick={() => handlePreview(report)}
-                    >
-                      <TableCell className="font-medium">{report?.title || 'Untitled'}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{report?.type || 'Unknown'}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getFileIcon(report?.format || 'pdf')}
-                          {report?.format || 'pdf'}
-                        </div>
-                      </TableCell>
-                      <TableCell>{report?.created ? format(new Date(report.created), 'MMM d, yyyy') : 'Unknown'}</TableCell>
-                      <TableCell>{report?.generatedBy || 'Unknown'}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-muted/50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePreview(report);
-                            }}
-                            title="Preview report"
-                          >
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Preview</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-muted/50"
-                            onClick={(e) => handleDownload(report.id, e)}
-                            title="Download report"
-                          >
-                            <Download className="h-4 w-4" />
-                            <span className="sr-only">Download</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 hover:bg-muted/50 text-destructive hover:text-destructive"
-                            onClick={(e) => handleDelete(report.id, e)}
-                            title="Delete report"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Delete</span>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-3">Loading reports...</span>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[300px] cursor-pointer" onClick={() => requestSort('title')}>
+                      <div className="flex items-center">
+                        Title
+                        {sortConfig.key === 'title' && (
+                          <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer" onClick={() => requestSort('type')}>
+                      <div className="flex items-center">
+                        Type
+                        {sortConfig.key === 'type' && (
+                          <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer" onClick={() => requestSort('format')}>
+                      <div className="flex items-center">
+                        Format
+                        {sortConfig.key === 'format' && (
+                          <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer" onClick={() => requestSort('createdAt')}>
+                      <div className="flex items-center">
+                        Created
+                        {sortConfig.key === 'createdAt' && (
+                          <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer" onClick={() => requestSort('uploadedBy.name')}>
+                      <div className="flex items-center">
+                        Uploaded By
+                        {sortConfig.key === 'uploadedBy.name' && (
+                          <span className="ml-1">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedReports.length > 0 ? (
+                    paginatedReports.map((report) => (
+                      <TableRow
+                        key={report._id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => handlePreview(report)}
+                      >
+                        <TableCell className="font-medium">{report?.title || 'Untitled'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{report?.type?.replace(/([A-Z])/g, ' $1').trim() || 'Unknown'}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getFileIcon(report?.format)}
+                            {report?.format?.toUpperCase() || 'PDF'}
+                          </div>
+                        </TableCell>
+                        <TableCell>{report?.createdAt ? format(new Date(report.createdAt), 'MMM d, yyyy') : 'Unknown'}</TableCell>
+                        <TableCell>{report?.uploadedBy?.name || 'Unknown User'}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-muted/50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePreview(report);
+                              }}
+                              title="Preview report"
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">Preview</span>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-muted/50"
+                              onClick={(e) => handleDownload(report._id, e)}
+                              title="Download report"
+                            >
+                              <Download className="h-4 w-4" />
+                              <span className="sr-only">Download</span>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        <div className="flex flex-col items-center justify-center py-6">
+                          <FileText className="h-12 w-12 text-muted-foreground mb-2" />
+                          <h3 className="text-lg font-medium">No reports found</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Get started by uploading your first report.
+                          </p>
+                          <Button onClick={() => setIsUploadDialogOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Upload Report
                           </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      <div className="flex flex-col items-center justify-center py-6">
-                        <FileText className="h-12 w-12 text-muted-foreground mb-2" />
-                        <h3 className="text-lg font-medium">No reports found</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Try adjusting your search or filter to find what you&apos;re looking for.
-                        </p>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setSearchQuery('');
-                            setSelectedType('all');
-                            setSelectedFormat('all');
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <RefreshCw className="mr-2 h-4 w-4" />
-                          Reset filters
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
           {/* Pagination */}
-          {totalItems > 0 && (
+          {totalItems > 0 && !loading && (
             <div className="mt-4">
               <ReportsPagination
                 currentPage={currentPage}
