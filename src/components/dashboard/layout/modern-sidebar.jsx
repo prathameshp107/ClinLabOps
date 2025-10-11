@@ -81,25 +81,13 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
     );
 
-    // Load/persist order from localStorage
-    const getInitialOrder = (key, defaultOrder) => {
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem(key);
-            if (stored) {
-                try {
-                    return JSON.parse(stored);
-                } catch { }
-            }
-        }
-        return defaultOrder;
-    };
+    // Define the correct default order
+    const DEFAULT_GROUP_ORDER = ['main', 'lab', 'insights', 'team', 'system'];
 
-    // Group order state
-    const [groupOrder, setGroupOrder] = useState(() => getInitialOrder('sidebarGroupOrder', [
-        'main', 'lab', 'team', 'insights', 'system'
-    ]));
-    // Item order state per group
-    const [itemOrder, setItemOrder] = useState(() => getInitialOrder('sidebarItemOrder', {}));
+    // Group order state - always use the default order
+    const [groupOrder, setGroupOrder] = useState(DEFAULT_GROUP_ORDER);
+
+    const [itemOrder, setItemOrder] = useState({});
 
     // Grouped navigation items - using useMemo to ensure it updates when currentUser changes
     const navigationGroups = useMemo(() => [
@@ -126,6 +114,16 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             ]
         },
         {
+            key: 'insights',
+            label: 'Insights',
+            icon: <BarChart2 className="h-4 w-4" />,
+            items: [
+                { name: 'analytics', label: 'Analytics', icon: <BarChart2 className="h-5 w-5" />, path: '#', badge: null, comingSoon: true },
+                { name: 'reports', label: 'Reports', icon: <FileText className="h-5 w-5" />, path: '/reports', badge: null },
+                { name: 'enquiries', label: 'Enquiries', icon: <MessageSquare className="h-5 w-5" />, path: '/enquiries', badge: null }
+            ]
+        },
+        {
             key: 'team',
             label: 'Team',
             icon: <Users className="h-4 w-4" />,
@@ -142,16 +140,6 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             })
         },
         {
-            key: 'insights',
-            label: 'Insights',
-            icon: <BarChart2 className="h-4 w-4" />,
-            items: [
-                { name: 'analytics', label: 'Analytics', icon: <BarChart2 className="h-5 w-5" />, path: '#', badge: null, comingSoon: true },
-                { name: 'reports', label: 'Reports', icon: <FileText className="h-5 w-5" />, path: '/reports', badge: null },
-                { name: 'enquiries', label: 'Enquiries', icon: <MessageSquare className="h-5 w-5" />, path: '/enquiries', badge: null }
-            ]
-        },
-        {
             key: 'system',
             label: 'System',
             icon: <Cog className="h-4 w-4" />,
@@ -162,14 +150,6 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             ]
         }
     ], [currentUser]);
-
-    // Save order to localStorage
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('sidebarGroupOrder', JSON.stringify(groupOrder));
-            localStorage.setItem('sidebarItemOrder', JSON.stringify(itemOrder));
-        }
-    }, [groupOrder, itemOrder]);
 
     // Helper: get group/items in current order
     const orderedGroups = useMemo(() => {
@@ -192,6 +172,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             const newIndex = groupOrder.indexOf(over.id);
             const newOrder = arrayMove(groupOrder, oldIndex, newIndex);
             setGroupOrder(newOrder);
+            // Note: We're no longer persisting group order to localStorage
         }
     };
     const handleItemDragEnd = (groupKey) => (event) => {
@@ -203,6 +184,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             const newIndex = order.indexOf(over.id);
             const newOrder = arrayMove(order, oldIndex, newIndex);
             setItemOrder((prev) => ({ ...prev, [groupKey]: newOrder }));
+            // Note: We're no longer persisting item order to localStorage
         }
     };
 
