@@ -104,7 +104,6 @@ class GridFSService {
     }
 
     // Download a file from GridFS
-    // Download a file from GridFS
     async downloadFile(fileId, res) {
         // Ensure GridFS is initialized
         if (!this.bucket) {
@@ -130,10 +129,14 @@ class GridFSService {
                 throw new Error('File not found in GridFS');
             }
 
-            // Set headers using file metadata
+            // Set headers using file metadata, but don't override Content-Disposition if already set
             res.setHeader('Content-Type', file.metadata?.mimetype || 'application/octet-stream');
-            res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
             res.setHeader('Content-Length', file.length);
+
+            // Only set Content-Disposition if not already set by the controller
+            if (!res.getHeader('Content-Disposition')) {
+                res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+            }
 
             // Create and pipe the download stream
             const downloadStream = this.bucket.openDownloadStream(objectId);

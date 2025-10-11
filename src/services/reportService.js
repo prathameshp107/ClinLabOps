@@ -104,17 +104,32 @@ export const generateReport = async (reportType, params = {}) => {
 // Download a report
 export const downloadReport = async (id) => {
     try {
+        // First, get the report details to get the original filename
+        const reportResponse = await api.get(`/api/gridfs-reports/${id}`);
+        const report = reportResponse.data;
+
+        // Then download the file
         const response = await api.get(`/api/gridfs-reports/gridfs-download/${id}`, {
             responseType: 'blob'
         });
 
-        // Get the filename from the Content-Disposition header if available
-        const contentDisposition = response.headers['content-disposition'];
-        let filename = 'report.pdf';
-        if (contentDisposition) {
-            const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-            if (filenameMatch.length === 2) {
-                filename = filenameMatch[1];
+        // Check if response is successful
+        if (response.status !== 200) {
+            throw new Error(`Server returned status ${response.status}`);
+        }
+
+        // Use the original filename from the report
+        let filename = report.title || report.fileName || 'report.pdf';
+
+        if (!report.title) {
+            // If we can access the Content-Disposition header, use it instead
+            const contentDisposition = response.headers['content-disposition'] || response.headers['Content-Disposition'];
+            if (contentDisposition) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
             }
         }
 
@@ -128,6 +143,7 @@ export const downloadReport = async (id) => {
 
         // Clean up
         document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
         return response.data;
     } catch (error) {

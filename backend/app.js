@@ -14,7 +14,8 @@ const config = require('./config/config');
 // Middleware
 app.use(cors({
     origin: config.cors.origin,
-    credentials: config.cors.credentials
+    credentials: config.cors.credentials,
+    exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'] // Expose these headers to frontend
 }));
 app.use(express.json());
 

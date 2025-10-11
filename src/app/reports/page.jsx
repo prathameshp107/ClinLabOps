@@ -91,7 +91,7 @@ function ReportsPage() {
         }
 
         // If no title is provided, use the filename (without extension) as the title
-        let reportTitle = newReport.title;
+        let reportTitle = newReport?.file?.name ? newReport.file.name : newReport.title;
         if (!reportTitle && newReport.file) {
             // Extract filename without extension
             const fileNameWithoutExt = newReport.file.name.replace(/\.[^/.]+$/, "");
