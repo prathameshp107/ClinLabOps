@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { toast } from "@/components/ui/use-toast"
+import { useTheme } from "next-themes"
 import {
     PlusCircle,
     Upload,
@@ -33,8 +34,169 @@ import { reportService } from "@/services/reportService"
 import { formatFileSize } from "@/lib/utils"
 import config from '@/config/config'
 
+// Add this CSS for theme-aware skeleton loaders
+const skeletonStyles = `
+  @keyframes skeleton-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  
+  .animate-skeleton {
+    animation: skeleton-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+`
+
+// Skeleton Components
+const SkeletonLoader = ({ className }) => (
+    <div className={`animate-skeleton rounded-md bg-muted ${className}`} />
+)
+
+const ReportTableSkeleton = () => (
+    <div className="rounded-md border">
+        <div className="h-12 border-b px-4 flex items-center">
+            <SkeletonLoader className="h-4 w-24" />
+        </div>
+        {[...Array(5)].map((_, index) => (
+            <div key={index} className="border-b h-20 px-4 flex items-center">
+                <div className="flex items-center gap-3 w-1/4">
+                    <SkeletonLoader className="h-8 w-8 rounded" />
+                    <div className="space-y-2">
+                        <SkeletonLoader className="h-4 w-32" />
+                        <SkeletonLoader className="h-3 w-24" />
+                    </div>
+                </div>
+                <div className="w-1/6">
+                    <SkeletonLoader className="h-6 w-20 rounded-full" />
+                </div>
+                <div className="w-1/6">
+                    <SkeletonLoader className="h-6 w-16 rounded-full" />
+                </div>
+                <div className="w-1/6">
+                    <SkeletonLoader className="h-4 w-24" />
+                </div>
+                <div className="w-1/6">
+                    <SkeletonLoader className="h-4 w-20" />
+                </div>
+                <div className="w-1/6 flex justify-end gap-2">
+                    <SkeletonLoader className="h-8 w-8 rounded" />
+                    <SkeletonLoader className="h-8 w-12 rounded" />
+                    <SkeletonLoader className="h-8 w-16 rounded" />
+                </div>
+            </div>
+        ))}
+    </div>
+)
+
+const ReportCardSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, index) => (
+            <Card key={index} className="flex flex-col h-full">
+                <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                            <SkeletonLoader className="h-8 w-8 rounded" />
+                            <div className="space-y-2">
+                                <SkeletonLoader className="h-5 w-32" />
+                                <SkeletonLoader className="h-4 w-24" />
+                            </div>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="flex-grow pb-3">
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <SkeletonLoader className="h-4 w-12" />
+                            <SkeletonLoader className="h-6 w-20 rounded-full" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <SkeletonLoader className="h-4 w-16" />
+                            <SkeletonLoader className="h-6 w-16 rounded-full" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <SkeletonLoader className="h-4 w-24" />
+                            <SkeletonLoader className="h-4 w-20" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <SkeletonLoader className="h-4 w-12" />
+                            <SkeletonLoader className="h-4 w-20" />
+                        </div>
+                    </div>
+                </CardContent>
+                <CardFooter className="flex justify-between pt-3 border-t">
+                    <SkeletonLoader className="h-8 w-24 rounded" />
+                    <div className="flex gap-2">
+                        <SkeletonLoader className="h-8 w-16 rounded" />
+                        <SkeletonLoader className="h-8 w-16 rounded" />
+                    </div>
+                </CardFooter>
+            </Card>
+        ))}
+    </div>
+)
+
+const ReportModalSkeleton = () => (
+    <div className="grid gap-5 px-6 py-4 overflow-y-auto flex-grow">
+        <div className="grid grid-cols-4 items-center gap-4">
+            <SkeletonLoader className="h-4 w-16" />
+            <div className="col-span-3">
+                <SkeletonLoader className="h-6 w-24 rounded-full" />
+            </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+            <SkeletonLoader className="h-4 w-16" />
+            <div className="col-span-3">
+                <SkeletonLoader className="h-6 w-16 rounded-full" />
+            </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+            <SkeletonLoader className="h-4 w-16" />
+            <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                    <SkeletonLoader className="h-4 w-4 rounded-full" />
+                    <SkeletonLoader className="h-4 w-20" />
+                </div>
+            </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+            <SkeletonLoader className="h-4 w-16" />
+            <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                    <SkeletonLoader className="h-4 w-4 rounded-full" />
+                    <SkeletonLoader className="h-4 w-24" />
+                </div>
+            </div>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+            <SkeletonLoader className="h-4 w-16" />
+            <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                    <SkeletonLoader className="h-4 w-4 rounded-full" />
+                    <SkeletonLoader className="h-4 w-32" />
+                </div>
+            </div>
+        </div>
+        <div className="grid grid-cols-4 items-start gap-4">
+            <SkeletonLoader className="h-4 w-16 pt-2" />
+            <div className="col-span-3">
+                <SkeletonLoader className="h-20 w-full rounded-lg" />
+            </div>
+        </div>
+        <div className="grid grid-cols-4 items-start gap-4">
+            <SkeletonLoader className="h-4 w-16 pt-2" />
+            <div className="col-span-3">
+                <SkeletonLoader className="h-32 w-full rounded-lg" />
+            </div>
+        </div>
+    </div>
+)
+
 function ReportsPage() {
     const router = useRouter()
+    const { theme } = useTheme()
     const [reports, setReports] = useState([])
     const [filteredReports, setFilteredReports] = useState([])
     const [filterType, setFilterType] = useState("all")
@@ -186,12 +348,7 @@ function ReportsPage() {
 
     const renderReportTable = (reportsToRender) => {
         if (loading) {
-            return (
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-3">Loading reports...</span>
-                </div>
-            )
+            return <ReportTableSkeleton />;
         }
 
         if (!reportsToRender || reportsToRender.length === 0) {
@@ -308,12 +465,7 @@ function ReportsPage() {
     // Render card view
     const renderReportCards = (reportsToRender) => {
         if (loading) {
-            return (
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <span className="ml-3">Loading reports...</span>
-                </div>
-            )
+            return <ReportCardSkeleton />;
         }
 
         if (!reportsToRender || reportsToRender.length === 0) {
@@ -440,7 +592,8 @@ function ReportsPage() {
 
     // Pagination component
     const Pagination = () => {
-        if (totalPages <= 1) return null
+        // Don't show pagination when loading
+        if (loading || totalPages <= 1) return null
 
         const getPageNumbers = () => {
             const pages = []
@@ -500,6 +653,7 @@ function ReportsPage() {
 
     return (
         <DashboardLayout>
+            <style>{skeletonStyles}</style>
             <div className="flex flex-col gap-6 p-6">
                 <div className="flex flex-col gap-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -532,7 +686,7 @@ function ReportsPage() {
                                 </DialogTitle>
                             </DialogHeader>
 
-                            {selectedReport && (
+                            {selectedReport ? (
                                 <div className="grid gap-5 px-6 py-4 overflow-y-auto flex-grow">
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label className="text-right font-medium">Type</Label>
@@ -628,6 +782,8 @@ function ReportsPage() {
                                         </div>
                                     </div>
                                 </div>
+                            ) : (
+                                <ReportModalSkeleton />
                             )}
 
                             <DialogFooter className="gap-2 sm:justify-end px-6 py-4 bg-muted/30 shrink-0">
