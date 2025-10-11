@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -43,6 +43,9 @@ function ReportsPage() {
     const [isDragOver, setIsDragOver] = useState(false)
     const [isViewModalOpen, setIsViewModalOpen] = useState(false)
     const [selectedReport, setSelectedReport] = useState(null)
+    const [viewMode, setViewMode] = useState("table") // "table" or "card"
+    const [currentPage, setCurrentPage] = useState(1)
+    const reportsPerPage = 10
 
     const [newReport, setNewReport] = useState({
         title: "",
@@ -84,6 +87,8 @@ function ReportsPage() {
         } else {
             setFilteredReports(reports.filter(report => report.type === filterType))
         }
+        // Reset to first page when filter changes
+        setCurrentPage(1)
     }, [reports, filterType])
 
     const handleUploadReport = async () => {
@@ -171,6 +176,14 @@ function ReportsPage() {
         setIsViewModalOpen(true)
     }
 
+    // Pagination logic
+    const indexOfLastReport = currentPage * reportsPerPage
+    const indexOfFirstReport = indexOfLastReport - reportsPerPage
+    const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport)
+    const totalPages = Math.ceil(filteredReports.length / reportsPerPage)
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber)
+
     const renderReportTable = (reportsToRender) => {
         if (loading) {
             return (
@@ -199,6 +212,9 @@ function ReportsPage() {
             )
         }
 
+        // Use paginated data directly
+        const paginatedReports = reportsToRender.slice(indexOfFirstReport, Math.min(indexOfLastReport, reportsToRender.length))
+
         return (
             <div className="rounded-md border">
                 <table className="w-full caption-bottom text-sm">
@@ -225,7 +241,7 @@ function ReportsPage() {
                         </tr>
                     </thead>
                     <tbody className="[&_tr:last-child]:border-0">
-                        {reportsToRender.map((report) => (
+                        {paginatedReports.map((report) => (
                             <tr key={report._id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
                                     <div className="flex items-center gap-3">
@@ -289,6 +305,115 @@ function ReportsPage() {
         )
     }
 
+    // Render card view
+    const renderReportCards = (reportsToRender) => {
+        if (loading) {
+            return (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span className="ml-3">Loading reports...</span>
+                </div>
+            )
+        }
+
+        if (!reportsToRender || reportsToRender.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No reports found</h3>
+                    <p className="text-muted-foreground mb-4">
+                        {filterType === "all"
+                            ? "Get started by uploading a new report."
+                            : `No ${filterType} reports available.`}
+                    </p>
+                    <Button onClick={() => setIsUploadDialogOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Upload Report
+                    </Button>
+                </div>
+            )
+        }
+
+        // Use paginated data directly
+        const paginatedReports = reportsToRender.slice(indexOfFirstReport, Math.min(indexOfLastReport, reportsToRender.length))
+
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedReports.map((report) => (
+                    <Card key={report._id} className="flex flex-col h-full hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    {getFormatIcon(report.format)}
+                                    <div>
+                                        <CardTitle className="text-lg line-clamp-2">{report.title}</CardTitle>
+                                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                            {report.description || "No description"}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="flex-grow pb-3">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">Type:</span>
+                                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary capitalize">
+                                        {report.type.replace(/([A-Z])/g, ' $1').trim()}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">Format:</span>
+                                    <span className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize">
+                                        {report.format}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">Uploaded by:</span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {report.uploadedBy?.name || "Unknown User"}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium">Date:</span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : "N/A"}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex justify-between pt-3 border-t">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDownloadReport(report)}
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download
+                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleViewReport(report)}
+                                >
+                                    View
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteReport(report._id)}
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        </CardFooter>
+                    </Card>
+                ))}
+            </div>
+        )
+    }
+
     const getFormatIcon = (format) => {
         switch (format?.toLowerCase()) {
             case 'pdf':
@@ -313,11 +438,71 @@ function ReportsPage() {
         }
     }
 
+    // Pagination component
+    const Pagination = () => {
+        if (totalPages <= 1) return null
+
+        const getPageNumbers = () => {
+            const pages = []
+            const maxVisiblePages = 5
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1)
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                pages.push(i)
+            }
+
+            return pages
+        }
+
+        return (
+            <div className="flex items-center justify-between px-2 py-4">
+                <div className="text-sm text-muted-foreground">
+                    Showing {Math.min(indexOfFirstReport + 1, filteredReports.length)} to {Math.min(indexOfLastReport, filteredReports.length)} of {filteredReports.length} reports
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => paginate(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+
+                    {getPageNumbers().map(number => (
+                        <Button
+                            key={number}
+                            variant={currentPage === number ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => paginate(number)}
+                        >
+                            {number}
+                        </Button>
+                    ))}
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <DashboardLayout>
             <div className="flex flex-col gap-6 p-6">
                 <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold">Reports</h1>
                             <p className="text-muted-foreground">
@@ -635,14 +820,34 @@ function ReportsPage() {
                     </Dialog>
 
                     <Tabs defaultValue="all" className="w-full">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                             <TabsList>
                                 <TabsTrigger value="all" onClick={() => setFilterType("all")}>All Reports</TabsTrigger>
                                 <TabsTrigger value="regulatory" onClick={() => setFilterType("regulatory")}>Regulatory Reports</TabsTrigger>
                                 <TabsTrigger value="research" onClick={() => setFilterType("research")}>Research Reports</TabsTrigger>
                                 <TabsTrigger value="miscellaneous" onClick={() => setFilterType("miscellaneous")}>Miscellaneous Reports</TabsTrigger>
                             </TabsList>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <div className="flex items-center bg-muted rounded-lg p-1">
+                                    <Button
+                                        variant={viewMode === "table" ? "default" : "ghost"}
+                                        size="sm"
+                                        className="h-8 px-3"
+                                        onClick={() => setViewMode("table")}
+                                    >
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        Table
+                                    </Button>
+                                    <Button
+                                        variant={viewMode === "card" ? "default" : "ghost"}
+                                        size="sm"
+                                        className="h-8 px-3"
+                                        onClick={() => setViewMode("card")}
+                                    >
+                                        <File className="h-4 w-4 mr-2" />
+                                        Cards
+                                    </Button>
+                                </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -663,7 +868,10 @@ function ReportsPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {renderReportTable(filteredReports)}
+                                    {viewMode === "table"
+                                        ? renderReportTable(filteredReports)
+                                        : renderReportCards(filteredReports)}
+                                    <Pagination />
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -676,7 +884,10 @@ function ReportsPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {renderReportTable(filteredReports.filter(report => report.type === "regulatory"))}
+                                    {viewMode === "table"
+                                        ? renderReportTable(filteredReports.filter(report => report.type === "regulatory"))
+                                        : renderReportCards(filteredReports.filter(report => report.type === "regulatory"))}
+                                    <Pagination />
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -689,7 +900,10 @@ function ReportsPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {renderReportTable(filteredReports.filter(report => report.type === "research"))}
+                                    {viewMode === "table"
+                                        ? renderReportTable(filteredReports.filter(report => report.type === "research"))
+                                        : renderReportCards(filteredReports.filter(report => report.type === "research"))}
+                                    <Pagination />
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -702,7 +916,10 @@ function ReportsPage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
-                                    {renderReportTable(filteredReports.filter(report => report.type === "miscellaneous"))}
+                                    {viewMode === "table"
+                                        ? renderReportTable(filteredReports.filter(report => report.type === "miscellaneous"))
+                                        : renderReportCards(filteredReports.filter(report => report.type === "miscellaneous"))}
+                                    <Pagination />
                                 </CardContent>
                             </Card>
                         </TabsContent>
