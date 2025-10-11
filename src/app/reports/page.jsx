@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,7 +28,11 @@ import {
     Eye,
     Download,
     Calendar,
-    User
+    User,
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight
 } from "lucide-react"
 import { reportService } from "@/services/reportService"
 import { formatFileSize } from "@/lib/utils"
@@ -194,6 +198,121 @@ const ReportModalSkeleton = () => (
     </div>
 )
 
+// Pagination Component
+const Pagination = ({
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
+    onPageChange,
+    onItemsPerPageChange
+}) => {
+    const startItem = totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0
+    const endItem = Math.min(currentPage * itemsPerPage, totalItems)
+
+    const getPageNumbers = () => {
+        const pages = []
+        const maxVisiblePages = 5
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1)
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i)
+        }
+
+        return pages
+    }
+
+    if (totalPages <= 1) return null
+
+    return (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-4">
+            <div className="flex items-center gap-2">
+                <div className="text-sm text-muted-foreground">
+                    Showing <span className="font-medium">{startItem}</span> to{' '}
+                    <span className="font-medium">{endItem}</span> of{' '}
+                    <span className="font-medium">{totalItems}</span> reports
+                </div>
+                <Select
+                    value={`${itemsPerPage}`}
+                    onValueChange={(value) => {
+                        onItemsPerPageChange(Number(value))
+                    }}
+                >
+                    <SelectTrigger className="h-8 w-[70px]">
+                        <SelectValue placeholder={itemsPerPage} />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                        {[5, 10, 20, 30, 40, 50].map((size) => (
+                            <SelectItem key={size} value={`${size}`}>
+                                {size}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <div className="text-sm text-muted-foreground">per page</div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+                <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onPageChange(1)}
+                    disabled={currentPage === 1}
+                >
+                    <span className="sr-only">Go to first page</span>
+                    <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    <span className="sr-only">Go to previous page</span>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <div className="flex items-center space-x-1">
+                    {getPageNumbers().map((number) => (
+                        <Button
+                            key={number}
+                            variant={currentPage === number ? "default" : "outline"}
+                            className="h-8 w-8 p-0"
+                            onClick={() => onPageChange(number)}
+                        >
+                            {number}
+                        </Button>
+                    ))}
+                </div>
+
+                <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    <span className="sr-only">Go to next page</span>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => onPageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                >
+                    <span className="sr-only">Go to last page</span>
+                    <ChevronsRight className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    )
+}
+
 function ReportsPage() {
     const router = useRouter()
     const { theme } = useTheme()
@@ -207,7 +326,7 @@ function ReportsPage() {
     const [selectedReport, setSelectedReport] = useState(null)
     const [viewMode, setViewMode] = useState("table") // "table" or "card"
     const [currentPage, setCurrentPage] = useState(1)
-    const reportsPerPage = 10
+    const [itemsPerPage, setItemsPerPage] = useState(10)
 
     const [newReport, setNewReport] = useState({
         title: "",
@@ -338,13 +457,49 @@ function ReportsPage() {
         setIsViewModalOpen(true)
     }
 
-    // Pagination logic
-    const indexOfLastReport = currentPage * reportsPerPage
-    const indexOfFirstReport = indexOfLastReport - reportsPerPage
-    const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport)
-    const totalPages = Math.ceil(filteredReports.length / reportsPerPage)
+    // Pagination logic for all reports
+    const allReportsPagination = useMemo(() => {
+        const totalPages = Math.ceil(filteredReports.length / itemsPerPage)
+        const indexOfLastReport = currentPage * itemsPerPage
+        const indexOfFirstReport = indexOfLastReport - itemsPerPage
+        const currentReports = filteredReports.slice(indexOfFirstReport, indexOfLastReport)
+        return { totalPages, currentReports }
+    }, [filteredReports, currentPage, itemsPerPage])
+
+    // Pagination logic for specific report types
+    const regulatoryReports = useMemo(() => reports.filter(report => report.type === "regulatory"), [reports])
+    const researchReports = useMemo(() => reports.filter(report => report.type === "research"), [reports])
+    const miscellaneousReports = useMemo(() => reports.filter(report => report.type === "miscellaneous"), [reports])
+
+    const regulatoryPagination = useMemo(() => {
+        const totalPages = Math.ceil(regulatoryReports.length / itemsPerPage)
+        const indexOfLastReport = currentPage * itemsPerPage
+        const indexOfFirstReport = indexOfLastReport - itemsPerPage
+        const currentReports = regulatoryReports.slice(indexOfFirstReport, indexOfLastReport)
+        return { totalPages, currentReports }
+    }, [regulatoryReports, currentPage, itemsPerPage])
+
+    const researchPagination = useMemo(() => {
+        const totalPages = Math.ceil(researchReports.length / itemsPerPage)
+        const indexOfLastReport = currentPage * itemsPerPage
+        const indexOfFirstReport = indexOfLastReport - itemsPerPage
+        const currentReports = researchReports.slice(indexOfFirstReport, indexOfLastReport)
+        return { totalPages, currentReports }
+    }, [researchReports, currentPage, itemsPerPage])
+
+    const miscellaneousPagination = useMemo(() => {
+        const totalPages = Math.ceil(miscellaneousReports.length / itemsPerPage)
+        const indexOfLastReport = currentPage * itemsPerPage
+        const indexOfFirstReport = indexOfLastReport - itemsPerPage
+        const currentReports = miscellaneousReports.slice(indexOfFirstReport, indexOfLastReport)
+        return { totalPages, currentReports }
+    }, [miscellaneousReports, currentPage, itemsPerPage])
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber)
+    const handleItemsPerPageChange = (newItemsPerPage) => {
+        setItemsPerPage(newItemsPerPage)
+        setCurrentPage(1) // Reset to first page when changing items per page
+    }
 
     const renderReportTable = (reportsToRender) => {
         if (loading) {
@@ -368,9 +523,6 @@ function ReportsPage() {
                 </div>
             )
         }
-
-        // Use paginated data directly
-        const paginatedReports = reportsToRender.slice(indexOfFirstReport, Math.min(indexOfLastReport, reportsToRender.length))
 
         return (
             <div className="rounded-md border">
@@ -398,7 +550,7 @@ function ReportsPage() {
                         </tr>
                     </thead>
                     <tbody className="[&_tr:last-child]:border-0">
-                        {paginatedReports.map((report) => (
+                        {reportsToRender.map((report) => (
                             <tr key={report._id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                 <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
                                     <div className="flex items-center gap-3">
@@ -486,12 +638,9 @@ function ReportsPage() {
             )
         }
 
-        // Use paginated data directly
-        const paginatedReports = reportsToRender.slice(indexOfFirstReport, Math.min(indexOfLastReport, reportsToRender.length))
-
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedReports.map((report) => (
+                {reportsToRender.map((report) => (
                     <Card key={report._id} className="flex flex-col h-full hover:shadow-md transition-shadow">
                         <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
@@ -588,67 +737,6 @@ function ReportsPage() {
             default:
                 return <File className="h-8 w-8 text-gray-500" />
         }
-    }
-
-    // Pagination component
-    const Pagination = () => {
-        // Don't show pagination when loading
-        if (loading || totalPages <= 1) return null
-
-        const getPageNumbers = () => {
-            const pages = []
-            const maxVisiblePages = 5
-            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
-            if (endPage - startPage + 1 < maxVisiblePages) {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1)
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                pages.push(i)
-            }
-
-            return pages
-        }
-
-        return (
-            <div className="flex items-center justify-between px-2 py-4">
-                <div className="text-sm text-muted-foreground">
-                    Showing {Math.min(indexOfFirstReport + 1, filteredReports.length)} to {Math.min(indexOfLastReport, filteredReports.length)} of {filteredReports.length} reports
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => paginate(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                    >
-                        Previous
-                    </Button>
-
-                    {getPageNumbers().map(number => (
-                        <Button
-                            key={number}
-                            variant={currentPage === number ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => paginate(number)}
-                        >
-                            {number}
-                        </Button>
-                    ))}
-
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                    >
-                        Next
-                    </Button>
-                </div>
-            </div>
-        )
     }
 
     return (
@@ -950,7 +1038,7 @@ function ReportsPage() {
                                             )}
                                         </div>
                                         <p className="text-xs text-muted-foreground text-center">
-                                            Maximum file size: 10MB
+                                            Maximum file size: 100MB
                                         </p>
                                     </div>
                                 </div>
@@ -975,13 +1063,13 @@ function ReportsPage() {
                         </DialogContent>
                     </Dialog>
 
-                    <Tabs defaultValue="all" className="w-full">
+                    <Tabs defaultValue="all" className="w-full" onValueChange={(value) => setFilterType(value)}>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                             <TabsList>
-                                <TabsTrigger value="all" onClick={() => setFilterType("all")}>All Reports</TabsTrigger>
-                                <TabsTrigger value="regulatory" onClick={() => setFilterType("regulatory")}>Regulatory Reports</TabsTrigger>
-                                <TabsTrigger value="research" onClick={() => setFilterType("research")}>Research Reports</TabsTrigger>
-                                <TabsTrigger value="miscellaneous" onClick={() => setFilterType("miscellaneous")}>Miscellaneous Reports</TabsTrigger>
+                                <TabsTrigger value="all">All Reports</TabsTrigger>
+                                <TabsTrigger value="regulatory">Regulatory Reports</TabsTrigger>
+                                <TabsTrigger value="research">Research Reports</TabsTrigger>
+                                <TabsTrigger value="miscellaneous">Miscellaneous Reports</TabsTrigger>
                             </TabsList>
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="flex items-center bg-muted rounded-lg p-1">
@@ -1025,9 +1113,16 @@ function ReportsPage() {
                                 </CardHeader>
                                 <CardContent>
                                     {viewMode === "table"
-                                        ? renderReportTable(filteredReports)
-                                        : renderReportCards(filteredReports)}
-                                    <Pagination />
+                                        ? renderReportTable(allReportsPagination.currentReports)
+                                        : renderReportCards(allReportsPagination.currentReports)}
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={allReportsPagination.totalPages}
+                                        totalItems={filteredReports.length}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={paginate}
+                                        onItemsPerPageChange={handleItemsPerPageChange}
+                                    />
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -1041,9 +1136,16 @@ function ReportsPage() {
                                 </CardHeader>
                                 <CardContent>
                                     {viewMode === "table"
-                                        ? renderReportTable(filteredReports.filter(report => report.type === "regulatory"))
-                                        : renderReportCards(filteredReports.filter(report => report.type === "regulatory"))}
-                                    <Pagination />
+                                        ? renderReportTable(regulatoryPagination.currentReports)
+                                        : renderReportCards(regulatoryPagination.currentReports)}
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={regulatoryPagination.totalPages}
+                                        totalItems={regulatoryReports.length}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={paginate}
+                                        onItemsPerPageChange={handleItemsPerPageChange}
+                                    />
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -1057,9 +1159,16 @@ function ReportsPage() {
                                 </CardHeader>
                                 <CardContent>
                                     {viewMode === "table"
-                                        ? renderReportTable(filteredReports.filter(report => report.type === "research"))
-                                        : renderReportCards(filteredReports.filter(report => report.type === "research"))}
-                                    <Pagination />
+                                        ? renderReportTable(researchPagination.currentReports)
+                                        : renderReportCards(researchPagination.currentReports)}
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={researchPagination.totalPages}
+                                        totalItems={researchReports.length}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={paginate}
+                                        onItemsPerPageChange={handleItemsPerPageChange}
+                                    />
                                 </CardContent>
                             </Card>
                         </TabsContent>
@@ -1073,9 +1182,16 @@ function ReportsPage() {
                                 </CardHeader>
                                 <CardContent>
                                     {viewMode === "table"
-                                        ? renderReportTable(filteredReports.filter(report => report.type === "miscellaneous"))
-                                        : renderReportCards(filteredReports.filter(report => report.type === "miscellaneous"))}
-                                    <Pagination />
+                                        ? renderReportTable(miscellaneousPagination.currentReports)
+                                        : renderReportCards(miscellaneousPagination.currentReports)}
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={miscellaneousPagination.totalPages}
+                                        totalItems={miscellaneousReports.length}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={paginate}
+                                        onItemsPerPageChange={handleItemsPerPageChange}
+                                    />
                                 </CardContent>
                             </Card>
                         </TabsContent>

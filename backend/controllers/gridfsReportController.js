@@ -8,7 +8,7 @@ const gridfsService = require('../services/gridfsService');
 // Get all reports
 exports.getAllReports = async (req, res) => {
     try {
-        const { type, page = 1, limit = 10 } = req.query;
+        const { type, page = 1, limit = 100} = req.query;
 
         // Build filter
         const filter = {};

@@ -26,35 +26,35 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(10); // Increased default page size
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [previewReport, setPreviewReport] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [recentReports, setRecentReports] = useState([]);
+  const [allReports, setAllReports] = useState([]); // Changed from recentReports to allReports
   const [loading, setLoading] = useState(true);
 
-  // Fetch the 10 most recent reports
+  // Fetch ALL reports (not just 10 most recent)
   useEffect(() => {
-    const fetchRecentReports = async () => {
+    const fetchAllReports = async () => {
       try {
         setLoading(true);
-        const response = await reportService.getAll();
+        const response = await reportService.getAll(); // Remove limit to fetch all reports
         const reports = response.reports || (Array.isArray(response) ? response : []);
-        setRecentReports(reports.slice(0, 10));
+        setAllReports(reports); // Store all reports instead of limiting to 10
       } catch (error) {
-        console.error('Failed to fetch recent reports:', error);
-        setRecentReports([]);
+        console.error('Failed to fetch reports:', error);
+        setAllReports([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRecentReports();
+    fetchAllReports();
   }, []);
 
   // Filter and sort reports
   const filteredReports = useMemo(() => {
-    const reportsToFilter = recentReports.length > 0 ? recentReports : reports;
+    const reportsToFilter = allReports.length > 0 ? allReports : reports; // Use allReports instead of recentReports
 
     return reportsToFilter.filter(report => {
       // Search filter - check title and description
@@ -97,7 +97,7 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
       }
       return 0;
     });
-  }, [recentReports, reports, searchQuery, selectedType, selectedFormat, sortConfig]);
+  }, [allReports, reports, searchQuery, selectedType, selectedFormat, sortConfig]);
 
   // Pagination logic
   const totalItems = filteredReports.length;
@@ -134,9 +134,9 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
   const handleUploadReport = async (uploadedReport) => {
     try {
       // Refresh the reports list after upload
-      const response = await reportService.getAll({ limit: 10 });
+      const response = await reportService.getAll(); // Fetch all reports instead of limiting to 10
       const reports = response.reports || (Array.isArray(response) ? response : []);
-      setRecentReports(reports.slice(0, 10));
+      setAllReports(reports); // Update allReports instead of recentReports
 
       // Show success message
       alert(`Successfully uploaded report: ${uploadedReport?.title || 'Unknown'}`);
@@ -274,9 +274,9 @@ export function ReportsTab({ reports, reportTypes, reportFormats }) {
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Reports</CardTitle>
+          <CardTitle>All Reports</CardTitle> {/* Changed title */}
           <CardDescription>
-            Showing the 10 most recent reports from your database
+            Showing all reports from your database {/* Updated description */}
           </CardDescription>
         </CardHeader>
         <CardContent>
