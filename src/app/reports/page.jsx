@@ -326,63 +326,71 @@ function ReportsPage() {
 
                     {/* View Report Modal */}
                     <Dialog open={isViewModalOpen} onOpenChange={(open) => setIsViewModalOpen(open)}>
-                        <DialogContent className="sm:max-w-[600px] max-w-[95vw]">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                    {selectedReport && getFormatIcon(selectedReport.format)}
-                                    {selectedReport?.title}
+                        <DialogContent className="sm:max-w-[600px] max-w-[95vw] p-0 rounded-xl shadow-2xl max-h-[90vh] flex flex-col">
+                            <DialogHeader className="bg-gradient-to-r from-primary/10 to-primary/5 px-6 py-4 shrink-0">
+                                <DialogTitle className="flex items-center gap-3 text-2xl">
+                                    <div className="p-2 rounded-lg bg-primary/10">
+                                        {selectedReport && getFormatIcon(selectedReport.format)}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-foreground">{selectedReport?.title}</span>
+                                        <span className="text-sm font-normal text-muted-foreground">
+                                            Detailed information about the report
+                                        </span>
+                                    </div>
                                 </DialogTitle>
-                                <DialogDescription>
-                                    Detailed information about the report
-                                </DialogDescription>
                             </DialogHeader>
 
                             {selectedReport && (
-                                <div className="grid gap-4 py-4">
+                                <div className="grid gap-5 px-6 py-4 overflow-y-auto flex-grow">
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label className="text-right">Type</Label>
+                                        <Label className="text-right font-medium">Type</Label>
                                         <div className="col-span-3">
-                                            <div className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold capitalize">
+                                            <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary capitalize">
                                                 {selectedReport.type?.replace(/([A-Z])/g, ' $1').trim() || 'N/A'}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label className="text-right">Format</Label>
+                                        <Label className="text-right font-medium">Format</Label>
                                         <div className="col-span-3">
-                                            <div className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-semibold uppercase">
+                                            <div className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
                                                 {selectedReport.format || 'N/A'}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label className="text-right">File Size</Label>
+                                        <Label className="text-right font-medium">File Size</Label>
                                         <div className="col-span-3">
                                             <div className="flex items-center gap-2">
                                                 <File className="h-4 w-4 text-muted-foreground" />
-                                                <span>{selectedReport.fileSize ? formatFileSize(selectedReport.fileSize) : 'N/A'}</span>
+                                                <span className="font-medium">{selectedReport.fileSize ? formatFileSize(selectedReport.fileSize) : 'N/A'}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label className="text-right">Uploaded By</Label>
+                                        <Label className="text-right font-medium">Uploaded By</Label>
                                         <div className="col-span-3">
                                             <div className="flex items-center gap-2">
-                                                <User className="h-4 w-4 text-muted-foreground" />
-                                                <span>{selectedReport.uploadedBy?.name || 'Unknown User'}</span>
+                                                <div className="bg-muted rounded-full p-1">
+                                                    <User className="h-4 w-4 text-muted-foreground" />
+                                                </div>
+                                                <span className="font-medium">{selectedReport.uploadedBy?.name || 'Unknown User'}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label className="text-right">Uploaded</Label>
+                                        <Label className="text-right font-medium">Uploaded</Label>
                                         <div className="col-span-3">
                                             <div className="flex items-center gap-2">
-                                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                                <span>
+                                                <div className="bg-muted rounded-full p-1">
+                                                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                </div>
+                                                <span className="font-medium">
                                                     {selectedReport.createdAt
                                                         ? new Date(selectedReport.createdAt).toLocaleString()
                                                         : 'N/A'}
@@ -392,19 +400,19 @@ function ReportsPage() {
                                     </div>
 
                                     <div className="grid grid-cols-4 items-start gap-4">
-                                        <Label className="text-right pt-2">Description</Label>
+                                        <Label className="text-right pt-2 font-medium">Description</Label>
                                         <div className="col-span-3">
-                                            <div className="text-sm">
+                                            <div className="text-sm bg-muted/50 rounded-lg p-3 min-h-[60px]">
                                                 {selectedReport.description || 'No description provided'}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-4 items-start gap-4">
-                                        <Label className="text-right pt-2">Preview</Label>
+                                        <Label className="text-right pt-2 font-medium">Preview</Label>
                                         <div className="col-span-3">
                                             {['jpg', 'jpeg', 'png', 'gif'].includes(selectedReport.format?.toLowerCase()) ? (
-                                                <div className="border rounded-md overflow-hidden">
+                                                <div className="border rounded-lg overflow-hidden shadow-sm">
                                                     <img
                                                         src={`${config.api.backendUrl}${selectedReport.fileUrl}`}
                                                         alt={selectedReport.title}
@@ -412,11 +420,16 @@ function ReportsPage() {
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="border rounded-md p-4 bg-muted flex items-center justify-center min-h-32">
+                                                <div className="border rounded-lg p-6 bg-muted/50 flex items-center justify-center min-h-40 shadow-sm">
                                                     <div className="text-center">
-                                                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                                                        <p className="text-sm text-muted-foreground">
+                                                        <div className="bg-muted rounded-full p-3 inline-block mb-3">
+                                                            <FileText className="h-8 w-8 text-muted-foreground" />
+                                                        </div>
+                                                        <p className="text-sm text-muted-foreground font-medium">
                                                             Preview not available for {selectedReport.format?.toUpperCase()} files
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            Download the file to view its contents
                                                         </p>
                                                     </div>
                                                 </div>
@@ -426,16 +439,17 @@ function ReportsPage() {
                                 </div>
                             )}
 
-                            <DialogFooter className="gap-2 sm:justify-end">
+                            <DialogFooter className="gap-2 sm:justify-end px-6 py-4 bg-muted/30 shrink-0">
                                 <Button
                                     variant="outline"
-                                    onClick={() => selectedReport && window.open(`${config.api.backendUrl}${selectedReport.fileUrl}`, '_blank')}
+                                    onClick={() => setIsViewModalOpen(false)}
+                                    className="px-6"
                                 >
-                                    <Eye className="mr-2 h-4 w-4" />
-                                    Open in New Tab
+                                    Cancel
                                 </Button>
                                 <Button
                                     onClick={() => selectedReport && handleDownloadReport(selectedReport)}
+                                    className="px-6"
                                 >
                                     <Download className="mr-2 h-4 w-4" />
                                     Download
@@ -453,8 +467,8 @@ function ReportsPage() {
                             setIsDragOver(false)
                         }
                     }}>
-                        <DialogContent className="sm:max-w-[700px] max-w-[95vw] p-0 overflow-hidden">
-                            <div className="p-6">
+                        <DialogContent className="sm:max-w-[700px] max-w-[95vw] p-0 max-h-[90vh] flex flex-col">
+                            <div className="p-6 overflow-y-auto flex-grow">
                                 <DialogHeader className="pt-4 px-2">
                                     <DialogTitle className="text-2xl">Upload New Report</DialogTitle>
                                     <DialogDescription>
@@ -593,25 +607,24 @@ function ReportsPage() {
                                         </p>
                                     </div>
                                 </div>
-
-                                <DialogFooter className="gap-3 pt-4">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setIsUploadDialogOpen(false)}
-                                        className="h-11"
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        onClick={handleUploadReport}
-                                        disabled={!newReport.type || !newReport.file}
-                                        className="h-11 gap-2 px-6"
-                                    >
-                                        <Upload className="h-4 w-4" />
-                                        Upload Report
-                                    </Button>
-                                </DialogFooter>
                             </div>
+                            <DialogFooter className="gap-3 pt-4 px-6 pb-6 bg-muted/30 shrink-0">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsUploadDialogOpen(false)}
+                                    className="h-11"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleUploadReport}
+                                    disabled={!newReport.type || !newReport.file}
+                                    className="h-11 gap-2 px-6"
+                                >
+                                    <Upload className="h-4 w-4" />
+                                    Upload Report
+                                </Button>
+                            </DialogFooter>
                         </DialogContent>
                     </Dialog>
 
