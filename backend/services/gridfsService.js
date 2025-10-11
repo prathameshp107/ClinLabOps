@@ -104,8 +104,9 @@ class GridFSService {
     }
 
     // Download a file from GridFS
+    // Download a file from GridFS
     async downloadFile(fileId, res) {
-        // Make sure GridFS is initialized
+        // Ensure GridFS is initialized
         if (!this.bucket) {
             this.init();
             if (!this.bucket) {
@@ -113,26 +114,54 @@ class GridFSService {
             }
         }
 
-        return new Promise((resolve, reject) => {
+        try {
+            // Validate fileId
+            let objectId;
             try {
-                const downloadStream = this.bucket.openDownloadStream(new mongoose.Types.ObjectId(fileId));
-
-                downloadStream.on('error', (err) => {
-                    console.error('GridFS download error:', err);
-                    reject(err);
-                });
-
-                downloadStream.on('end', () => {
-                    console.log('GridFS download completed');
-                    resolve();
-                });
-
-                downloadStream.pipe(res);
-            } catch (error) {
-                console.error('GridFS download error:', error);
-                reject(error);
+                objectId = new mongoose.Types.ObjectId(fileId);
+            } catch (err) {
+                console.error('Invalid fileId format:', fileId, err);
+                throw new Error('Invalid file ID format');
             }
-        });
+
+            // Check if file exists before streaming
+            const file = await this.findFile(fileId);
+            if (!file) {
+                throw new Error('File not found in GridFS');
+            }
+
+            // Set headers using file metadata
+            res.setHeader('Content-Type', file.metadata?.mimetype || 'application/octet-stream');
+            res.setHeader('Content-Disposition', `attachment; filename="${file.filename}"`);
+            res.setHeader('Content-Length', file.length);
+
+            // Create and pipe the download stream
+            const downloadStream = this.bucket.openDownloadStream(objectId);
+
+            // Handle stream errors
+            downloadStream.on('error', (err) => {
+                console.error('GridFS download stream error:', err);
+                if (!res.headersSent) {
+                    res.status(500).json({ error: 'Failed to stream file' });
+                }
+            });
+
+            // Log completion
+            downloadStream.on('end', () => {
+                console.log('GridFS download completed for fileId:', fileId);
+            });
+
+            // Pipe the stream to the response
+            downloadStream.pipe(res);
+        } catch (error) {
+            console.error('GridFS download error:', error);
+            if (!res.headersSent) {
+                res.status(error.message === 'File not found in GridFS' ? 404 : 500).json({
+                    error: error.message
+                });
+            }
+            throw error; // Rethrow for Promise rejection
+        }
     }
 
     // Delete a file from GridFS
@@ -145,17 +174,13 @@ class GridFSService {
             }
         }
 
-        return new Promise((resolve, reject) => {
-            this.bucket.delete(new mongoose.Types.ObjectId(fileId), (err) => {
-                if (err) {
-                    console.error('GridFS delete error:', err);
-                    reject(err);
-                } else {
-                    console.log('GridFS file deleted successfully');
-                    resolve();
-                }
-            });
-        });
+        try {
+            await this.bucket.delete(new mongoose.Types.ObjectId(fileId));
+            console.log('GridFS file deleted successfully');
+        } catch (err) {
+            console.error('GridFS delete error:', err);
+            throw err;
+        }
     }
 
     // Find a file in GridFS
@@ -168,17 +193,15 @@ class GridFSService {
             }
         }
 
-        return new Promise((resolve, reject) => {
-            this.bucket.find({ _id: new mongoose.Types.ObjectId(fileId) }).toArray((err, files) => {
-                if (err) {
-                    console.error('GridFS find error:', err);
-                    reject(err);
-                } else {
-                    console.log('GridFS find result:', files.length, 'files found');
-                    resolve(files[0] || null);
-                }
-            });
-        });
+        try {
+            const cursor = this.bucket.find({ _id: new mongoose.Types.ObjectId(fileId) });
+            const files = await cursor.toArray();
+            console.log('GridFS find result:', files.length, 'files found');
+            return files[0] || null;
+        } catch (err) {
+            console.error('GridFS find error:', err);
+            throw err;
+        }
     }
 }
 
