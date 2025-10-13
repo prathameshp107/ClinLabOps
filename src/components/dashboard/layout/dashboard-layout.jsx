@@ -25,17 +25,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { LogOut, User, ChevronDown, Bell, Sun, Moon } from "lucide-react"
+import { LogOut, User, ChevronDown, Sun, Moon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import UserAvatar from "@/components/tasks/user-avatar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { NotificationDropdown } from "@/components/common/notification-dropdown"
 
 export function DashboardLayout({ children }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [userData, setUserData] = useState(null)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
-  const [notificationCount, setNotificationCount] = useState(3) // Mock notification count
+  // Notification count is now handled by NotificationDropdown component
   const [theme, setTheme] = useState('light') // Simple theme state
   const router = useRouter()
 
@@ -143,15 +144,7 @@ export function DashboardLayout({ children }) {
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Notification Bell */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                {notificationCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs">
-                    {notificationCount}
-                  </Badge>
-                )}
-              </Button>
+              <NotificationDropdown />
 
               {/* Theme Toggle */}
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
