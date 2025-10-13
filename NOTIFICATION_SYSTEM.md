@@ -31,6 +31,9 @@ The notification system automatically generates in-app notifications for user ac
    - Displays notifications in a dropdown when the bell icon is clicked
    - Allows users to mark notifications as read or delete them
    - Shows unread notification count on the bell icon
+   - Includes advanced filtering and search capabilities
+   - Features expandable notifications with detailed metadata
+   - Provides category-based organization with visual indicators
 
 3. **Dashboard Layout Integration** (`src/components/dashboard/layout/dashboard-layout.jsx`)
    - Integrates the NotificationDropdown component into the header
@@ -48,6 +51,16 @@ The notification system automatically generates in-app notifications for user ac
 3. Unread notifications are highlighted and counted on the bell icon
 4. Users can mark individual notifications as read or delete them
 5. Users can mark all notifications as read with a single action
+
+### Enhanced UI Features
+1. **Search Functionality**: Users can search notifications by title or message content
+2. **Category Filtering**: Notifications can be filtered by category (task, project, experiment, etc.)
+3. **Read Status Filtering**: Notifications can be filtered by read/unread status
+4. **Expandable Notifications**: Clicking on a notification expands it to show full details and metadata
+5. **Priority Indicators**: Visual indicators show the priority level of each notification
+6. **Sender Information**: Shows who sent the notification when applicable
+7. **Detailed Timestamps**: Hover over timestamps to see full date and time
+8. **Action Buttons**: Navigate to related content directly from notifications
 
 ### Notification Types
 - **Success**: Green checkmark icon (e.g., task created, project completed)
@@ -117,6 +130,8 @@ GET /api/notifications/user/:userId/unread-count
 3. Email/SMS notification options
 4. Notification grouping and filtering
 5. Rich notification content with actions
+6. Push notifications for mobile devices
+7. Notification scheduling and reminders
 
 ## Maintenance Scripts
 - `generate-test-notifications.js`: Creates test notifications for development
