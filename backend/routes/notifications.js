@@ -6,6 +6,9 @@ const auth = require('../middleware/authMiddleware');
 // Get all notifications for a user
 router.get('/user/:userId', notificationController.getUserNotifications);
 
+// Generate notifications from activities
+router.post('/generate-from-activities', notificationController.generateNotificationsFromActivities);
+
 // Get notification statistics
 router.get('/user/:userId/stats', notificationController.getNotificationStats);
 

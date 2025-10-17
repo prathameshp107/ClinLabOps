@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/use-toast"
 import { Inter } from 'next/font/google'
 import "./globals.css"
 import ProtectedLayout from "./ProtectedLayout"
+import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,8 +23,15 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body className="h-full bg-background font-sans text-foreground antialiased">
-        <ProtectedLayout>{children}</ProtectedLayout>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ProtectedLayout>{children}</ProtectedLayout>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

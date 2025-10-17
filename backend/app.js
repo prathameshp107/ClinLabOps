@@ -14,12 +14,16 @@ const config = require('./config/config');
 // Middleware
 app.use(cors({
     origin: config.cors.origin,
-    credentials: config.cors.credentials
+    credentials: config.cors.credentials,
+    exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'] // Expose these headers to frontend
 }));
 app.use(express.json());
 
 // Log all requests
 app.use(logger);
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
 // Health check route
 app.get('/', (req, res) => {
@@ -106,6 +110,26 @@ app.use('/api/breeding', breedingRouter);
 // Cage management routes
 const cagesRouter = require('./routes/cages');
 app.use('/api/cages', cagesRouter);
+
+// Uploaded reports routes (original)
+const uploadedReportsRouter = require('./routes/uploadedReports');
+app.use('/api/uploaded-reports', uploadedReportsRouter);
+
+// GridFS reports routes (new)
+const gridfsReportsRouter = require('./routes/gridfsReports');
+app.use('/api/gridfs-reports', gridfsReportsRouter);
+
+// Initialize deadline notification service
+const deadlineNotificationService = require('./services/deadlineNotificationService');
+// Start the scheduler in production mode
+if (config.nodeEnv === 'production') {
+    deadlineNotificationService.startScheduler();
+}
+
+// Deadline notification routes
+const deadlineNotificationsRouter = require('./routes/deadlineNotifications');
+app.use('/api/deadline-notifications', deadlineNotificationsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     app.listen(config.port, () => {

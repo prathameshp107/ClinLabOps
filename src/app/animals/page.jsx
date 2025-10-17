@@ -87,7 +87,7 @@ export default function AnimalsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 w-full">
+                <div className="bg-white dark:bg-gray-800/90 dark:backdrop-blur-sm rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 w-full">
                     <AnimalManagement />
                 </div>
             </div>

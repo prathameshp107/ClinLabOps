@@ -1,5 +1,6 @@
 const Notification = require('../models/Notification');
 const ActivityService = require('../services/activityService');
+const Activity = require('../models/Activity');
 
 // Get all notifications for a user
 exports.getUserNotifications = async (req, res) => {
@@ -240,6 +241,97 @@ exports.sendBulkNotifications = async (req, res) => {
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
+};
+
+// Generate notifications from activities
+exports.generateNotificationsFromActivities = async (req, res) => {
+    try {
+        // Get recent activities that don't have associated notifications
+        const activities = await Activity.find({
+            createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hours
+        }).populate('user', 'name email');
+
+        const notifications = [];
+
+        for (const activity of activities) {
+            // Skip if notification already exists for this activity
+            const existingNotification = await Notification.findOne({
+                'metadata.activityId': activity._id
+            });
+
+            if (!existingNotification && activity.user) {
+                // Create notification based on activity type
+                const notification = new Notification({
+                    title: this.getActivityNotificationTitle(activity),
+                    message: activity.description,
+                    type: this.getActivityNotificationType(activity),
+                    recipient: activity.user._id,
+                    category: activity.meta?.category || 'general',
+                    metadata: {
+                        activityId: activity._id,
+                        activityType: activity.type
+                    }
+                });
+                await notification.save();
+
+                notifications.push(notification);
+            }
+        }
+
+        res.json({
+            message: `${notifications.length} notifications generated`,
+            notifications
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Helper function to determine notification title based on activity
+exports.getActivityNotificationTitle = function (activity) {
+    const titleMap = {
+        'project_created': 'New Project Created',
+        'project_updated': 'Project Updated',
+        'project_deleted': 'Project Deleted',
+        'task_created': 'New Task Assigned',
+        'task_updated': 'Task Updated',
+        'task_deleted': 'Task Deleted',
+        'user_created': 'New User Registered',
+        'user_updated': 'User Profile Updated',
+        'user_deleted': 'User Account Deleted',
+        'user_login': 'Login Activity',
+        'failed_login_attempt': 'Failed Login Attempt',
+        'notification_created': 'New Notification',
+        'notification_read': 'Notification Read',
+        'notifications_all_read': 'All Notifications Read',
+        'notification_deleted': 'Notification Deleted',
+        'notifications_all_deleted': 'All Notifications Deleted',
+        'notifications_bulk_sent': 'Bulk Notifications Sent'
+    };
+
+    return titleMap[activity.type] || 'System Activity';
+};
+
+// Helper function to determine notification type based on activity
+exports.getActivityNotificationType = function (activity) {
+    const typeMap = {
+        'user_created': 'success',
+        'user_updated': 'info',
+        'user_deleted': 'warning',
+        'user_login': 'info',
+        'failed_login_attempt': 'error',
+        'project_created': 'success',
+        'project_updated': 'info',
+        'project_deleted': 'warning',
+        'task_created': 'success',
+        'task_updated': 'info',
+        'task_deleted': 'warning',
+        'notification_created': 'info',
+        'notification_deleted': 'warning',
+        'failed_login_attempt': 'error'
+    };
+
+    return typeMap[activity.type] || 'info';
 };
 
 // Get notification statistics

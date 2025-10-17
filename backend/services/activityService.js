@@ -1,4 +1,5 @@
 const Activity = require('../models/Activity');
+const { createNotificationFromActivity } = require('../middleware/notificationMiddleware');
 
 /**
  * Activity Service
@@ -48,6 +49,9 @@ class ActivityService {
             if (userId) {
                 await savedActivity.populate('user', 'name email');
             }
+
+            // Automatically create notification from activity
+            await createNotificationFromActivity(savedActivity);
 
             return savedActivity;
         } catch (error) {

@@ -26,7 +26,9 @@ import {
   CircleDot as CircleDotIcon,
   BarChart2 as BarChart2Icon,
   Activity as ActivityIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Eye,
+  Download
 } from "lucide-react";
 
 // Charts
@@ -47,6 +49,7 @@ import {
 } from "@/services/dashboardService";
 import { getProjects } from "@/services/projectService";
 import { getTasks } from "@/services/taskService";
+import { reportService } from "@/services/reportService"; // Add this import
 
 // Components
 import { ReportsTab } from "@/components/dashboard/ReportsTab";
@@ -140,6 +143,7 @@ export default function DashboardPage() {
   const [reportFormats, setReportFormats] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [recentReports, setRecentReports] = useState([]); // Add this state for recent reports
 
   // Fetch dashboard data
   useEffect(() => {
@@ -167,6 +171,9 @@ export default function DashboardPage() {
           getProjects().catch(() => []),
           getTasks().catch(() => [])
         ]);
+
+        // Also fetch recent reports for the dashboard
+        const recentReportsData = await fetchRecentReports();
 
         // Ensure dashboardStats is an array with fallback data
         const processedStats = Array.isArray(statsData) ? statsData : [
@@ -217,6 +224,7 @@ export default function DashboardPage() {
         setReportFormats(reportFormatsData);
         setProjects(Array.isArray(projectsData) ? projectsData : []);
         setTasks(Array.isArray(tasksData) ? tasksData : []);
+        setRecentReports(recentReportsData); // Set recent reports
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -226,6 +234,19 @@ export default function DashboardPage() {
 
     fetchDashboardData();
   }, []);
+
+  // Function to fetch the 10 most recent reports
+  const fetchRecentReports = async () => {
+    try {
+      const response = await reportService.getAll({ limit: 10 });
+      const reports = response.reports || (Array.isArray(response) ? response : []);
+      // The backend already sorts by createdAt descending, so we just need to limit to 10
+      return reports.slice(0, 10);
+    } catch (error) {
+      console.error('Failed to fetch recent reports:', error);
+      return [];
+    }
+  };
 
   /**
    * Handles the refresh action
@@ -248,6 +269,9 @@ export default function DashboardPage() {
         getProjects().catch(() => []),
         getTasks().catch(() => [])
       ]);
+
+      // Also refresh recent reports
+      const recentReportsData = await fetchRecentReports();
 
       // Ensure dashboardStats is an array with fallback data
       const processedStats = Array.isArray(statsData) ? statsData : [
@@ -295,10 +319,45 @@ export default function DashboardPage() {
       setTeamPerformance(teamPerfData);
       setProjects(Array.isArray(projectsData) ? projectsData : []);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
+      setRecentReports(recentReportsData); // Update recent reports
     } catch (error) {
       console.error('Failed to refresh dashboard data:', error);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  // Handle report download
+  const handleDownloadReport = async (reportId) => {
+    try {
+      await reportService.download(reportId);
+    } catch (error) {
+      console.error('Failed to download report:', error);
+    }
+  };
+
+  // Handle report view
+  const handleViewReport = (report) => {
+    // For now, we'll just download the report when "View" is clicked
+    // In a more complex implementation, this could open a preview modal
+    handleDownloadReport(report._id);
+  };
+
+  // Function to get file icon based on format
+  const getFileIcon = (format) => {
+    switch (format?.toLowerCase()) {
+      case 'pdf':
+        return <FileTextIcon className="h-4 w-4 text-red-500" />;
+      case 'xlsx':
+      case 'xls':
+        return <FileTextIcon className="h-4 w-4 text-green-500" />;
+      case 'csv':
+        return <FileTextIcon className="h-4 w-4 text-blue-500" />;
+      case 'docx':
+      case 'doc':
+        return <FileTextIcon className="h-4 w-4 text-blue-700" />;
+      default:
+        return <FileTextIcon className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -586,6 +645,87 @@ export default function DashboardPage() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Recent Reports Section - Add this new section */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">Recent Reports</CardTitle>
+                          <CardDescription className="text-sm">Your 10 most recently uploaded reports</CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-8 text-muted-foreground"
+                          onClick={() => router.push('/reports')}
+                        >
+                          See Reports
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {recentReports.length > 0 ? (
+                        <div className="space-y-2">
+                          {recentReports.map((report) => (
+                            <div key={report._id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <div className="flex-shrink-0">
+                                  {getFileIcon(report.format)}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium truncate">{report.title}</p>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {report.createdAt ? new Date(report.createdAt).toLocaleDateString() : 'Unknown date'}
+                                    </span>
+                                    <Badge variant="outline" className="text-xs">
+                                      {report.type?.replace(/([A-Z])/g, ' $1').trim() || 'Unknown'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-muted/50"
+                                  onClick={() => handleViewReport(report)}
+                                  title="View report"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View</span>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 hover:bg-muted/50"
+                                  onClick={() => handleDownloadReport(report._id)}
+                                  title="Download report"
+                                >
+                                  <Download className="h-4 w-4" />
+                                  <span className="sr-only">Download</span>
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                          <FileTextIcon className="h-12 w-12 text-muted-foreground mb-2" />
+                          <h3 className="text-lg font-medium">No reports found</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Get started by uploading your first report.
+                          </p>
+                          <Button onClick={() => router.push('/reports')}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Upload Report
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
                   <RecentActivity data={recentActivities} />
                   {/* Upcoming Deadlines */}
                   <Card className="h-fit">
