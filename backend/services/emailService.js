@@ -374,6 +374,28 @@ class EmailService {
     }
 
     /**
+     * Send welcome email for new users
+     * @param {Object} user - User object
+     */
+    async sendWelcomeEmail(user) {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        const mailOptions = {
+            to: user.email,
+            subject: `Welcome to ${process.env.APP_NAME || 'LabTasker'}!`,
+            template: 'welcome',
+            data: {
+                userName: user.name,
+                appName: process.env.APP_NAME || 'LabTasker',
+                frontendUrl: frontendUrl
+            },
+            priority: 'normal'
+        };
+
+        return await this.sendNotification(mailOptions);
+    }
+
+    /**
      * Render email template
      * @param {string} templateName - Template name
      * @param {Object} data - Template data

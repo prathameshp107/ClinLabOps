@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{appName}} Account Confirmation</title>
+    <title>Welcome to {{appName}}!</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -20,7 +20,7 @@
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             padding: 30px 20px;
             text-align: center;
@@ -51,7 +51,7 @@
         }
         .button {
             display: inline-block;
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             text-decoration: none;
             padding: 14px 28px;
@@ -59,11 +59,11 @@
             font-weight: 600;
             font-size: 16px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 10px rgba(67, 233, 123, 0.3);
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
         }
         .button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(67, 233, 123, 0.4);
+            box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
         }
         .footer {
             background-color: #f8fafc;
@@ -86,18 +86,35 @@
             color: #2d3748;
         }
         .info-box {
-            background-color: #e8fcf1;
-            border-left: 4px solid #43e97b;
+            background-color: #ecefff;
+            border-left: 4px solid #6a11cb;
             padding: 15px;
             border-radius: 0 4px 4px 0;
             margin: 20px 0;
         }
-        .confirmation-box {
-            background-color: #fff8e1;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            border-radius: 0 4px 4px 0;
-            margin: 20px 0;
+        .features {
+            margin: 25px 0;
+        }
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+        }
+        .feature-icon {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .feature-text {
+            color: #4a5568;
         }
     </style>
 </head>
@@ -107,27 +124,39 @@
             <h1 class="logo">{{appName}}</h1>
         </div>
         <div class="content">
-            <h2>Account Confirmation</h2>
+            <h2>Welcome to {{appName}}!</h2>
             <p class="greeting">Hello {{userName}},</p>
             
             <div class="info-box">
-                <p>Thank you for registering with <strong>{{appName}}</strong>!</p>
+                <p>🎉 <strong>Welcome aboard!</strong> Your account has been successfully created.</p>
             </div>
             
-            <p>To complete your registration, please confirm your email address by clicking the button below:</p>
+            <p>We're excited to have you join our community. {{appName}} is designed to help you streamline your laboratory operations and boost productivity.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">1</div>
+                    <div class="feature-text"><strong>Project Management</strong> - Organize and track all your research projects</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">2</div>
+                    <div class="feature-text"><strong>Task Tracking</strong> - Assign and monitor tasks with detailed progress reports</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">3</div>
+                    <div class="feature-text"><strong>Inventory Management</strong> - Keep track of all your laboratory supplies and equipment</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">4</div>
+                    <div class="feature-text"><strong>Compliance Tracking</strong> - Ensure all your work meets regulatory standards</div>
+                </div>
+            </div>
+            
+            <p>Get started by exploring your dashboard and setting up your first project!</p>
             
             <div class="button-container">
-                <a href="{{confirmUrl}}" class="button">Confirm Email</a>
+                <a href="{{frontendUrl}}" class="button">Go to Dashboard</a>
             </div>
-            
-            <div class="confirmation-box">
-                <p><strong>⏰ This confirmation link will expire in 24 hours.</strong></p>
-            </div>
-            
-            <p>If you didn't create an account with {{appName}}, please ignore this email.</p>
-            
-            <p>If you're having trouble clicking the button, copy and paste the following link into your browser:</p>
-            <p style="word-break: break-all; color: #667eea;">{{confirmUrl}}</p>
         </div>
         <div class="divider"></div>
         <div class="footer">

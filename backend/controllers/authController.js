@@ -34,18 +34,7 @@ exports.register = async (req, res) => {
 
         // Send welcome email
         try {
-            await emailService.sendNotification({
-                to: user.email,
-                subject: 'Welcome to LabTasker!',
-                template: 'notification',
-                data: {
-                    userName: user.name,
-                    subject: 'Welcome to LabTasker!',
-                    message: 'Thank you for registering with LabTasker. Your account has been successfully created.',
-                    appName: process.env.APP_NAME || 'LabTasker'
-                },
-                priority: 'normal'
-            });
+            await emailService.sendWelcomeEmail(user);
             console.log(`Welcome email sent to ${user.email}`);
         } catch (emailError) {
             console.error(`Failed to send welcome email to ${user.email}:`, emailError);
