@@ -1,6 +1,203 @@
 const User = require('../models/User');
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const emailService = require('../services/emailService');
 const ActivityService = require('../services/activityService');
+
+/**
+ * Invite a new user
+ */
+exports.inviteUser = async (req, res) => {
+    try {
+        const { email, role } = req.body;
+        const invitedBy = req.user;
+
+        // Validate input
+        if (!email || !role) {
+            return res.status(400).json({ message: 'Email and role are required' });
+        }
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(409).json({ message: 'User with this email already exists' });
+        }
+
+        // Generate invitation token
+        const inviteToken = crypto.randomBytes(32).toString('hex');
+        const inviteTokenHash = crypto.createHash('sha256').update(inviteToken).digest('hex');
+
+        // Set token expiration (7 days)
+        const inviteTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        // Create invited user record
+        const invitedUser = new User({
+            email,
+            roles: [role],
+            status: 'Invited',
+            isActive: false,
+            passwordResetToken: inviteTokenHash,
+            passwordResetExpires: inviteTokenExpires
+        });
+
+        await invitedUser.save();
+
+        // Send invitation email
+        try {
+            await emailService.sendUserInvitation({
+                email,
+                inviteToken,
+                invitedBy,
+                role
+            });
+        } catch (emailError) {
+            console.error('Failed to send invitation email:', emailError);
+            // Delete the user record if email fails
+            await User.findByIdAndDelete(invitedUser._id);
+            return res.status(500).json({ message: 'Failed to send invitation email' });
+        }
+
+        // Log activity
+        await ActivityService.logUserActivity('invited', invitedBy, invitedUser, {
+            action: 'user_invitation',
+            role
+        });
+
+        res.status(201).json({
+            message: 'User invitation sent successfully',
+            user: { id: invitedUser._id, email, role }
+        });
+    } catch (err) {
+        console.error('Invite user error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+/**
+ * Accept invitation and create account
+ */
+exports.acceptInvitation = async (req, res) => {
+    try {
+        const { token, name, password } = req.body;
+
+        // Validate input
+        if (!token || !name || !password) {
+            return res.status(400).json({ message: 'Token, name, and password are required' });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
+
+        // Hash token for comparison
+        const inviteTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Find user with valid invitation token
+        const user = await User.findOne({
+            passwordResetToken: inviteTokenHash,
+            passwordResetExpires: { $gt: Date.now() },
+            status: 'Invited'
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Invitation token is invalid or has expired' });
+        }
+
+        // Update user details
+        user.name = name;
+        user.password = await bcrypt.hash(password, 10);
+        user.status = 'Active';
+        user.isActive = true;
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+
+        await user.save();
+
+        // Log activity
+        await ActivityService.logAuthActivity('register', user);
+
+        res.json({ message: 'Account created successfully' });
+    } catch (err) {
+        console.error('Accept invitation error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+/**
+ * Send account confirmation email
+ */
+exports.sendConfirmationEmail = async (req, res) => {
+    try {
+        const user = req.user;
+
+        // Generate confirmation token
+        const confirmToken = crypto.randomBytes(32).toString('hex');
+        const confirmTokenHash = crypto.createHash('sha256').update(confirmToken).digest('hex');
+
+        // Set token expiration (24 hours)
+        const confirmTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+        // Save token to user
+        user.passwordResetToken = confirmTokenHash;
+        user.passwordResetExpires = confirmTokenExpires;
+        await user.save();
+
+        // Send confirmation email
+        try {
+            await emailService.sendAccountConfirmation(user, confirmToken);
+            res.json({ message: 'Confirmation email sent successfully' });
+        } catch (emailError) {
+            console.error('Failed to send confirmation email:', emailError);
+            return res.status(500).json({ message: 'Failed to send confirmation email' });
+        }
+    } catch (err) {
+        console.error('Send confirmation email error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+/**
+ * Confirm account email
+ */
+exports.confirmEmail = async (req, res) => {
+    try {
+        const { token } = req.body;
+
+        // Validate input
+        if (!token) {
+            return res.status(400).json({ message: 'Token is required' });
+        }
+
+        // Hash token for comparison
+        const confirmTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Find user with valid confirmation token
+        const user = await User.findOne({
+            passwordResetToken: confirmTokenHash,
+            passwordResetExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Confirmation token is invalid or has expired' });
+        }
+
+        // Update user status
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        // Assuming we add an isEmailConfirmed field in the future
+        // user.isEmailConfirmed = true;
+
+        await user.save();
+
+        // Log activity
+        await ActivityService.logAuthActivity('email_confirmed', user);
+
+        res.json({ message: 'Email confirmed successfully' });
+    } catch (err) {
+        console.error('Confirm email error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 // Get all users
 exports.getAllUsers = async (req, res) => {

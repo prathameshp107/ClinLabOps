@@ -15,6 +15,7 @@ A comprehensive backend API for the LabTasker laboratory management system built
 - **Inventory Management** - Chemical and supply inventory with stock tracking
 - **Compliance Management** - Regulatory compliance tracking and auditing
 - **Notification System** - Real-time notifications and alerts
+- **Email Service** - Centralized email service for notifications, password resets, and user invitations
 - **Dashboard Analytics** - Comprehensive reporting and analytics
 - **File Management** - Document upload and management system
 - **Report Generation** - Export data in CSV, Excel, PDF, and JSON formats
@@ -27,6 +28,8 @@ A comprehensive backend API for the LabTasker laboratory management system built
 - `POST /logout` - User logout
 - `GET /profile` - Get user profile
 - `POST /change-password` - Change password
+- `POST /forgot-password` - Request password reset
+- `POST /reset-password` - Reset password with token
 
 #### Users (`/api/users`)
 - `GET /` - Get all users (with filtering and pagination)
@@ -42,6 +45,9 @@ A comprehensive backend API for the LabTasker laboratory management system built
 - `PATCH /:id/unlock` - Unlock user account
 - `PATCH /:id/reset-password` - Reset user password
 - `POST /invite` - Invite new user
+- `POST /accept-invitation` - Accept user invitation
+- `POST /send-confirmation` - Send account confirmation email
+- `POST /confirm-email` - Confirm account email
 
 #### Projects (`/api/projects`)
 - `GET /` - Get all projects
@@ -219,6 +225,44 @@ All report endpoints support format query parameter: `?format=json|csv|xlsx|pdf`
 #### Activities (`/api/activities`)
 - Activity logging endpoints (implementation varies)
 
+## Email Service
+
+The LabTasker backend includes a centralized email service that handles various types of emails:
+
+### Supported Email Types
+1. **Notification Emails** - System alerts, updates, and reminders
+2. **Password Reset Emails** - Secure password reset with token generation and expiration
+3. **User Invitation Emails** - New user onboarding with registration links
+4. **Account Confirmation Emails** - Email verification during signup
+
+### Supported Email Providers
+- **SMTP** - Standard SMTP servers
+- **SendGrid** - SendGrid email API
+- **Resend** - Resend email API
+
+### Features
+- **HTML and Plain Text Templates** - Professional email formatting
+- **Email Queuing** - Handles high volume sends efficiently
+- **Rate Limiting** - Prevents spam with configurable limits
+- **Retry Logic** - Automatic retry for failed sends
+- **Configuration Validation** - Ensures all required environment variables are present
+
+### Environment Configuration
+To enable the email service, set the following environment variables in your `.env` file:
+
+```env
+# Email Configuration
+EMAIL_PROVIDER=smtp        # or sendgrid, resend
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USERNAME=your-email@example.com
+EMAIL_PASSWORD=your-email-password
+EMAIL_FROM=noreply@labtasker.com
+EMAIL_FROM_NAME=LabTasker
+FRONTEND_URL=http://localhost:3000
+```
+
 ## Installation & Setup
 
 ### Prerequisites
@@ -253,226 +297,20 @@ All report endpoints support format query parameter: `?format=json|csv|xlsx|pdf`
    
    # Node Environment
    NODE_ENV=development
+   
+   # Email Configuration (optional)
+   EMAIL_PROVIDER=smtp
+   EMAIL_HOST=smtp.example.com
+   EMAIL_PORT=587
+   EMAIL_SECURE=false
+   EMAIL_USERNAME=your-email@example.com
+   EMAIL_PASSWORD=your-email-password
+   EMAIL_FROM=noreply@labtasker.com
+   EMAIL_FROM_NAME=LabTasker
+   FRONTEND_URL=http://localhost:3000
    ```
 
 4. **Start MongoDB**
    Make sure MongoDB is running on your system.
 
-5. **Seed the database (optional)**
-   ```bash
-   # Seed with comprehensive sample data
-   npm run seed:all
-   
-   # Or for development with local MongoDB
-   npm run seed:all:dev
-   ```
-
-6. **Start the server**
-   ```bash
-   # Development mode with auto-reload
-   npm run dev
-   
-   # Production mode
-   npm start
-   ```
-
-The server will start on `http://localhost:5000` (or the port specified in your .env file).
-
-## Database Models
-
-### User
-- Authentication and profile information
-- Role-based access control
-- Department and contact details
-- Preferences and settings
-
-### Project
-- Project metadata and timeline
-- Team member assignments
-- Task and document management
-- Progress tracking and dependencies
-
-### Task
-- Task details and status
-- Subtasks and comments
-- File attachments
-- Activity logging
-
-### Experiment
-- Experiment protocols and procedures
-- Team member assignments
-- Version history and tracking
-- Results and documentation
-
-### Equipment
-- Equipment inventory and specifications
-- Maintenance schedules and records
-- File attachments and documentation
-
-### Protocol
-- Standard operating procedures
-- Step-by-step instructions
-- Materials and safety notes
-- Version control and sharing
-
-### Inventory
-- **InventoryItem**: Chemical and supply inventory
-- **Supplier**: Vendor information and contacts
-- **Warehouse**: Storage location management
-- **Order**: Purchase order tracking
-
-### Compliance
-- **ComplianceItem**: Regulatory compliance tracking
-- **Audit**: Audit records and findings
-- **TrainingRecord**: Training and certification tracking
-
-### Notification
-- System and user notifications
-- Priority and category management
-- Read status and expiration
-
-### Enquiry
-- Customer enquiry management
-- Document and activity tracking
-- Status and priority management
-
-## Authentication & Authorization
-
-The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
-
-```
-Authorization: Bearer <your-jwt-token>
-```
-
-### User Roles
-- **Admin**: Full system access
-- **Scientist**: Research and experiment management
-- **Technician**: Laboratory operations
-- **Reviewer**: Quality assurance and compliance
-- **User**: Basic system access
-
-## File Upload
-
-The system supports file uploads for:
-- Project documents
-- Task attachments
-- Equipment documentation
-- Compliance evidence
-- Protocol materials
-
-**Supported file types:**
-- Images: JPEG, PNG, GIF
-- Documents: PDF, DOC, DOCX, XLS, XLSX
-- Text: TXT, CSV
-
-**File size limit:** 10MB per file
-
-## Error Handling
-
-The API returns consistent error responses:
-
-```json
-{
-  "error": "Error message description",
-  "code": "ERROR_CODE",
-  "details": "Additional error details (optional)"
-}
-```
-
-**Common HTTP Status Codes:**
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request
-- `401` - Unauthorized
-- `403` - Forbidden
-- `404` - Not Found
-- `500` - Internal Server Error
-
-## Development
-
-### Running Tests
-```bash
-npm test
-```
-
-### Code Structure
-```
-backend/
-├── controllers/     # Request handlers and business logic
-├── models/         # MongoDB schemas and models
-├── routes/         # API route definitions
-├── middleware/     # Custom middleware functions
-├── scripts/        # Database seeding and utility scripts
-├── uploads/        # File upload storage
-├── test/          # Test files
-├── app.js         # Main application file
-└── package.json   # Dependencies and scripts
-```
-
-### Adding New Features
-
-1. **Create Model** (if needed)
-   - Define schema in `models/`
-   - Add validation and middleware
-
-2. **Create Controller**
-   - Implement business logic in `controllers/`
-   - Handle CRUD operations
-
-3. **Define Routes**
-   - Create route file in `routes/`
-   - Define API endpoints
-
-4. **Register Routes**
-   - Add routes to `app.js`
-
-5. **Test**
-   - Write tests in `test/`
-   - Test API endpoints
-
-## Production Deployment
-
-### Environment Variables
-Set the following environment variables for production:
-
-```env
-NODE_ENV=production
-MONGODB_URI=mongodb://your-production-db-url
-JWT_SECRET=your-production-jwt-secret
-PORT=5000
-```
-
-### Security Considerations
-- Use strong JWT secrets
-- Enable HTTPS in production
-- Implement rate limiting
-- Validate all inputs
-- Use environment variables for sensitive data
-- Enable CORS only for trusted domains
-
-### Performance Optimization
-- Use MongoDB indexes for frequently queried fields
-- Implement caching for static data
-- Use compression middleware
-- Optimize file upload handling
-- Monitor database performance
-
-## API Documentation
-
-For detailed API documentation with request/response examples, consider using tools like:
-- Swagger/OpenAPI
-- Postman Collections
-- API Blueprint
-
-## Support
-
-For issues and questions:
-1. Check the error logs
-2. Verify database connection
-3. Ensure all environment variables are set
-4. Check MongoDB service status
-5. Review API endpoint documentation
-
-## License
-
-This project is licensed under the MIT License.
+5. **Seed the database (optional)

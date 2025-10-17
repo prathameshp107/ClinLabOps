@@ -4,6 +4,7 @@ const Project = require('../models/Project');
 const Task = require('../models/Task');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const emailService = require('./emailService');
 
 /**
  * Deadline Notification Service
@@ -33,7 +34,7 @@ class DeadlineNotificationService {
     async checkUpcomingDeadlines() {
         try {
             const now = new Date();
-            
+
             // Check for deadlines at different intervals
             const deadlinesToCheck = [
                 { days: 1, label: 'tomorrow' },
@@ -64,7 +65,7 @@ class DeadlineNotificationService {
         try {
             const targetDate = new Date(now);
             targetDate.setDate(targetDate.getDate() + daysAhead);
-            
+
             // Find projects with end dates matching our target date
             const projects = await Project.find({
                 endDate: {
@@ -78,12 +79,12 @@ class DeadlineNotificationService {
             for (const project of projects) {
                 // Create notifications for project owner and team members
                 const recipients = new Set();
-                
+
                 // Add project creator/owner
                 if (project.createdBy) {
                     recipients.add(project.createdBy.toString());
                 }
-                
+
                 // Add team members
                 if (project.team && project.team.length > 0) {
                     project.team.forEach(member => {
@@ -96,24 +97,50 @@ class DeadlineNotificationService {
                 // Create notifications for each recipient
                 if (recipients.size > 0) {
                     for (const recipientId of recipients) {
-                        await this.createDeadlineNotification({
-                            recipient: recipientId,
-                            title: `Project Deadline Reminder`,
-                            message: `Project "${project.name}" deadline is ${label} on ${new Date(project.endDate).toLocaleDateString()}`,
-                            type: 'warning',
-                            priority: 'high',
-                            category: 'project',
-                            relatedEntity: {
-                                entityType: 'Project',
-                                entityId: project._id
-                            },
-                            metadata: {
-                                projectId: project._id,
-                                projectName: project.name,
-                                deadlineType: 'project',
-                                daysAhead: daysAhead
+                        // Get user details for email
+                        const user = await User.findById(recipientId);
+                        if (user) {
+                            // Create in-app notification
+                            const notification = await this.createDeadlineNotification({
+                                recipient: recipientId,
+                                title: `Project Deadline Reminder`,
+                                message: `Project "${project.name}" deadline is ${label} on ${new Date(project.endDate).toLocaleDateString()}`,
+                                type: 'warning',
+                                priority: 'high',
+                                category: 'project',
+                                relatedEntity: {
+                                    entityType: 'Project',
+                                    entityId: project._id
+                                },
+                                metadata: {
+                                    projectId: project._id,
+                                    projectName: project.name,
+                                    deadlineType: 'project',
+                                    daysAhead: daysAhead
+                                }
+                            });
+
+                            // Send email notification if user has email notifications enabled
+                            if (user.preferences && user.preferences.notifications.email) {
+                                try {
+                                    await emailService.sendNotification({
+                                        to: user.email,
+                                        subject: `Project Deadline Reminder: ${project.name}`,
+                                        template: 'notification',
+                                        data: {
+                                            userName: user.name,
+                                            subject: `Project Deadline Reminder: ${project.name}`,
+                                            message: `Project "${project.name}" deadline is ${label} on ${new Date(project.endDate).toLocaleDateString()}`,
+                                            appName: process.env.APP_NAME || 'LabTasker'
+                                        },
+                                        priority: 'high'
+                                    });
+                                    console.log(`Email sent for project deadline to ${user.email}`);
+                                } catch (emailError) {
+                                    console.error(`Failed to send email for project deadline to ${user.email}:`, emailError);
+                                }
                             }
-                        });
+                        }
                     }
                 } else {
                     console.log(`Skipping project "${project.name}" - no valid recipients found`);
@@ -131,7 +158,7 @@ class DeadlineNotificationService {
         try {
             const targetDate = new Date(now);
             targetDate.setDate(targetDate.getDate() + daysAhead);
-            
+
             // Find tasks with due dates matching our target date
             const tasks = await Task.find({
                 dueDate: {
@@ -145,17 +172,17 @@ class DeadlineNotificationService {
             for (const task of tasks) {
                 // Create notifications for task assignee and project team
                 const recipients = new Set();
-                
+
                 // Add task assignee (if it's a valid ObjectId)
                 if (task.assignee && mongoose.Types.ObjectId.isValid(task.assignee)) {
                     recipients.add(task.assignee.toString());
                 }
-                
+
                 // Add task creator (if it's a valid ObjectId)
                 if (task.createdBy && mongoose.Types.ObjectId.isValid(task.createdBy)) {
                     recipients.add(task.createdBy.toString());
                 }
-                
+
                 // If no valid recipients found, notify a default admin user (if configured)
                 if (recipients.size === 0 && process.env.DEFAULT_ADMIN_USER_ID) {
                     recipients.add(process.env.DEFAULT_ADMIN_USER_ID);
@@ -167,7 +194,8 @@ class DeadlineNotificationService {
                         // Check if user exists
                         const user = await User.findById(recipientId);
                         if (user) {
-                            await this.createDeadlineNotification({
+                            // Create in-app notification
+                            const notification = await this.createDeadlineNotification({
                                 recipient: recipientId,
                                 title: `Task Deadline Reminder`,
                                 message: `Task "${task.title}" is due ${label} on ${new Date(task.dueDate).toLocaleDateString()}`,
@@ -187,6 +215,27 @@ class DeadlineNotificationService {
                                     daysAhead: daysAhead
                                 }
                             });
+
+                            // Send email notification if user has email notifications enabled
+                            if (user.preferences && user.preferences.notifications.email) {
+                                try {
+                                    await emailService.sendNotification({
+                                        to: user.email,
+                                        subject: `Task Deadline Reminder: ${task.title}`,
+                                        template: 'notification',
+                                        data: {
+                                            userName: user.name,
+                                            subject: `Task Deadline Reminder: ${task.title}`,
+                                            message: `Task "${task.title}" is due ${label} on ${new Date(task.dueDate).toLocaleDateString()}`,
+                                            appName: process.env.APP_NAME || 'LabTasker'
+                                        },
+                                        priority: 'high'
+                                    });
+                                    console.log(`Email sent for task deadline to ${user.email}`);
+                                } catch (emailError) {
+                                    console.error(`Failed to send email for task deadline to ${user.email}:`, emailError);
+                                }
+                            }
                         }
                     }
                 } else {

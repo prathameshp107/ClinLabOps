@@ -1,6 +1,8 @@
 const Notification = require('../models/Notification');
 const ActivityService = require('../services/activityService');
 const Activity = require('../models/Activity');
+const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 // Get all notifications for a user
 exports.getUserNotifications = async (req, res) => {
@@ -219,6 +221,31 @@ exports.sendBulkNotifications = async (req, res) => {
         }));
 
         const createdNotifications = await Notification.insertMany(notifications);
+
+        // Send email notifications to users who have email notifications enabled
+        const users = await User.find({ _id: { $in: recipients } });
+        for (const user of users) {
+            if (user.preferences && user.preferences.notifications.email) {
+                try {
+                    await emailService.sendNotification({
+                        to: user.email,
+                        subject: title,
+                        template: 'notification',
+                        data: {
+                            userName: user.name,
+                            subject: title,
+                            message: message,
+                            actionUrl: actionUrl,
+                            appName: process.env.APP_NAME || 'LabTasker'
+                        },
+                        priority: type === 'error' || type === 'warning' ? 'high' : 'normal'
+                    });
+                    console.log(`Email sent for bulk notification to ${user.email}`);
+                } catch (emailError) {
+                    console.error(`Failed to send email for bulk notification to ${user.email}:`, emailError);
+                }
+            }
+        }
 
         // Log activity
         if (req.user) {

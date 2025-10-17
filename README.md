@@ -1,3 +1,226 @@
+# LabTasker
+
+LabTasker is a comprehensive laboratory management system designed to streamline research operations, project management, and team collaboration in laboratory environments.
+
+## Features
+
+### Core Modules
+- **Project Management** - End-to-end project lifecycle management
+- **Task Management** - Detailed task tracking with subtasks and comments
+- **Experiment Management** - Laboratory experiment documentation and tracking
+- **Equipment Management** - Equipment inventory and maintenance scheduling
+- **Protocol Management** - Standard operating procedures and protocols
+- **Inventory Management** - Chemical and supply inventory with stock tracking
+- **Compliance Management** - Regulatory compliance tracking and auditing
+- **User Management** - Role-based access control and team management
+- **Notification System** - Real-time in-app notifications
+- **Email Service** - Automated email notifications and communications
+- **Reporting** - Comprehensive analytics and reporting capabilities
+- **File Management** - Document storage and sharing
+
+### Technical Features
+- **Responsive Design** - Works on desktop, tablet, and mobile devices
+- **Role-Based Access Control** - Different permissions for Admin, Scientist, Technician, and Reviewer roles
+- **Real-time Updates** - Live data synchronization
+- **Data Export** - Export to CSV, Excel, PDF formats
+- **Audit Trail** - Complete activity logging
+- **Search and Filter** - Advanced search capabilities across all modules
+
+## Technology Stack
+
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **Tailwind CSS** - Utility-first CSS framework
+- **Shadcn UI** - Component library built on Radix UI
+- **Lucide React** - Icon library
+- **Recharts** - Data visualization
+- **Framer Motion** - Animation library
+
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **MongoDB** - NoSQL database
+- **Mongoose** - MongoDB object modeling
+- **JWT** - Authentication
+- **Nodemailer** - Email service
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher)
+- MongoDB (v4.4 or higher)
+- npm or yarn
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd labtasker
+   ```
+
+2. **Install frontend dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Install backend dependencies**
+   ```bash
+   cd backend
+   npm install
+   cd ..
+   ```
+
+4. **Environment Configuration**
+   - Create `.env` files in both root and `backend` directories
+   - Configure MongoDB connection
+   - Set JWT secrets
+   - Configure email service (optional)
+
+5. **Start MongoDB**
+   Make sure MongoDB is running on your system.
+
+6. **Seed the database (optional)**
+   ```bash
+   cd backend
+   npm run seed:all:dev
+   cd ..
+   ```
+
+7. **Start the development servers**
+   ```bash
+   # Terminal 1: Start backend
+   cd backend
+   npm run dev
+   
+   # Terminal 2: Start frontend
+   npm run dev
+   ```
+
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+
+## Documentation
+
+- [Backend API Documentation](backend/README.md)
+- [Email Service Documentation](EMAIL_SERVICE.md)
+- [Notification System Documentation](NOTIFICATION_SYSTEM.md)
+
+## Project Structure
+
+```
+labtasker/
+├── backend/              # Backend API (Node.js/Express)
+│   ├── controllers/     # Request handlers
+│   ├── models/         # Database models
+│   ├── routes/         # API routes
+│   ├── middleware/     # Custom middleware
+│   ├── services/       # Business logic
+│   ├── scripts/        # Utility scripts
+│   └── ...
+├── src/                # Frontend (Next.js)
+│   ├── app/           # App router pages
+│   ├── components/    # React components
+│   ├── services/      # API service layers
+│   ├── lib/          # Utility functions
+│   └── ...
+├── README.md          # This file
+├── EMAIL_SERVICE.md   # Email service documentation
+├── NOTIFICATION_SYSTEM.md # Notification system documentation
+└── ...
+```
+
+## Development
+
+### Code Structure
+
+The application follows a modular structure with clear separation of concerns:
+
+1. **Frontend** - Next.js with App Router
+2. **Backend** - Express.js REST API
+3. **Database** - MongoDB with Mongoose
+
+### Adding New Features
+
+1. **Backend**
+   - Create model in `backend/models/`
+   - Create controller in `backend/controllers/`
+   - Create routes in `backend/routes/`
+   - Register routes in `backend/app.js`
+
+2. **Frontend**
+   - Create pages in `src/app/`
+   - Create components in `src/components/`
+   - Create services in `src/services/`
+
+### Testing
+
+```bash
+# Frontend tests
+npm test
+
+# Backend tests
+cd backend
+npm test
+```
+
+## Deployment
+
+### Production Build
+
+```bash
+# Frontend
+npm run build
+
+# Backend
+cd backend
+npm start
+```
+
+### Environment Variables
+
+Set the following environment variables for production:
+
+**Frontend (.env)**
+```env
+NEXT_PUBLIC_API_URL=http://your-backend-url
+```
+
+**Backend (.env)**
+```env
+NODE_ENV=production
+MONGODB_URI=mongodb://your-production-db-url
+JWT_SECRET=your-production-jwt-secret
+PORT=5000
+# Email configuration (optional)
+EMAIL_PROVIDER=smtp
+EMAIL_HOST=smtp.your-email-provider.com
+EMAIL_PORT=587
+EMAIL_USERNAME=your-email@domain.com
+EMAIL_PASSWORD=your-email-password
+EMAIL_FROM=noreply@yourdomain.com
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a pull request
+
+## Support
+
+For issues and questions:
+1. Check the documentation
+2. Review error logs
+3. Verify environment configuration
+4. Ensure all dependencies are installed
+
+## License
+
+This project is licensed under the MIT License.
 # LabTasker Admin Dashboard
 
 A modern, responsive admin dashboard for laboratory task management and workflow automation built with Next.js and ShadCN UI.
@@ -498,4 +721,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Zustand](https://github.com/pmndrs/zustand)
 - [React Query](https://tanstack.com/query/latest)
 - [Aceternity UI](https://ui.aceternity.com/)
-```
