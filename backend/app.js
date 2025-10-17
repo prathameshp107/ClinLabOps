@@ -119,6 +119,17 @@ app.use('/api/uploaded-reports', uploadedReportsRouter);
 const gridfsReportsRouter = require('./routes/gridfsReports');
 app.use('/api/gridfs-reports', gridfsReportsRouter);
 
+// Initialize deadline notification service
+const deadlineNotificationService = require('./services/deadlineNotificationService');
+// Start the scheduler in production mode
+if (config.nodeEnv === 'production') {
+    deadlineNotificationService.startScheduler();
+}
+
+// Deadline notification routes
+const deadlineNotificationsRouter = require('./routes/deadlineNotifications');
+app.use('/api/deadline-notifications', deadlineNotificationsRouter);
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     app.listen(config.port, () => {

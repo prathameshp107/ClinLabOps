@@ -20,7 +20,9 @@ const getActivityNotificationTitle = (activity) => {
         'inventory_added': 'New Inventory Added',
         'inventory_updated': 'Inventory Updated',
         'inventory_low': 'Low Inventory Alert',
-        'compliance_updated': 'Compliance Status Changed'
+        'compliance_updated': 'Compliance Status Changed',
+        'project_deadline': 'Project Deadline Reminder',
+        'task_deadline': 'Task Deadline Reminder'
     };
 
     return titleMap[activity.type] || 'System Activity';
@@ -45,7 +47,9 @@ const getActivityNotificationType = (activity) => {
         'inventory_added': 'success',
         'inventory_updated': 'info',
         'inventory_low': 'warning',
-        'compliance_updated': 'warning'
+        'compliance_updated': 'warning',
+        'project_deadline': 'warning',
+        'task_deadline': 'warning'
     };
 
     return typeMap[activity.type] || 'info';

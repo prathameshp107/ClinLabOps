@@ -22,6 +22,12 @@ The notification system automatically generates in-app notifications for user ac
 4. **Activity Service Integration** (`backend/services/activityService.js`)
    - Integrated with notification middleware to automatically generate notifications
 
+5. **Deadline Notification Service** (`backend/services/deadlineNotificationService.js`)
+   - Automatically checks for upcoming project and task deadlines
+   - Generates notifications 1, 3, and 7 days in advance
+   - Runs on a daily schedule using cron jobs
+   - Integrates with the existing notification system
+
 ### Frontend
 1. **Notification Service** (`src/services/notificationService.js`)
    - Provides API functions for interacting with the notification endpoints
@@ -44,6 +50,13 @@ The notification system automatically generates in-app notifications for user ac
 1. When an activity is logged via `ActivityService.logActivity()`, the notification middleware automatically creates a corresponding notification
 2. The middleware maps activity types to appropriate notification titles and types
 3. Notifications are stored in the Notification collection with a reference to the original activity
+
+### Deadline Notification Generation
+1. The deadline notification service runs daily to check for upcoming project and task deadlines
+2. It checks for deadlines 1, 3, and 7 days in advance
+3. Notifications are generated for project owners, task assignees, and team members
+4. Notifications include clear messaging about upcoming deadlines
+5. Duplicate notifications are prevented by checking existing notifications
 
 ### Displaying Notifications
 1. When a user clicks the bell icon, the NotificationDropdown component fetches their notifications
@@ -101,6 +114,11 @@ DELETE /api/notifications/:id
 GET /api/notifications/user/:userId/unread-count
 ```
 
+### Manual Deadline Check (Admin Only)
+```
+POST /api/deadline-notifications/check-deadlines
+```
+
 ## Activity Type Mapping
 
 | Activity Type | Notification Title | Notification Type |
@@ -123,6 +141,8 @@ GET /api/notifications/user/:userId/unread-count
 | inventory_updated | Inventory Updated | info |
 | inventory_low | Low Inventory Alert | warning |
 | compliance_updated | Compliance Status Changed | warning |
+| project_deadline | Project Deadline Reminder | warning |
+| task_deadline | Task Deadline Reminder | warning |
 
 ## Future Enhancements
 1. Real-time notifications using WebSockets
@@ -132,6 +152,8 @@ GET /api/notifications/user/:userId/unread-count
 5. Rich notification content with actions
 6. Push notifications for mobile devices
 7. Notification scheduling and reminders
+8. Customizable deadline notification intervals
+9. Integration with calendar applications
 
 ## Maintenance Scripts
 - `generate-test-notifications.js`: Creates test notifications for development
