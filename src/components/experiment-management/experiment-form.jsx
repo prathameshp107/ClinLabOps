@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -23,11 +23,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DatePicker } from "@/components/ui/date-picker" // Import the custom DatePicker
-import { Beaker, Users, ArrowRight, ArrowLeft, AlertTriangle } from "lucide-react"
+import { DatePicker } from "@/components/ui/date-picker"
+import { Beaker, Users, ArrowRight, ArrowLeft, AlertTriangle, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { getProjectsForExperimentForm } from "@/services/experimentService"
+import { getAllUsers } from "@/services/userService"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 
 // Form validation schema
 const experimentFormSchema = z.object({
@@ -48,7 +56,7 @@ const experimentFormSchema = z.object({
   endDate: z.date({
     required_error: "End date is required",
   }),
-  teamMembers: z.string().optional(),
+  teamMembers: z.array(z.string()).optional(),
   equipment: z.string().optional(),
   budget: z.string().optional(),
   tags: z.string().optional(),
@@ -62,6 +70,11 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
   const [step, setStep] = useState(1)
   const totalSteps = 2
   const [projects, setProjects] = useState([])
+  const [users, setUsers] = useState([])
+  const [projectMembers, setProjectMembers] = useState([])
+  const [selectedProjectId, setSelectedProjectId] = useState("")
+  const [openTeamSelector, setOpenTeamSelector] = useState(false)
+  const formRef = useRef(null)
 
   // Fetch projects for dropdown
   useEffect(() => {
@@ -76,6 +89,64 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
     fetchProjects()
   }, [])
 
+  // Fetch all users for team member selection
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userData = await getAllUsers()
+        setUsers(userData)
+      } catch (error) {
+        console.error("Failed to fetch users:", error)
+      }
+    }
+    fetchUsers()
+  }, [])
+
+  // Set selectedProjectId when form is initialized with experiment data
+  useEffect(() => {
+    if (isEditing && experiment?.projectId) {
+      // Handle different possible formats for projectId
+      const projectId = experiment.projectId?._id || experiment.projectId?.id || experiment.projectId;
+      setSelectedProjectId(projectId)
+    }
+  }, [isEditing, experiment?.projectId])
+
+  // Fetch project members when a project is selected or when projects/users are loaded
+  useEffect(() => {
+    const fetchProjectMembers = async () => {
+      if (selectedProjectId) {
+        try {
+          // Find the project in our projects array
+          // Convert both IDs to strings for comparison
+          const project = projects.find(p => {
+            const projectId = p._id || p.id;
+            return projectId && projectId.toString() === selectedProjectId.toString();
+          });
+
+          if (project && project.team) {
+            // Map project team members to user IDs
+            const memberIds = project.team.map(member => member.id);
+            // Filter users to only include those who are in the project team
+            const projectUsers = users.filter(user => memberIds.includes(user._id));
+            setProjectMembers(projectUsers);
+          } else {
+            setProjectMembers([]);
+          }
+        } catch (error) {
+          console.error("Failed to fetch project members:", error);
+          setProjectMembers([]);
+        }
+      } else {
+        setProjectMembers([]);
+      }
+    };
+
+    // Only fetch if we have both projects and users loaded
+    if (selectedProjectId && projects.length > 0 && users.length > 0) {
+      fetchProjectMembers();
+    }
+  }, [selectedProjectId, projects, users]);
+
   // Initialize form with default values or existing experiment data
   const form = useForm({
     resolver: zodResolver(experimentFormSchema),
@@ -87,8 +158,8 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         status: experiment.status,
         priority: experiment.priority,
         startDate: experiment.startDate ? new Date(experiment.startDate) : new Date(),
-        endDate: experiment.endDate ? new Date(experiment.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
-        teamMembers: experiment.teamMembers?.join(", ") || "",
+        endDate: experiment.endDate ? new Date(experiment.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        teamMembers: experiment.teamMembers || [],
         equipment: experiment.equipment || "",
         budget: experiment.budget || "",
         tags: experiment.tags?.join(", ") || "",
@@ -102,8 +173,8 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         status: "planning",
         priority: "medium",
         startDate: new Date(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Default to 7 days from now
-        teamMembers: "",
+        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        teamMembers: [],
         equipment: "",
         budget: "",
         tags: "",
@@ -112,13 +183,27 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
       },
   })
 
+  // Set form ref when form is ready
+  useEffect(() => {
+    formRef.current = form;
+  }, [form]);
+
+  // Handle project selection
+  const handleProjectChange = (value) => {
+    const projectId = value === "__none__" ? "" : value;
+    setSelectedProjectId(projectId);
+
+    // Use formRef to avoid circular dependency
+    if (formRef.current) {
+      formRef.current.setValue("projectId", projectId);
+      formRef.current.setValue("teamMembers", []);
+    }
+  };
+
   const handleSubmit = (data) => {
-    // Process team members and tags from comma-separated string to array
+    // Process tags from comma-separated string to array
     const processedData = {
       ...data,
-      teamMembers: data.teamMembers
-        ? data.teamMembers.split(",").map(member => member.trim())
-        : [],
       tags: data.tags
         ? data.tags.split(",").map(tag => tag.trim())
         : [],
@@ -130,6 +215,39 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
     }
 
     onSubmit(processedData)
+  }
+
+  // Get available users for team selection
+  const getAvailableUsers = () => {
+    // If we have selected a project and have project members, use them
+    if (selectedProjectId && projectMembers.length > 0) {
+      return projectMembers;
+    }
+    // Otherwise, use all users
+    return users;
+  };
+
+  // Toggle team member selection
+  const toggleTeamMember = (userId) => {
+    // Use formRef to avoid circular dependency
+    if (formRef.current) {
+      const currentMembers = formRef.current.getValues("teamMembers") || []
+      const newMembers = currentMembers.includes(userId)
+        ? currentMembers.filter(id => id !== userId)
+        : [...currentMembers, userId]
+
+      formRef.current.setValue("teamMembers", newMembers)
+    }
+  }
+
+  // Remove a team member
+  const removeTeamMember = (userId) => {
+    // Use formRef to avoid circular dependency
+    if (formRef.current) {
+      const currentMembers = formRef.current.getValues("teamMembers") || []
+      const newMembers = currentMembers.filter(id => id !== userId)
+      formRef.current.setValue("teamMembers", newMembers)
+    }
   }
 
   return (
@@ -167,7 +285,10 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                   <FormItem>
                     <FormLabel className="text-sm sm:text-base">Project</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        handleProjectChange(value)
+                        field.onChange(value)
+                      }}
                       defaultValue={field.value || "__none__"}
                     >
                       <FormControl>
@@ -326,7 +447,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                           onDateChange={field.onChange}
                           placeholder="Select end date"
                           className="text-sm sm:text-base h-8 sm:h-10 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1"
-                          minDate={form.watch('startDate')} // Ensure end date is after start date
+                          minDate={form.watch('startDate')}
                         />
                       </FormControl>
                       <FormMessage className="text-xs sm:text-sm" />
@@ -456,17 +577,77 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm sm:text-base">Team Members</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter team members (comma separated)"
-                          {...field}
-                          className="text-sm sm:text-base h-8 sm:h-10 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1"
-                        />
-                      </FormControl>
+                      <Popover open={openTeamSelector} onOpenChange={setOpenTeamSelector}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openTeamSelector}
+                            className="w-full justify-between text-sm sm:text-base h-8 sm:h-10 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1"
+                          >
+                            {field.value && field.value.length > 0
+                              ? `${field.value.length} member${field.value.length > 1 ? 's' : ''} selected`
+                              : "Select team members..."}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0">
+                          <Command>
+                            <CommandInput placeholder="Search team members..." />
+                            <CommandList>
+                              <CommandEmpty>No team member found.</CommandEmpty>
+                              <CommandGroup>
+                                {getAvailableUsers().map((user) => (
+                                  <CommandItem
+                                    key={user._id}
+                                    onSelect={() => toggleTeamMember(user._id)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Checkbox
+                                      checked={field.value?.includes(user._id)}
+                                      onCheckedChange={() => toggleTeamMember(user._id)}
+                                    />
+                                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs">
+                                      {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span>{user.name}</span>
+                                    <span className="text-xs text-muted-foreground">({user.email})</span>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormDescription className="text-xs sm:text-sm">
-                        Enter names separated by commas
+                        {selectedProjectId && projectMembers.length > 0
+                          ? "Select team members from the project"
+                          : "Select team members from all users"}
                       </FormDescription>
                       <FormMessage className="text-xs sm:text-sm" />
+                      {/* Display selected members */}
+                      {field.value && field.value.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {getAvailableUsers()
+                            .filter(user => field.value.includes(user._id))
+                            .map(user => (
+                              <Badge
+                                key={user._id}
+                                variant="outline"
+                                className="flex items-center gap-1"
+                              >
+                                <span>{user.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeTeamMember(user._id)}
+                                  className="ml-1 hover:bg-muted rounded-full p-0.5"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                        </div>
+                      )}
+
                     </FormItem>
                   )}
                 />
