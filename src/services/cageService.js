@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/cages';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL + '/cages';
 
 // Create axios instance with default config
 const apiClient = axios.create({

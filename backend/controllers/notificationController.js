@@ -1,6 +1,8 @@
 const Notification = require('../models/Notification');
 const ActivityService = require('../services/activityService');
 const Activity = require('../models/Activity');
+const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 // Get all notifications for a user
 exports.getUserNotifications = async (req, res) => {
@@ -220,6 +222,31 @@ exports.sendBulkNotifications = async (req, res) => {
 
         const createdNotifications = await Notification.insertMany(notifications);
 
+        // Send email notifications to users who have email notifications enabled
+        const users = await User.find({ _id: { $in: recipients } });
+        for (const user of users) {
+            if (user.preferences && user.preferences.notifications.email) {
+                try {
+                    await emailService.sendNotification({
+                        to: user.email,
+                        subject: title,
+                        template: 'notification',
+                        data: {
+                            userName: user.name,
+                            subject: title,
+                            message: message,
+                            actionUrl: actionUrl,
+                            appName: process.env.APP_NAME
+                        },
+                        priority: type === 'error' || type === 'warning' ? 'high' : 'normal'
+                    });
+                    console.log(`Email sent for bulk notification to ${user.email}`);
+                } catch (emailError) {
+                    console.error(`Failed to send email for bulk notification to ${user.email}:`, emailError);
+                }
+            }
+        }
+
         // Log activity
         if (req.user) {
             await ActivityService.logActivity({
@@ -373,5 +400,49 @@ exports.getNotificationStats = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+// Send test notification
+exports.sendTestNotification = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.user?.id;
+        const adminUser = req.user;
+
+        const notificationData = {
+            recipient: userId,
+            title: 'Test Notification',
+            message: 'This is a test notification sent from the admin panel.',
+            type: 'info',
+            category: 'system',
+            metadata: {
+                sentBy: adminUser._id,
+                testNotification: true
+            },
+            data: {
+                appName: process.env.APP_NAME
+            }
+        };
+
+        const notification = await Notification.createNotification(notificationData);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notification_created',
+                description: `${req.user.name} sent a test notification to ${userId}`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    notificationId: notification._id,
+                    notificationTitle: notification.title,
+                    operation: 'create'
+                }
+            });
+        }
+
+        res.status(201).json(notification);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 };

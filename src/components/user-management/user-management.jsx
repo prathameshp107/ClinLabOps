@@ -571,10 +571,10 @@ export function UserManagement() {
                   <UserTable
                     users={users}
                     onUserAction={handleUserAction}
-                    className="table-auto w-full"
+                    className="w-full"
                   />
                   {/* Pagination Controls */}
-                  <div className="flex items-center justify-between py-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
                     <div className="text-sm text-muted-foreground">
                       Showing {(pagination.currentPage - 1) * pagination.limit + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.total)} of {pagination.total} users
                     </div>
@@ -584,6 +584,7 @@ export function UserManagement() {
                         size="sm"
                         onClick={() => setPagination(prev => ({ ...prev, currentPage: 1 }))}
                         disabled={pagination.currentPage === 1}
+                        className="hidden sm:flex"
                       >
                         <ChevronsLeft className="h-4 w-4" />
                       </Button>
@@ -611,6 +612,7 @@ export function UserManagement() {
                         size="sm"
                         onClick={() => setPagination(prev => ({ ...prev, currentPage: pagination.totalPages }))}
                         disabled={pagination.currentPage === pagination.totalPages}
+                        className="hidden sm:flex"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>

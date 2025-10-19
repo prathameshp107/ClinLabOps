@@ -64,6 +64,12 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    passwordResetToken: {
+        type: String,
+    },
+    passwordResetExpires: {
+        type: Date,
+    },
     preferences: {
         theme: {
             type: String,
@@ -86,6 +92,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ email: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ department: 1 });
+userSchema.index({ passwordResetToken: 1 });
 
 // Update lastLogin on successful login
 userSchema.methods.updateLastLogin = function () {
@@ -93,4 +100,4 @@ userSchema.methods.updateLastLogin = function () {
     return this.save();
 };
 
-module.exports = mongoose.model('User', userSchema); 
+module.exports = mongoose.model('User', userSchema);

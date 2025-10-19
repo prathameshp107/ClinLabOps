@@ -1,0 +1,14 @@
+{{appName}} Account Confirmation
+
+Hello {{userName}},
+
+Thank you for registering with {{appName}}!
+
+To complete your registration, please confirm your email address by clicking the link below:
+{{confirmUrl}}
+
+This confirmation link will expire in 24 hours.
+
+If you didn't create an account with {{appName}}, please ignore this email.
+
+This email was sent by {{appName}}. Please do not reply to this email.

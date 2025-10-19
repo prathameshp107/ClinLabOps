@@ -1,0 +1,14 @@
+{{appName}} Account Invitation
+
+Hello,
+
+{{invitedByName}} has invited you to join {{appName}} as a {{role}}.
+
+To get started, click the link below to create your account:
+{{inviteUrl}}
+
+This invitation will expire in 7 days.
+
+If you didn't expect this invitation, please ignore this email.
+
+This email was sent by {{appName}}. Please do not reply to this email.

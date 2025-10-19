@@ -1,7 +1,9 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const ActivityService = require('../services/activityService');
+const emailService = require('../services/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -29,6 +31,14 @@ exports.register = async (req, res) => {
             roles: ['User'] // Default role
         });
         await user.save();
+
+        // Send welcome email
+        try {
+            await emailService.sendWelcomeEmail(user);
+            console.log(`Welcome email sent to ${user.email}`);
+        } catch (emailError) {
+            console.error(`Failed to send welcome email to ${user.email}:`, emailError);
+        }
 
         // Log activity
         await ActivityService.logAuthActivity('register', user);
@@ -153,4 +163,98 @@ exports.logout = (req, res) => {
         ActivityService.logAuthActivity('logout', req.user);
     }
     res.json({ message: 'Logout successful' });
+};
+
+/**
+ * Forgot password - generate reset token and send email
+ */
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Validate email
+        if (!email) {
+            return res.status(400).json({ message: 'Email is required' });
+        }
+
+        // Find user
+        const user = await User.findOne({ email });
+        if (!user) {
+            // Don't reveal if user exists or not for security
+            return res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        // Set token expiration (1 hour)
+        const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+        // Save token to user
+        user.passwordResetToken = resetTokenHash;
+        user.passwordResetExpires = resetTokenExpires;
+        await user.save();
+
+        // Send reset email
+        try {
+            await emailService.sendPasswordReset(user, resetToken, resetTokenExpires);
+            res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+        } catch (emailError) {
+            console.error('Failed to send password reset email:', emailError);
+            // Still return success to not reveal if email was sent
+            res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+        }
+
+        // Log activity
+        await ActivityService.logAuthActivity('forgot_password', user, { email });
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+/**
+ * Reset password with token
+ */
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        // Validate input
+        if (!token || !newPassword) {
+            return res.status(400).json({ message: 'Token and new password are required' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+        }
+
+        // Hash token for comparison
+        const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Find user with valid token
+        const user = await User.findOne({
+            passwordResetToken: resetTokenHash,
+            passwordResetExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: 'Password reset token is invalid or has expired' });
+        }
+
+        // Set new password
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save();
+
+        // Log activity
+        await ActivityService.logAuthActivity('password_reset', user);
+
+        res.json({ message: 'Password has been reset successfully' });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
 };

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { format, parseISO, isValid } from "date-fns"
 import { motion } from "framer-motion"
-import { 
+import {
   ChevronUp, ChevronDown, MoreHorizontal, Pencil, Key, Trash, User, ShieldAlert, Shield, Clock,
   CheckCircle, AlertTriangle, UserX, HelpCircle,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
@@ -58,26 +58,27 @@ function UserTableToolbar({ table }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 mb-2 shadow-sm">
-        <div className="flex flex-1 items-center space-x-3">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3 mb-2 shadow-sm">
+        <div className="flex flex-1 items-center space-x-3 w-full sm:w-auto">
           <Input
             placeholder="Search users..."
             value={table.getColumn("name")?.getFilterValue() ?? ""}
             onChange={e => table.getColumn("name")?.setFilterValue(e.target.value)}
-            className="h-10 w-[200px] lg:w-[300px]"
+            className="h-10 w-full sm:w-[200px] lg:w-[300px]"
           />
           <Button
             variant={showFilters ? "default" : "outline"}
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
             className={
-              "h-10 border-dashed transition-colors" +
+              "h-10 border-dashed transition-colors whitespace-nowrap" +
               (showFilters ? " bg-primary/10 text-primary border-primary" : "")
             }
           >
             <SlidersHorizontal className="mr-2 h-4 w-4" />
-            Filters
-                      </Button>
+            <span className="hidden sm:inline">Filters</span>
+            <span className="sm:hidden">Filter</span>
+          </Button>
           {isFiltered && (
             <Button
               variant="ghost"
@@ -85,14 +86,14 @@ function UserTableToolbar({ table }) {
                 table.resetColumnFilters()
                 setShowFilters(false)
               }}
-              className="h-10 px-3"
+              className="h-10 px-3 whitespace-nowrap"
             >
               Reset
               <CrossIcon className="ml-2 h-4 w-4" />
-              </Button>
+            </Button>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
           <DataTableViewOptions table={table} />
         </div>
       </div>

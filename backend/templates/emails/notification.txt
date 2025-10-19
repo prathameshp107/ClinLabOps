@@ -1,0 +1,11 @@
+{{appName}} Notification
+
+Hello,
+
+{{message}}
+
+{{#if actionUrl}}
+View Details: {{actionUrl}}
+{{/if}}
+
+This email was sent by {{appName}}. Please do not reply to this email.

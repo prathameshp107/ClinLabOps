@@ -1,4 +1,6 @@
 const Notification = require('../models/Notification');
+const User = require('../models/User');
+const emailService = require('../services/emailService');
 
 // Map activity types to notification properties
 const getActivityNotificationTitle = (activity) => {
@@ -91,6 +93,47 @@ const createNotificationFromActivity = async (activity) => {
             });
 
             await notification.save();
+
+            // Send email notification for non-generic categories only
+            // Only send emails for task, project, experiment, inventory, system, and user categories
+            // Skip generic notifications to reduce email spam
+            if (category !== 'general') {
+                try {
+                    const user = await User.findById(activity.user);
+                    if (user && user.preferences && user.preferences.notifications.email) {
+                        const title = getActivityNotificationTitle(activity);
+                        const message = activity.description;
+                        const type = getActivityNotificationType(activity);
+
+                        // Send email notification (non-blocking)
+                        setImmediate(async () => {
+                            try {
+                                const emailService = require('../services/emailService');
+                                await emailService.sendNotification({
+                                    to: user.email,
+                                    subject: `LabTasker: ${title}`,
+                                    template: 'notification',
+                                    data: {
+                                        userName: user.name,
+                                        title,
+                                        message,
+                                        appName: process.env.APP_NAME,
+                                        priority: type
+                                    },
+                                    priority: 'normal'
+                                });
+                            } catch (emailError) {
+                                console.error('Failed to send notification email:', emailError);
+                            }
+                        });
+
+                        console.log(`Email sent for activity notification to ${user.email}`);
+                    }
+                } catch (emailError) {
+                    console.error('Failed to send email for activity notification:', emailError);
+                }
+            }
+
             return notification;
         }
 

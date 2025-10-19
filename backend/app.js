@@ -41,6 +41,26 @@ mongoose.connect(config.mongodbUri, {
         process.exit(1);
     });
 
+// Initialize email service
+const emailService = require('./services/emailService');
+if (config.email.provider) {
+    emailService.initialize(config.email)
+        .then(() => {
+            // Verify connection
+            return emailService.verifyConnection();
+        })
+        .then(() => {
+            // Start email queue
+            emailService.startQueue();
+        })
+        .catch((error) => {
+            console.error('❌ Email service initialization failed:', error.message);
+            // Don't exit the application, just log the error
+        });
+} else {
+    console.log('📧 Email service not configured - skipping initialization');
+}
+
 const enquiriesRouter = require('./routes/enquiries');
 app.use('/api/enquiries', enquiriesRouter);
 

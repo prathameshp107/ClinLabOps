@@ -7,7 +7,7 @@ const ActivityService = require('../services/activityService');
 const encrypt = (text) => {
     if (!text) return null;
     const algorithm = 'aes-256-cbc';
-    const key = process.env.ENCRYPTION_KEY || crypto.randomBytes(32);
+    const key = process.env.ENCRYPTION_KEY;
     const iv = crypto.randomBytes(16);
 
     const cipher = crypto.createCipher(algorithm, key);
@@ -20,7 +20,7 @@ const encrypt = (text) => {
 const decrypt = (encryptedText) => {
     if (!encryptedText) return null;
     const algorithm = 'aes-256-cbc';
-    const key = process.env.ENCRYPTION_KEY || crypto.randomBytes(32);
+    const key = process.env.ENCRYPTION_KEY;
 
     try {
         const [iv, encrypted] = encryptedText.split(':');

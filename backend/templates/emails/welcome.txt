@@ -1,0 +1,19 @@
+Welcome to {{appName}}!
+
+Hello {{userName}},
+
+🎉 Welcome aboard! Your account has been successfully created.
+
+We're excited to have you join our community. {{appName}} is designed to help you streamline your laboratory operations and boost productivity.
+
+Key Features:
+1. Project Management - Organize and track all your research projects
+2. Task Tracking - Assign and monitor tasks with detailed progress reports
+3. Inventory Management - Keep track of all your laboratory supplies and equipment
+4. Compliance Tracking - Ensure all your work meets regulatory standards
+
+Get started by exploring your dashboard and setting up your first project!
+
+Go to Dashboard: {{frontendUrl}}
+
+This email was sent by {{appName}}. Please do not reply to this email.

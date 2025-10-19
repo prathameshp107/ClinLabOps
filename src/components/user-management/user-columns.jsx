@@ -87,21 +87,23 @@ export function userColumns(onUserAction) {
         {
             accessorKey: "id",
             header: "User ID",
+            size: 120,
             cell: ({ row }) => {
                 const userId = row.original._id || row.original.id;
-                return <span className="font-mono text-xs text-gray-500 dark:text-gray-400">{userId}</span>;
+                return <span className="font-mono text-xs text-gray-500 dark:text-gray-400 truncate">{userId?.substring(0, 8)}</span>;
             },
         },
         {
             accessorKey: "name",
             header: "Name",
+            size: 200,
             cell: ({ row }) => {
                 const user = row.original;
                 return (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                         <UserAvatar user={user} size="md" />
-                        <div>
-                            <div className="font-medium">{user.name}</div>
+                        <div className="min-w-0">
+                            <div className="font-medium truncate">{user.name}</div>
                             {user.twoFactorEnabled && (
                                 <div className="flex items-center text-xs text-muted-foreground">
                                     <Badge variant="outline" className="text-[10px] rounded-sm px-1 py-0">2FA</Badge>
@@ -115,43 +117,52 @@ export function userColumns(onUserAction) {
         {
             accessorKey: "email",
             header: "Email",
-            cell: ({ row }) => <span>{row.original.email}</span>,
+            size: 220,
+            cell: ({ row }) => <span className="truncate">{row.original.email}</span>,
         },
         {
             accessorKey: "phone",
             header: "Phone",
-            cell: ({ row }) => <span>{row.original.phone || <span className="text-muted-foreground italic">N/A</span>}</span>,
+            size: 120,
+            cell: ({ row }) => <span className="truncate">{row.original.phone || <span className="text-muted-foreground italic">N/A</span>}</span>,
         },
         {
             accessorKey: "isPowerUser",
             header: "Power User",
+            size: 100,
             cell: ({ row }) => (
-                <Badge variant={row.original.isPowerUser ? "destructive" : "secondary"}>
-                    {row.original.isPowerUser ? "True" : "False"}
-                </Badge>
+                <div className="flex justify-center">
+                    <Badge variant={row.original.isPowerUser ? "destructive" : "secondary"} className="w-16 justify-center">
+                        {row.original.isPowerUser ? "Yes" : "No"}
+                    </Badge>
+                </div>
             ),
         },
         {
             accessorKey: "role",
             header: "Role",
+            size: 120,
             cell: ({ row }) => {
                 const userRole = Array.isArray(row.original.roles) ? row.original.roles[0] : row.original.role;
                 return (
-                    <Badge variant={getRoleBadgeVariant(userRole)} className="gap-1 flex items-center">
-                        {getRoleIcon(userRole)}
-                        {userRole}
-                    </Badge>
+                    <div className="flex justify-center">
+                        <Badge variant={getRoleBadgeVariant(userRole)} className="gap-1 flex items-center w-24 justify-center">
+                            {getRoleIcon(userRole)}
+                            <span className="truncate">{userRole}</span>
+                        </Badge>
+                    </div>
                 );
             },
         },
         {
             accessorKey: "lastLogin",
             header: "Last Login",
+            size: 120,
             cell: ({ row }) => (
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <span className="text-muted-foreground cursor-help">
+                            <span className="text-muted-foreground cursor-help truncate">
                                 {row.original.lastLogin ? formatDate(row.original.lastLogin).split(" at ")[0] : "Never"}
                             </span>
                         </TooltipTrigger>
@@ -165,6 +176,7 @@ export function userColumns(onUserAction) {
         {
             accessorKey: "status",
             header: "Status",
+            size: 130,
             cell: ({ row }) => {
                 const status = row.original.status;
                 return (
@@ -174,7 +186,7 @@ export function userColumns(onUserAction) {
                                 <Badge
                                     variant={getStatusBadgeVariant(status)}
                                     className={`
-                                        gap-1 flex items-center px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105
+                                        gap-1 flex items-center px-2 py-1 rounded-full text-xs font-medium transition-all duration-200 hover:scale-105 truncate
                                         ${status === "Active" ? "bg-green-500/15 text-green-600 dark:bg-green-500/25 dark:text-green-400 border-green-200 dark:border-green-800" : ""} 
                                         ${status === "Inactive" ? "bg-gray-500/15 text-gray-600 dark:bg-gray-500/25 dark:text-gray-400 border-gray-200 dark:border-gray-800" : ""} 
                                         ${status === "Pending" ? "bg-yellow-500/15 text-yellow-600 dark:bg-yellow-500/25 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800" : ""}
@@ -184,7 +196,7 @@ export function userColumns(onUserAction) {
                                     `}
                                 >
                                     {getStatusIcon(status)}
-                                    {status}
+                                    <span className="truncate">{status}</span>
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -199,34 +211,37 @@ export function userColumns(onUserAction) {
         {
             id: "actions",
             header: "Actions",
+            size: 80,
             cell: ({ row }) => {
                 const user = row.original;
                 return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => onUserAction("edit", user)} className="gap-2">
-                                <Pencil className="h-4 w-4" />
-                                Edit User
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onUserAction("resetPassword", user)} className="gap-2">
-                                <Key className="h-4 w-4" />
-                                Reset Password
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onUserAction("delete", user)} className="text-destructive focus:text-destructive gap-2">
-                                <Trash className="h-4 w-4" />
-                                Delete User
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex justify-center">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Open menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => onUserAction("edit", user)} className="gap-2">
+                                    <Pencil className="h-4 w-4" />
+                                    Edit User
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onUserAction("resetPassword", user)} className="gap-2">
+                                    <Key className="h-4 w-4" />
+                                    Reset Password
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => onUserAction("delete", user)} className="text-destructive focus:text-destructive gap-2">
+                                    <Trash className="h-4 w-4" />
+                                    Delete User
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 );
             },
         },
     ];
-} 
+}

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to {{appName}}!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: 0.5px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            color: #2d3748;
+            margin-top: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .content p {
+            margin: 15px 0;
+            font-size: 16px;
+            color: #4a5568;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            color: #718096;
+            font-size: 14px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 20px 0;
+        }
+        .greeting {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .info-box {
+            background-color: #ecefff;
+            border-left: 4px solid #6a11cb;
+            padding: 15px;
+            border-radius: 0 4px 4px 0;
+            margin: 20px 0;
+        }
+        .features {
+            margin: 25px 0;
+        }
+        .feature {
+            display: flex;
+            align-items: flex-start;
+            margin: 15px 0;
+        }
+        .feature-icon {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .feature-text {
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1 class="logo">{{appName}}</h1>
+        </div>
+        <div class="content">
+            <h2>Welcome to {{appName}}!</h2>
+            <p class="greeting">Hello {{userName}},</p>
+            
+            <div class="info-box">
+                <p>🎉 <strong>Welcome aboard!</strong> Your account has been successfully created.</p>
+            </div>
+            
+            <p>We're excited to have you join our community. {{appName}} is designed to help you streamline your laboratory operations and boost productivity.</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">1</div>
+                    <div class="feature-text"><strong>Project Management</strong> - Organize and track all your research projects</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">2</div>
+                    <div class="feature-text"><strong>Task Tracking</strong> - Assign and monitor tasks with detailed progress reports</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">3</div>
+                    <div class="feature-text"><strong>Inventory Management</strong> - Keep track of all your laboratory supplies and equipment</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">4</div>
+                    <div class="feature-text"><strong>Compliance Tracking</strong> - Ensure all your work meets regulatory standards</div>
+                </div>
+            </div>
+            
+            <p>Get started by exploring your dashboard and setting up your first project!</p>
+            
+            <div class="button-container">
+                <a href="{{frontendUrl}}" class="button">Go to Dashboard</a>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div class="footer">
+            <p>This email was sent by {{appName}}. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
