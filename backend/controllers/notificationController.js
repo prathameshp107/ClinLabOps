@@ -236,7 +236,7 @@ exports.sendBulkNotifications = async (req, res) => {
                             subject: title,
                             message: message,
                             actionUrl: actionUrl,
-                            appName: process.env.APP_NAME || 'LabTasker'
+                            appName: process.env.APP_NAME
                         },
                         priority: type === 'error' || type === 'warning' ? 'high' : 'normal'
                     });
@@ -400,5 +400,49 @@ exports.getNotificationStats = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+// Send test notification
+exports.sendTestNotification = async (req, res) => {
+    try {
+        const userId = req.params.userId || req.user?.id;
+        const adminUser = req.user;
+
+        const notificationData = {
+            recipient: userId,
+            title: 'Test Notification',
+            message: 'This is a test notification sent from the admin panel.',
+            type: 'info',
+            category: 'system',
+            metadata: {
+                sentBy: adminUser._id,
+                testNotification: true
+            },
+            data: {
+                appName: process.env.APP_NAME
+            }
+        };
+
+        const notification = await Notification.createNotification(notificationData);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'notification_created',
+                description: `${req.user.name} sent a test notification to ${userId}`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'notification',
+                    notificationId: notification._id,
+                    notificationTitle: notification.title,
+                    operation: 'create'
+                }
+            });
+        }
+
+        res.status(201).json(notification);
+    } catch (err) {
+        res.status(400).json({ error: err.message });
     }
 };

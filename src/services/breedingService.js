@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/breeding';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL + '/breeding';
 
 // Create axios instance with default config
 const apiClient = axios.create({

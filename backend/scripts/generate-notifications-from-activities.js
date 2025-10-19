@@ -5,7 +5,7 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 
 // Connect to MongoDB
-const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/labtasker';
+const mongoURI = process.env.MONGO_URI;
 mongoose.connect(mongoURI, {
 });
 

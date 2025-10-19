@@ -87,7 +87,7 @@ const config = {
         username: process.env.EMAIL_USERNAME,
         password: process.env.EMAIL_PASSWORD,
         from: process.env.EMAIL_FROM,
-        fromName: process.env.EMAIL_FROM_NAME || process.env.APP_NAME,
+        fromName: process.env.EMAIL_FROM_NAME,
         frontendUrl: process.env.FRONTEND_URL
     }
 };

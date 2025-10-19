@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Define the backend API URL
-const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:5000';
+const BACKEND_API_URL = process.env.BACKEND_URL;
 
 export async function middleware(request) {
     const url = request.nextUrl.clone();

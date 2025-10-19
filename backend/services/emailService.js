@@ -67,7 +67,7 @@ class EmailService {
     }
 
     /**
-     * Initialize the email service with configuration
+     * Initialize email service
      * @param {Object} config - Email configuration
      */
     async initialize(config) {
@@ -75,7 +75,7 @@ class EmailService {
             this.config = {
                 provider: config.provider || 'smtp',
                 from: config.from || process.env.EMAIL_FROM,
-                fromName: config.fromName || process.env.EMAIL_FROM_NAME || 'LabTasker',
+                fromName: config.fromName || process.env.EMAIL_FROM_NAME,
                 ...config
             };
 
@@ -308,7 +308,7 @@ class EmailService {
      * @param {Date} expiresAt - Token expiration date
      */
     async sendPasswordReset(user, resetToken, expiresAt) {
-        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
         const mailOptions = {
             to: user.email,
@@ -318,7 +318,7 @@ class EmailService {
                 userName: user.name,
                 resetUrl,
                 expiresAt: expiresAt.toLocaleString(),
-                appName: process.env.APP_NAME || 'LabTasker'
+                appName: process.env.APP_NAME
             },
             priority: 'high'
         };
@@ -332,7 +332,7 @@ class EmailService {
      */
     async sendUserInvitation(inviteData) {
         const { email, inviteToken, invitedBy, role } = inviteData;
-        const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/accept-invite?token=${inviteToken}`;
+        const inviteUrl = `${process.env.FRONTEND_URL}/accept-invite?token=${inviteToken}`;
 
         const mailOptions = {
             to: email,
@@ -342,7 +342,7 @@ class EmailService {
                 invitedByName: invitedBy.name,
                 role,
                 inviteUrl,
-                appName: process.env.APP_NAME || 'LabTasker'
+                appName: process.env.APP_NAME
             },
             priority: 'normal'
         };
@@ -356,7 +356,7 @@ class EmailService {
      * @param {string} confirmToken - Confirmation token
      */
     async sendAccountConfirmation(user, confirmToken) {
-        const confirmUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/confirm-email?token=${confirmToken}`;
+        const confirmUrl = `${process.env.FRONTEND_URL}/confirm-email?token=${confirmToken}`;
 
         const mailOptions = {
             to: user.email,
@@ -365,7 +365,7 @@ class EmailService {
             data: {
                 userName: user.name,
                 confirmUrl,
-                appName: process.env.APP_NAME || 'LabTasker'
+                appName: process.env.APP_NAME
             },
             priority: 'normal'
         };
@@ -378,15 +378,15 @@ class EmailService {
      * @param {Object} user - User object
      */
     async sendWelcomeEmail(user) {
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL;
 
         const mailOptions = {
             to: user.email,
-            subject: `Welcome to ${process.env.APP_NAME || 'LabTasker'}!`,
+            subject: `Welcome to ${process.env.APP_NAME}!`,
             template: 'welcome',
             data: {
                 userName: user.name,
-                appName: process.env.APP_NAME || 'LabTasker',
+                appName: process.env.APP_NAME,
                 frontendUrl: frontendUrl
             },
             priority: 'normal'

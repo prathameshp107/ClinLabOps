@@ -101,10 +101,12 @@ class DeadlineNotificationService {
                         const user = await User.findById(recipientId);
                         if (user) {
                             // Create in-app notification
+                            const notificationTitle = `Project Deadline Reminder`;
+                            const notificationMessage = `Project "${project.name}" deadline is ${label} on ${new Date(project.endDate).toLocaleDateString()}`;
                             const notification = await this.createDeadlineNotification({
                                 recipient: recipientId,
-                                title: `Project Deadline Reminder`,
-                                message: `Project "${project.name}" deadline is ${label} on ${new Date(project.endDate).toLocaleDateString()}`,
+                                title: notificationTitle,
+                                message: notificationMessage,
                                 type: 'warning',
                                 priority: 'high',
                                 category: 'project',
@@ -120,26 +122,22 @@ class DeadlineNotificationService {
                                 }
                             });
 
-                            // Send email notification if user has email notifications enabled
-                            if (user.preferences && user.preferences.notifications.email) {
-                                try {
-                                    await emailService.sendNotification({
-                                        to: user.email,
-                                        subject: `Project Deadline Reminder: ${project.name}`,
-                                        template: 'notification',
-                                        data: {
-                                            userName: user.name,
-                                            subject: `Project Deadline Reminder: ${project.name}`,
-                                            message: `Project "${project.name}" deadline is ${label} on ${new Date(project.endDate).toLocaleDateString()}`,
-                                            appName: process.env.APP_NAME || 'LabTasker'
-                                        },
-                                        priority: 'high'
-                                    });
-                                    console.log(`Email sent for project deadline to ${user.email}`);
-                                } catch (emailError) {
-                                    console.error(`Failed to send email for project deadline to ${user.email}:`, emailError);
-                                }
-                            }
+                            // Send email notification
+                            await emailService.sendNotification({
+                                to: user.email,
+                                subject: `LabTasker: ${notificationTitle}`,
+                                template: 'notification',
+                                data: {
+                                    userName: user.name,
+                                    title: notificationTitle,
+                                    message: notificationMessage,
+                                    appName: process.env.APP_NAME,
+                                    priority: 'high'
+                                },
+                                priority: 'high'
+                            });
+
+                            console.log(`Email sent for project deadline to ${user.email}`);
                         }
                     }
                 } else {
@@ -195,10 +193,12 @@ class DeadlineNotificationService {
                         const user = await User.findById(recipientId);
                         if (user) {
                             // Create in-app notification
+                            const notificationTitle = `Task Deadline Reminder`;
+                            const notificationMessage = `Task "${task.title}" is due ${label} on ${new Date(task.dueDate).toLocaleDateString()}`;
                             const notification = await this.createDeadlineNotification({
                                 recipient: recipientId,
-                                title: `Task Deadline Reminder`,
-                                message: `Task "${task.title}" is due ${label} on ${new Date(task.dueDate).toLocaleDateString()}`,
+                                title: notificationTitle,
+                                message: notificationMessage,
                                 type: 'warning',
                                 priority: 'high',
                                 category: 'task',
@@ -216,26 +216,22 @@ class DeadlineNotificationService {
                                 }
                             });
 
-                            // Send email notification if user has email notifications enabled
-                            if (user.preferences && user.preferences.notifications.email) {
-                                try {
-                                    await emailService.sendNotification({
-                                        to: user.email,
-                                        subject: `Task Deadline Reminder: ${task.title}`,
-                                        template: 'notification',
-                                        data: {
-                                            userName: user.name,
-                                            subject: `Task Deadline Reminder: ${task.title}`,
-                                            message: `Task "${task.title}" is due ${label} on ${new Date(task.dueDate).toLocaleDateString()}`,
-                                            appName: process.env.APP_NAME || 'LabTasker'
-                                        },
-                                        priority: 'high'
-                                    });
-                                    console.log(`Email sent for task deadline to ${user.email}`);
-                                } catch (emailError) {
-                                    console.error(`Failed to send email for task deadline to ${user.email}:`, emailError);
-                                }
-                            }
+                            // Send email notification
+                            await emailService.sendNotification({
+                                to: user.email,
+                                subject: `LabTasker: ${notificationTitle}`,
+                                template: 'notification',
+                                data: {
+                                    userName: user.name,
+                                    title: notificationTitle,
+                                    message: notificationMessage,
+                                    appName: process.env.APP_NAME,
+                                    priority: 'medium'
+                                },
+                                priority: 'normal'
+                            });
+
+                            console.log(`Email sent for task deadline to ${user.email}`);
                         }
                     }
                 } else {
