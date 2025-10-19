@@ -403,5 +403,3 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
         </aside>
     );
 }
-
-export { ModernSidebar };
