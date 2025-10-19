@@ -91,7 +91,7 @@ export function DataTable({
                         key={header.id}
                         colSpan={header.colSpan}
                         style={{ width: columnSize ? `${columnSize}px` : 'auto' }}
-                        className={`font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900/60 whitespace-nowrap px-2 sm:px-4 ${columnMeta?.className || ''
+                        className={`font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900/60 whitespace-nowrap px-2 sm:px-4 py-3 ${columnMeta?.className || ''
                           }`}
                       >
                         {header.isPlaceholder
@@ -129,7 +129,7 @@ export function DataTable({
                           key={cell.id}
                           style={{ width: columnSize ? `${columnSize}px` : 'auto' }}
                           className={`${cidx === 1 ? "font-semibold text-sm sm:text-[15px]" : "text-xs sm:text-sm"
-                            } whitespace-nowrap px-2 sm:px-4 ${columnMeta?.className || ''}`}
+                            } whitespace-nowrap px-2 sm:px-4 py-3 ${columnMeta?.className || ''}`}
                         >
                           {flexRender(
                             cell.column.columnDef.cell,
@@ -150,8 +150,8 @@ export function DataTable({
                       <svg width="48" height="48" className="sm:w-16 sm:h-16 mb-3 sm:mb-4 opacity-60" fill="none" viewBox="0 0 24 24">
                         <path d="M7 7h10M7 11h6m-6 4h10M5 5v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      <div className="text-base sm:text-lg font-semibold">No tasks available</div>
-                      <div className="text-xs sm:text-sm mt-1 px-4 text-center">You have not created any tasks yet. Click <b>New Task</b> to get started!</div>
+                      <div className="text-base sm:text-lg font-semibold">No users found</div>
+                      <div className="text-xs sm:text-sm mt-1 px-4 text-center">No users match your current filters. Try adjusting your search or filters.</div>
                     </div>
                   </TableCell>
                 </TableRow>
