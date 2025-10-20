@@ -36,9 +36,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { login } from "@/services/authService";
+import { useTheme } from "next-themes";
 
 export default function ScientificLoginForm() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [loginStage, setLoginStage] = useState("credentials"); // 'credentials', '2fa', 'error'
   const [formData, setFormData] = useState({
@@ -254,9 +256,9 @@ export default function ScientificLoginForm() {
 
   // Main login form render
   return (
-    <div className="min-h-screen bg-white flex flex-col overflow-auto">
+    <div className="min-h-screen bg-background flex flex-col overflow-auto">
       <div className="container mx-auto px-4 py-6">
-        <Link href="/" className="inline-flex items-center text-sm text-gray-600 hover:text-primary transition-colors">
+        <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors">
           <ChevronLeft className="mr-1 h-4 w-4" />
           Back to Home
         </Link>
@@ -264,17 +266,17 @@ export default function ScientificLoginForm() {
         {/* Main container adjustments */}
         <div className="flex flex-col md:flex-row items-stretch justify-center md:gap-0 py-8 min-h-[80vh]">
           {/* Left side - Decorative panel */}
-          <div className="hidden md:block w-full max-w-md bg-blue-50 rounded-l-xl p-8 relative overflow-hidden border border-gray-200 border-r-0">
+          <div className="hidden md:block w-full max-w-md rounded-l-xl p-8 relative overflow-hidden border login-left-panel">
             <div className="flex flex-col h-full">
               <div className="mb-6">
                 <div className="flex items-center">
                   <Beaker className="h-8 w-8 mr-2 text-primary" />
                   <h3 className="text-lg font-semibold text-primary">LabTasker</h3>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Practical Testing Platform</p>
+                <p className="text-xs text-muted-foreground mt-1">Practical Testing Platform</p>
               </div>
 
-              <p className="text-sm text-gray-600 mb-8">
+              <p className="text-sm text-muted-foreground mb-8">
                 Streamline your practical testing workflow with our comprehensive laboratory task management platform
               </p>
 
@@ -310,32 +312,32 @@ export default function ScientificLoginForm() {
 
               <div className="space-y-4 mt-8">
                 <div className="flex items-start space-x-3">
-                  <div className="bg-white/80 rounded-md p-2 shadow-sm">
+                  <div className="bg-card rounded-md p-2 shadow-sm border feature-card">
                     <FlaskConical className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h4 className="text-sm font-medium">Experiment Tracking</h4>
-                    <p className="text-xs text-gray-500">Monitor all practical tests in real-time</p>
+                    <p className="text-xs text-muted-foreground">Monitor all practical tests in real-time</p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <div className="bg-white/80 rounded-md p-2 shadow-sm">
+                  <div className="bg-card rounded-md p-2 shadow-sm border feature-card">
                     <Beaker className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h4 className="text-sm font-medium">Sample Management</h4>
-                    <p className="text-xs text-gray-500">Track specimens throughout testing lifecycle</p>
+                    <p className="text-xs text-muted-foreground">Track specimens throughout testing lifecycle</p>
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <div className="bg-white/80 rounded-md p-2 shadow-sm">
+                  <div className="bg-card rounded-md p-2 shadow-sm border feature-card">
                     <Microscope className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <h4 className="text-sm font-medium">Data Analysis</h4>
-                    <p className="text-xs text-gray-500">Integrated tools for research insights</p>
+                    <p className="text-xs text-muted-foreground">Integrated tools for research insights</p>
                   </div>
                 </div>
               </div>
@@ -345,12 +347,12 @@ export default function ScientificLoginForm() {
           {/* Right side - Login form */}
           <div className="w-full max-w-md">
             <div className="h-full">
-              <div className="bg-white rounded-r-xl shadow-lg border border-gray-200 p-8 h-full">
+              <div className="rounded-r-xl shadow-lg border p-8 h-full">
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold">
                     {loginStage === "2fa" ? "Two-Factor Authentication" : "Sign in to LabTasker"}
                   </h2>
-                  <p className="text-gray-500 mt-2">
+                  <p className="text-muted-foreground mt-2">
                     {loginStage === "2fa"
                       ? "Please enter the 6-digit code from your authentication app"
                       : "Enter your credentials to access your account"}
@@ -398,7 +400,7 @@ export default function ScientificLoginForm() {
 
                     <Button
                       type="submit"
-                      className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700"
+                      className="w-full h-12 text-base font-medium"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -433,7 +435,7 @@ export default function ScientificLoginForm() {
                             <div>
                               <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                               <div className="relative mt-1">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   id="email"
                                   name="email"
@@ -462,7 +464,7 @@ export default function ScientificLoginForm() {
                                 </Button>
                               </div>
                               <div className="relative mt-1">
-                                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                 <Input
                                   id="password"
                                   name="password"
@@ -483,9 +485,9 @@ export default function ScientificLoginForm() {
                                   onClick={() => setShowPassword(!showPassword)}
                                 >
                                   {showPassword ? (
-                                    <EyeOff className="h-4 w-4 text-gray-400" />
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
                                   ) : (
-                                    <Eye className="h-4 w-4 text-gray-400" />
+                                    <Eye className="h-4 w-4 text-muted-foreground" />
                                   )}
                                 </Button>
                               </div>
@@ -500,7 +502,7 @@ export default function ScientificLoginForm() {
                             />
                             <Label
                               htmlFor="rememberMe"
-                              className="text-sm font-normal text-gray-500"
+                              className="text-sm font-normal text-muted-foreground"
                             >
                               Remember me for 30 days
                             </Label>
@@ -508,7 +510,7 @@ export default function ScientificLoginForm() {
 
                           <Button
                             type="submit"
-                            className="w-full h-12 text-base font-medium bg-blue-600 hover:bg-blue-700"
+                            className="w-full h-12 text-base font-medium"
                             disabled={isLoading}
                           >
                             {isLoading ? (
@@ -563,9 +565,9 @@ export default function ScientificLoginForm() {
                     </Tabs>
 
                     <div className="mt-8 text-center text-sm">
-                      <p className="text-gray-500">
+                      <p className="text-muted-foreground">
                         Don't have an account?{" "}
-                        <Link href="/register" className="text-blue-600 hover:underline font-medium">
+                        <Link href="/register" className="text-primary hover:underline font-medium">
                           Create an account
                         </Link>
                       </p>

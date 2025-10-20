@@ -414,6 +414,17 @@
   background-color: #3f3f46;
 }
 
+/* Login page specific dark mode styles */
+.dark .login-left-panel {
+  background-color: #1e1e24;
+  border-color: #3f3f46;
+}
+
+.dark .login-left-panel .feature-card {
+  background-color: #27272a;
+  border-color: #3f3f46;
+}
+
 @layer utilities {
   /* Custom scrollbar styles */
   .scrollbar-thin {
