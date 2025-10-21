@@ -17,7 +17,7 @@ app.use(cors({
     credentials: config.cors.credentials,
     exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'] // Expose these headers to frontend
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Increase payload limit for file uploads
 
 // Log all requests
 app.use(logger);
@@ -60,20 +60,40 @@ app.get('/health', async (req, res) => {
     res.status(200).json(healthCheck);
 });
 
-// MongoDB connection - only connect if not already connected
-if (mongoose.connection.readyState === 0) {
-    mongoose.connect(config.mongodbUri, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-        .then(() => console.log('✅ MongoDB connected successfully'))
-        .catch((err) => {
-            console.error('❌ MongoDB connection error:', err.message);
-            process.exit(1);
+// Enhanced MongoDB connection with better error handling and retry logic
+const connectDB = async (retries = 5) => {
+    try {
+        console.log('🔄 Attempting to connect to MongoDB...');
+        console.log('   URI:', config.mongodbUri.replace(/:[^:@]+@/, ':***@')); // Hide password in logs
+
+        await mongoose.connect(config.mongodbUri, {
+            dbName: config.dbName,
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+            socketTimeoutMS: 45000, // 45 seconds socket timeout
         });
-} else {
-    console.log('✅ MongoDB already connected');
-}
+
+        console.log('✅ MongoDB connected successfully');
+        console.log('   Database Name:', config.dbName);
+        console.log('   Connection State:', mongoose.connection.readyState);
+    } catch (err) {
+        console.error('❌ MongoDB connection error:', err.message);
+
+        if (retries > 0) {
+            console.log(`⏳ Retrying connection... (${retries} attempts left)`);
+            setTimeout(() => {
+                connectDB(retries - 1);
+            }, 5000); // Wait 5 seconds before retry
+        } else {
+            console.error('💥 Failed to connect to MongoDB after all retries');
+            process.exit(1);
+        }
+    }
+};
+
+// Connect to MongoDB
+connectDB();
 
 // Initialize email service
 const emailService = require('./services/emailService');
@@ -186,8 +206,30 @@ app.use('/api/deadline-notifications', deadlineNotificationsRouter);
 
 // Only start the server if this file is run directly
 if (require.main === module) {
-    app.listen(config.port, () => {
+    const server = app.listen(config.port, () => {
         console.log(`🚀 Server running on port ${config.port} in ${config.nodeEnv} mode`);
+        console.log(`🔗 Health check endpoint: http://localhost:${config.port}/health`);
+    });
+
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('🛑 SIGTERM received, shutting down gracefully');
+        server.close(() => {
+            mongoose.connection.close(false, () => {
+                console.log('MongoDB connection closed');
+                process.exit(0);
+            });
+        });
+    });
+
+    process.on('SIGINT', () => {
+        console.log('🛑 SIGINT received, shutting down gracefully');
+        server.close(() => {
+            mongoose.connection.close(false, () => {
+                console.log('MongoDB connection closed');
+                process.exit(0);
+            });
+        });
     });
 }
 

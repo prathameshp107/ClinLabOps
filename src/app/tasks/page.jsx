@@ -670,6 +670,8 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
   const [selectedProjectId, setSelectedProjectId] = React.useState("");
   const [team, setTeam] = React.useState([]);
   const [nextTaskId, setNextTaskId] = React.useState("");
+  const [loadingNextTaskId, setLoadingNextTaskId] = React.useState(false);
+
   React.useEffect(() => {
     if (open) {
       setFormData({
@@ -687,23 +689,28 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
       getProjects().then(setProjects);
     }
   }, [open]);
+
   React.useEffect(() => {
     if (selectedProjectId) {
       getProjectById(selectedProjectId).then((proj) => {
         setTeam(proj.team || []);
       });
       // Fetch next task ID for preview
+      setLoadingNextTaskId(true);
       getNextTaskId(selectedProjectId).then((taskId) => {
-        setNextTaskId(taskId);
+        setNextTaskId(taskId || "");
+        setLoadingNextTaskId(false);
       }).catch((error) => {
         console.error('Error fetching next task ID:', error);
         setNextTaskId('');
+        setLoadingNextTaskId(false);
       });
     } else {
       setTeam([]);
       setNextTaskId('');
     }
   }, [selectedProjectId]);
+
   const handleSubmit = () => {
     if (!formData.title.trim() || !selectedProjectId) return;
     let taskToSend = { ...formData, projectId: selectedProjectId };
@@ -716,11 +723,13 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
     onAddTask(taskToSend);
     onOpenChange(false);
   };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && e.metaKey) {
       handleSubmit();
     }
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden p-0 gap-0 border-0 bg-white/95 dark:bg-background/95 backdrop-blur-xl shadow-2xl flex flex-col">
@@ -766,15 +775,25 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
           </div>
 
           {/* Task ID Preview */}
-          {selectedProjectId && nextTaskId && (
+          {selectedProjectId && (
             <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                 <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Task ID Preview</Label>
               </div>
-              <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
-                {nextTaskId}
-              </div>
+              {loadingNextTaskId ? (
+                <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
+                  Loading...
+                </div>
+              ) : nextTaskId ? (
+                <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
+                  {nextTaskId}
+                </div>
+              ) : (
+                <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
+                  Unable to generate ID
+                </div>
+              )}
               <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2">This ID will be automatically assigned to your task</p>
             </div>
           )}

@@ -67,6 +67,26 @@ const generateCustomTaskId = async (projectId) => {
     }
 };
 
+// Get next available task ID for a project (for preview purposes)
+exports.getNextTaskId = async (req, res) => {
+    try {
+        const { projectId } = req.params;
+
+        if (!projectId) {
+            return res.status(400).json({ error: 'Project ID is required' });
+        }
+
+        // Generate the next task ID without creating a task
+        const nextTaskId = await generateCustomTaskId(projectId);
+
+        // Wrap in data property for frontend compatibility
+        res.json({ data: nextTaskId });
+    } catch (err) {
+        console.error('Error generating next task ID:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // Create a new task
 exports.createTask = async (req, res) => {
     try {
@@ -672,24 +692,6 @@ exports.getRelatedTasks = async (req, res) => {
         // Wrap related tasks array in data property for frontend compatibility
         res.json({ data: task.relatedTasks });
     } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
-
-// Get next available task ID for a project (for preview purposes)
-exports.getNextTaskId = async (req, res) => {
-    try {
-        const { projectId } = req.params;
-
-        if (!projectId) {
-            return res.status(400).json({ error: 'Project ID is required' });
-        }
-
-        const nextCustomId = await generateCustomTaskId(projectId);
-        // Wrap nextTaskId in data property for frontend compatibility
-        res.json({ data: { nextTaskId: nextCustomId } });
-    } catch (err) {
-        console.error('Error generating next task ID:', err);
         res.status(400).json({ error: err.message });
     }
 };

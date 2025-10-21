@@ -294,8 +294,7 @@ export function ProjectManagement() {
       await createActivity({
         type: 'project_created',
         description: `Project '${adaptedProject.name}' was created`,
-        user: currentUser.id,
-        project: adaptedProject.id
+        projectId: adaptedProject.id
       });
     } catch (error) {
       console.error("Failed to add project:", error);
@@ -314,8 +313,7 @@ export function ProjectManagement() {
       await createActivity({
         type: 'project_updated',
         description: `Project '${adaptedUpdated.name}' was updated`,
-        user: currentUser.id,
-        project: adaptedUpdated.id
+        projectId: adaptedUpdated.id
       });
     } catch (error) {
       console.error("Failed to edit project:", error);
