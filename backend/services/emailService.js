@@ -25,7 +25,13 @@ class SimpleQueue {
             Promise.resolve()
                 .then(() => new Promise((resolve, reject) => {
                     const timeout = this.timeout > 0 ?
-                        setTimeout(() => reject(new Error('Job timeout')), this.timeout) :
+                        setTimeout(() => {
+                            console.warn('Job timeout warning - job taking longer than expected');
+                            // Don't reject immediately, give it more time
+                            setTimeout(() => {
+                                reject(new Error('Job timeout'));
+                            }, 10000); // Additional 10 seconds before rejecting
+                        }, this.timeout) :
                         null;
 
                     job((err, result) => {
@@ -53,7 +59,7 @@ class SimpleQueue {
 }
 
 // Email queue for handling high volume sends
-const emailQueue = new SimpleQueue({ concurrency: 5, timeout: 30000 });
+const emailQueue = new SimpleQueue({ concurrency: 5, timeout: 60000 }); // Increased to 60 seconds
 
 // Rate limiting
 const rateLimiter = new Map();

@@ -43,7 +43,27 @@ export const createReport = async (formData) => {
         return response.data;
     } catch (error) {
         console.error('Failed to create report:', error);
-        throw new Error(`Failed to create report: ${error.message}`);
+        // Provide more specific error messages based on the error type
+        if (error.response) {
+            // Server responded with error status
+            const { status, data } = error.response;
+            switch (status) {
+                case 400:
+                    throw new Error(data.error || 'Invalid request. Please check your input and try again.');
+                case 401:
+                    throw new Error('Authentication required. Please log in and try again.');
+                case 500:
+                    throw new Error(data.error || 'Server error. Please try again later.');
+                default:
+                    throw new Error(`Server error (${status}). Please try again later.`);
+            }
+        } else if (error.request) {
+            // Request was made but no response received
+            throw new Error('Network error. Please check your connection and try again.');
+        } else {
+            // Something else happened
+            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+        }
     }
 };
 
@@ -58,7 +78,27 @@ export const uploadReport = async (formData) => {
         return response.data;
     } catch (error) {
         console.error('Failed to upload report:', error);
-        throw new Error(`Failed to upload report: ${error.message}`);
+        // Provide more specific error messages based on the error type
+        if (error.response) {
+            // Server responded with error status
+            const { status, data } = error.response;
+            switch (status) {
+                case 400:
+                    throw new Error(data.error || 'Invalid request. Please check your input and try again.');
+                case 401:
+                    throw new Error('Authentication required. Please log in and try again.');
+                case 500:
+                    throw new Error(data.error || 'Server error. Please try again later.');
+                default:
+                    throw new Error(`Server error (${status}). Please try again later.`);
+            }
+        } else if (error.request) {
+            // Request was made but no response received
+            throw new Error('Network error. Please check your connection and try again.');
+        } else {
+            // Something else happened
+            throw new Error(error.message || 'An unexpected error occurred. Please try again.');
+        }
     }
 };
 

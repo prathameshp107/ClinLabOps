@@ -8,7 +8,7 @@ const gridfsService = require('../services/gridfsService');
 // Get all reports
 exports.getAllReports = async (req, res) => {
     try {
-        const { type, page = 1, limit = 100} = req.query;
+        const { type, page = 1, limit = 100 } = req.query;
 
         // Build filter
         const filter = {};
@@ -89,7 +89,14 @@ exports.getReportById = async (req, res) => {
 // Create a new report with GridFS
 exports.createReport = async (req, res) => {
     try {
+        console.log('Received report creation request:', {
+            user: req.user ? { id: req.user._id, name: req.user.name } : 'No user',
+            body: req.body,
+            file: req.file
+        });
+
         if (!req.file) {
+            console.error('No file uploaded in request');
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
@@ -97,21 +104,37 @@ exports.createReport = async (req, res) => {
 
         // Validate required fields
         if (!title || !type || !format) {
+            console.error('Missing required fields:', { title, type, format });
             return res.status(400).json({ error: 'Title, type, and format are required' });
         }
 
         // Validate report type
         if (!['regulatory', 'research', 'miscellaneous'].includes(type)) {
+            console.error('Invalid report type:', type);
             return res.status(400).json({ error: 'Invalid report type' });
         }
 
         // Validate format
         if (!['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(format)) {
+            console.error('Invalid file format:', format);
             return res.status(400).json({ error: 'Invalid file format' });
         }
 
+        // Check if file exists before trying to read it
+        if (!fs.existsSync(req.file.path)) {
+            console.error('Uploaded file not found at path:', req.file.path);
+            return res.status(500).json({ error: 'Uploaded file not found. Please try uploading again.' });
+        }
+
         // Read file buffer
-        const fileBuffer = fs.readFileSync(req.file.path);
+        console.log('Reading file buffer from:', req.file.path);
+        let fileBuffer;
+        try {
+            fileBuffer = fs.readFileSync(req.file.path);
+        } catch (readErr) {
+            console.error('Failed to read uploaded file:', readErr);
+            return res.status(500).json({ error: 'Failed to read uploaded file. Please try uploading again.' });
+        }
 
         // Upload file to GridFS
         console.log('Uploading file to GridFS:', req.file.filename);
@@ -125,6 +148,14 @@ exports.createReport = async (req, res) => {
             });
         } catch (uploadErr) {
             console.error('GridFS upload failed:', uploadErr);
+            // Try to delete the temporary file if upload fails
+            try {
+                if (fs.existsSync(req.file.path)) {
+                    fs.unlinkSync(req.file.path);
+                }
+            } catch (deleteErr) {
+                console.error('Failed to delete temporary file after upload error:', deleteErr);
+            }
             throw new Error(`Failed to upload file to GridFS: ${uploadErr.message}`);
         }
 
@@ -133,13 +164,33 @@ exports.createReport = async (req, res) => {
 
         // Check if gridFSFile is valid
         if (!gridFSFile) {
-            throw new Error('Failed to upload file to GridFS - no response received');
+            const error = new Error('Failed to upload file to GridFS - no response received');
+            console.error(error.message);
+            // Try to delete the temporary file
+            try {
+                if (fs.existsSync(req.file.path)) {
+                    fs.unlinkSync(req.file.path);
+                }
+            } catch (deleteErr) {
+                console.error('Failed to delete temporary file after upload error:', deleteErr);
+            }
+            throw error;
         }
 
         // The GridFS file object should have an _id property
         const fileId = gridFSFile._id || gridFSFile.id;
         if (!fileId) {
-            throw new Error('Failed to upload file to GridFS - missing file ID');
+            const error = new Error('Failed to upload file to GridFS - missing file ID');
+            console.error(error.message, { gridFSFile });
+            // Try to delete the temporary file
+            try {
+                if (fs.existsSync(req.file.path)) {
+                    fs.unlinkSync(req.file.path);
+                }
+            } catch (deleteErr) {
+                console.error('Failed to delete temporary file after upload error:', deleteErr);
+            }
+            throw error;
         }
 
         const report = new Report({
@@ -154,14 +205,29 @@ exports.createReport = async (req, res) => {
             gridFSFileId: fileId
         });
 
+        console.log('Creating report in database:', {
+            title,
+            type,
+            format,
+            fileName: req.file.filename,
+            fileSize: req.file.size,
+            uploadedBy: req.user._id,
+            gridFSFileId: fileId
+        });
+
         const savedReport = await report.save();
 
         // Populate the uploadedBy field
         await savedReport.populate('uploadedBy', 'name email');
 
         // Delete the temporary file
-        if (fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
+        try {
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+        } catch (deleteErr) {
+            console.error('Failed to delete temporary file after successful upload:', deleteErr);
+            // Don't throw an error here as the report was successfully created
         }
 
         // Log activity
@@ -178,14 +244,22 @@ exports.createReport = async (req, res) => {
             });
         }
 
+        console.log('Report created successfully:', savedReport._id);
         res.status(201).json(savedReport);
     } catch (err) {
         // Delete the temporary file if report creation fails
         if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
+            try {
+                fs.unlinkSync(req.file.path);
+            } catch (deleteErr) {
+                console.error('Failed to delete temporary file after error:', deleteErr);
+            }
         }
         console.error('Error creating report:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            error: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 };
 

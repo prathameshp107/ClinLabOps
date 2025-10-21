@@ -33,6 +33,8 @@ class GridFSService {
             console.log('✅ GridFS bucket initialized successfully');
         } catch (error) {
             console.error('Error initializing GridFS bucket:', error);
+            console.error('MongoDB connection state:', mongoose.connection.readyState);
+            console.error('MongoDB database:', mongoose.connection.db ? 'Available' : 'Not available');
         }
     }
 
@@ -66,7 +68,13 @@ class GridFSService {
 
                 // Final check
                 if (!this.bucket) {
-                    throw new Error('GridFS bucket could not be initialized');
+                    const error = new Error('GridFS bucket could not be initialized');
+                    console.error('GridFS initialization error:', {
+                        bucket: this.bucket,
+                        connectionState: mongoose.connection.readyState,
+                        dbAvailable: !!mongoose.connection.db
+                    });
+                    throw error;
                 }
             }
         }
@@ -79,6 +87,12 @@ class GridFSService {
 
             uploadStream.on('error', (err) => {
                 console.error('GridFS upload error:', err);
+                console.error('GridFS upload error details:', {
+                    filename: filename,
+                    metadata: metadata,
+                    bucket: !!this.bucket,
+                    connectionState: mongoose.connection.readyState
+                });
                 reject(err);
             });
 
@@ -93,7 +107,13 @@ class GridFSService {
                     if (fileId) {
                         resolve({ _id: fileId });
                     } else {
-                        reject(new Error('File upload finished but no file ID available'));
+                        const error = new Error('File upload finished but no file ID available');
+                        console.error('GridFS upload completion error:', {
+                            file: file,
+                            streamId: fileId,
+                            filename: filename
+                        });
+                        reject(error);
                     }
                 }
             });

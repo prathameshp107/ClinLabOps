@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 
@@ -10,6 +12,24 @@ const logger = require('./middleware/logger');
 
 // Load configuration
 const config = require('./config/config');
+
+// Ensure uploads directories exist
+const uploadsDir = path.join(__dirname, 'uploads');
+const reportsDir = path.join(uploadsDir, 'reports');
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync(uploadsDir)) {
+    console.log('Creating uploads directory...');
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Create reports directory if it doesn't exist
+if (!fs.existsSync(reportsDir)) {
+    console.log('Creating uploads/reports directory...');
+    fs.mkdirSync(reportsDir, { recursive: true });
+}
+
+console.log('Upload directories verified:', { uploadsDir, reportsDir });
 
 // Middleware
 app.use(cors({
@@ -77,8 +97,19 @@ const connectDB = async (retries = 5) => {
         console.log('✅ MongoDB connected successfully');
         console.log('   Database Name:', config.dbName);
         console.log('   Connection State:', mongoose.connection.readyState);
+
+        // Log additional connection details
+        console.log('   Connection Host:', mongoose.connection.host);
+        console.log('   Connection Port:', mongoose.connection.port);
+        console.log('   Connection Name:', mongoose.connection.name);
+
+        // Test database connectivity
+        await mongoose.connection.db.admin().ping();
+        console.log('   Database Ping Test: OK');
     } catch (err) {
         console.error('❌ MongoDB connection error:', err.message);
+        console.error('   Error Code:', err.code);
+        console.error('   Error Name:', err.name);
 
         if (retries > 0) {
             console.log(`⏳ Retrying connection... (${retries} attempts left)`);
@@ -94,6 +125,36 @@ const connectDB = async (retries = 5) => {
 
 // Connect to MongoDB
 connectDB();
+
+// Cleanup old temporary files (older than 1 hour)
+const cleanupOldTempFiles = () => {
+    try {
+        const reportsDir = path.join(__dirname, 'uploads', 'reports');
+        if (!fs.existsSync(reportsDir)) return;
+        
+        const files = fs.readdirSync(reportsDir);
+        const oneHourAgo = Date.now() - (60 * 60 * 1000); // 1 hour in milliseconds
+        
+        files.forEach(file => {
+            const filePath = path.join(reportsDir, file);
+            try {
+                const stats = fs.statSync(filePath);
+                if (stats.mtime.getTime() < oneHourAgo) {
+                    fs.unlinkSync(filePath);
+                    console.log('Cleaned up old temporary file:', filePath);
+                }
+            } catch (err) {
+                console.error('Error checking/cleaning file:', filePath, err.message);
+            }
+        });
+    } catch (err) {
+        console.error('Error during temporary file cleanup:', err.message);
+    }
+};
+
+// Run cleanup on startup and every hour
+cleanupOldTempFiles();
+setInterval(cleanupOldTempFiles, 60 * 60 * 1000); // Every hour
 
 // Initialize email service
 const emailService = require('./services/emailService');
