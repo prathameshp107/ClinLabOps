@@ -25,21 +25,55 @@ app.use(logger);
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));
 
-// Health check route
+// Basic health check route
 app.get('/', (req, res) => {
     res.send('LabTasker Backend API is running');
 });
 
-// MongoDB connection
-mongoose.connect(config.mongodbUri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log('✅ MongoDB connected successfully'))
-    .catch((err) => {
-        console.error('❌ MongoDB connection error:', err.message);
-        process.exit(1);
-    });
+// Dedicated health check endpoint for deployment verification
+app.get('/health', async (req, res) => {
+    const healthCheck = {
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: {
+            rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + ' MB',
+            heapTotal: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + ' MB',
+            heapUsed: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB'
+        },
+        database: {
+            status: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+        }
+    };
+
+    try {
+        // Test database connectivity
+        await mongoose.connection.db.admin().ping();
+        healthCheck.database.status = 'Connected';
+        healthCheck.database.ping = 'OK';
+    } catch (error) {
+        healthCheck.database.status = 'Disconnected';
+        healthCheck.database.error = error.message;
+        return res.status(503).json(healthCheck);
+    }
+
+    res.status(200).json(healthCheck);
+});
+
+// MongoDB connection - only connect if not already connected
+if (mongoose.connection.readyState === 0) {
+    mongoose.connect(config.mongodbUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+        .then(() => console.log('✅ MongoDB connected successfully'))
+        .catch((err) => {
+            console.error('❌ MongoDB connection error:', err.message);
+            process.exit(1);
+        });
+} else {
+    console.log('✅ MongoDB already connected');
+}
 
 // Initialize email service
 const emailService = require('./services/emailService');
