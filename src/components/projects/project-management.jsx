@@ -236,8 +236,8 @@ export function ProjectManagement() {
 
     switch (action) {
       case "view":
-        // Navigate to the project details page instead of opening a modal
-        window.location.href = `/projects/${project.id}`;
+        // Navigate to the project details page using projectKey instead of ID
+        router.push(`/projects/${project.projectKey || project.id}`);
         break;
       case "edit":
         // Open the edit project dialog
@@ -298,6 +298,11 @@ export function ProjectManagement() {
       });
     } catch (error) {
       console.error("Failed to add project:", error);
+      // Handle duplicate name error
+      if (error.response?.data?.error === 'Duplicate project name') {
+        // The error is now handled in the form validation, so we don't need to show an alert here
+        // The form will display the error message and keep the dialog open
+      }
     }
   };
 

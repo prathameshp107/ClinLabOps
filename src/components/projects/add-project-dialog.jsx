@@ -57,6 +57,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { DatePicker } from "@/components/ui/date-picker"
+import { useToast } from "@/components/ui/use-toast"
 
 // Rich text editor imports
 import { EditorContent, useEditor } from '@tiptap/react'
@@ -64,6 +65,9 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+
+// Import project service
+import { getProjects } from "@/services/projectService"
 
 import {
   projectStatuses,
@@ -221,6 +225,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [activeTab, setActiveTab] = useState("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [users, setUsers] = useState([])
+  const { toast } = useToast()
   const [projectData, setProjectData] = useState({
     name: "",
     description: "",
@@ -559,9 +564,31 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     setIsSubmitting(true)
 
     try {
+      // Check for duplicate project names before submitting
+      const existingProjects = await getProjects();
+      const isDuplicate = existingProjects.some(project =>
+        project.name.toLowerCase() === projectData.name.toLowerCase()
+      );
+
+      if (isDuplicate) {
+        setFormErrors(prev => ({
+          ...prev,
+          name: "A project with this name already exists. Please choose a different name."
+        }));
+
+        // Show toast notification for better visibility
+        toast({
+          title: "Duplicate Project Name",
+          description: "A project with this name already exists. Please choose a different name.",
+          variant: "destructive",
+        });
+
+        setIsSubmitting(false);
+        return;
+      }
+
       // Create a new project object with all the form data
       const newProject = {
-        id: `p${Date.now()}`, // Generate a unique ID
         name: projectData.name,
         description: projectData.description,
         startDate: format(projectData.startDate, 'yyyy-MM-dd'),
@@ -592,7 +619,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
       // Pass the new project to the parent component
       onSubmit(newProject)
 
-      // Simulate successful API call
+      // Only close the dialog and reset form on successful submission
       setTimeout(() => {
         setIsSubmitting(false)
         onOpenChange(false)
@@ -779,7 +806,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     });
 
     // Update project name if it's empty
-    const newName = projectData.name || template.name;
+    let newName = projectData.name || template.name;
 
     // Update description with template description if empty
     const newDescription = projectData.description || `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;

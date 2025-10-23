@@ -178,23 +178,26 @@ exports.getTasks = async (req, res) => {
             // Try multiple approaches to match projectId
             const projectId = req.query.projectId;
 
-            // Create an array of possible projectId matches
-            const projectIdMatches = [
-                projectId // Exact string match
-            ];
-
-            // If it looks like a valid ObjectId string, also try ObjectId match
-            if (/^[0-9a-fA-F]{24}$/.test(projectId)) {
+            // First, check if it's a valid ObjectId
+            if (mongoose.Types.ObjectId.isValid(projectId)) {
+                filter.projectId = projectId;
+            } else {
+                // If not a valid ObjectId, it might be a projectKey
+                // We need to find the project by projectKey first to get its _id
                 try {
-                    projectIdMatches.push(mongoose.Types.ObjectId(projectId));
-                    console.log('TaskController: Added ObjectId match to filter');
-                } catch (e) {
-                    console.log('TaskController: Could not convert to ObjectId:', e.message);
+                    const project = await Project.findOne({ projectKey: projectId });
+                    if (project) {
+                        filter.projectId = project._id;
+                    } else {
+                        // If no project found with that key, return empty results
+                        return res.json({ data: [] });
+                    }
+                } catch (projectError) {
+                    console.error('TaskController: Error finding project by key:', projectError);
+                    // If there's an error finding the project, return empty results
+                    return res.json({ data: [] });
                 }
             }
-
-            // Use $in operator to match any of the possible projectId values
-            filter.projectId = { $in: projectIdMatches };
 
             console.log('TaskController: Final filter:', JSON.stringify(filter, null, 2));
         }
