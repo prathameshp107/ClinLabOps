@@ -327,6 +327,9 @@ function ReportsPage() {
     const [viewMode, setViewMode] = useState("table") // "table" or "card"
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [uploading, setUploading] = useState(false) // Add this state for upload loading
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false) // Add this state for delete confirmation
+    const [reportToDelete, setReportToDelete] = useState(null) // Add this state to track which report to delete
 
     const [newReport, setNewReport] = useState({
         title: "",
@@ -391,6 +394,7 @@ function ReportsPage() {
         }
 
         try {
+            setUploading(true) // Set uploading state to true
             const formData = new FormData()
             formData.append('title', reportTitle)
             formData.append('type', newReport.type)
@@ -416,27 +420,46 @@ function ReportsPage() {
                 description: error.message || "Failed to upload report. Please try again.",
                 variant: "destructive",
             })
+        } finally {
+            setUploading(false) // Set uploading state to false regardless of success or failure
         }
     }
 
     const handleDeleteReport = async (id) => {
-        if (confirm("Are you sure you want to delete this report?")) {
-            try {
-                await reportService.delete(id)
-                toast({
-                    title: "Success",
-                    description: "Report deleted successfully!",
-                })
-                fetchReports() // Refresh the reports list
-            } catch (error) {
-                console.error('Delete error:', error)
-                toast({
-                    title: "Delete Failed",
-                    description: "Failed to delete report. Please try again.",
-                    variant: "destructive",
-                })
-            }
+        // Instead of using confirm, set the report to delete and open the dialog
+        const report = reports.find(r => r._id === id);
+        setReportToDelete(report);
+        setIsDeleteDialogOpen(true);
+    }
+
+    const confirmDeleteReport = async () => {
+        if (!reportToDelete) return;
+
+        try {
+            await reportService.delete(reportToDelete._id)
+            toast({
+                title: "Success",
+                description: "Report deleted successfully!",
+            })
+            fetchReports() // Refresh the reports list
+        } catch (error) {
+            console.error('Delete error:', error)
+            toast({
+                title: "Delete Failed",
+                description: "Failed to delete report. Please try again.",
+                variant: "destructive",
+            })
+        } finally {
+            // Close the dialog and reset the report to delete
+            setIsDeleteDialogOpen(false)
+            setReportToDelete(null)
         }
+    }
+
+    const cancelDeleteReport = () => {
+        // Close the dialog and reset the report to delete
+        setIsDeleteDialogOpen(false)
+        setReportToDelete(null)
     }
 
     const handleDownloadReport = async (report) => {
@@ -757,6 +780,29 @@ function ReportsPage() {
                         </Button>
                     </div>
 
+                    {/* Delete Confirmation Dialog */}
+                    <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => {
+                        setIsDeleteDialogOpen(open)
+                        if (!open) setReportToDelete(null)
+                    }}>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Delete Report</DialogTitle>
+                                <DialogDescription>
+                                    Are you sure you want to delete the report "{reportToDelete?.title}"? This action cannot be undone.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter className="gap-2 sm:justify-end">
+                                <Button variant="outline" onClick={cancelDeleteReport}>
+                                    Cancel
+                                </Button>
+                                <Button variant="destructive" onClick={confirmDeleteReport}>
+                                    Delete
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
                     {/* View Report Modal */}
                     <Dialog open={isViewModalOpen} onOpenChange={(open) => setIsViewModalOpen(open)}>
                         <DialogContent className="sm:max-w-[600px] max-w-[95vw] p-0 rounded-xl shadow-2xl max-h-[90vh] flex flex-col">
@@ -903,163 +949,180 @@ function ReportsPage() {
                         }
                     }}>
                         <DialogContent className="sm:max-w-[700px] max-w-[95vw] p-0 max-h-[90vh] flex flex-col">
-                            <div className="p-6 overflow-y-auto flex-grow">
-                                <DialogHeader className="pt-4 px-2">
-                                    <DialogTitle className="text-2xl">Upload New Report</DialogTitle>
-                                    <DialogDescription>
-                                        Fill in the details and upload your report file
-                                    </DialogDescription>
-                                </DialogHeader>
+                            {uploading ? (
+                                // Show skeleton loader when uploading
+                                <ReportModalSkeleton />
+                            ) : (
+                                <>
+                                    <div className="p-6 overflow-y-auto flex-grow">
+                                        <DialogHeader className="pt-4 px-2">
+                                            <DialogTitle className="text-2xl">Upload New Report</DialogTitle>
+                                            <DialogDescription>
+                                                Fill in the details and upload your report file
+                                            </DialogDescription>
+                                        </DialogHeader>
 
-                                <div className="space-y-6 py-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="title">
-                                            Title <span className="text-destructive">*</span>
-                                        </Label>
-                                        <Input
-                                            id="title"
-                                            value={newReport.title}
-                                            onChange={(e) => setNewReport({ ...newReport, title: e.target.value })}
-                                            placeholder="Enter report title"
-                                            className="h-11"
-                                        />
-                                    </div>
+                                        <div className="space-y-6 py-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="title">
+                                                    Title <span className="text-destructive">*</span>
+                                                </Label>
+                                                <Input
+                                                    id="title"
+                                                    value={newReport.title}
+                                                    onChange={(e) => setNewReport({ ...newReport, title: e.target.value })}
+                                                    placeholder="Enter report title"
+                                                    className="h-11"
+                                                />
+                                            </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="type">
-                                            Report Type <span className="text-destructive">*</span>
-                                        </Label>
-                                        <Select value={newReport.type} onValueChange={(value) => setNewReport({ ...newReport, type: value })}>
-                                            <SelectTrigger className="h-11">
-                                                <SelectValue placeholder="Select report type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="regulatory">Regulatory Reports</SelectItem>
-                                                <SelectItem value="research">Research Reports</SelectItem>
-                                                <SelectItem value="miscellaneous">Miscellaneous Reports</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="type">
+                                                    Report Type <span className="text-destructive">*</span>
+                                                </Label>
+                                                <Select value={newReport.type} onValueChange={(value) => setNewReport({ ...newReport, type: value })}>
+                                                    <SelectTrigger className="h-11">
+                                                        <SelectValue placeholder="Select report type" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="regulatory">Regulatory Reports</SelectItem>
+                                                        <SelectItem value="research">Research Reports</SelectItem>
+                                                        <SelectItem value="miscellaneous">Miscellaneous Reports</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="description">
-                                            Description
-                                        </Label>
-                                        <Textarea
-                                            id="description"
-                                            value={newReport.description}
-                                            onChange={(e) => setNewReport({ ...newReport, description: e.target.value })}
-                                            placeholder="Enter report description"
-                                            className="min-h-[100px]"
-                                        />
-                                    </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="description">
+                                                    Description
+                                                </Label>
+                                                <Textarea
+                                                    id="description"
+                                                    value={newReport.description}
+                                                    onChange={(e) => setNewReport({ ...newReport, description: e.target.value })}
+                                                    placeholder="Enter report description"
+                                                    className="min-h-[100px]"
+                                                />
+                                            </div>
 
-                                    <div className="space-y-2">
-                                        <Label>
-                                            File <span className="text-destructive">*</span>
-                                        </Label>
-                                        <div
-                                            className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200 ${isDragOver
-                                                ? 'border-primary bg-primary/10 scale-[1.02]'
-                                                : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
-                                                }`}
-                                            onDragOver={(e) => {
-                                                e.preventDefault()
-                                                setIsDragOver(true)
-                                            }}
-                                            onDragLeave={() => setIsDragOver(false)}
-                                            onDrop={(e) => {
-                                                e.preventDefault()
-                                                setIsDragOver(false)
-                                                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                                                    const file = e.dataTransfer.files[0]
-                                                    setNewReport({ ...newReport, file })
-                                                    // Auto-detect format from file extension
-                                                    const ext = file.name.split('.').pop().toLowerCase()
-                                                    if (['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                                                        setNewReport(prev => ({ ...prev, format: ext }))
-                                                    }
-                                                }
-                                            }}
-                                            onClick={() => document.getElementById('file-input')?.click()}
-                                        >
-                                            <input
-                                                id="file-input"
-                                                type="file"
-                                                className="hidden"
-                                                onChange={(e) => {
-                                                    if (e.target.files && e.target.files[0]) {
-                                                        const file = e.target.files[0]
-                                                        setNewReport({ ...newReport, file })
-                                                        // Auto-detect format from file extension
-                                                        const ext = file.name.split('.').pop().toLowerCase()
-                                                        if (['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-                                                            setNewReport(prev => ({ ...prev, format: ext }))
+                                            <div className="space-y-2">
+                                                <Label>
+                                                    File <span className="text-destructive">*</span>
+                                                </Label>
+                                                <div
+                                                    className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200 ${isDragOver
+                                                        ? 'border-primary bg-primary/10 scale-[1.02]'
+                                                        : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
+                                                        }`}
+                                                    onDragOver={(e) => {
+                                                        e.preventDefault()
+                                                        setIsDragOver(true)
+                                                    }}
+                                                    onDragLeave={() => setIsDragOver(false)}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault()
+                                                        setIsDragOver(false)
+                                                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                                                            const file = e.dataTransfer.files[0]
+                                                            setNewReport({ ...newReport, file })
+                                                            // Auto-detect format from file extension
+                                                            const ext = file.name.split('.').pop().toLowerCase()
+                                                            if (['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                                                setNewReport(prev => ({ ...prev, format: ext }))
+                                                            }
                                                         }
-                                                    }
-                                                }}
-                                                accept=".pdf,.xlsx,.csv,.docx,.json,.jpg,.jpeg,.png,.gif"
-                                            />
-                                            {newReport.file ? (
-                                                <div className="flex flex-col items-center">
-                                                    <div className="bg-primary/10 rounded-full p-4 mb-4">
-                                                        <FileText className="h-10 w-10 text-primary" />
-                                                    </div>
-                                                    <p className="font-medium text-lg truncate max-w-full px-4">{newReport.file.name}</p>
-                                                    <p className="text-sm text-muted-foreground mb-4">
-                                                        {formatFileSize(newReport.file.size)}
-                                                    </p>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="gap-2"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            setNewReport({ ...newReport, file: null })
+                                                    }}
+                                                    onClick={() => document.getElementById('file-input')?.click()}
+                                                >
+                                                    <input
+                                                        id="file-input"
+                                                        type="file"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            if (e.target.files && e.target.files[0]) {
+                                                                const file = e.target.files[0]
+                                                                setNewReport({ ...newReport, file })
+                                                                // Auto-detect format from file extension
+                                                                const ext = file.name.split('.').pop().toLowerCase()
+                                                                if (['pdf', 'xlsx', 'csv', 'docx', 'json', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+                                                                    setNewReport(prev => ({ ...prev, format: ext }))
+                                                                }
+                                                            }
                                                         }}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                        Change File
-                                                    </Button>
+                                                        accept=".pdf,.xlsx,.csv,.docx,.json,.jpg,.jpeg,.png,.gif"
+                                                    />
+                                                    {newReport.file ? (
+                                                        <div className="flex flex-col items-center">
+                                                            <div className="bg-primary/10 rounded-full p-4 mb-4">
+                                                                <FileText className="h-10 w-10 text-primary" />
+                                                            </div>
+                                                            <p className="font-medium text-lg truncate max-w-full px-4">{newReport.file.name}</p>
+                                                            <p className="text-sm text-muted-foreground mb-4">
+                                                                {formatFileSize(newReport.file.size)}
+                                                            </p>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="gap-2"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    setNewReport({ ...newReport, file: null })
+                                                                }}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                                Change File
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center">
+                                                            <div className="bg-muted rounded-full p-4 mb-5">
+                                                                <Upload className="h-12 w-12 text-muted-foreground" />
+                                                            </div>
+                                                            <h3 className="text-xl font-semibold mb-2">Drag & drop your file here</h3>
+                                                            <p className="text-muted-foreground mb-1">
+                                                                or click to browse files
+                                                            </p>
+                                                            <div className="inline-flex items-center rounded-md bg-muted px-3 py-1 text-sm font-medium mt-3">
+                                                                PDF, XLSX, CSV, DOCX, JSON, JPG, PNG, GIF
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            ) : (
-                                                <div className="flex flex-col items-center">
-                                                    <div className="bg-muted rounded-full p-4 mb-5">
-                                                        <Upload className="h-12 w-12 text-muted-foreground" />
-                                                    </div>
-                                                    <h3 className="text-xl font-semibold mb-2">Drag & drop your file here</h3>
-                                                    <p className="text-muted-foreground mb-1">
-                                                        or click to browse files
-                                                    </p>
-                                                    <div className="inline-flex items-center rounded-md bg-muted px-3 py-1 text-sm font-medium mt-3">
-                                                        PDF, XLSX, CSV, DOCX, JSON, JPG, PNG, GIF
-                                                    </div>
-                                                </div>
-                                            )}
+                                                <p className="text-xs text-muted-foreground text-center">
+                                                    Maximum file size: 100MB
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="text-xs text-muted-foreground text-center">
-                                            Maximum file size: 100MB
-                                        </p>
                                     </div>
-                                </div>
-                            </div>
-                            <DialogFooter className="gap-3 pt-4 px-6 pb-6 bg-muted/30 shrink-0">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsUploadDialogOpen(false)}
-                                    className="h-11"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleUploadReport}
-                                    disabled={!newReport.type || !newReport.file}
-                                    className="h-11 gap-2 px-6"
-                                >
-                                    <Upload className="h-4 w-4" />
-                                    Upload Report
-                                </Button>
-                            </DialogFooter>
+                                    <DialogFooter className="gap-3 pt-4 px-6 pb-6 bg-muted/30 shrink-0">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setIsUploadDialogOpen(false)}
+                                            className="h-11"
+                                            disabled={uploading}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            onClick={handleUploadReport}
+                                            disabled={!newReport.type || !newReport.file || uploading}
+                                            className="h-11 gap-2 px-6"
+                                        >
+                                            {uploading ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                    Uploading...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Upload className="h-4 w-4" />
+                                                    Upload Report
+                                                </>
+                                            )}
+                                        </Button>
+                                    </DialogFooter>
+                                </>
+                            )}
                         </DialogContent>
                     </Dialog>
 
