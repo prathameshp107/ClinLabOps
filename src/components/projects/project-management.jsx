@@ -236,8 +236,8 @@ export function ProjectManagement() {
 
     switch (action) {
       case "view":
-        // Navigate to the project details page instead of opening a modal
-        window.location.href = `/projects/${project.id}`;
+        // Navigate to the project details page using projectKey instead of ID
+        router.push(`/projects/${project.projectKey || project.id}`);
         break;
       case "edit":
         // Open the edit project dialog

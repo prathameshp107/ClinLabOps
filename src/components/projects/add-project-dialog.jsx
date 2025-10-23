@@ -561,7 +561,6 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     try {
       // Create a new project object with all the form data
       const newProject = {
-        id: `p${Date.now()}`, // Generate a unique ID
         name: projectData.name,
         description: projectData.description,
         startDate: format(projectData.startDate, 'yyyy-MM-dd'),

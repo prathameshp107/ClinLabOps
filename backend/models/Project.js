@@ -97,6 +97,12 @@ const ProjectSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  // Add projectKey field for URL navigation
+  projectKey: {
+    type: String,
+    unique: true,
+    required: true,
+  },
   // Add category field
   category: {
     type: String,

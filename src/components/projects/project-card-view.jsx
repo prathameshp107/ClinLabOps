@@ -123,7 +123,7 @@ export function ProjectCardView({ projects, onAction }) {
           onMouseLeave={() => setHoveredProject(null)}
         >
           <Card className="h-full flex flex-col shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer group border border-border/40 hover:border-primary/40 relative overflow-hidden bg-card hover:bg-card/80"
-            onClick={() => router.push(`/projects/${project.id}`)}
+            onClick={() => router.push(`/projects/${project.projectKey || project.id}`)}
           >
             {/* Enhanced gradient overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -206,7 +206,7 @@ export function ProjectCardView({ projects, onAction }) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/projects/${project.id}`);
+                      router.push(`/projects/${project.projectKey || project.id}`);
                     }}>
                       <Eye className="h-4 w-4 mr-2" />
                       View Details

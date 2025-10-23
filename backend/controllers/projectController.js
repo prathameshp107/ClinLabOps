@@ -36,12 +36,45 @@ exports.getAllProjects = async (req, res) => {
     }
 };
 
-// Get project by ID
+// Helper function to generate project key from project name
+function generateProjectKey(projectName) {
+    // Remove special characters and split by spaces
+    const words = projectName.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/);
 
+    // Take first letter of each word, up to 4 letters
+    let key = '';
+    for (let i = 0; i < Math.min(words.length, 4); i++) {
+        if (words[i].length > 0) {
+            key += words[i][0].toUpperCase();
+        }
+    }
+
+    // If we don't have enough letters, add more from the first word
+    if (key.length < 2 && words.length > 0) {
+        const firstWord = words[0];
+        // Take first two letters if available
+        key = firstWord.substring(0, Math.min(2, firstWord.length)).toUpperCase();
+    }
+
+    return key;
+}
+
+// Get project by ID or projectKey
 exports.getProjectById = async (req, res) => {
     try {
+        let project;
 
-        const project = await Project.findById(req.params.id);
+        // Check if the parameter is a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+            // Try to find by ObjectId first
+            project = await Project.findById(req.params.id);
+        }
+
+        // If not found by ObjectId, try to find by projectKey
+        if (!project) {
+            project = await Project.findOne({ projectKey: req.params.id });
+        }
+
         if (!project) return res.status(404).json({ error: 'Project not found' });
 
         // Log activity
@@ -92,6 +125,24 @@ exports.createProject = async (req, res) => {
             projectCode = `PRJ-${Date.now()}`;
         }
 
+        // Generate project key from project name
+        let projectKey = generateProjectKey(req.body.name);
+        let keyAttempts = 0;
+        let isKeyUnique = false;
+
+        // Ensure project key is unique
+        while (!isKeyUnique && keyAttempts < 10) {
+            // Check if this key already exists
+            const existingProject = await Project.findOne({ projectKey });
+            if (!existingProject) {
+                isKeyUnique = true;
+            } else {
+                // Append a number to make it unique
+                keyAttempts++;
+                projectKey = generateProjectKey(req.body.name) + keyAttempts;
+            }
+        }
+
         // Ensure category is valid or default to 'miscellaneous'
         const category = req.body.category && ['research', 'regulatory', 'miscellaneous'].includes(req.body.category)
             ? req.body.category
@@ -108,6 +159,7 @@ exports.createProject = async (req, res) => {
         const projectData = {
             ...req.body,
             projectCode,
+            projectKey,
             category,
             projectType
         };
