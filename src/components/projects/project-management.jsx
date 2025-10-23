@@ -298,6 +298,11 @@ export function ProjectManagement() {
       });
     } catch (error) {
       console.error("Failed to add project:", error);
+      // Handle duplicate name error
+      if (error.response?.data?.error === 'Duplicate project name') {
+        // The error is now handled in the form validation, so we don't need to show an alert here
+        // The form will display the error message and keep the dialog open
+      }
     }
   };
 

@@ -101,6 +101,18 @@ exports.getProjectById = async (req, res) => {
 // Create new project
 exports.createProject = async (req, res) => {
     try {
+        // Check if a project with the same name already exists
+        const existingProjectWithName = await Project.findOne({
+            name: { $regex: new RegExp(`^${req.body.name}$`, 'i') }
+        });
+
+        if (existingProjectWithName) {
+            return res.status(400).json({
+                message: 'A project with this name already exists. Please choose a different name.',
+                error: 'Duplicate project name'
+            });
+        }
+
         let projectCode;
         let isUnique = false;
         let attempts = 0;
