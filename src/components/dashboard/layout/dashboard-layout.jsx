@@ -61,7 +61,7 @@ export function DashboardLayout({ children }) {
   // Load user data from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedUserData = localStorage.getItem('userData')
+      const storedUserData = localStorage.getItem('user')
       if (storedUserData) {
         try {
           setUserData(JSON.parse(storedUserData))
@@ -159,8 +159,16 @@ export function DashboardLayout({ children }) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-9 rounded-full">
-                    <UserAvatar user={{ name: "User" }} size="md" />
-                    <span className="font-semibold text-[14px] text-foreground truncate max-w-[120px] hidden md:inline">{userData?.fullName || 'User'}</span>
+                    <UserAvatar
+                      user={{
+                        name: userData?.fullName || userData?.name || 'User',
+                        email: userData?.email || ''
+                      }}
+                      size="md"
+                    />
+                    <span className="font-semibold text-[14px] text-foreground truncate max-w-[120px] hidden md:inline">
+                      {userData?.fullName || userData?.name || 'User'}
+                    </span>
                     <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:inline" />
                   </Button>
                 </DropdownMenuTrigger>
