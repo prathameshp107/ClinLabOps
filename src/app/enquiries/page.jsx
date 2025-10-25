@@ -14,6 +14,7 @@ import { saveAs } from "file-saver"
 import NewEnquiryDialog from "@/components/enquiries/NewEnquiryDialog"
 import EditEnquiryDialog from "@/components/enquiries/EditEnquiryDialog"
 import { getEnquiries, enquiryService } from "@/services/enquiryService"
+import { EnquiriesLoading } from "@/components/enquiries/enquiries-loading"
 
 function EnquiriesPage() {
   const router = useRouter()
@@ -196,16 +197,7 @@ function EnquiriesPage() {
   )
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="w-full flex items-center justify-center py-24">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            <p className="text-sm text-muted-foreground">Loading enquiries...</p>
-          </div>
-        </div>
-      </DashboardLayout>
-    )
+    return <EnquiriesLoading />;
   }
 
   return (

@@ -24,7 +24,7 @@ import {
 
 import { Package, Users, MapPin, Loader2, TrendingUp, AlertTriangle, DollarSign, Archive, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { InventoryLoading } from "@/components/inventory-management/inventory-loading";
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState([])
@@ -187,24 +187,7 @@ export default function InventoryPage() {
   }
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="w-full px-8 py-6 space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight text-primary">
-              <Package className="inline-block mr-2 h-8 w-8" /> Inventory Management
-            </h1>
-            <p className="text-lg text-muted-foreground">Manage laboratory inventory, suppliers, and storage locations</p>
-          </div>
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-              <p className="text-muted-foreground">Loading inventory data...</p>
-            </div>
-          </div>
-        </div>
-      </DashboardLayout>
-    )
+    return <InventoryLoading />;
   }
 
   return (

@@ -7,6 +7,7 @@ import { ProfileTabs } from "@/components/profile/profile-tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { getProfile, isAuthenticated, updateProfile } from "@/services/authService"
+import { ProfileLoading } from "@/components/profile/profile-loading"
 
 export default function ProfilePage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
@@ -105,7 +106,7 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-96">Loading profile...</div>
+    return <ProfileLoading />;
   }
 
   if (!userData) {
