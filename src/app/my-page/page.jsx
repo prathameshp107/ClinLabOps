@@ -42,6 +42,7 @@ import {
   getUserDashboardActivities,
   getUserDashboardNotifications
 } from "@/services/dashboardService"
+import { MyPageLoading } from "@/components/my-page/my-page-loading"
 
 export default function MyPage() {
   const { theme } = useTheme();
@@ -121,18 +122,7 @@ export default function MyPage() {
   }, []);
 
   if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="container mx-auto p-4">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading dashboard...</p>
-            </div>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
+    return <MyPageLoading />;
   }
 
   if (!profileData) {

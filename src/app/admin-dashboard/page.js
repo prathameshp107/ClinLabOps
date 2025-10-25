@@ -444,10 +444,72 @@ export default function DashboardPage() {
     return (
       <DashboardLayout>
         <div className="flex-1 space-y-4 p-4 sm:p-6 lg:p-8 pt-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading dashboard...</p>
+          {/* Header Section Skeleton */}
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="space-y-2">
+              <div className="h-8 w-48 bg-muted rounded animate-pulse"></div>
+              <div className="h-4 w-80 bg-muted rounded animate-pulse"></div>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="h-9 w-24 bg-muted rounded animate-pulse"></div>
+              <div className="h-9 w-24 bg-muted rounded animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Main Content Skeleton */}
+          <div className="space-y-6">
+            {/* Tabs Skeleton */}
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="h-10 w-24 bg-muted rounded-t-lg animate-pulse"></div>
+                <div className="h-10 w-24 bg-muted rounded-t-lg animate-pulse"></div>
+                <div className="h-10 w-24 bg-muted rounded-t-lg animate-pulse"></div>
+              </div>
+
+              {/* Overview Tab Content Skeleton */}
+              <div className="space-y-6">
+                {/* Stats Grid Skeleton */}
+                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  {[...Array(4)].map((_, index) => (
+                    <div key={index} className="h-24 bg-muted rounded-lg animate-pulse"></div>
+                  ))}
+                </div>
+
+                {/* Main Grid Layout Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                  {/* Left Column Skeleton */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Task Distribution Chart Skeleton */}
+                    <div className="h-80 bg-muted rounded-xl animate-pulse"></div>
+
+                    {/* Recent Tasks Skeleton */}
+                    <div className="h-64 bg-muted rounded-xl animate-pulse"></div>
+
+                    {/* Recent Reports Section Skeleton */}
+                    <div className="h-64 bg-muted rounded-xl animate-pulse"></div>
+
+                    {/* Recent Activity Skeleton */}
+                    <div className="h-64 bg-muted rounded-xl animate-pulse"></div>
+
+                    {/* Upcoming Deadlines Skeleton */}
+                    <div className="h-48 bg-muted rounded-xl animate-pulse"></div>
+                  </div>
+
+                  {/* Right Column Skeleton */}
+                  <div className="space-y-6">
+                    {/* Pending Approvals Skeleton */}
+                    <div className="h-64 bg-muted rounded-xl animate-pulse"></div>
+
+                    {/* Team Performance Skeleton */}
+                    <div className="h-80 bg-muted rounded-xl animate-pulse"></div>
+                  </div>
+
+                  {/* System Logs Section Skeleton */}
+                  <div className="lg:col-span-3">
+                    <div className="h-64 bg-muted rounded-xl animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

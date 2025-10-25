@@ -9,6 +9,7 @@ import { getProfile } from "@/services/authService"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ShieldAlert } from "lucide-react"
+import { UserManagementLoading } from "@/components/user-management/user-management-loading"
 
 export default function UserManagementPage() {
   const [user, setUser] = useState(null)
@@ -41,13 +42,7 @@ export default function UserManagementPage() {
   }, [router])
 
   if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </DashboardLayout>
-    )
+    return <UserManagementLoading />;
   }
 
   if (!isAuthorized) {
@@ -84,11 +79,6 @@ export default function UserManagementPage() {
 
         <div className="container max-w-full mx-auto p-4 md:p-6 relative z-10">
           <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight mb-1">User Management</h1>
-              <p className="text-muted-foreground">Manage user accounts, roles, and permissions</p>
-            </div>
-
             <UserManagement />
           </div>
         </div>
