@@ -19,6 +19,7 @@ import { Select } from "@/components/ui/select"
 import { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { ProtocolCard } from "@/components/protocol-management/protocol-card"
 import { useToast } from "@/components/ui/use-toast"
+import { ProtocolsLoading } from "@/components/protocol-management/protocols-loading"
 import {
   getProtocols,
   getMyProtocols,
@@ -535,12 +536,7 @@ export default function ProtocolsPage() {
           {/* Main Content */}
           <AnimatePresence mode="wait">
             {isLoading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-muted-foreground">
-                  Loading {activeTab === "all" ? "protocols" : "your protocols"}...
-                </span>
-              </div>
+              <ProtocolsLoading />
             ) : currentProtocols.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}

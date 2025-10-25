@@ -30,9 +30,11 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { getTasks, createTask, getNextTaskId, deleteTask } from "@/services/taskService"
 import { getProjects, getProjectById } from "@/services/projectService"
 import { getAllUsers } from "@/services/userService"
+import { TasksLoading } from "@/components/tasks/tasks-loading"
 
 export default function TasksPage() {
   const [error, setError] = React.useState(null)
+  const [isLoading, setIsLoading] = React.useState(true)
   const [activeTab, setActiveTab] = React.useState("all")
   const [selectedStatus, setSelectedStatus] = React.useState("all")
   const [viewMode, setViewMode] = React.useState("table") // 'table' or 'grid'
@@ -111,6 +113,7 @@ export default function TasksPage() {
   const fetchTasksData = React.useCallback(async () => {
     try {
       setError(null)
+      setIsLoading(true)
       const [data, allProjects, allUsers] = await Promise.all([
         getTasks(selectedStatus !== 'all' ? { status: selectedStatus } : {}),
         getProjects(),
@@ -130,7 +133,7 @@ export default function TasksPage() {
       console.error("Error fetching tasks:", err);
       setError("Failed to load tasks. Please try again later.");
     } finally {
-      setIsRefreshing(false);
+      setIsLoading(false);
     }
   }, [selectedStatus]);
 
@@ -426,6 +429,10 @@ export default function TasksPage() {
         </div>
       </DashboardLayout>
     )
+  }
+
+  if (isLoading) {
+    return <TasksLoading />;
   }
 
   return (
