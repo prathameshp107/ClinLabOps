@@ -79,7 +79,7 @@ export function NotificationDropdown() {
     useEffect(() => {
         if (user) {
             fetchUnreadCount();
-            const interval = setInterval(fetchUnreadCount, 30000); // Refresh every 30 seconds
+            const interval = setInterval(fetchUnreadCount, 30 * 60 * 1000); // Refresh every 30 minutes
             return () => clearInterval(interval);
         }
     }, [user]);
