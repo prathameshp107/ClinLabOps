@@ -168,22 +168,40 @@ export default function RegisterPage() {
         password: data.password,
       })
 
-      if (!response) {
+      // Check if response exists and has a message
+      if (!response || !response.message) {
         setFormError("An unexpected error occurred. Please try again.")
         setIsLoading(false)
         return;
       }
 
-      setTimeout(() => {
+      // Handle successful registration
+      if (response.message === "User registered successfully") {
         setSuccessMessage("Registration successful! Redirecting to login...");
-        setIsLoading(false);
-        router.push("/login");
-      }, 1500);
+        setTimeout(() => {
+          setIsLoading(false);
+          router.push("/login");
+        }, 1500);
+      } else {
+        // Handle other responses
+        setSuccessMessage(response.message);
+        setTimeout(() => {
+          setIsLoading(false);
+          router.push("/login");
+        }, 1500);
+      }
 
     } catch (error) {
       console.error("Error submitting form:", error)
       setIsLoading(false)
-      setFormError(error.message || "An unexpected error occurred. Please try again.")
+      // Handle different types of errors
+      if (error.response && error.response.data && error.response.data.message) {
+        setFormError(error.response.data.message)
+      } else if (error.message) {
+        setFormError(error.message)
+      } else {
+        setFormError("An unexpected error occurred. Please try again.")
+      }
     }
   }
 
