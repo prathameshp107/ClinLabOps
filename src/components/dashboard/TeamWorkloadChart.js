@@ -120,7 +120,7 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 const TeamWorkloadChart = ({ teamPerformance: initialTeamPerformance = { metrics: [] } }) => {
-  const [teamPerformance, setTeamPerformance] = useState(initialTeamPerformance);
+  const [teamPerformance, setTeamPerformance] = useState({ metrics: [] });
   const [sortBy, setSortBy] = useState('total');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -131,48 +131,83 @@ const TeamWorkloadChart = ({ teamPerformance: initialTeamPerformance = { metrics
     showDetails: false
   });
 
+  // Transform raw data to the expected structure
+  const transformTeamData = (rawData) => {
+    // Handle different possible data structures
+    let taskCompletionData = [];
+
+    if (Array.isArray(rawData)) {
+      // If rawData is already an array
+      taskCompletionData = rawData;
+    } else if (Array.isArray(rawData.taskCompletion)) {
+      // If rawData has a taskCompletion property that's an array
+      taskCompletionData = rawData.taskCompletion;
+    } else if (Array.isArray(rawData.tasksByAssignee)) {
+      // If rawData has a tasksByAssignee property (from backend controller)
+      taskCompletionData = rawData.tasksByAssignee;
+    } else if (Array.isArray(rawData.metrics)) {
+      // If rawData has a metrics property (from previous transformation)
+      taskCompletionData = rawData.metrics;
+    } else {
+      // Return empty array if no valid data structure
+      taskCompletionData = [];
+    }
+
+    return {
+      metrics: taskCompletionData.map((member, index) => ({
+        id: member._id || member.id || index,
+        name: member.name || member._id || `User ${index + 1}`,
+        role: member.role || 'Team Member',
+        avatar: member.avatar || null,
+        performance: (member.completed || member.completedTasks || 0) /
+          Math.max(1, (member.completed || member.completedTasks || 0) +
+            (member.pending || (member.totalTasks - (member.completedTasks || 0)) || 0)), // Avoid division by zero
+        tasks: {
+          total: member.totalTasks || (member.completed || member.completedTasks || 0) + (member.pending || (member.totalTasks - (member.completedTasks || 0)) || 0),
+          completed: member.completed || member.completedTasks || 0,
+          inProgress: member.pending || (member.totalTasks - (member.completedTasks || 0)) || 0,
+          overdue: member.overdue || 0,
+          efficiency: member.efficiency || (0.7 + Math.random() * 0.3), // Use provided data or mock
+          onTimeRate: member.onTimeRate || (0.8 + Math.random() * 0.2) // Use provided data or mock
+        },
+        skills: member.skills || ['Task Management', 'Team Collaboration']
+      })) || []
+    };
+  };
+
   // Fetch team performance data
   useEffect(() => {
     const fetchTeamPerformance = async () => {
-      // Only fetch if we don't have initial data or if we want to refresh
-      if ((!initialTeamPerformance || initialTeamPerformance.metrics?.length === 0) || isLoading) {
-        try {
-          setIsLoading(true);
-          setError(null);
-          const perfData = await getTeamPerformance();
+      try {
+        setIsLoading(true);
+        setError(null);
+        const perfData = await getTeamPerformance();
 
-          // Transform the data to match our component's expected structure
-          const transformedData = {
-            metrics: perfData.taskCompletion?.map((member, index) => ({
-              id: member._id || index,
-              name: member.name || `User ${index + 1}`,
-              role: member.role || 'Team Member',
-              avatar: member.avatar || null,
-              performance: member.completed / (member.completed + member.pending + 1), // Avoid division by zero
-              tasks: {
-                total: member.completed + member.pending,
-                completed: member.completed || 0,
-                inProgress: member.pending || 0,
-                overdue: member.overdue || 0,
-                efficiency: 0.7 + Math.random() * 0.3, // Mock efficiency data
-                onTimeRate: 0.8 + Math.random() * 0.2 // Mock on-time rate data
-              },
-              skills: member.skills || ['Task Management', 'Team Collaboration']
-            })) || []
-          };
-
-          setTeamPerformance(transformedData);
-        } catch (err) {
-          setError(err.message);
-          console.error('Error fetching team performance:', err);
-        } finally {
-          setIsLoading(false);
-        }
+        const transformedData = transformTeamData(perfData);
+        setTeamPerformance(transformedData);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching team performance:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchTeamPerformance();
-  }, [initialTeamPerformance, isLoading]);
+    // If we have initial data, transform and use it
+    if (initialTeamPerformance) {
+      const transformedData = transformTeamData(initialTeamPerformance);
+      setTeamPerformance(transformedData);
+      // If there's no data in the transformed result, fetch fresh data
+      if (transformedData.metrics.length === 0 && !isLoading) {
+        fetchTeamPerformance();
+      } else {
+        setIsLoading(false);
+      }
+    } else {
+      // Otherwise fetch fresh data
+      fetchTeamPerformance();
+    }
+  }, [isLoading, initialTeamPerformance]); // Depend on both isLoading and initialTeamPerformance
 
   const handleRefresh = () => {
     setIsLoading(true);
