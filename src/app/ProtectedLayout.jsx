@@ -13,7 +13,7 @@ export default function ProtectedLayout({ children }) {
     const [showCheck, setShowCheck] = useState(false);
     const [fadeIn, setFadeIn] = useState(false);
 
-    const isAuthRoute = pathname === "/login" || pathname === "/register";
+    const isAuthRoute = pathname === "/login" || pathname === "/register" || pathname === "/";
 
     useEffect(() => {
         setFadeIn(false);

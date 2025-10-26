@@ -71,7 +71,7 @@ import {
   X,
   ArrowUp,
   ListChecks,
-  FolderOpen, 
+  FolderOpen,
   BarChart2
 } from "lucide-react";
 
@@ -222,37 +222,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 bg-background/60 backdrop-blur-sm border border-border/20 rounded-full px-2 py-1.5 shadow-sm">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full h-8 px-4 hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                asChild
-              >
-                <Link href="/projects" className="flex items-center gap-2">
-                  <FolderKanban className="h-4 w-4" />
-                  <span className="font-medium text-xs">Projects</span>
-                  <div className="px-1.5 py-0.5 bg-primary/10 rounded-full text-[10px] font-medium text-primary">
-                    3
-                  </div>
-                </Link>
-              </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="rounded-full h-8 px-4 hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                asChild
-              >
-                <Link href="/tasks" className="flex items-center gap-2">
-                  <CheckSquare className="h-4 w-4" />
-                  <span className="font-medium text-xs">Tasks</span>
-                  <div className="px-1.5 py-0.5 bg-primary/10 rounded-full text-[10px] font-medium text-primary">
-                    5
-                  </div>
-                </Link>
-              </Button>
-            </div>
 
             <Button
               size="sm"
@@ -347,12 +317,14 @@ export default function LandingPage() {
                 className="mt-12 flex items-center justify-center gap-6 text-sm text-foreground/60"
               >
                 <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
+                  {['JD', 'MP', 'AK', 'SL'].map((initials, i) => (
                     <div
                       key={i}
-                      className="h-8 w-8 rounded-full border-2 border-background bg-gradient-to-r from-primary/80 to-primary/60"
+                      className="h-8 w-8 rounded-full border-2 border-background bg-gradient-to-r from-primary/80 to-primary/60 flex items-center justify-center text-xs font-bold text-white shadow-md"
                       style={{ zIndex: 5 - i }}
-                    />
+                    >
+                      {initials}
+                    </div>
                   ))}
                 </div>
                 <div className="flex flex-col items-start">
@@ -363,7 +335,7 @@ export default function LandingPage() {
                     <Star className="mr-1 h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                     <Star className="mr-1 h-3.5 w-3.5 fill-yellow-400/50 text-yellow-400/50" />
                   </div>
-                  <span>Trusted by 5000+ researchers worldwide</span>
+                  <span>Trusted by 500+ researchers worldwide</span>
                 </div>
               </motion.div>
             </div>
@@ -441,7 +413,7 @@ export default function LandingPage() {
                                   <div className="flex items-center gap-2">
                                     <span className="text-xs font-medium">65%</span>
                                     <div className="w-16 bg-muted rounded-full h-1.5">
-                                      <div 
+                                      <div
                                         className="h-1.5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
                                         style={{ width: '65%' }}
                                       ></div>
@@ -453,11 +425,11 @@ export default function LandingPage() {
                                     <span className="text-xs text-muted-foreground">Team:</span>
                                     <div className="flex -space-x-2">
                                       {['JD', 'MP', 'AK', 'SL'].map((initial, i) => (
-                                        <div key={i} className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[10px] font-medium text-blue-500">
+                                        <div key={i} className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[10px] font-medium text-blue-500 shadow-sm">
                                           {initial}
                                         </div>
                                       ))}
-                                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground">
+                                      <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-medium text-muted-foreground border border-border/20 shadow-sm">
                                         +2
                                       </div>
                                     </div>
@@ -492,23 +464,20 @@ export default function LandingPage() {
                                   { task: "Report Generation", status: "Completed", priority: "low", progress: 100 }
                                 ].map((item, i) => (
                                   <div key={i} className="flex items-center gap-2 text-xs p-2 bg-background/50 rounded-lg border border-border/20">
-                                    <div className={`w-2 h-2 rounded-full ${
-                                      item.priority === 'high' ? 'bg-red-500' : 
-                                      item.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
-                                    }`}></div>
+                                    <div className={`w-2 h-2 rounded-full ${item.priority === 'high' ? 'bg-red-500' :
+                                        item.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
+                                      }`}></div>
                                     <span className="text-muted-foreground flex-1">{item.task}</span>
-                                    <span className={`text-xs ${
-                                      item.status === 'Completed' ? 'text-green-500' : 
-                                      item.status === 'In Progress' ? 'text-blue-500' : 'text-amber-500'
-                                    }`}>
+                                    <span className={`text-xs ${item.status === 'Completed' ? 'text-green-500' :
+                                        item.status === 'In Progress' ? 'text-blue-500' : 'text-amber-500'
+                                      }`}>
                                       {item.status}
                                     </span>
                                     <div className="w-12 bg-muted rounded-full h-1.5">
-                                      <div 
-                                        className={`h-1.5 rounded-full ${
-                                          item.progress < 30 ? 'bg-red-500' : 
-                                          item.progress < 70 ? 'bg-amber-500' : 'bg-green-500'
-                                        }`} 
+                                      <div
+                                        className={`h-1.5 rounded-full ${item.progress < 30 ? 'bg-red-500' :
+                                            item.progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                                          }`}
                                         style={{ width: `${item.progress}%` }}
                                       ></div>
                                     </div>
@@ -540,15 +509,15 @@ export default function LandingPage() {
                                 <div className="flex items-center gap-2">
                                   <div className="flex -space-x-2">
                                     {[
-                                      { bg: "from-blue-500 to-blue-600", letter: "A" },
-                                      { bg: "from-green-500 to-green-600", letter: "B" },
-                                      { bg: "from-purple-500 to-purple-600", letter: "C" }
+                                      { bg: "from-blue-500 to-blue-600", letter: "JD" },
+                                      { bg: "from-green-500 to-green-600", letter: "MP" },
+                                      { bg: "from-purple-500 to-purple-600", letter: "AK" }
                                     ].map((user, i) => (
                                       <div key={i} className={`w-6 h-6 rounded-full bg-gradient-to-br ${user.bg} border-2 border-background flex items-center justify-center text-xs font-medium text-white shadow-sm`}>
                                         {user.letter}
                                       </div>
                                     ))}
-                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-muted to-muted/80 border-2 border-background flex items-center justify-center text-xs text-muted-foreground">
+                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-muted to-muted/80 border-2 border-background flex items-center justify-center text-xs text-muted-foreground shadow-sm">
                                       +2
                                     </div>
                                   </div>
@@ -621,9 +590,9 @@ export default function LandingPage() {
                             </div>
                           </motion.div>
 
-                          
+
                           {/* Data Visualization */}
-                          
+
                         </div>
 
                         {/* Enhanced Demo CTA with Additional Features */}
