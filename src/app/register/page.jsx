@@ -60,6 +60,9 @@ import {
   Info,
 } from "lucide-react"
 
+// Auth Components
+import RegistrationSuccessModal from "@/components/auth/RegistrationSuccessModal"
+
 import { register } from "@/services/authService"
 
 // Form schema with validation
@@ -101,6 +104,8 @@ export default function RegisterPage() {
   const [signupSuccess, setSignupSuccess] = useState(false)
   const [formError, setFormError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [registeredUserEmail, setRegisteredUserEmail] = useState("")
   const { theme } = useTheme()
   const router = useRouter()
 
@@ -177,19 +182,15 @@ export default function RegisterPage() {
 
       // Handle successful registration
       if (response.message === "User registered successfully") {
-        setSuccessMessage("Registration successful! Redirecting to login...");
-        setTimeout(() => {
-          setIsLoading(false);
-          router.push("/login");
-        }, 1500);
+        setRegisteredUserEmail(data.email)
+        setShowSuccessModal(true)
+        setSuccessMessage("Registration successful!")
       } else {
         // Handle other responses
-        setSuccessMessage(response.message);
-        setTimeout(() => {
-          setIsLoading(false);
-          router.push("/login");
-        }, 1500);
+        setSuccessMessage(response.message)
       }
+
+      setIsLoading(false)
 
     } catch (error) {
       console.error("Error submitting form:", error)
@@ -217,6 +218,11 @@ export default function RegisterPage() {
     if (passwordStrength < 40) return "Weak"
     if (passwordStrength < 80) return "Medium"
     return "Strong"
+  }
+
+  // Close success modal handler
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false)
   }
 
   // Success animation
@@ -312,6 +318,19 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5 flex flex-col molecule-bg">
+      {/* Registration Success Modal */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showSuccessModal ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <RegistrationSuccessModal
+          isOpen={showSuccessModal}
+          userEmail={registeredUserEmail}
+          onClose={handleCloseSuccessModal}
+        />
+      </motion.div>
+
       <div className="container mx-auto px-4 py-6">
         <motion.div
           initial={{ x: -20, opacity: 0 }}
