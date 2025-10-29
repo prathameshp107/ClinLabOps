@@ -852,14 +852,14 @@ export default function DashboardPage() {
                 {/* Right Column */}
                 <div className="space-y-6">
                   {isPowerUserOrAdmin && <PendingApprovals />}
-                  <TeamPerformance data={teamPerformance} />
+                  {isPowerUserOrAdmin && <TeamPerformance data={teamPerformance} />}
                 </div>
                 {/* System Logs Section */}
                 <div className="lg:col-span-3">
-                  <RecentSystemLogs
+                  {isPowerUserOrAdmin && <RecentSystemLogs
                     formatTime={formatTime}
                     formatDate={formatDate}
-                  />
+                  />}
                 </div>
               </div>
             </TabsContent>
