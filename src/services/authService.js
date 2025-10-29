@@ -211,6 +211,21 @@ export function hasAnyRole(roles) {
 }
 
 /**
+ * Check if user is PowerUser or admin
+ * @returns {boolean} Whether user is PowerUser or admin
+ */
+export function isPowerUser() {
+
+  const user = getCurrentUser();
+  if (!user) return false;
+
+  // Check both roles array and isPowerUser field
+  return user.isPowerUser === true ||
+    (user.roles && (user.roles.includes('PowerUser') || user.roles.includes('admin') || user.roles.includes('Admin'))) ||
+    false;
+}
+
+/**
  * Refresh authentication token (if implemented on backend)
  * @returns {Promise<Object>} New token data
  */

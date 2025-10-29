@@ -229,7 +229,7 @@ export default function LandingPage() {
               className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 rounded-full h-8 px-4"
               asChild
             >
-              <Link href="/admin-dashboard" className="flex items-center gap-2">
+              <Link href="/dashboard" className="flex items-center gap-2">
                 <span className="font-medium text-xs">Dashboard</span>
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -465,18 +465,18 @@ export default function LandingPage() {
                                 ].map((item, i) => (
                                   <div key={i} className="flex items-center gap-2 text-xs p-2 bg-background/50 rounded-lg border border-border/20">
                                     <div className={`w-2 h-2 rounded-full ${item.priority === 'high' ? 'bg-red-500' :
-                                        item.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
+                                      item.priority === 'medium' ? 'bg-amber-500' : 'bg-green-500'
                                       }`}></div>
                                     <span className="text-muted-foreground flex-1">{item.task}</span>
                                     <span className={`text-xs ${item.status === 'Completed' ? 'text-green-500' :
-                                        item.status === 'In Progress' ? 'text-blue-500' : 'text-amber-500'
+                                      item.status === 'In Progress' ? 'text-blue-500' : 'text-amber-500'
                                       }`}>
                                       {item.status}
                                     </span>
                                     <div className="w-12 bg-muted rounded-full h-1.5">
                                       <div
                                         className={`h-1.5 rounded-full ${item.progress < 30 ? 'bg-red-500' :
-                                            item.progress < 70 ? 'bg-amber-500' : 'bg-green-500'
+                                          item.progress < 70 ? 'bg-amber-500' : 'bg-green-500'
                                           }`}
                                         style={{ width: `${item.progress}%` }}
                                       ></div>
@@ -951,7 +951,7 @@ export default function LandingPage() {
               </div>
 
               <Button size="lg" className="shadow-lg hover:shadow-xl transition-shadow" asChild>
-                <Link href="/admin-dashboard">
+                <Link href="/dashboard">
                   Get Started Today
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -1190,7 +1190,7 @@ export default function LandingPage() {
                       )}
                       asChild
                     >
-                      <Link href="/admin-dashboard">
+                      <Link href="/dashboard">
                         {plan.buttonText}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
@@ -1278,7 +1278,7 @@ export default function LandingPage() {
                 {/* CTA buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <Button size="lg" className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-all bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" asChild>
-                    <Link href="/admin-dashboard" className="flex items-center justify-center">
+                    <Link href="/dashboard" className="flex items-center justify-center">
                       Start Free Trial
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
@@ -1328,7 +1328,7 @@ export default function LandingPage() {
               <Link href="#benefits" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
                 <Zap className="h-5 w-5" />
               </Link>
-              <Link href="/admin-dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
+              <Link href="/dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
                 <LayoutDashboard className="h-5 w-5" />
               </Link>
               <Link href="#testimonials" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
@@ -1694,7 +1694,7 @@ export default function LandingPage() {
               <Link href="#benefits" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">
                 <Zap className="h-5 w-5" />
               </Link>
-              <Link href="/admin-dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
+              <Link href="/dashboard" className="p-3 bg-primary text-primary-foreground rounded-full mx-1 shadow-md">
                 <LayoutDashboard className="h-5 w-5" />
               </Link>
               <Link href="#testimonials" className="p-2.5 text-muted-foreground hover:text-primary transition-colors">

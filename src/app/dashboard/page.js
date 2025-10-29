@@ -49,7 +49,8 @@ import {
 } from "@/services/dashboardService";
 import { getProjects } from "@/services/projectService";
 import { getTasks } from "@/services/taskService";
-import { reportService } from "@/services/reportService"; // Add this import
+import { reportService } from "@/services/reportService";
+import { getCurrentUser, isPowerUser } from "@/services/authService";
 
 // Components
 import { ReportsTab } from "@/components/dashboard/ReportsTab";
@@ -133,6 +134,9 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  // Add state for user role
+  const [isPowerUserOrAdmin, setIsPowerUserOrAdmin] = useState(false);
+
   // Dashboard data state
   const [dashboardStats, setDashboardStats] = useState([]);
   const [taskDistributionData, setTaskDistributionData] = useState([]);
@@ -144,6 +148,22 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [recentReports, setRecentReports] = useState([]); // Add this state for recent reports
+
+  // Check user role on component mount
+  useEffect(() => {
+    // Check if user has PowerUser or admin role
+    const checkUserRole = () => {
+      try {
+        const powerUserOrAdmin = isPowerUser();
+        setIsPowerUserOrAdmin(powerUserOrAdmin);
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        setIsPowerUserOrAdmin(false);
+      }
+    };
+
+    checkUserRole();
+  }, []);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -831,7 +851,7 @@ export default function DashboardPage() {
 
                 {/* Right Column */}
                 <div className="space-y-6">
-                  <PendingApprovals />
+                  {isPowerUserOrAdmin && <PendingApprovals />}
                   <TeamPerformance data={teamPerformance} />
                 </div>
                 {/* System Logs Section */}

@@ -96,7 +96,7 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
             label: 'Main',
             icon: <Home className="h-4 w-4" />,
             items: [
-                { name: 'dashboard', label: 'Dashboard', icon: <Home className="h-5 w-5" />, path: '/admin-dashboard', badge: null },
+                { name: 'dashboard', label: 'Dashboard', icon: <Home className="h-5 w-5" />, path: '/dashboard', badge: null },
                 { name: 'projects', label: 'Projects', icon: <ClipboardList className="h-5 w-5" />, path: '/projects', badge: null },
                 { name: 'tasks', label: 'Tasks', icon: <ClipboardList className="h-5 w-5" />, path: '/tasks', badge: null },
                 { name: 'experiments', label: 'Experiments', icon: <FlaskConical className="h-5 w-5" />, path: '/experiments', badge: null }
