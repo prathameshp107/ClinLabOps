@@ -26,6 +26,7 @@ import {
 } from 'recharts';
 import { Badge } from "@/components/ui/badge";
 import { getProjects } from "@/services/projectService";
+import { isPowerUser } from "@/services/authService";
 
 const COLORS = {
   'on track': '#10B981',
@@ -92,6 +93,12 @@ const ProjectAnalytics = ({ projects: initialProjects = [] }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState('month');
+  const [isPowerUserFlag, setIsPowerUserFlag] = useState(false);
+
+  useEffect(() => {
+    setIsPowerUserFlag(isPowerUser());
+  }, []);
+
 
   // Fetch projects data
   useEffect(() => {
@@ -540,7 +547,7 @@ const ProjectAnalytics = ({ projects: initialProjects = [] }) => {
         </Card>
 
         {/* Budget vs Spent */}
-        <Card>
+        {isPowerUserFlag && <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
@@ -584,7 +591,7 @@ const ProjectAnalytics = ({ projects: initialProjects = [] }) => {
               </ComposedChart>
             </ResponsiveContainer>
           </CardContent>
-        </Card>
+        </Card>}
 
         {/* Task Completion Rate */}
         <Card>

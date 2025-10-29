@@ -70,6 +70,7 @@ class EmailService {
         this.transporter = null;
         this.initialized = false;
         this.config = null;
+        this.connectionVerified = false;
     }
 
     /**
@@ -96,6 +97,12 @@ class EmailService {
             return true;
         } catch (error) {
             console.error('❌ Email service initialization failed:', error.message);
+            // In production, we don't throw errors to prevent app crash
+            if (process.env.NODE_ENV === 'production') {
+                console.warn('⚠️ Email service disabled in production due to initialization failure');
+                this.initialized = false;
+                return false;
+            }
             throw new Error(`Email service initialization failed: ${error.message}`);
         }
     }
@@ -143,13 +150,17 @@ class EmailService {
                     host: this.config.host,
                     port: this.config.port,
                     secure: this.config.secure || false,
-                    auth: {
+                    auth: this.config.username && this.config.password ? {
                         user: this.config.username,
                         pass: this.config.password
-                    },
+                    } : undefined,
                     tls: {
                         rejectUnauthorized: false
-                    }
+                    },
+                    // Add timeout configurations
+                    connectionTimeout: 30000, // 30 seconds
+                    greetingTimeout: 30000,   // 30 seconds
+                    socketTimeout: 30000      // 30 seconds
                 });
             case 'sendgrid':
                 return nodemailer.createTransport({
@@ -159,7 +170,10 @@ class EmailService {
                     auth: {
                         user: 'apikey',
                         pass: this.config.apiKey
-                    }
+                    },
+                    connectionTimeout: 30000, // 30 seconds
+                    greetingTimeout: 30000,   // 30 seconds
+                    socketTimeout: 30000      // 30 seconds
                 });
             case 'resend':
                 return nodemailer.createTransport({
@@ -169,7 +183,10 @@ class EmailService {
                     auth: {
                         user: 'resend',
                         pass: this.config.apiKey
-                    }
+                    },
+                    connectionTimeout: 30000, // 30 seconds
+                    greetingTimeout: 30000,   // 30 seconds
+                    socketTimeout: 30000      // 30 seconds
                 });
             default:
                 throw new Error(`Unsupported email provider: ${this.config.provider}`);
@@ -181,16 +198,32 @@ class EmailService {
      */
     async verifyConnection() {
         if (!this.initialized || !this.transporter) {
-            throw new Error('Email service not initialized');
+            console.warn('📧 Email service not initialized - skipping connection verification');
+            return false;
         }
 
         try {
-            await this.transporter.verify();
+            // Set a reasonable timeout for verification
+            const verifyPromise = this.transporter.verify();
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Verification timeout')), 10000);
+            });
+
+            await Promise.race([verifyPromise, timeoutPromise]);
             console.log('✅ Email transporter connection verified');
+            this.connectionVerified = true;
             return true;
         } catch (error) {
             console.error('❌ Email transporter connection failed:', error.message);
-            throw new Error(`Email transporter connection failed: ${error.message}`);
+            this.connectionVerified = false;
+
+            // In production, we continue without email service rather than crashing
+            if (process.env.NODE_ENV !== 'production') {
+                throw new Error(`Email transporter connection failed: ${error.message}`);
+            }
+
+            console.warn('⚠️ Email service will run in degraded mode - emails may not be sent');
+            return false;
         }
     }
 
@@ -231,18 +264,35 @@ class EmailService {
      * @param {number} maxRetries - Maximum number of retries
      */
     async sendEmail(mailOptions, maxRetries = 3) {
-        if (!this.initialized || !this.transporter) {
-            throw new Error('Email service not initialized');
+        // If email service isn't properly initialized, don't attempt to send
+        if (!this.initialized || !this.transporter || !this.connectionVerified) {
+            console.warn('📧 Email service not available - email not sent');
+            return {
+                messageId: 'service-unavailable',
+                rejected: [mailOptions.to],
+                accepted: [],
+                serviceAvailable: false
+            };
         }
 
         // Apply rate limiting
         if (mailOptions.to) {
-            this.checkRateLimit(Array.isArray(mailOptions.to) ? mailOptions.to.join(',') : mailOptions.to);
+            try {
+                this.checkRateLimit(Array.isArray(mailOptions.to) ? mailOptions.to.join(',') : mailOptions.to);
+            } catch (error) {
+                console.warn('📧 Rate limit exceeded:', error.message);
+                return {
+                    messageId: 'rate-limited',
+                    rejected: [mailOptions.to],
+                    accepted: [],
+                    rateLimited: true
+                };
+            }
         }
 
         // Add default sender if not provided
         if (!mailOptions.from) {
-            mailOptions.from = `"${this.config.fromName}" <${this.config.from}>`;
+            mailOptions.from = `"${this.config.fromName || 'LabTasker'}" <${this.config.from}>`;
         }
 
         // Queue the email
@@ -251,7 +301,14 @@ class EmailService {
                 let lastError;
                 for (let attempt = 1; attempt <= maxRetries; attempt++) {
                     try {
-                        const info = await this.transporter.sendMail(mailOptions);
+                        // Add timeout to sendMail operation
+                        const sendPromise = this.transporter.sendMail(mailOptions);
+                        const timeoutPromise = new Promise((_, reject) => {
+                            setTimeout(() => reject(new Error('Send operation timeout')), 30000);
+                        });
+
+                        const info = await Promise.race([sendPromise, timeoutPromise]);
+
                         console.log(`✅ Email sent successfully (attempt ${attempt}/${maxRetries})`, {
                             messageId: info.messageId,
                             to: mailOptions.to
@@ -262,21 +319,33 @@ class EmailService {
                         lastError = error;
                         console.error(`❌ Email send attempt ${attempt}/${maxRetries} failed:`, error.message);
 
-                        // Don't retry on certain errors
-                        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+                        // Don't retry on certain permanent errors
+                        if (error.code === 'ECONNREFUSED' ||
+                            error.code === 'ENOTFOUND' ||
+                            error.code === 'EAUTH' ||
+                            error.message.includes('timeout')) {
                             break;
                         }
 
                         // Wait before retry (exponential backoff)
                         if (attempt < maxRetries) {
-                            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                            const delay = Math.pow(2, attempt) * 1000;
+                            console.log(`⏳ Waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
                         }
                     }
                 }
 
                 console.error('❌ Email send failed after all retries:', lastError.message);
-                cb(lastError);
-                return reject(new Error(`Failed to send email after ${maxRetries} attempts: ${lastError.message}`));
+                // Don't reject the promise, just resolve with a failure indicator
+                const result = {
+                    messageId: 'failed',
+                    rejected: [mailOptions.to],
+                    accepted: [],
+                    error: lastError.message
+                };
+                cb(null, result);
+                return resolve(result);
             });
         });
     }

@@ -42,20 +42,20 @@ exports.inviteUser = async (req, res) => {
 
         await invitedUser.save();
 
-        // Send invitation email
-        try {
-            await emailService.sendUserInvitation({
-                email,
-                inviteToken,
-                invitedBy,
-                role
+        // Send invitation email asynchronously (non-blocking)
+        emailService.sendUserInvitation({
+            email,
+            inviteToken,
+            invitedBy,
+            role
+        })
+            .then(() => {
+                console.log(`Invitation email sent to ${email}`);
+            })
+            .catch((emailError) => {
+                console.error(`Failed to send invitation email to ${email}:`, emailError);
+                // Note: We don't delete the user record if email fails since the user was already created
             });
-        } catch (emailError) {
-            console.error('Failed to send invitation email:', emailError);
-            // Delete the user record if email fails
-            await User.findByIdAndDelete(invitedUser._id);
-            return res.status(500).json({ message: 'Failed to send invitation email' });
-        }
 
         // Log activity
         await ActivityService.logUserActivity('invited', invitedBy, invitedUser, {
@@ -63,6 +63,7 @@ exports.inviteUser = async (req, res) => {
             role
         });
 
+        // Respond immediately without waiting for email
         res.status(201).json({
             message: 'User invitation sent successfully',
             user: { id: invitedUser._id, email, role }
@@ -142,14 +143,17 @@ exports.sendConfirmationEmail = async (req, res) => {
         user.passwordResetExpires = confirmTokenExpires;
         await user.save();
 
-        // Send confirmation email
-        try {
-            await emailService.sendAccountConfirmation(user, confirmToken);
-            res.json({ message: 'Confirmation email sent successfully' });
-        } catch (emailError) {
-            console.error('Failed to send confirmation email:', emailError);
-            return res.status(500).json({ message: 'Failed to send confirmation email' });
-        }
+        // Send confirmation email asynchronously (non-blocking)
+        emailService.sendAccountConfirmation(user, confirmToken)
+            .then(() => {
+                console.log(`Account confirmation email sent to ${user.email}`);
+            })
+            .catch((emailError) => {
+                console.error(`Failed to send confirmation email to ${user.email}:`, emailError);
+            });
+
+        // Respond immediately without waiting for email
+        res.json({ message: 'Confirmation email sent successfully' });
     } catch (err) {
         console.error('Send confirmation email error:', err);
         res.status(500).json({ message: 'Server error' });

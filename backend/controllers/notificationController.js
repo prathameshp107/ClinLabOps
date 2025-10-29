@@ -223,29 +223,36 @@ exports.sendBulkNotifications = async (req, res) => {
         const createdNotifications = await Notification.insertMany(notifications);
 
         // Send email notifications to users who have email notifications enabled
-        const users = await User.find({ _id: { $in: recipients } });
-        for (const user of users) {
-            if (user.preferences && user.preferences.notifications.email) {
-                try {
-                    await emailService.sendNotification({
-                        to: user.email,
-                        subject: title,
-                        template: 'notification',
-                        data: {
-                            userName: user.name,
-                            subject: title,
-                            message: message,
-                            actionUrl: actionUrl,
-                            appName: process.env.APP_NAME
-                        },
-                        priority: type === 'error' || type === 'warning' ? 'high' : 'normal'
-                    });
-                    console.log(`Email sent for bulk notification to ${user.email}`);
-                } catch (emailError) {
-                    console.error(`Failed to send email for bulk notification to ${user.email}:`, emailError);
+        // This is done asynchronously to avoid blocking the response
+        setImmediate(async () => {
+            try {
+                const users = await User.find({ _id: { $in: recipients } });
+                for (const user of users) {
+                    if (user.preferences && user.preferences.notifications.email) {
+                        try {
+                            await emailService.sendNotification({
+                                to: user.email,
+                                subject: title,
+                                template: 'notification',
+                                data: {
+                                    userName: user.name,
+                                    subject: title,
+                                    message: message,
+                                    actionUrl: actionUrl,
+                                    appName: process.env.APP_NAME
+                                },
+                                priority: type === 'error' || type === 'warning' ? 'high' : 'normal'
+                            });
+                            console.log(`Email sent for bulk notification to ${user.email}`);
+                        } catch (emailError) {
+                            console.error(`Failed to send email for bulk notification to ${user.email}:`, emailError);
+                        }
+                    }
                 }
+            } catch (error) {
+                console.error('Error sending bulk notification emails:', error);
             }
-        }
+        });
 
         // Log activity
         if (req.user) {

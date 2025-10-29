@@ -164,7 +164,7 @@ export default function ScientificLoginForm() {
       // It's good practice to wait for a moment for the user to see the success state
       // before redirecting.
       setTimeout(() => {
-        router.push("/admin-dashboard");
+        router.push("/dashboard");
       }, 1000);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "An error occurred during login. Please try again.");
@@ -185,7 +185,7 @@ export default function ScientificLoginForm() {
     setTimeout(() => {
       setLoginSuccess(true);
       setTimeout(() => {
-        router.push("/admin-dashboard");
+        router.push("/dashboard");
       }, 100);
     }, 100);
   };

@@ -8,7 +8,7 @@ This is the main application directory for the LabTasker Next.js application. It
 app/
 ├── (auth)/                  # Authentication related pages (login, register, etc.)
 ├── (dashboard)/             # Dashboard related pages (protected routes)
-├── admin-dashboard/         # Admin interface
+├── dashboard/         # Admin interface
 ├── compliance/              # Compliance related pages
 ├── enquiries/               # Customer enquiry management
 │   ├── [id]/               # Dynamic route for individual enquiries

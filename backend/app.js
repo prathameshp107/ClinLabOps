@@ -164,13 +164,18 @@ if (config.email.provider) {
             // Verify connection
             return emailService.verifyConnection();
         })
-        .then(() => {
-            // Start email queue
-            emailService.startQueue();
+        .then((connected) => {
+            if (connected) {
+                // Start email queue only if connection was successful
+                emailService.startQueue();
+            } else {
+                console.log('📧 Email service initialized but connection verification failed - running in degraded mode');
+            }
         })
         .catch((error) => {
             console.error('❌ Email service initialization failed:', error.message);
-            // Don't exit the application, just log the error
+            // Don't exit the application, just log the error and continue without email service
+            console.log('📧 Email service disabled due to initialization failure');
         });
 } else {
     console.log('📧 Email service not configured - skipping initialization');

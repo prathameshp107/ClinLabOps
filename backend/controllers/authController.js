@@ -32,17 +32,20 @@ exports.register = async (req, res) => {
         });
         await user.save();
 
-        // Send welcome email
-        try {
-            await emailService.sendWelcomeEmail(user);
-            console.log(`Welcome email sent to ${user.email}`);
-        } catch (emailError) {
-            console.error(`Failed to send welcome email to ${user.email}:`, emailError);
-        }
+        // Send welcome email asynchronously (non-blocking)
+        // Don't await this - let it run in the background
+        emailService.sendWelcomeEmail(user)
+            .then(() => {
+                console.log(`Welcome email sent to ${user.email}`);
+            })
+            .catch((emailError) => {
+                console.error(`Failed to send welcome email to ${user.email}:`, emailError);
+            });
 
         // Log activity
         await ActivityService.logAuthActivity('register', user);
 
+        // Respond immediately without waiting for email
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
@@ -196,18 +199,21 @@ exports.forgotPassword = async (req, res) => {
         user.passwordResetExpires = resetTokenExpires;
         await user.save();
 
-        // Send reset email
-        try {
-            await emailService.sendPasswordReset(user, resetToken, resetTokenExpires);
-            res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
-        } catch (emailError) {
-            console.error('Failed to send password reset email:', emailError);
-            // Still return success to not reveal if email was sent
-            res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
-        }
+        // Send reset email asynchronously (non-blocking)
+        // Don't await this - let it run in the background
+        emailService.sendPasswordReset(user, resetToken, resetTokenExpires)
+            .then(() => {
+                console.log(`Password reset email sent to ${user.email}`);
+            })
+            .catch((emailError) => {
+                console.error(`Failed to send password reset email to ${user.email}:`, emailError);
+            });
 
         // Log activity
         await ActivityService.logAuthActivity('forgot_password', user, { email });
+
+        // Respond immediately without waiting for email
+        res.json({ message: 'If an account with that email exists, a password reset link has been sent.' });
     } catch (err) {
         console.error('Forgot password error:', err);
         res.status(500).json({ message: 'Server error' });

@@ -122,8 +122,8 @@ class DeadlineNotificationService {
                                 }
                             });
 
-                            // Send email notification
-                            await emailService.sendNotification({
+                            // Send email notification asynchronously
+                            emailService.sendNotification({
                                 to: user.email,
                                 subject: `LabTasker: ${notificationTitle}`,
                                 template: 'notification',
@@ -135,9 +135,14 @@ class DeadlineNotificationService {
                                     priority: 'high'
                                 },
                                 priority: 'high'
-                            });
+                            })
+                                .then(() => {
+                                    console.log(`Email sent for project deadline to ${user.email}`);
+                                })
+                                .catch((emailError) => {
+                                    console.error(`Failed to send email for project deadline to ${user.email}:`, emailError);
+                                });
 
-                            console.log(`Email sent for project deadline to ${user.email}`);
                         }
                     }
                 } else {
@@ -216,8 +221,8 @@ class DeadlineNotificationService {
                                 }
                             });
 
-                            // Send email notification
-                            await emailService.sendNotification({
+                            // Send email notification asynchronously
+                            emailService.sendNotification({
                                 to: user.email,
                                 subject: `LabTasker: ${notificationTitle}`,
                                 template: 'notification',
@@ -229,9 +234,14 @@ class DeadlineNotificationService {
                                     priority: 'medium'
                                 },
                                 priority: 'normal'
-                            });
+                            })
+                                .then(() => {
+                                    console.log(`Email sent for task deadline to ${user.email}`);
+                                })
+                                .catch((emailError) => {
+                                    console.error(`Failed to send email for task deadline to ${user.email}:`, emailError);
+                                });
 
-                            console.log(`Email sent for task deadline to ${user.email}`);
                         }
                     }
                 } else {
