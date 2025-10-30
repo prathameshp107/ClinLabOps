@@ -38,6 +38,7 @@ import { Separator } from "@/components/ui/separator";
 import { login, socialLogin } from "@/services/authService";
 import { useTheme } from "next-themes";
 import { initiateGoogleLogin, initiateGithubLogin } from "@/services/authService";
+import LoginSkeleton from "@/components/auth/login-skeleton";
 
 export default function ScientificLoginForm() {
   const router = useRouter();
@@ -424,50 +425,56 @@ export default function ScientificLoginForm() {
                 </AnimatePresence>
 
                 {loginStage === "2fa" ? (
-                  <form onSubmit={handleSubmit} className={`space-y-6 ${shake ? 'shake-animation' : ''}`}>
-                    <div className="space-y-2">
-                      <Label htmlFor="twoFactorCode" className="text-sm font-medium">Authentication Code</Label>
-                      <div className="relative">
-                        <Input
-                          id="twoFactorCode"
-                          name="twoFactorCode"
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="one-time-code"
-                          required
-                          placeholder="123456"
-                          value={formData.twoFactorCode}
-                          onChange={handleInputChange}
-                          ref={twoFactorInputRef}
-                          className="pl-4 h-12 text-center text-lg tracking-widest font-mono"
-                          maxLength={6}
-                        />
+                  isLoading ? (
+                    <div className="space-y-6">
+                      <LoginSkeleton />
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className={`space-y-6 ${shake ? 'shake-animation' : ''}`}>
+                      <div className="space-y-2">
+                        <Label htmlFor="twoFactorCode" className="text-sm font-medium">Authentication Code</Label>
+                        <div className="relative">
+                          <Input
+                            id="twoFactorCode"
+                            name="twoFactorCode"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            required
+                            placeholder="123456"
+                            value={formData.twoFactorCode}
+                            onChange={handleInputChange}
+                            ref={twoFactorInputRef}
+                            className="pl-4 h-12 text-center text-lg tracking-widest font-mono"
+                            maxLength={6}
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-12 text-base font-medium"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                      ) : (
-                        "Verify Code"
-                      )}
-                    </Button>
-
-                    <div className="text-center">
                       <Button
-                        variant="link"
-                        type="button"
-                        onClick={() => setLoginStage("credentials")}
-                        className="text-sm"
+                        type="submit"
+                        className="w-full h-12 text-base font-medium"
+                        disabled={isLoading}
                       >
-                        Back to Login
+                        {isLoading ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : (
+                          "Verify Code"
+                        )}
                       </Button>
-                    </div>
-                  </form>
+
+                      <div className="text-center">
+                        <Button
+                          variant="link"
+                          type="button"
+                          onClick={() => setLoginStage("credentials")}
+                          className="text-sm"
+                        >
+                          Back to Login
+                        </Button>
+                      </div>
+                    </form>
+                  )
                 ) : (
                   <>
                     <Tabs defaultValue="credentials" className="w-full">
@@ -477,96 +484,102 @@ export default function ScientificLoginForm() {
                       </TabsList>
 
                       <TabsContent value="credentials">
-                        <form onSubmit={handleSubmit} className={`space-y-5 ${shake ? 'shake-animation' : ''}`}>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-                              <div className="relative mt-1">
-                                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="email"
-                                  name="email"
-                                  type="email"
-                                  autoComplete="email"
-                                  required
-                                  placeholder="name@example.com"
-                                  value={formData.email}
-                                  onChange={handleInputChange}
-                                  ref={emailInputRef}
-                                  className="pl-10 h-12"
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <div className="flex items-center justify-between">
-                                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                                <Button
-                                  variant="link"
-                                  type="button"
-                                  onClick={handleForgotPassword}
-                                  className="text-xs p-0 h-auto"
-                                >
-                                  Forgot password?
-                                </Button>
-                              </div>
-                              <div className="relative mt-1">
-                                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  id="password"
-                                  name="password"
-                                  type={showPassword ? "text" : "password"}
-                                  autoComplete="current-password"
-                                  required
-                                  placeholder="••••••••"
-                                  value={formData.password}
-                                  onChange={handleInputChange}
-                                  ref={passwordInputRef}
-                                  className="pl-10 h-12"
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                >
-                                  {showPassword ? (
-                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
-                                  ) : (
-                                    <Eye className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
+                        {isLoading ? (
+                          <div className="space-y-5">
+                            <LoginSkeleton />
                           </div>
+                        ) : (
+                          <form onSubmit={handleSubmit} className={`space-y-5 ${shake ? 'shake-animation' : ''}`}>
+                            <div className="space-y-4">
+                              <div>
+                                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                                <div className="relative mt-1">
+                                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    autoComplete="email"
+                                    required
+                                    placeholder="name@example.com"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    ref={emailInputRef}
+                                    className="pl-10 h-12"
+                                  />
+                                </div>
+                              </div>
 
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
-                              id="rememberMe"
-                              checked={formData.rememberMe}
-                              onCheckedChange={handleCheckboxChange}
-                            />
-                            <Label
-                              htmlFor="rememberMe"
-                              className="text-sm font-normal text-muted-foreground"
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                                  <Button
+                                    variant="link"
+                                    type="button"
+                                    onClick={handleForgotPassword}
+                                    className="text-xs p-0 h-auto"
+                                  >
+                                    Forgot password?
+                                  </Button>
+                                </div>
+                                <div className="relative mt-1">
+                                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                  <Input
+                                    id="password"
+                                    name="password"
+                                    type={showPassword ? "text" : "password"}
+                                    autoComplete="current-password"
+                                    required
+                                    placeholder="••••••••"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    ref={passwordInputRef}
+                                    className="pl-10 h-12"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                  >
+                                    {showPassword ? (
+                                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                    ) : (
+                                      <Eye className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <Checkbox
+                                id="rememberMe"
+                                checked={formData.rememberMe}
+                                onCheckedChange={handleCheckboxChange}
+                              />
+                              <Label
+                                htmlFor="rememberMe"
+                                className="text-sm font-normal text-muted-foreground"
+                              >
+                                Remember me for 30 days
+                              </Label>
+                            </div>
+
+                            <Button
+                              type="submit"
+                              className="w-full h-12 text-base font-medium"
+                              disabled={isLoading}
                             >
-                              Remember me for 30 days
-                            </Label>
-                          </div>
-
-                          <Button
-                            type="submit"
-                            className="w-full h-12 text-base font-medium"
-                            disabled={isLoading}
-                          >
-                            {isLoading ? (
-                              <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                            ) : (
-                              "Sign in"
-                            )}
-                          </Button>
-                        </form>
+                              {isLoading ? (
+                                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                              ) : (
+                                "Sign in"
+                              )}
+                            </Button>
+                          </form>
+                        )}
                       </TabsContent>
 
                       <TabsContent value="social">
@@ -576,6 +589,7 @@ export default function ScientificLoginForm() {
                             type="button"
                             onClick={handleGithubLogin}
                             className="w-full h-12"
+                            disabled={isLoading}
                           >
                             <Github className="mr-2 h-5 w-5" />
                             Continue with GitHub
@@ -586,6 +600,7 @@ export default function ScientificLoginForm() {
                             type="button"
                             onClick={handleGoogleLogin}
                             className="w-full h-12"
+                            disabled={isLoading}
                           >
                             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                               <path
