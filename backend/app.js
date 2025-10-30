@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const session = require('express-session');
+const passport = require('./config/passport');
 
 const app = express();
 
@@ -38,6 +40,21 @@ app.use(cors({
     exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'] // Expose these headers to frontend
 }));
 app.use(express.json({ limit: '10mb' })); // Increase payload limit for file uploads
+
+// Session middleware
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'labtasker-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Log all requests
 app.use(logger);
@@ -131,10 +148,10 @@ const cleanupOldTempFiles = () => {
     try {
         const reportsDir = path.join(__dirname, 'uploads', 'reports');
         if (!fs.existsSync(reportsDir)) return;
-        
+
         const files = fs.readdirSync(reportsDir);
         const oneHourAgo = Date.now() - (60 * 60 * 1000); // 1 hour in milliseconds
-        
+
         files.forEach(file => {
             const filePath = path.join(reportsDir, file);
             try {

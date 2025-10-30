@@ -35,8 +35,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { login } from "@/services/authService";
+import { login, socialLogin } from "@/services/authService";
 import { useTheme } from "next-themes";
+import { initiateGoogleLogin, initiateGithubLogin } from "@/services/authService";
 
 export default function ScientificLoginForm() {
   const router = useRouter();
@@ -144,6 +145,42 @@ export default function ScientificLoginForm() {
     }
   }, [loginStage]);
 
+  // Handle OAuth redirect
+  useEffect(() => {
+    // Check if we have OAuth parameters in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const user = urlParams.get('user');
+    const error = urlParams.get('error');
+
+    if (error) {
+      setError(decodeURIComponent(error));
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+      // Remove error from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (token && user) {
+      try {
+        // Store token and user data
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', user);
+
+        // Remove params from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // Set login success and redirect
+        setLoginSuccess(true);
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+      } catch (err) {
+        setError("Failed to process OAuth login");
+        setShake(true);
+        setTimeout(() => setShake(false), 500);
+      }
+    }
+  }, [router]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -188,6 +225,16 @@ export default function ScientificLoginForm() {
         router.push("/dashboard");
       }, 100);
     }, 100);
+  };
+
+  // Handle Google login
+  const handleGoogleLogin = () => {
+    initiateGoogleLogin();
+  };
+
+  // Handle GitHub login
+  const handleGithubLogin = () => {
+    initiateGithubLogin();
   };
 
   // Render success animation if login is successful
@@ -527,7 +574,7 @@ export default function ScientificLoginForm() {
                           <Button
                             variant="outline"
                             type="button"
-                            onClick={() => handleSocialLogin('github')}
+                            onClick={handleGithubLogin}
                             className="w-full h-12"
                           >
                             <Github className="mr-2 h-5 w-5" />
@@ -537,7 +584,7 @@ export default function ScientificLoginForm() {
                           <Button
                             variant="outline"
                             type="button"
-                            onClick={() => handleSocialLogin('google')}
+                            onClick={handleGoogleLogin}
                             className="w-full h-12"
                           >
                             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
