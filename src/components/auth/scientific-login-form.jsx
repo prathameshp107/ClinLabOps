@@ -174,7 +174,7 @@ export default function ScientificLoginForm() {
           router.push("/dashboard");
         }, 1000);
       } catch (err) {
-        setError("Failed to process OAuth login");
+        setError("Failed to process OAuth login: " + (err.message || "Unknown error"));
         setShake(true);
         setTimeout(() => setShake(false), 500);
       }

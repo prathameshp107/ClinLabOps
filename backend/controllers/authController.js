@@ -95,7 +95,7 @@ exports.socialLogin = async (req, res) => {
         if (!req.user) {
             // Redirect to login page with error
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-            return res.redirect(`${frontendUrl}/login?error=Authentication failed`);
+            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}`);
         }
 
         const user = req.user;
@@ -135,7 +135,8 @@ exports.socialLogin = async (req, res) => {
         console.error('Social login error:', err);
         // Redirect to login page with error
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}`);
+        const errorMessage = err.message || 'Authentication failed';
+        res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorMessage)}`);
     }
 };
 

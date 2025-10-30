@@ -18,8 +18,16 @@ passport.use(new GoogleStrategy({
                 return done(null, user);
             }
 
+            // Get email from profile
+            const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+
+            // If no email, we can't create a user
+            if (!email) {
+                return done(new Error('Email is required for registration'), null);
+            }
+
             // Check if user exists with this email
-            user = await User.findOne({ email: profile.emails[0].value });
+            user = await User.findOne({ email: email });
 
             if (user) {
                 // Add Google OAuth info to existing user
@@ -31,8 +39,8 @@ passport.use(new GoogleStrategy({
 
             // Create new user
             const newUser = new User({
-                name: profile.displayName || profile.emails[0].value.split('@')[0],
-                email: profile.emails[0].value,
+                name: profile.displayName || email.split('@')[0],
+                email: email,
                 googleId: profile.id,
                 googleToken: accessToken,
                 roles: ['User'],
@@ -62,23 +70,61 @@ passport.use(new GithubStrategy({
                 return done(null, user);
             }
 
-            // Check if user exists with this email
-            const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
-            if (email) {
-                user = await User.findOne({ email: email });
+            // Get email from profile
+            let email = null;
 
-                if (user) {
-                    // Add GitHub OAuth info to existing user
-                    user.githubId = profile.id;
-                    user.githubToken = accessToken;
-                    await user.save();
-                    return done(null, user);
+            // First check if email is in the profile emails array
+            if (profile.emails && profile.emails.length > 0) {
+                email = profile.emails[0].value;
+            }
+
+            // If no email in profile, we need to fetch it from GitHub API
+            if (!email) {
+                // Use the access token to fetch the user's email
+                const fetch = (await import('node-fetch')).default;
+                try {
+                    const emailResponse = await fetch('https://api.github.com/user/emails', {
+                        headers: {
+                            'Authorization': `token ${accessToken}`,
+                            'User-Agent': 'LabTasker'
+                        }
+                    });
+
+                    if (emailResponse.ok) {
+                        const emails = await emailResponse.json();
+                        // Find the primary email
+                        const primaryEmail = emails.find(e => e.primary);
+                        if (primaryEmail) {
+                            email = primaryEmail.email;
+                        } else if (emails.length > 0) {
+                            // If no primary email, use the first one
+                            email = emails[0].email;
+                        }
+                    }
+                } catch (fetchError) {
+                    console.error('Error fetching GitHub emails:', fetchError);
                 }
+            }
+
+            // If still no email, we can't create a user
+            if (!email) {
+                return done(new Error('Email is required for registration. Please make sure your GitHub account has a public email address or enable email visibility.'), null);
+            }
+
+            // Check if user exists with this email
+            user = await User.findOne({ email: email });
+
+            if (user) {
+                // Add GitHub OAuth info to existing user
+                user.githubId = profile.id;
+                user.githubToken = accessToken;
+                await user.save();
+                return done(null, user);
             }
 
             // Create new user
             const newUser = new User({
-                name: profile.displayName || profile.username || (email ? email.split('@')[0] : 'User'),
+                name: profile.displayName || profile.username || email.split('@')[0],
                 email: email,
                 githubId: profile.id,
                 githubToken: accessToken,
