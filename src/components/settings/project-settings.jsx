@@ -730,9 +730,9 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="w-[300px]">Category</TableHead>
-                                        <TableHead>Description</TableHead>
-                                        <TableHead className="w-[150px]">Sub-Types</TableHead>
-                                        <TableHead className="w-[100px]">Templates</TableHead>
+                                        <TableHead className="w-[300px]">Description</TableHead>
+                                        <TableHead className="w-[100px] text-center">Sub-Types</TableHead>
+                                        <TableHead className="w-[100px] text-center">Templates</TableHead>
                                         <TableHead className="w-[120px] text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -772,13 +772,13 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                                                 <p className="text-sm line-clamp-2">{category.description}</p>
                                                             </div>
                                                         </TableCell>
-                                                        <TableCell>
+                                                        <TableCell className="text-center">
                                                             <Badge variant="outline" className="gap-1">
                                                                 <FileText className="h-3 w-3" />
                                                                 {category.subTypes ? category.subTypes.length : 0}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>
+                                                        <TableCell className="text-center">
                                                             <Badge variant="outline" className="gap-1">
                                                                 <BookOpen className="h-3 w-3" />
                                                                 {category.templates ? category.templates.length : 0}
@@ -1037,7 +1037,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                     <TableRow>
                                         <TableHead className="w-[250px]">Sub-Type</TableHead>
                                         <TableHead>Description</TableHead>
-                                        <TableHead className="w-[100px]">Templates</TableHead>
+                                        <TableHead className="w-[100px] text-center">Templates</TableHead>
                                         <TableHead className="w-[120px] text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>

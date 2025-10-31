@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import {
@@ -37,9 +38,11 @@ import { NotificationSettings } from "@/components/settings/notification-setting
 import { SecuritySettings } from "@/components/settings/security-settings"
 import { ThemeSettings } from "@/components/settings/theme-settings"
 import { ProjectSettings } from "@/components/settings/project-settings"
+import { SettingsLoading } from "@/components/settings/settings-loading"
 import { getSettings, updateSettings } from "@/services/settingsService"
 
 export default function SettingsPage() {
+    const [activeMainSection, setActiveMainSection] = useState("general") // "general" or "project"
     const [activeTab, setActiveTab] = useState("general")
     const [settings, setSettings] = useState({})
     const [loading, setLoading] = useState(true)
@@ -98,8 +101,8 @@ export default function SettingsPage() {
         }
     }
 
-    // Settings navigation configuration - simplified
-    const settingsNavigation = [
+    // Settings navigation configuration
+    const generalSettingsNavigation = [
         {
             id: "general",
             label: "General",
@@ -112,13 +115,6 @@ export default function SettingsPage() {
             label: "Notifications",
             icon: <Bell className="h-4 w-4" />,
             description: "Email and app notification preferences",
-            badge: null
-        },
-        {
-            id: "project",
-            label: "Project",
-            icon: <Folder className="h-4 w-4" />,
-            description: "Project categories and templates",
             badge: null
         },
         {
@@ -137,19 +133,18 @@ export default function SettingsPage() {
         }
     ]
 
+    const projectSettingsNavigation = [
+        {
+            id: "project",
+            label: "Project",
+            icon: <Folder className="h-4 w-4" />,
+            description: "Project categories and templates",
+            badge: null
+        }
+    ]
+
     if (loading) {
-        return (
-            <DashboardLayout>
-                <div className="w-full px-4 py-6">
-                    <div className="flex items-center justify-center h-96">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                            <p className="text-muted-foreground">Loading settings...</p>
-                        </div>
-                    </div>
-                </div>
-            </DashboardLayout>
-        )
+        return <SettingsLoading />
     }
 
     return (
@@ -173,85 +168,119 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
+                {/* Main Section Toggle */}
+                <div className="flex gap-2 mb-6">
+                    <Button
+                        variant={activeMainSection === "general" ? "default" : "outline"}
+                        className="flex-1"
+                        onClick={() => {
+                            setActiveMainSection("general")
+                            setActiveTab("general")
+                        }}
+                    >
+                        <Settings className="h-4 w-4 mr-2" />
+                        General Settings
+                    </Button>
+                    <Button
+                        variant={activeMainSection === "project" ? "default" : "outline"}
+                        className="flex-1"
+                        onClick={() => {
+                            setActiveMainSection("project")
+                            setActiveTab("project")
+                        }}
+                    >
+                        <Folder className="h-4 w-4 mr-2" />
+                        Project Settings
+                    </Button>
+                </div>
+
                 {/* Settings Content */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                    {/* Categories Navigation - Horizontal Toggle Style */}
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-base">Categories</CardTitle>
-                            <CardDescription className="text-sm">
-                                Choose a settings category to configure
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto bg-muted/50 p-1">
-                                {settingsNavigation.map((item) => (
-                                    <TabsTrigger
-                                        key={item.id}
-                                        value={item.id}
-                                        className={cn(
-                                            "flex flex-col items-center gap-2 p-3 h-auto data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
-                                            "hover:bg-background/50 transition-all duration-200 rounded-md"
-                                        )}
-                                    >
-                                        <div className="flex-shrink-0">{item.icon}</div>
-                                        <div className="text-center">
-                                            <div className="font-medium text-sm">{item.label}</div>
-                                            {item.badge && (
-                                                <Badge variant={item.badge.variant} className="mt-1 text-xs">
-                                                    {item.badge.text}
-                                                </Badge>
+                {activeMainSection === "general" ? (
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                        {/* General Settings Navigation */}
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <CardTitle className="text-base">General Settings</CardTitle>
+                                <CardDescription className="text-sm">
+                                    Configure your general application preferences
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto bg-muted/50 p-1">
+                                    {generalSettingsNavigation.map((item) => (
+                                        <TabsTrigger
+                                            key={item.id}
+                                            value={item.id}
+                                            className={cn(
+                                                "flex flex-col items-center gap-2 p-3 h-auto data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+                                                "hover:bg-background/50 transition-all duration-200 rounded-md"
                                             )}
-                                        </div>
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
-                        </CardContent>
-                    </Card>
+                                        >
+                                            <div className="flex-shrink-0">{item.icon}</div>
+                                            <div className="text-center">
+                                                <div className="font-medium text-sm">{item.label}</div>
+                                                {item.badge && (
+                                                    <Badge variant={item.badge.variant} className="mt-1 text-xs">
+                                                        {item.badge.text}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </CardContent>
+                        </Card>
 
-                    {/* Settings Content */}
-                    <div className="w-full">
-                        <TabsContent value="general" className="m-0">
-                            <GeneralSettings
-                                settings={settings.general || {}}
-                                onSettingsChange={(newSettings) => handleSettingsChange('general', newSettings)}
-                                onSave={(sectionSettings) => saveSettings('general', sectionSettings)}
-                            />
-                        </TabsContent>
+                        {/* General Settings Content */}
+                        <div className="w-full">
+                            <TabsContent value="general" className="m-0">
+                                <GeneralSettings
+                                    settings={settings.general || {}}
+                                    onSettingsChange={(newSettings) => handleSettingsChange('general', newSettings)}
+                                    onSave={(sectionSettings) => saveSettings('general', sectionSettings)}
+                                />
+                            </TabsContent>
 
-                        <TabsContent value="notifications" className="m-0">
-                            <NotificationSettings
-                                settings={settings.notifications || {}}
-                                onSettingsChange={(newSettings) => handleSettingsChange('notifications', newSettings)}
-                                onSave={(sectionSettings) => saveSettings('notifications', sectionSettings)}
-                            />
-                        </TabsContent>
+                            <TabsContent value="notifications" className="m-0">
+                                <NotificationSettings
+                                    settings={settings.notifications || {}}
+                                    onSettingsChange={(newSettings) => handleSettingsChange('notifications', newSettings)}
+                                    onSave={(sectionSettings) => saveSettings('notifications', sectionSettings)}
+                                />
+                            </TabsContent>
 
-                        <TabsContent value="project" className="m-0">
-                            <ProjectSettings
-                                settings={settings.project || {}}
-                                onSettingsChange={(newSettings) => handleSettingsChange('project', newSettings)}
-                                onSave={(sectionSettings) => saveSettings('project', sectionSettings)}
-                            />
-                        </TabsContent>
+                            <TabsContent value="security" className="m-0">
+                                <SecuritySettings
+                                    settings={settings.security || {}}
+                                    onSettingsChange={(newSettings) => handleSettingsChange('security', newSettings)}
+                                    onSave={(sectionSettings) => saveSettings('security', sectionSettings)}
+                                />
+                            </TabsContent>
 
-                        <TabsContent value="security" className="m-0">
-                            <SecuritySettings
-                                settings={settings.security || {}}
-                                onSettingsChange={(newSettings) => handleSettingsChange('security', newSettings)}
-                                onSave={(sectionSettings) => saveSettings('security', sectionSettings)}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="theme" className="m-0">
-                            <ThemeSettings
-                                settings={settings.theme || {}}
-                                onSettingsChange={(newSettings) => handleSettingsChange('theme', newSettings)}
-                                onSave={(sectionSettings) => saveSettings('theme', sectionSettings)}
-                            />
-                        </TabsContent>
-                    </div>
-                </Tabs>
+                            <TabsContent value="theme" className="m-0">
+                                <ThemeSettings
+                                    settings={settings.theme || {}}
+                                    onSettingsChange={(newSettings) => handleSettingsChange('theme', newSettings)}
+                                    onSave={(sectionSettings) => saveSettings('theme', sectionSettings)}
+                                />
+                            </TabsContent>
+                        </div>
+                    </Tabs>
+                ) : (
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                        {/* Project Settings Navigation */}
+                        {/* Project Settings Content */}
+                        <div className="w-full">
+                            <TabsContent value="project" className="m-0">
+                                <ProjectSettings
+                                    settings={settings.project || {}}
+                                    onSettingsChange={(newSettings) => handleSettingsChange('project', newSettings)}
+                                    onSave={(sectionSettings) => saveSettings('project', sectionSettings)}
+                                />
+                            </TabsContent>
+                        </div>
+                    </Tabs>
+                )}
             </div>
         </DashboardLayout>
     )
