@@ -91,23 +91,34 @@ const generateNotificationsFromActivities = async () => {
                     category = categoryMap[category] || 'general';
                 }
 
-                const notification = new Notification({
-                    title: getActivityNotificationTitle(activity),
-                    message: activity.description,
-                    type: getActivityNotificationType(activity),
-                    recipient: activity.user._id,
-                    category: category,
-                    metadata: {
-                        activityId: activity._id,
-                        activityType: activity.type
+                // Check user's notification settings
+                const userSettings = await require('../models/Settings').findOne({ userId: activity.user._id });
+
+                // Check in-app notification settings
+                const shouldCreateInAppNotification = userSettings
+                    ? userSettings.notifications?.inApp?.enabled !== false
+                    : activity.user.preferences?.notifications?.push !== false;
+
+                // Only create notification if in-app notifications are enabled
+                if (shouldCreateInAppNotification) {
+                    const notification = new Notification({
+                        title: getActivityNotificationTitle(activity),
+                        message: activity.description,
+                        type: getActivityNotificationType(activity),
+                        recipient: activity.user._id,
+                        category: category,
+                        metadata: {
+                            activityId: activity._id,
+                            activityType: activity.type
+                        }
+                    });
+
+                    await notification.save();
+                    notificationCount++;
+
+                    if (notificationCount % 100 === 0) {
+                        console.log(`Generated ${notificationCount} notifications so far...`);
                     }
-                });
-
-                await notification.save();
-                notificationCount++;
-
-                if (notificationCount % 100 === 0) {
-                    console.log(`Generated ${notificationCount} notifications so far...`);
                 }
             }
         }

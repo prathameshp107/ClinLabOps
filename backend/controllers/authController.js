@@ -87,6 +87,59 @@ exports.login = async (req, res) => {
     }
 };
 
+/**
+ * Social login handler
+ */
+exports.socialLogin = async (req, res) => {
+    try {
+        if (!req.user) {
+            // Redirect to login page with error
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}`);
+        }
+
+        const user = req.user;
+
+        // Generate JWT token
+        const token = jwt.sign({ userId: user._id, roles: user.roles }, JWT_SECRET, { expiresIn: '1d' });
+
+        // Update last login
+        await user.updateLastLogin();
+
+        // Log successful login
+        await ActivityService.logAuthActivity('login', user);
+
+        // Send welcome email if this is the first login
+        if (!user.lastLoginAt) {
+            emailService.sendWelcomeEmail(user)
+                .then(() => {
+                    console.log(`Welcome email sent to ${user.email}`);
+                })
+                .catch((emailError) => {
+                    console.error(`Failed to send welcome email to ${user.email}:`, emailError);
+                });
+        }
+
+        // Redirect to frontend with token and user data
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const userData = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            roles: user.roles,
+            isPowerUser: user.isPowerUser
+        };
+
+        res.redirect(`${frontendUrl}/login?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`);
+    } catch (err) {
+        console.error('Social login error:', err);
+        // Redirect to login page with error
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const errorMessage = err.message || 'Authentication failed';
+        res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorMessage)}`);
+    }
+};
+
 exports.getProfile = async (req, res) => {
     res.json(req.user);
 };

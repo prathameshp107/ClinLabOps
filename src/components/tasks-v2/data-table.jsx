@@ -150,8 +150,8 @@ export function DataTable({
                       <svg width="48" height="48" className="sm:w-16 sm:h-16 mb-3 sm:mb-4 opacity-60" fill="none" viewBox="0 0 24 24">
                         <path d="M7 7h10M7 11h6m-6 4h10M5 5v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
-                      <div className="text-base sm:text-lg font-semibold">No users found</div>
-                      <div className="text-xs sm:text-sm mt-1 px-4 text-center">No users match your current filters. Try adjusting your search or filters.</div>
+                      <div className="text-base sm:text-lg font-semibold">No tasks found</div>
+                      <div className="text-xs sm:text-sm mt-1 px-4 text-center">No tasks match your current filters. Try adjusting your search or filters.</div>
                     </div>
                   </TableCell>
                 </TableRow>

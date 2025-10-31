@@ -9,6 +9,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Include credentials for OAuth
+  withCredentials: true
 });
 
 /**
@@ -47,6 +49,51 @@ export async function register(userData) {
     console.error('Registration error:', error);
     throw error;
   }
+}
+
+/**
+ * Social login
+ * @param {string} provider - OAuth provider (google, github, etc.)
+ * @returns {Promise<Object>} User data and token
+ */
+export async function socialLogin(provider) {
+  // This function will be called after OAuth redirect
+  try {
+    // Get the current URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const user = urlParams.get('user');
+
+    if (token && user) {
+      // Store token and user data
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', user);
+
+      // Remove params from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+
+      return { token, user: JSON.parse(user) };
+    }
+
+    throw new Error('Authentication failed');
+  } catch (error) {
+    console.error('Social login error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Initiate Google OAuth login
+ */
+export function initiateGoogleLogin() {
+  window.location.href = `${API_BASE_URL}/auth/google`;
+}
+
+/**
+ * Initiate GitHub OAuth login
+ */
+export function initiateGithubLogin() {
+  window.location.href = `${API_BASE_URL}/auth/github`;
 }
 
 /**

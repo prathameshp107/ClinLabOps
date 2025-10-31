@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        // Not required for OAuth users
     },
     roles: {
         type: [String],
@@ -86,6 +86,19 @@ const userSchema = new mongoose.Schema({
             default: 'en',
         },
     },
+    // OAuth fields
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    githubId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    googleToken: String,
+    githubToken: String
 }, { timestamps: true });
 
 // Index for efficient queries
@@ -93,6 +106,8 @@ userSchema.index({ email: 1 });
 userSchema.index({ status: 1 });
 userSchema.index({ department: 1 });
 userSchema.index({ passwordResetToken: 1 });
+userSchema.index({ googleId: 1 });
+userSchema.index({ githubId: 1 });
 
 // Update lastLogin on successful login
 userSchema.methods.updateLastLogin = function () {

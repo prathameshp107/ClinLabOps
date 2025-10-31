@@ -60,7 +60,11 @@ import {
   Info,
 } from "lucide-react"
 
+// Auth Components
+import RegistrationSuccessModal from "@/components/auth/RegistrationSuccessModal"
+
 import { register } from "@/services/authService"
+import { initiateGoogleLogin, initiateGithubLogin } from "@/services/authService";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -101,6 +105,8 @@ export default function RegisterPage() {
   const [signupSuccess, setSignupSuccess] = useState(false)
   const [formError, setFormError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [registeredUserEmail, setRegisteredUserEmail] = useState("")
   const { theme } = useTheme()
   const router = useRouter()
 
@@ -177,19 +183,15 @@ export default function RegisterPage() {
 
       // Handle successful registration
       if (response.message === "User registered successfully") {
-        setSuccessMessage("Registration successful! Redirecting to login...");
-        setTimeout(() => {
-          setIsLoading(false);
-          router.push("/login");
-        }, 1500);
+        setRegisteredUserEmail(data.email)
+        setShowSuccessModal(true)
+        setSuccessMessage("Registration successful!")
       } else {
         // Handle other responses
-        setSuccessMessage(response.message);
-        setTimeout(() => {
-          setIsLoading(false);
-          router.push("/login");
-        }, 1500);
+        setSuccessMessage(response.message)
       }
+
+      setIsLoading(false)
 
     } catch (error) {
       console.error("Error submitting form:", error)
@@ -218,6 +220,21 @@ export default function RegisterPage() {
     if (passwordStrength < 80) return "Medium"
     return "Strong"
   }
+
+  // Close success modal handler
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false)
+  }
+
+  // Handle Google login
+  const handleGoogleLogin = () => {
+    initiateGoogleLogin();
+  };
+
+  // Handle GitHub login
+  const handleGithubLogin = () => {
+    initiateGithubLogin();
+  };
 
   // Success animation
   if (signupSuccess) {
@@ -312,6 +329,19 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/5 flex flex-col molecule-bg">
+      {/* Registration Success Modal */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showSuccessModal ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <RegistrationSuccessModal
+          isOpen={showSuccessModal}
+          userEmail={registeredUserEmail}
+          onClose={handleCloseSuccessModal}
+        />
+      </motion.div>
+
       <div className="container mx-auto px-4 py-6">
         <motion.div
           initial={{ x: -20, opacity: 0 }}
@@ -831,10 +861,15 @@ export default function RegisterPage() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                <Button variant="outline" className="w-full justify-start" size="lg">
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start"
+                                  size="lg"
+                                  onClick={handleGoogleLogin}
+                                >
                                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                                     <path
-                                      d="M20.9 2H3.1C2.5 2 2 2.5 2 3.1V20.9C2 21.5 2.5 22 3.1 22H12.7V14.2H10.1V11.2H12.7V9.1C12.7 6.6 14.2 5.2 16.5 5.2C17.6 5.2 18.5 5.3 18.8 5.3V8H17.1C15.8 8 15.5 8.6 15.5 9.5V11.2H18.7L18.3 14.2H15.5V22H20.9C21.5 22 22 21.5 22 20.9V3.1C22 2.5 21.5 2 20.9 2Z"
+                                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                                       fill="#4285F4"
                                     />
                                     <path
@@ -849,9 +884,8 @@ export default function RegisterPage() {
                                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                                       fill="#EA4335"
                                     />
-                                    <path d="M1 1h22v22H1z" fill="none" />
                                   </svg>
-                                  Sign up with Institutional Email
+                                  Continue with Google
                                 </Button>
                               </motion.div>
 
@@ -862,24 +896,14 @@ export default function RegisterPage() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                               >
-                                <Button variant="outline" className="w-full justify-start" size="lg">
-                                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M20.9 2H3.1C2.5 2 2 2.5 2 3.1V20.9C2 21.5 2.5 22 3.1 22H12.7V14.2H10.1V11.2H12.7V9.1C12.7 6.6 14.2 5.2 16.5 5.2C17.6 5.2 18.5 5.3 18.8 5.3V8H17.1C15.8 8 15.5 8.6 15.5 9.5V11.2H18.7L18.3 14.2H15.5V22H20.9C21.5 22 22 21.5 22 20.9V3.1C22 2.5 21.5 2 20.9 2Z" fill="#1877F2" />
-                                  </svg>
-                                  Sign up with ORCID
-                                </Button>
-                              </motion.div>
-
-                              <motion.div
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.3, delay: 0.3 }}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                              >
-                                <Button variant="outline" className="w-full justify-start" size="lg">
+                                <Button
+                                  variant="outline"
+                                  className="w-full justify-start"
+                                  size="lg"
+                                  onClick={handleGithubLogin}
+                                >
                                   <Github className="mr-2 h-4 w-4" />
-                                  Sign up with GitHub
+                                  Continue with GitHub
                                 </Button>
                               </motion.div>
                             </div>
