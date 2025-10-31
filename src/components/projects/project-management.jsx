@@ -180,7 +180,38 @@ export function ProjectManagement() {
 
     // Apply category filter
     if (activeCategory !== "all") {
-      filtered = filtered.filter(project => getProjectCategory(project) === activeCategory);
+      filtered = filtered.filter(project => getProjectCategory(project, [
+        {
+          id: "research",
+          name: "Research",
+          description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+          icon: "FlaskConical",
+          color: "text-blue-500",
+          bgColor: "bg-blue-500/10",
+          borderColor: "border-blue-500/20",
+          keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"]
+        },
+        {
+          id: "regulatory",
+          name: "Regulatory",
+          description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+          icon: "FileText",
+          color: "text-amber-500",
+          bgColor: "bg-amber-500/10",
+          borderColor: "border-amber-500/20",
+          keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"]
+        },
+        {
+          id: "miscellaneous",
+          name: "Miscellaneous",
+          description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+          icon: "Layers",
+          color: "text-purple-500",
+          bgColor: "bg-purple-500/10",
+          borderColor: "border-purple-500/20",
+          keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"]
+        }
+      ]) === activeCategory);
     }
 
     // Apply sorting

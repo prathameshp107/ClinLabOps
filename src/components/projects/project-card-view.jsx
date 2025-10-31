@@ -429,10 +429,10 @@ export function ProjectCardView({ projects, onAction }) {
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/projects/${project.id}/analytics`);
-                          }}
+                          // onClick={(e) => {
+                          //   e.stopPropagation();
+                          //   router.push(`/projects/${project.id}/analytics`);
+                          // }}
                         >
                           <TrendingUp className="h-3.5 w-3.5" />
                         </Button>

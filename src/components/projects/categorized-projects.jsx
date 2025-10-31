@@ -27,6 +27,11 @@ const ICON_COMPONENTS = {
 
 // Function to determine project category
 export const getProjectCategory = (project, categories) => {
+    // If project already has a category assigned, use it
+    if (project.category) {
+        return project.category;
+    }
+
     const projectText = `${project.name} ${project.description} ${project.tags?.join(' ') || ''}`.toLowerCase();
 
     // Check each category for matching keywords
