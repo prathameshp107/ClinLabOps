@@ -728,16 +728,28 @@ function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, r
         </div>
         <h3 className="text-xl font-semibold text-foreground mb-2">No projects found</h3>
         <p className="text-muted-foreground text-center max-w-md mb-6">
-          No projects match your current filters. Try adjusting your search criteria or create a new project to get started.
+          Get started by creating your first project. Projects help you organize and track your research work.
         </p>
-        <Button
-          variant="outline"
-          className="gap-2"
-          onClick={onClearFilters}
-        >
-          <FilterIcon className="h-4 w-4" />
-          Clear Filters
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            className="gap-2"
+            onClick={() => {
+              // In a real app, this would open the add project dialog
+              document.dispatchEvent(new CustomEvent('openAddProjectDialog'));
+            }}
+          >
+            <PlusCircle className="h-4 w-4" />
+            Create Project
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={onClearFilters}
+          >
+            <FilterIcon className="h-4 w-4" />
+            Clear Filters
+          </Button>
+        </div>
       </div>
     );
   }

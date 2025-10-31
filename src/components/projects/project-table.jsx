@@ -1,20 +1,20 @@
 "use client"
 
-import { 
-  Calendar, Clock, AlertTriangle, CheckCircle, PauseCircle, 
+import {
+  Calendar, Clock, AlertTriangle, CheckCircle, PauseCircle,
   ClipboardEdit, Trash2, Eye, MoreHorizontal, Star
 } from "lucide-react"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -47,7 +47,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
         return null;
     }
   };
-  
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":
@@ -62,7 +62,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
         return "bg-gray-500/10 text-gray-500 border-gray-500/20";
     }
   };
-  
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
@@ -97,7 +97,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
             <TableHead className="w-10">
               <span className="sr-only">Favorite</span>
             </TableHead>
-            <TableHead 
+            <TableHead
               onClick={() => requestSort('name')}
               className="cursor-pointer hover:bg-muted/50"
             >
@@ -108,7 +108,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
                 )}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               onClick={() => requestSort('status')}
               className="cursor-pointer hover:bg-muted/50"
             >
@@ -119,7 +119,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
                 )}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               onClick={() => requestSort('priority')}
               className="cursor-pointer hover:bg-muted/50"
             >
@@ -130,7 +130,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
                 )}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               onClick={() => requestSort('progress')}
               className="cursor-pointer hover:bg-muted/50"
             >
@@ -141,7 +141,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
                 )}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               onClick={() => requestSort('startDate')}
               className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
             >
@@ -152,7 +152,7 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
                 )}
               </div>
             </TableHead>
-            <TableHead 
+            <TableHead
               onClick={() => requestSort('endDate')}
               className="cursor-pointer hover:bg-muted/50 hidden md:table-cell"
             >
@@ -168,199 +168,213 @@ export function ProjectTable({ projects, onAction, sortConfig, requestSort }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {projects.map(project => (
-            <TableRow key={project.id} className="group">
-              <TableCell className="w-10">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`h-8 w-8 ${project.isFavorite ? 'text-yellow-500' : 'text-muted-foreground'}`}
-                  onClick={() => onAction("toggleFavorite", project)}
-                >
-                  <Star className={`h-4 w-4 ${project.isFavorite ? 'fill-yellow-500' : ''}`} />
-                </Button>
-              </TableCell>
-              <TableCell className="font-medium">
-                <div className="flex flex-col">
-                  <span className="group-hover:text-primary duration-200">
-                    {project.name}
-                  </span>
-                  {project.tags && project.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {project.tags.map(tag => (
-                        <Badge key={tag} variant="outline" className="text-xs font-normal">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1.5">
-                  <Badge variant="outline" className={`${getStatusColor(project.status)}`}>
-                    <span className="flex items-center gap-1.5">
-                      {getStatusIcon(project.status)}
-                      {project.status}
-                    </span>
-                  </Badge>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className={`${getPriorityColor(project.priority)}`}>
-                  {project.priority}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="w-[120px] space-y-1">
-                  <Progress value={project.progress} className="h-2" />
-                  <div className="text-xs text-muted-foreground">
-                    {project.progress}% Complete
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>{formatDate(project.startDate)}</span>
-                </div>
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>{formatDate(project.endDate)}</span>
-                </div>
-              </TableCell>
-              <TableCell className="hidden lg:table-cell">
-                <div className="flex -space-x-2">
-                  {project.team.slice(0, 3).map((member, index) => (
-                    <TooltipProvider key={member.id} delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium border-2 border-background"
-                            style={{ zIndex: 10 - index }}
-                          >
-                            {member.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{member.name}</p>
-                          <p className="text-xs text-muted-foreground">{member.role}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ))}
-                  {project.team.length > 3 && (
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div 
-                            className="h-8 w-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-medium border-2 border-background"
-                            style={{ zIndex: 7 }}
-                          >
-                            +{project.team.length - 3}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <div className="space-y-1">
-                            {project.team.slice(3).map(member => (
-                              <div key={member.id}>
-                                <p>{member.name}</p>
-                                <p className="text-xs text-muted-foreground">{member.role}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onAction("view", project)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View Details</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onAction("edit", project)}
-                        >
-                          <ClipboardEdit className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Edit Project</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => onAction("delete", project)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Delete Project</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Project Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onAction("view", project)}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onAction("edit", project)}>
-                        <ClipboardEdit className="h-4 w-4 mr-2" />
-                        Edit Project
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onAction("delete", project)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Project
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+          {projects.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan="10" className="h-32 sm:h-48 text-center">
+                <div className="flex flex-col items-center justify-center py-6 sm:py-8 text-muted-foreground">
+                  <svg width="48" height="48" className="sm:w-16 sm:h-16 mb-3 sm:mb-4 opacity-60" fill="none" viewBox="0 0 24 24">
+                    <path d="M3 5h18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2ZM3 7v10h18V7H3Zm4 4h10M7 11v4M11 11v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="text-base sm:text-lg font-semibold">No projects found</div>
+                  <div className="text-xs sm:text-sm mt-1 px-4 text-center">Get started by creating your first project to organize your research work.</div>
                 </div>
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            projects.map(project => (
+              <TableRow key={project.id} className="group">
+                <TableCell className="w-10">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`h-8 w-8 ${project.isFavorite ? 'text-yellow-500' : 'text-muted-foreground'}`}
+                    onClick={() => onAction("toggleFavorite", project)}
+                  >
+                    <Star className={`h-4 w-4 ${project.isFavorite ? 'fill-yellow-500' : ''}`} />
+                  </Button>
+                </TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex flex-col">
+                    <span className="group-hover:text-primary duration-200">
+                      {project.name}
+                    </span>
+                    {project.tags && project.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {project.tags.map(tag => (
+                          <Badge key={tag} variant="outline" className="text-xs font-normal">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className={`${getStatusColor(project.status)}`}>
+                      <span className="flex items-center gap-1.5">
+                        {getStatusIcon(project.status)}
+                        {project.status}
+                      </span>
+                    </Badge>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={`${getPriorityColor(project.priority)}`}>
+                    {project.priority}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="w-[120px] space-y-1">
+                    <Progress value={project.progress} className="h-2" />
+                    <div className="text-xs text-muted-foreground">
+                      {project.progress}% Complete
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{formatDate(project.startDate)}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{formatDate(project.endDate)}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <div className="flex -space-x-2">
+                    {project.team.slice(0, 3).map((member, index) => (
+                      <TooltipProvider key={member.id} delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium border-2 border-background"
+                              style={{ zIndex: 10 - index }}
+                            >
+                              {member.name.split(' ').map(n => n[0]).join('')}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{member.name}</p>
+                            <p className="text-xs text-muted-foreground">{member.role}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ))}
+                    {project.team.length > 3 && (
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              className="h-8 w-8 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-medium border-2 border-background"
+                              style={{ zIndex: 7 }}
+                            >
+                              +{project.team.length - 3}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="space-y-1">
+                              {project.team.slice(3).map(member => (
+                                <div key={member.id}>
+                                  <p>{member.name}</p>
+                                  <p className="text-xs text-muted-foreground">{member.role}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onAction("view", project)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View Details</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onAction("edit", project)}
+                          >
+                            <ClipboardEdit className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit Project</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onAction("delete", project)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete Project</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Project Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => onAction("view", project)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onAction("edit", project)}>
+                          <ClipboardEdit className="h-4 w-4 mr-2" />
+                          Edit Project
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onAction("delete", project)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Project
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </motion.div>
