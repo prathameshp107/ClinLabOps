@@ -78,7 +78,7 @@ const updateSettingsSection = async (req, res) => {
         const updates = req.body;
 
         // Validate section
-        const validSections = ['general', 'notifications', 'security', 'privacy', 'theme', 'integrations', 'data', 'system'];
+        const validSections = ['general', 'notifications', 'security', 'privacy', 'theme', 'integrations', 'data', 'system', 'project'];
         if (!validSections.includes(section)) {
             return res.status(400).json({ message: 'Invalid settings section' });
         }

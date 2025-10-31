@@ -272,6 +272,38 @@ const settingsSchema = new mongoose.Schema({
         }
     },
 
+    // Project Settings
+    project: {
+        categories: [{
+            id: { type: String, required: true },
+            name: { type: String, required: true },
+            description: { type: String, default: '' },
+            icon: { type: String, default: 'FolderPlus' },
+            color: { type: String, default: 'text-blue-500' },
+            bgColor: { type: String, default: 'bg-blue-500/10' },
+            borderColor: { type: String, default: 'border-blue-500/20' },
+            keywords: { type: [String], default: [] },
+            templates: [{
+                id: { type: String, required: true },
+                name: { type: String, required: true },
+                description: { type: String, default: '' }
+            }],
+            subTypes: [{
+                id: { type: String, required: true },
+                name: { type: String, required: true },
+                description: { type: String, default: '' },
+                icon: { type: String, default: 'FileText' },
+                color: { type: String, default: 'text-blue-600' },
+                bgColor: { type: String, default: 'bg-blue-500/10' },
+                templates: [{
+                    id: { type: String, required: true },
+                    name: { type: String, required: true },
+                    description: { type: String, default: '' }
+                }]
+            }]
+        }]
+    },
+
     // System Settings (Admin only)
     system: {
         maintenance: {
@@ -462,6 +494,55 @@ settingsSchema.statics.getDefaultSettings = function () {
                 includeMetadata: true,
                 compression: true
             }
+        },
+        project: {
+            categories: [
+                {
+                    id: "research",
+                    name: "Research",
+                    description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+                    icon: "FlaskConical",
+                    color: "text-blue-500",
+                    bgColor: "bg-blue-500/10",
+                    borderColor: "border-blue-500/20",
+                    keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"],
+                    templates: [
+                        { id: "basic-research", name: "Basic Research", description: "Standard research project template" },
+                        { id: "experimental", name: "Experimental Study", description: "Controlled experiment template" },
+                        { id: "data-analysis", name: "Data Analysis", description: "Data-driven research template" }
+                    ]
+                },
+                {
+                    id: "regulatory",
+                    name: "Regulatory",
+                    description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+                    icon: "FileText",
+                    color: "text-amber-500",
+                    bgColor: "bg-amber-500/10",
+                    borderColor: "border-amber-500/20",
+                    keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"],
+                    templates: [
+                        { id: "fda", name: "FDA Submission", description: "FDA regulatory submission template" },
+                        { id: "iso", name: "ISO Compliance", description: "ISO standard compliance template" },
+                        { id: "oecd", name: "OECD Guidelines", description: "OECD testing guidelines template" }
+                    ]
+                },
+                {
+                    id: "miscellaneous",
+                    name: "Miscellaneous",
+                    description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+                    icon: "Layers",
+                    color: "text-purple-500",
+                    bgColor: "bg-purple-500/10",
+                    borderColor: "border-purple-500/20",
+                    keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"],
+                    templates: [
+                        { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template" },
+                        { id: "academic", name: "Academic Research", description: "University research project template" },
+                        { id: "consulting", name: "Consulting Project", description: "Client consulting project template" }
+                    ]
+                }
+            ]
         },
         system: {
             maintenance: { maintenanceMode: false },

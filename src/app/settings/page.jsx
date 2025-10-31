@@ -27,7 +27,8 @@ import {
     AlertTriangle,
     CheckCircle,
     Clock,
-    Monitor
+    Monitor,
+    Folder
 } from "lucide-react"
 
 // Import settings components
@@ -35,6 +36,7 @@ import { GeneralSettings } from "@/components/settings/general-settings"
 import { NotificationSettings } from "@/components/settings/notification-settings"
 import { SecuritySettings } from "@/components/settings/security-settings"
 import { ThemeSettings } from "@/components/settings/theme-settings"
+import { ProjectSettings } from "@/components/settings/project-settings"
 import { getSettings, updateSettings } from "@/services/settingsService"
 
 export default function SettingsPage() {
@@ -113,6 +115,13 @@ export default function SettingsPage() {
             badge: null
         },
         {
+            id: "project",
+            label: "Project",
+            icon: <Folder className="h-4 w-4" />,
+            description: "Project categories and templates",
+            badge: null
+        },
+        {
             id: "security",
             label: "Security",
             icon: <Shield className="h-4 w-4" />,
@@ -175,7 +184,7 @@ export default function SettingsPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto bg-muted/50 p-1">
+                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto bg-muted/50 p-1">
                                 {settingsNavigation.map((item) => (
                                     <TabsTrigger
                                         key={item.id}
@@ -215,6 +224,14 @@ export default function SettingsPage() {
                                 settings={settings.notifications || {}}
                                 onSettingsChange={(newSettings) => handleSettingsChange('notifications', newSettings)}
                                 onSave={(sectionSettings) => saveSettings('notifications', sectionSettings)}
+                            />
+                        </TabsContent>
+
+                        <TabsContent value="project" className="m-0">
+                            <ProjectSettings
+                                settings={settings.project || {}}
+                                onSettingsChange={(newSettings) => handleSettingsChange('project', newSettings)}
+                                onSave={(sectionSettings) => saveSettings('project', sectionSettings)}
                             />
                         </TabsContent>
 
