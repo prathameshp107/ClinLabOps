@@ -165,6 +165,26 @@ export default function DashboardPage() {
     checkUserRole();
   }, []);
 
+  // Handle OAuth token from URL parameters
+  useEffect(() => {
+    // Check if we have a token in the URL (from OAuth redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+
+    if (token) {
+      // Store token in localStorage
+      localStorage.setItem('token', token);
+
+      // Remove token from URL
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('token');
+      window.history.replaceState({}, document.title, newUrl.toString());
+
+      // Reload the page to ensure all components have access to the token
+      window.location.reload();
+    }
+  }, []);
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {

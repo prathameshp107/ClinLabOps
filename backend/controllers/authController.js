@@ -120,17 +120,9 @@ exports.socialLogin = async (req, res) => {
                 });
         }
 
-        // Redirect to frontend with token and user data
+        // For better user experience, redirect directly to dashboard with token in URL
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const userData = {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            roles: user.roles,
-            isPowerUser: user.isPowerUser
-        };
-
-        res.redirect(`${frontendUrl}/login?token=${token}&user=${encodeURIComponent(JSON.stringify(userData))}`);
+        res.redirect(`${frontendUrl}/dashboard?token=${token}`);
     } catch (err) {
         console.error('Social login error:', err);
         // Redirect to login page with error
