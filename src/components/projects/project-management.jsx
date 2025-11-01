@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import {
   PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, LayoutGrid,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
-  Users, Clock
+  Users, Clock, FlaskConical, FileText, Layers
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,6 +44,7 @@ import { getUsers } from "@/services/userService"
 import { getCurrentUser } from "@/services/authService"
 import { getProjects, createProject, updateProject, deleteProject } from "@/services/projectService"
 import { createActivity } from "@/services/activityService"
+import { getSettings } from "@/services/settingsService"
 import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { ErrorState } from "@/components/ui/error-state"
 
@@ -61,6 +62,90 @@ export function ProjectManagement() {
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
   const [activeView, setActiveView] = useState("projects"); // "projects", "status", "gantt", "dependencies"
   const [activeCategory, setActiveCategory] = useState("all"); // "all", "research", "regulatory", "miscellaneous"
+  const [projectCategories, setProjectCategories] = useState([]);
+
+  // Load project categories from settings
+  useEffect(() => {
+    const loadProjectCategories = async () => {
+      try {
+        const settings = await getSettings();
+        if (settings.project?.categories && settings.project.categories.length > 0) {
+          setProjectCategories(settings.project.categories);
+        } else {
+          // Fallback to default categories
+          setProjectCategories([
+            {
+              id: "research",
+              name: "Research",
+              description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+              icon: "FlaskConical",
+              color: "text-blue-500",
+              bgColor: "bg-blue-500/10",
+              borderColor: "border-blue-500/20",
+              keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"]
+            },
+            {
+              id: "regulatory",
+              name: "Regulatory",
+              description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+              icon: "FileText",
+              color: "text-amber-500",
+              bgColor: "bg-amber-500/10",
+              borderColor: "border-amber-500/20",
+              keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"]
+            },
+            {
+              id: "miscellaneous",
+              name: "Miscellaneous",
+              description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+              icon: "Layers",
+              color: "text-purple-500",
+              bgColor: "bg-purple-500/10",
+              borderColor: "border-purple-500/20",
+              keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"]
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error loading project categories:', error);
+        // Fallback to default categories on error
+        setProjectCategories([
+          {
+            id: "research",
+            name: "Research",
+            description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+            icon: "FlaskConical",
+            color: "text-blue-500",
+            bgColor: "bg-blue-500/10",
+            borderColor: "border-blue-500/20",
+            keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"]
+          },
+          {
+            id: "regulatory",
+            name: "Regulatory",
+            description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+            icon: "FileText",
+            color: "text-amber-500",
+            bgColor: "bg-amber-500/10",
+            borderColor: "border-amber-500/20",
+            keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"]
+          },
+          {
+            id: "miscellaneous",
+            name: "Miscellaneous",
+            description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+            icon: "Layers",
+            color: "text-purple-500",
+            bgColor: "bg-purple-500/10",
+            borderColor: "border-purple-500/20",
+            keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"]
+          }
+        ]);
+      }
+    };
+
+    loadProjectCategories();
+  }, []);
 
   // Dialog states
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
@@ -180,38 +265,7 @@ export function ProjectManagement() {
 
     // Apply category filter
     if (activeCategory !== "all") {
-      filtered = filtered.filter(project => getProjectCategory(project, [
-        {
-          id: "research",
-          name: "Research",
-          description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
-          icon: "FlaskConical",
-          color: "text-blue-500",
-          bgColor: "bg-blue-500/10",
-          borderColor: "border-blue-500/20",
-          keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"]
-        },
-        {
-          id: "regulatory",
-          name: "Regulatory",
-          description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
-          icon: "FileText",
-          color: "text-amber-500",
-          bgColor: "bg-amber-500/10",
-          borderColor: "border-amber-500/20",
-          keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"]
-        },
-        {
-          id: "miscellaneous",
-          name: "Miscellaneous",
-          description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
-          icon: "Layers",
-          color: "text-purple-500",
-          bgColor: "bg-purple-500/10",
-          borderColor: "border-purple-500/20",
-          keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"]
-        }
-      ]) === activeCategory);
+      filtered = filtered.filter(project => getProjectCategory(project, projectCategories) === activeCategory);
     }
 
     // Apply sorting
@@ -250,7 +304,7 @@ export function ProjectManagement() {
     }
 
     return filtered;
-  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab, activeCategory, sortConfig]);
+  }, [projects, searchQuery, statusFilter, priorityFilter, timeframeFilter, activeTab, activeCategory, sortConfig, projectCategories]);
 
   // Sorting function
   const requestSort = (key) => {
@@ -650,31 +704,46 @@ export function ProjectManagement() {
                     <SelectItem value="past">Past</SelectItem>
                   </SelectContent>
                 </Select>
+
+                <Select value={activeCategory} onValueChange={setActiveCategory}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {projectCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center gap-2">
+                          {category.icon && (
+                            (() => {
+                              const IconComponent = ICON_COMPONENTS[category.icon] || FlaskConical;
+                              return <IconComponent className={`h-4 w-4 ${category.color}`} />;
+                            })()
+                          )}
+                          {category.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
 
           {/* Projects Display */}
-          {activeCategory === "all" ? (
-            <CategorizedProjects
-              projects={filteredProjects}
-              viewMode={viewMode}
-              handleProjectAction={handleProjectAction}
-              sortConfig={sortConfig}
-              requestSort={requestSort}
-              searchQuery={searchQuery}
-              onClearFilters={clearFilters}
-            />
-          ) : (
-            <ProjectDisplay
-              projects={filteredProjects}
-              viewMode={viewMode}
-              handleProjectAction={handleProjectAction}
-              sortConfig={sortConfig}
-              requestSort={requestSort}
-              onClearFilters={clearFilters}
-            />
-          )}
+          <Tabs defaultValue="categorized" className="mt-0">
+            <TabsContent value="categorized" className="mt-0">
+              <CategorizedProjects
+                projects={filteredProjects}
+                viewMode={viewMode}
+                handleProjectAction={handleProjectAction}
+                sortConfig={sortConfig}
+                requestSort={requestSort}
+                searchQuery={searchQuery}
+                onClearFilters={clearFilters}
+              />
+            </TabsContent>
+          </Tabs>
         </>
       )}
 
@@ -748,6 +817,15 @@ export function ProjectManagement() {
     </div>
   );
 }
+
+// Icon mapping
+const ICON_COMPONENTS = {
+  FlaskConical,
+  FileText,
+  Layers,
+  FolderPlus,
+  ClipboardEdit
+};
 
 // ProjectDisplay component to avoid duplicate code
 function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort, onClearFilters }) {

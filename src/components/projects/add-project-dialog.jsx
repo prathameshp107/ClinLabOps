@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers, Sparkles, ChevronLeft, ClipboardEdit } from "lucide-react"
+import {
+  Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers, Sparkles, ChevronLeft, ClipboardEdit
+} from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -286,6 +289,13 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         const settings = await getSettings();
         if (settings.project) {
           setProjectSettings(settings.project);
+          // Set default category to the first available category
+          if (settings.project.categories && settings.project.categories.length > 0) {
+            setProjectData(prev => ({
+              ...prev,
+              category: settings.project.categories[0].id
+            }));
+          }
         }
       } catch (error) {
         console.error('Failed to fetch project settings:', error);
@@ -989,77 +999,112 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         </TooltipProvider>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <motion.div
-                          className={cn(
-                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
-                            projectData.category === "research"
-                              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                              : "border-border/50 bg-background/50 hover:border-primary/30"
-                          )}
-                          onClick={() => handleSelectChange("research", "category")}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-lg bg-blue-500/10">
-                              <FlaskConical className="h-5 w-5 text-blue-500" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-base">Research</h3>
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                Exploratory or proof-of-concept studies
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
+                        {projectSettings.categories && projectSettings.categories.length > 0 ? (
+                          projectSettings.categories.map((category) => {
+                            const IconComponent = ICON_COMPONENTS[category.icon] || FlaskConical;
+                            return (
+                              <motion.div
+                                key={category.id}
+                                className={cn(
+                                  "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                  projectData.category === category.id
+                                    ? `${category.borderColor} ${category.bgColor} ring-2 ring-primary/20`
+                                    : "border-border/50 bg-background/50 hover:border-primary/30"
+                                )}
+                                onClick={() => handleSelectChange(category.id, "category")}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`p-2.5 rounded-lg ${category.bgColor}`}>
+                                    <IconComponent className={`h-5 w-5 ${category.color}`} />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold text-base">{category.name}</h3>
+                                    <p className="text-xs text-muted-foreground mt-1.5">
+                                      {category.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })
+                        ) : (
+                          // Fallback to default categories if none are loaded
+                          <>
+                            <motion.div
+                              className={cn(
+                                "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                projectData.category === "research"
+                                  ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                                  : "border-border/50 bg-background/50 hover:border-primary/30"
+                              )}
+                              onClick={() => handleSelectChange("research", "category")}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 rounded-lg bg-blue-500/10">
+                                  <FlaskConical className="h-5 w-5 text-blue-500" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-base">Research</h3>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    Exploratory or proof-of-concept studies
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
 
-                        <motion.div
-                          className={cn(
-                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
-                            projectData.category === "regulatory"
-                              ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20"
-                              : "border-border/50 bg-background/50 hover:border-amber-300/50"
-                          )}
-                          onClick={() => handleSelectChange("regulatory", "category")}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-lg bg-amber-500/10">
-                              <FileText className="h-5 w-5 text-amber-500" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-base">Regulatory</h3>
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                Guideline-driven studies for authority submissions
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
+                            <motion.div
+                              className={cn(
+                                "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                projectData.category === "regulatory"
+                                  ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20"
+                                  : "border-border/50 bg-background/50 hover:border-amber-300/50"
+                              )}
+                              onClick={() => handleSelectChange("regulatory", "category")}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 rounded-lg bg-amber-500/10">
+                                  <FileText className="h-5 w-5 text-amber-500" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-base">Regulatory</h3>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    Guideline-driven studies for authority submissions
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
 
-                        <motion.div
-                          className={cn(
-                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
-                            projectData.category === "miscellaneous"
-                              ? "border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20"
-                              : "border-border/50 bg-background/50 hover:border-purple-300/50"
-                          )}
-                          onClick={() => handleSelectChange("miscellaneous", "category")}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-lg bg-purple-500/10">
-                              <Layers className="h-5 w-5 text-purple-500" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-base">Miscellaneous</h3>
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                Pilot, academic, or client-specific studies
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
+                            <motion.div
+                              className={cn(
+                                "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                projectData.category === "miscellaneous"
+                                  ? "border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20"
+                                  : "border-border/50 bg-background/50 hover:border-purple-300/50"
+                              )}
+                              onClick={() => handleSelectChange("miscellaneous", "category")}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 rounded-lg bg-purple-500/10">
+                                  <Layers className="h-5 w-5 text-purple-500" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-base">Miscellaneous</h3>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    Pilot, academic, or client-specific studies
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
+                          </>
+                        )}
                       </div>
                     </div>
 

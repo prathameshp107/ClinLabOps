@@ -73,12 +73,7 @@ export function CategorizedProjects({
     searchQuery,
     onClearFilters
 }) {
-    const [expandedCategories, setExpandedCategories] = useState({
-        research: true,
-        regulatory: true,
-        miscellaneous: true
-    });
-
+    const [expandedCategories, setExpandedCategories] = useState({});
     const [projectCategories, setProjectCategories] = useState([
         {
             id: "research",
@@ -126,9 +121,22 @@ export function CategorizedProjects({
                         initialExpanded[category.id] = true;
                     });
                     setExpandedCategories(initialExpanded);
+                } else {
+                    // Initialize expanded categories state with default categories
+                    const initialExpanded = {};
+                    projectCategories.forEach(category => {
+                        initialExpanded[category.id] = true;
+                    });
+                    setExpandedCategories(initialExpanded);
                 }
             } catch (error) {
                 console.error('Error loading project settings:', error);
+                // Initialize expanded categories state with default categories
+                const initialExpanded = {};
+                projectCategories.forEach(category => {
+                    initialExpanded[category.id] = true;
+                });
+                setExpandedCategories(initialExpanded);
             }
         };
 
