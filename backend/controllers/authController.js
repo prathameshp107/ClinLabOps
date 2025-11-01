@@ -93,9 +93,23 @@ exports.login = async (req, res) => {
 exports.socialLogin = async (req, res) => {
     try {
         if (!req.user) {
-            // Redirect to login page with error
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}`);
+            // Send HTML page that redirects to login with error
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+            return res.status(401).send(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Redirecting...</title>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                </head>
+                <body>
+                    <script>
+                        window.location.href = '${frontendUrl}/login?error=${encodeURIComponent('Authentication failed')}';
+                    </script>
+                </body>
+                </html>
+            `);
         }
 
         const user = req.user;
@@ -120,21 +134,56 @@ exports.socialLogin = async (req, res) => {
                 });
         }
 
-        // For better user experience, redirect directly to dashboard with token in URL
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/dashboard?token=${token}&user=${encodeURIComponent(JSON.stringify({
+        // Send HTML page that handles the redirect with token and user data
+        const userData = {
             id: user._id,
             name: user.name,
             email: user.email,
             roles: user.roles,
             isPowerUser: user.isPowerUser
-        }))}`);
+        };
+
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+        res.status(200).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Redirecting...</title>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body>
+                <script>
+                    // Store token and user data in localStorage
+                    localStorage.setItem('token', '${token}');
+                    localStorage.setItem('user', '${JSON.stringify(userData)}');
+                    
+                    // Redirect to dashboard
+                    window.location.href = '${frontendUrl}/dashboard';
+                </script>
+            </body>
+            </html>
+        `);
     } catch (err) {
         console.error('Social login error:', err);
-        // Redirect to login page with error
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        // Send HTML page that redirects to login with error
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
         const errorMessage = err.message || 'Authentication failed';
-        res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(errorMessage)}`);
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Redirecting...</title>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body>
+                <script>
+                    window.location.href = '${frontendUrl}/login?error=${encodeURIComponent(errorMessage)}';
+                </script>
+            </body>
+            </html>
+        `);
     }
 };
 

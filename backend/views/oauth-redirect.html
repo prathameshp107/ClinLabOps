@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting...</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <script>
+        // Extract token and user data from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const user = urlParams.get('user');
+        
+        if (token && user) {
+            // Store in localStorage
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', user);
+            
+            // Redirect to dashboard
+            window.location.href = '/dashboard';
+        } else {
+            // Redirect to login if no token/user
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
