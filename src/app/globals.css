@@ -373,7 +373,6 @@
   background-color: #18181b;
 }
 
-/* Comment section dark mode specific styles */
 .dark .comment-section-card {
   background-color: #18181b;
   border-color: #3f3f46;
@@ -470,5 +469,50 @@
   /* Ensure text doesn't break layout */
   .text-ellipsis-responsive {
     @apply truncate max-w-0;
+  }
+  
+  /* Project Categories table responsive improvements */
+  .project-categories-table {
+    @apply w-full border-collapse;
+  }
+  
+  .project-categories-table th {
+    @apply px-4 py-3 text-left text-sm font-medium text-muted-foreground align-middle;
+  }
+  
+  .project-categories-table td {
+    @apply px-4 py-3 align-middle;
+  }
+  
+  .project-categories-table .category-cell {
+    @apply min-w-[250px];
+  }
+  
+  .project-categories-table .description-cell {
+    @apply min-w-[250px] max-w-md;
+  }
+  
+  .project-categories-table .count-cell {
+    @apply text-center min-w-[100px];
+  }
+  
+  .project-categories-table .actions-cell {
+    @apply text-right min-w-[120px];
+  }
+  
+  /* Responsive adjustments for smaller screens */
+  @media (max-width: 768px) {
+    .project-categories-table th,
+    .project-categories-table td {
+      @apply px-2 py-2 text-sm;
+    }
+    
+    .project-categories-table .category-cell {
+      @apply min-w-[150px];
+    }
+    
+    .project-categories-table .description-cell {
+      @apply min-w-[150px] max-w-xs;
+    }
   }
 }

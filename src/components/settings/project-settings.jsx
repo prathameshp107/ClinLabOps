@@ -32,12 +32,6 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion"
-import {
     PlusCircle,
     Edit,
     Trash2,
@@ -725,270 +719,95 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                 </CardHeader>
                 <CardContent>
                     {filteredCategories.length > 0 ? (
-                        <div className="rounded-md border">
-                            <Table>
+                        <div className="rounded-md border overflow-x-auto">
+                            <Table className="project-categories-table min-w-full">
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="w-[300px]">Category</TableHead>
-                                        <TableHead className="w-[300px]">Description</TableHead>
-                                        <TableHead className="w-[100px] text-center">Sub-Types</TableHead>
-                                        <TableHead className="w-[100px] text-center">Templates</TableHead>
-                                        <TableHead className="w-[120px] text-right">Actions</TableHead>
+                                        <TableHead className="category-cell">Category</TableHead>
+                                        <TableHead className="description-cell">Description</TableHead>
+                                        <TableHead className="count-cell">Sub-Types</TableHead>
+                                        <TableHead className="count-cell">Templates</TableHead>
+                                        <TableHead className="actions-cell">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {filteredCategories.map((category) => (
-                                        <TableRow key={category.id}>
-                                            <Accordion type="single" collapsible className="w-full">
-                                                <AccordionItem value={category.id} className="border-b">
-                                                    <TableRow className="hover:bg-muted/50">
-                                                        <TableCell className="font-medium">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`p-2 rounded-lg ${category.bgColor}`}>
-                                                                    {category.icon && (
-                                                                        (() => {
-                                                                            const IconComponent = ICON_OPTIONS.find(opt => opt.value === category.icon)?.icon || FlaskConical
-                                                                            return <IconComponent className={`h-5 w-5 ${category.color}`} />
-                                                                        })()
-                                                                    )}
-                                                                </div>
-                                                                <div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        {category.name}
-                                                                        {DEFAULT_CATEGORIES.some(cat => cat.id === category.id) && (
-                                                                            <Badge variant="secondary" className="text-xs">
-                                                                                Default
-                                                                            </Badge>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="text-xs text-muted-foreground mt-1">
-                                                                        {category.keywords.length} keywords
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="max-w-md">
-                                                                <p className="text-sm line-clamp-2">{category.description}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <Badge variant="outline" className="gap-1">
-                                                                <FileText className="h-3 w-3" />
-                                                                {category.subTypes ? category.subTypes.length : 0}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell className="text-center">
-                                                            <Badge variant="outline" className="gap-1">
-                                                                <BookOpen className="h-3 w-3" />
-                                                                {category.templates ? category.templates.length : 0}
-                                                            </Badge>
-                                                        </TableCell>
-                                                        <TableCell className="text-right">
-                                                            <div className="flex justify-end gap-1">
-                                                                <TooltipProvider>
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => handleEditCategory(category)}
-                                                                            >
-                                                                                <Edit className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>Edit Category</TooltipContent>
-                                                                    </Tooltip>
-                                                                </TooltipProvider>
-                                                                <TooltipProvider>
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="sm"
-                                                                                onClick={() => handleDeleteCategory(category.id)}
-                                                                                disabled={DEFAULT_CATEGORIES.some(cat => cat.id === category.id)}
-                                                                            >
-                                                                                <Trash2 className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </TooltipTrigger>
-                                                                        <TooltipContent>Delete Category</TooltipContent>
-                                                                    </Tooltip>
-                                                                </TooltipProvider>
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                    {/* Sub-types and templates for this category */}
-                                                    {(category.subTypes && category.subTypes.length > 0) || (category.templates && category.templates.length > 0) ? (
-                                                        <TableRow>
-                                                            <TableCell colSpan={5} className="p-0 bg-muted/5">
-                                                                <AccordionContent className="p-4">
-                                                                    <div className="ml-8 space-y-4">
-                                                                        {category.subTypes && category.subTypes.length > 0 && (
-                                                                            <>
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <h4 className="font-medium text-sm">Sub-Types</h4>
-                                                                                    <Button
-                                                                                        variant="outline"
-                                                                                        size="sm"
-                                                                                        onClick={() => handleAddSubType(category.id)}
-                                                                                        className="gap-1"
-                                                                                    >
-                                                                                        <PlusCircle className="h-3 w-3" />
-                                                                                        Add Sub-Type
-                                                                                    </Button>
-                                                                                </div>
-                                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                                                    {category.subTypes.map((subType) => (
-                                                                                        <Card key={subType.id} className="border border-muted">
-                                                                                            <CardHeader className="p-4">
-                                                                                                <div className="flex items-start justify-between">
-                                                                                                    <div className="flex items-center gap-2">
-                                                                                                        <div className={`p-1.5 rounded-md ${subType.bgColor}`}>
-                                                                                                            {subType.icon && (
-                                                                                                                (() => {
-                                                                                                                    const IconComponent = ICON_OPTIONS.find(opt => opt.value === subType.icon)?.icon || FileText
-                                                                                                                    return <IconComponent className={`h-4 w-4 ${subType.color}`} />
-                                                                                                                })()
-                                                                                                            )}
-                                                                                                        </div>
-                                                                                                        <div>
-                                                                                                            <CardTitle className="text-sm font-medium">{subType.name}</CardTitle>
-                                                                                                            <CardDescription className="text-xs mt-1 line-clamp-2">
-                                                                                                                {subType.description}
-                                                                                                            </CardDescription>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div className="flex gap-1">
-                                                                                                        <Button
-                                                                                                            variant="ghost"
-                                                                                                            size="icon"
-                                                                                                            className="h-6 w-6"
-                                                                                                            onClick={() => handleEditSubType(subType, category.id)}
-                                                                                                        >
-                                                                                                            <Edit className="h-3 w-3" />
-                                                                                                        </Button>
-                                                                                                        <Button
-                                                                                                            variant="ghost"
-                                                                                                            size="icon"
-                                                                                                            className="h-6 w-6"
-                                                                                                            onClick={() => handleDeleteSubType(subType.id, category.id)}
-                                                                                                        >
-                                                                                                            <Trash2 className="h-3 w-3" />
-                                                                                                        </Button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </CardHeader>
-                                                                                            <CardContent className="p-4 pt-0">
-                                                                                                <div className="flex items-center justify-between">
-                                                                                                    <Badge variant="secondary" className="text-xs gap-1">
-                                                                                                        <BookOpen className="h-3 w-3" />
-                                                                                                        {subType.templates ? subType.templates.length : 0} templates
-                                                                                                    </Badge>
-                                                                                                    <Button
-                                                                                                        variant="outline"
-                                                                                                        size="sm"
-                                                                                                        onClick={() => handleAddTemplate(category.id, subType.id)}
-                                                                                                        className="h-7 text-xs gap-1"
-                                                                                                    >
-                                                                                                        <PlusCircle className="h-3 w-3" />
-                                                                                                        Add Template
-                                                                                                    </Button>
-                                                                                                </div>
-                                                                                                {subType.templates && subType.templates.length > 0 && (
-                                                                                                    <div className="mt-3 space-y-2">
-                                                                                                        <h5 className="text-xs font-medium text-muted-foreground">Templates:</h5>
-                                                                                                        <div className="space-y-1">
-                                                                                                            {subType.templates.map((template) => (
-                                                                                                                <div key={template.id} className="flex items-center justify-between text-sm p-2 rounded bg-muted/50">
-                                                                                                                    <span className="truncate">{template.name}</span>
-                                                                                                                    <div className="flex gap-1">
-                                                                                                                        <Button
-                                                                                                                            variant="ghost"
-                                                                                                                            size="icon"
-                                                                                                                            className="h-5 w-5"
-                                                                                                                            onClick={() => handleEditTemplate({ ...template, categoryId: category.id, subTypeId: subType.id })}
-                                                                                                                        >
-                                                                                                                            <Edit className="h-2.5 w-2.5" />
-                                                                                                                        </Button>
-                                                                                                                        <Button
-                                                                                                                            variant="ghost"
-                                                                                                                            size="icon"
-                                                                                                                            className="h-5 w-5"
-                                                                                                                            onClick={() => handleDeleteTemplate(template.id)}
-                                                                                                                        >
-                                                                                                                            <Trash2 className="h-2.5 w-2.5" />
-                                                                                                                        </Button>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            ))}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                )}
-                                                                                            </CardContent>
-                                                                                        </Card>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </>
-                                                                        )}
-                                                                        {/* Direct templates for this category */}
-                                                                        {category.templates && category.templates.length > 0 && (
-                                                                            <>
-                                                                                <div className="flex items-center justify-between mt-6">
-                                                                                    <h4 className="font-medium text-sm">Category Templates</h4>
-                                                                                    <Button
-                                                                                        variant="outline"
-                                                                                        size="sm"
-                                                                                        onClick={() => handleAddTemplate(category.id)}
-                                                                                        className="gap-1"
-                                                                                    >
-                                                                                        <PlusCircle className="h-3 w-3" />
-                                                                                        Add Template
-                                                                                    </Button>
-                                                                                </div>
-                                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                                                    {category.templates.map((template) => (
-                                                                                        <Card key={template.id} className="border border-muted">
-                                                                                            <CardContent className="p-4">
-                                                                                                <div className="flex items-start justify-between">
-                                                                                                    <div>
-                                                                                                        <h5 className="font-medium text-sm">{template.name}</h5>
-                                                                                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                                                                                            {template.description}
-                                                                                                        </p>
-                                                                                                    </div>
-                                                                                                    <div className="flex gap-1">
-                                                                                                        <Button
-                                                                                                            variant="ghost"
-                                                                                                            size="icon"
-                                                                                                            className="h-6 w-6"
-                                                                                                            onClick={() => handleEditTemplate({ ...template, categoryId: category.id })}
-                                                                                                        >
-                                                                                                            <Edit className="h-3 w-3" />
-                                                                                                        </Button>
-                                                                                                        <Button
-                                                                                                            variant="ghost"
-                                                                                                            size="icon"
-                                                                                                            className="h-6 w-6"
-                                                                                                            onClick={() => handleDeleteTemplate(template.id)}
-                                                                                                        >
-                                                                                                            <Trash2 className="h-3 w-3" />
-                                                                                                        </Button>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </CardContent>
-                                                                                        </Card>
-                                                                                    ))}
-                                                                                </div>
-                                                                            </>
-                                                                        )}
-                                                                    </div>
-                                                                </AccordionContent>
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ) : null}
-                                                </AccordionItem>
-                                            </Accordion>
+                                        <TableRow key={category.id} className="hover:bg-muted/50 border-b">
+                                            <TableCell className="category-cell font-medium">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`p-2 rounded-lg ${category.bgColor}`}>
+                                                        {category.icon && (
+                                                            (() => {
+                                                                const IconComponent = ICON_OPTIONS.find(opt => opt.value === category.icon)?.icon || FlaskConical
+                                                                return <IconComponent className={`h-5 w-5 ${category.color}`} />
+                                                            })()
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            {category.name}
+                                                            {DEFAULT_CATEGORIES.some(cat => cat.id === category.id) && (
+                                                                <Badge variant="secondary" className="text-xs">
+                                                                    Default
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs text-muted-foreground mt-1">
+                                                            {category.keywords.length} keywords
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="description-cell">
+                                                <div className="max-w-md">
+                                                    <p className="text-sm line-clamp-2">{category.description}</p>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="count-cell">
+                                                <Badge variant="outline" className="gap-1">
+                                                    <FileText className="h-3 w-3" />
+                                                    {category.subTypes ? category.subTypes.length : 0}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="count-cell">
+                                                <Badge variant="outline" className="gap-1">
+                                                    <BookOpen className="h-3 w-3" />
+                                                    {category.templates ? category.templates.length : 0}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="actions-cell">
+                                                <div className="flex justify-end gap-1">
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleEditCategory(category)}
+                                                                >
+                                                                    <Edit className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Edit Category</TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() => handleDeleteCategory(category.id)}
+                                                                    disabled={DEFAULT_CATEGORIES.some(cat => cat.id === category.id)}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Delete Category</TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
