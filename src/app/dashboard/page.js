@@ -170,18 +170,25 @@ export default function DashboardPage() {
     // Check if we have a token in the URL (from OAuth redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const user = urlParams.get('user');
 
-    if (token) {
-      // Store token in localStorage
-      localStorage.setItem('token', token);
+    if (token && user) {
+      try {
+        // Store token and user data in localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', user);
 
-      // Remove token from URL
-      const newUrl = new URL(window.location);
-      newUrl.searchParams.delete('token');
-      window.history.replaceState({}, document.title, newUrl.toString());
+        // Remove token and user from URL
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('token');
+        newUrl.searchParams.delete('user');
+        window.history.replaceState({}, document.title, newUrl.toString());
 
-      // Reload the page to ensure all components have access to the token
-      window.location.reload();
+        // Reload the page to ensure all components have access to the token
+        window.location.reload();
+      } catch (error) {
+        console.error('Error processing OAuth token:', error);
+      }
     }
   }, []);
 

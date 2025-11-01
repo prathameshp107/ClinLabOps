@@ -167,9 +167,12 @@ export default function ScientificLoginForm() {
         localStorage.setItem('user', user);
 
         // Remove params from URL
-        window.history.replaceState({}, document.title, window.location.pathname);
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.delete('token');
+        newUrl.searchParams.delete('user');
+        window.history.replaceState({}, document.title, newUrl.toString());
 
-        // Set login success and redirect
+        // Set login success and redirect to dashboard
         setLoginSuccess(true);
         setTimeout(() => {
           router.push("/dashboard");

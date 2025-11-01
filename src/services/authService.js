@@ -70,7 +70,10 @@ export async function socialLogin(provider) {
       localStorage.setItem('user', user);
 
       // Remove params from URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.delete('token');
+      newUrl.searchParams.delete('user');
+      window.history.replaceState({}, document.title, newUrl.toString());
 
       return { token, user: JSON.parse(user) };
     }

@@ -122,7 +122,13 @@ exports.socialLogin = async (req, res) => {
 
         // For better user experience, redirect directly to dashboard with token in URL
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/dashboard?token=${token}`);
+        res.redirect(`${frontendUrl}/dashboard?token=${token}&user=${encodeURIComponent(JSON.stringify({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            roles: user.roles,
+            isPowerUser: user.isPowerUser
+        }))}`);
     } catch (err) {
         console.error('Social login error:', err);
         // Redirect to login page with error
