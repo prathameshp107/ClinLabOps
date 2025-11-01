@@ -67,7 +67,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 
 // Default project categories and templates with regulatory sub-types
-const DEFAULT_CATEGORIES = [
+const DEFAULT_PROJECT_CATEGORIES = [
     {
         id: "research",
         name: "Research",
@@ -191,7 +191,7 @@ const ICON_OPTIONS = [
 
 export function ProjectSettings({ settings, onSettingsChange, onSave }) {
     const [projectSettings, setProjectSettings] = useState({
-        categories: DEFAULT_CATEGORIES,
+        categories: DEFAULT_PROJECT_CATEGORIES,
         templates: []
     })
     const [editingCategory, setEditingCategory] = useState(null)
@@ -207,16 +207,25 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
     const { toast } = useToast()
 
     useEffect(() => {
-        if (settings.project) {
-            setProjectSettings(settings.project)
+        // Initialize with provided settings or defaults
+        if (settings && (settings.categories || settings.templates)) {
+            setProjectSettings({
+                categories: settings.categories || DEFAULT_PROJECT_CATEGORIES,
+                templates: settings.templates || []
+            });
         }
     }, [settings])
 
     const handleSaveSettings = async () => {
         try {
-            await updateSettings('project', projectSettings)
-            onSettingsChange(projectSettings)
-            onSave(projectSettings)
+            const settingsToSave = {
+                categories: projectSettings.categories,
+                templates: projectSettings.templates
+            };
+
+            await updateSettings('project', settingsToSave)
+            onSettingsChange(settingsToSave)
+            onSave(settingsToSave)
             toast({
                 title: "Settings saved",
                 description: "Project settings have been updated successfully.",
@@ -254,7 +263,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
 
     const handleDeleteCategory = (categoryId) => {
         // Prevent deletion of default categories
-        const defaultCategoryIds = DEFAULT_CATEGORIES.map(cat => cat.id)
+        const defaultCategoryIds = DEFAULT_PROJECT_CATEGORIES.map(cat => cat.id)
         if (defaultCategoryIds.includes(categoryId)) {
             toast({
                 title: "Cannot delete",
@@ -746,7 +755,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             {category.name}
-                                                            {DEFAULT_CATEGORIES.some(cat => cat.id === category.id) && (
+                                                            {DEFAULT_PROJECT_CATEGORIES.some(cat => cat.id === category.id) && (
                                                                 <Badge variant="secondary" className="text-xs">
                                                                     Default
                                                                 </Badge>
@@ -798,7 +807,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                                                     variant="ghost"
                                                                     size="sm"
                                                                     onClick={() => handleDeleteCategory(category.id)}
-                                                                    disabled={DEFAULT_CATEGORIES.some(cat => cat.id === category.id)}
+                                                                    disabled={DEFAULT_PROJECT_CATEGORIES.some(cat => cat.id === category.id)}
                                                                 >
                                                                     <Trash2 className="h-4 w-4" />
                                                                 </Button>
@@ -1223,7 +1232,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                         id="category-keywords"
                                         value={editingCategory.keywords.join(', ')}
                                         onChange={(e) => handleKeywordChange(e.target.value)}
-                                        placeholder="Enter keywords separated by commas (e.g., research, study, experiment)"
+                                        placeholder="Enter keywords separated by commas (e4.g., research, study, experiment)"
                                         className="min-h-[80px]"
                                     />
                                     <p className="text-sm text-muted-foreground">

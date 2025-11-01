@@ -54,6 +54,116 @@ const defaultSettings = {
     theme: {
         mode: 'light', // 'light', 'dark', 'auto'
         primaryColor: 'blue'
+    },
+    project: {
+        categories: [
+            {
+                id: "research",
+                name: "Research",
+                description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+                icon: "FlaskConical",
+                color: "text-blue-500",
+                bgColor: "bg-blue-500/10",
+                borderColor: "border-blue-500/20",
+                keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"],
+                templates: [
+                    { id: "basic-research", name: "Basic Research", description: "Standard research project template" },
+                    { id: "experimental", name: "Experimental Study", description: "Controlled experiment template" },
+                    { id: "data-analysis", name: "Data Analysis", description: "Data-driven research template" }
+                ]
+            },
+            {
+                id: "regulatory",
+                name: "Regulatory",
+                description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+                icon: "FileText",
+                color: "text-amber-500",
+                bgColor: "bg-amber-500/10",
+                borderColor: "border-amber-500/20",
+                keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"],
+                subTypes: [
+                    {
+                        id: "iso",
+                        name: "ISO Standards",
+                        description: "International Organization for Standardization standards",
+                        icon: "FileTextIcon",
+                        color: "text-blue-600",
+                        bgColor: "bg-blue-500/10",
+                        templates: [
+                            { id: "iso-10993-1", name: "ISO 10993-1 Biological Evaluation", description: "Biological evaluation of medical devices - Part 1: Evaluation and testing within a risk management process" },
+                            { id: "iso-14155", name: "ISO 14155 Clinical Investigation", description: "Clinical investigation of medical devices for human subjects - Good clinical practice" },
+                            { id: "iso-13485", name: "ISO 13485 Quality Management", description: "Quality management systems - Requirements for regulatory purposes" }
+                        ]
+                    },
+                    {
+                        id: "oecd",
+                        name: "OECD Guidelines",
+                        description: "Organisation for Economic Co-operation and Development guidelines",
+                        icon: "FileSpreadsheet",
+                        color: "text-green-600",
+                        bgColor: "bg-green-500/10",
+                        templates: [
+                            { id: "oecd-401", name: "OECD Guideline 401", description: "Acute Oral Toxicity - Fixed Dose Procedure" },
+                            { id: "oecd-402", name: "OECD Guideline 402", description: "Acute Dermal Toxicity" },
+                            { id: "oecd-403", name: "OECD Guideline 403", description: "Acute Inhalation Toxicity" }
+                        ]
+                    },
+                    {
+                        id: "fda",
+                        name: "FDA Regulations",
+                        description: "U.S. Food and Drug Administration regulations",
+                        icon: "FileTextIcon",
+                        color: "text-red-600",
+                        bgColor: "bg-red-500/10",
+                        templates: [
+                            { id: "fda-21-cfr-11", name: "FDA 21 CFR Part 11", description: "Electronic Records and Electronic Signatures" },
+                            { id: "fda-510k", name: "FDA 510(k) Template", description: "Premarket Notification for Medical Devices" },
+                            { id: "fda-ind", name: "FDA IND Application", description: "Investigational New Drug Application" }
+                        ]
+                    },
+                    {
+                        id: "ema",
+                        name: "EMA Guidelines",
+                        description: "European Medicines Agency guidelines",
+                        icon: "FileTextIcon",
+                        color: "text-purple-600",
+                        bgColor: "bg-purple-500/10",
+                        templates: [
+                            { id: "ema-cta", name: "EMA Clinical Trial Application", description: "Application for authorization of a clinical trial" },
+                            { id: "ema-rmp", name: "EMA Risk Management Plan", description: "Pharmacovigilance risk management plan template" }
+                        ]
+                    },
+                    {
+                        id: "ich",
+                        name: "ICH Guidelines",
+                        description: "International Council for Harmonisation guidelines",
+                        icon: "FileTextIcon",
+                        color: "text-indigo-600",
+                        bgColor: "bg-indigo-500/10",
+                        templates: [
+                            { id: "ich-e6", name: "ICH E6 (R2) Good Clinical Practice", description: "Guideline for good clinical practice in clinical trials" },
+                            { id: "ich-q7", name: "ICH Q7 Active Pharmaceutical Ingredients", description: "Good manufacturing practice guidance for active pharmaceutical ingredients" }
+                        ]
+                    }
+                ],
+                templates: [] // Regulatory category templates (if any)
+            },
+            {
+                id: "miscellaneous",
+                name: "Miscellaneous",
+                description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+                icon: "Layers",
+                color: "text-purple-500",
+                bgColor: "bg-purple-500/10",
+                borderColor: "border-purple-500/20",
+                keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"],
+                templates: [
+                    { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template" },
+                    { id: "academic", name: "Academic Research", description: "University research project template" },
+                    { id: "consulting", name: "Consulting Project", description: "Client consulting project template" }
+                ]
+            }
+        ]
     }
 };
 
@@ -257,13 +367,24 @@ export async function updateUserPreferences(preferences) {
  * @returns {Object} Merged settings
  */
 function mergeWithDefaults(settings, defaults) {
+    // If no settings provided, return defaults
+    if (!settings) return { ...defaults };
+
+    // If settings is not an object, return it
+    if (typeof settings !== 'object' || Array.isArray(settings)) return settings;
+
+    // Start with a copy of defaults
     const result = { ...defaults };
 
+    // Merge each property from settings
     for (const key in settings) {
         if (settings.hasOwnProperty(key)) {
-            if (typeof settings[key] === 'object' && settings[key] !== null && !Array.isArray(settings[key])) {
-                result[key] = mergeWithDefaults(settings[key], defaults[key] || {});
+            // If both values are objects (but not arrays), merge recursively
+            if (typeof settings[key] === 'object' && settings[key] !== null && !Array.isArray(settings[key]) &&
+                typeof defaults[key] === 'object' && defaults[key] !== null && !Array.isArray(defaults[key])) {
+                result[key] = mergeWithDefaults(settings[key], defaults[key]);
             } else {
+                // For arrays, primitives, or mismatched types, use settings value
                 result[key] = settings[key];
             }
         }
