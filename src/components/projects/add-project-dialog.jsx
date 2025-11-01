@@ -705,7 +705,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           id: template.id,
           name: template.name,
           description: template.description,
-          tags: [] // Custom templates don't have predefined tags
+          tags: template.tags || [] // Custom templates might not have tags
         }));
       }
     }
@@ -788,7 +788,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
             id: template.id,
             name: template.name,
             description: template.description,
-            tags: [] // Custom templates don't have predefined tags
+            tags: template.tags || [] // Custom templates might not have tags
           }));
         }
       }
@@ -893,17 +893,23 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const handleTemplateSelect = (template) => {
     // Add template tags to project tags
     const newTags = [...projectData.tags];
-    template.tags.forEach(tag => {
-      if (!newTags.includes(tag)) {
-        newTags.push(tag);
-      }
-    });
+    if (template.tags && Array.isArray(template.tags)) {
+      template.tags.forEach(tag => {
+        if (!newTags.includes(tag)) {
+          newTags.push(tag);
+        }
+      });
+    }
 
     // Update project name if it's empty
     let newName = projectData.name || template.name;
 
     // Update description with template description if empty
-    const newDescription = projectData.description || `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;
+    let newDescription = projectData.description;
+    if (!newDescription || newDescription === '<p></p>' || newDescription === '<p><br></p>') {
+      // Format the description properly for the rich text editor
+      newDescription = `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;
+    }
 
     setProjectData(prev => ({
       ...prev,
@@ -915,6 +921,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     // Move to next tab
     setActiveTab("team");
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1383,7 +1390,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                               id: template.id,
                                               name: template.name,
                                               description: template.description,
-                                              tags: []
+                                              tags: template.tags || []
                                             });
                                           }}
                                           whileHover={{ y: -2 }}
@@ -1396,6 +1403,15 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                             <div className="flex-1 min-w-0">
                                               <h4 className="font-semibold text-base">{template.name}</h4>
                                               <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                              {template.tags && template.tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mt-3">
+                                                  {template.tags.map((tag) => (
+                                                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                                      {tag}
+                                                    </Badge>
+                                                  ))}
+                                                </div>
+                                              )}
                                             </div>
                                           </div>
                                         </motion.div>
