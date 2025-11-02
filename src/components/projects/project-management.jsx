@@ -48,6 +48,15 @@ import { getSettings } from "@/services/settingsService"
 import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { ErrorState } from "@/components/ui/error-state"
 
+// Icon mapping
+const ICON_COMPONENTS = {
+  FlaskConical,
+  FileText,
+  Layers,
+  FolderPlus,
+  ClipboardEdit
+}
+
 export function ProjectManagement() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -629,24 +638,15 @@ export function ProjectManagement() {
             >
               All Projects
             </TabsTrigger>
-            <TabsTrigger
-              value="research"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-blue-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-blue-500 transition-colors"
-            >
-              Research
-            </TabsTrigger>
-            <TabsTrigger
-              value="regulatory"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-amber-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-amber-500 transition-colors"
-            >
-              Regulatory
-            </TabsTrigger>
-            <TabsTrigger
-              value="miscellaneous"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-purple-500 transition-colors"
-            >
-              Miscellaneous
-            </TabsTrigger>
+            {projectCategories.map((category) => (
+              <TabsTrigger
+                key={category.id}
+                value={category.id}
+                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
+              >
+                {category.name}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
       </div>
@@ -741,6 +741,7 @@ export function ProjectManagement() {
                 requestSort={requestSort}
                 searchQuery={searchQuery}
                 onClearFilters={clearFilters}
+                projectCategories={projectCategories}
               />
             </TabsContent>
           </Tabs>
@@ -817,15 +818,6 @@ export function ProjectManagement() {
     </div>
   );
 }
-
-// Icon mapping
-const ICON_COMPONENTS = {
-  FlaskConical,
-  FileText,
-  Layers,
-  FolderPlus,
-  ClipboardEdit
-};
 
 // ProjectDisplay component to avoid duplicate code
 function ProjectDisplay({ projects, viewMode, handleProjectAction, sortConfig, requestSort, onClearFilters }) {

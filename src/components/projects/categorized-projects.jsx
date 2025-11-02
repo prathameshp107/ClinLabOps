@@ -71,77 +71,19 @@ export function CategorizedProjects({
     sortConfig,
     requestSort,
     searchQuery,
-    onClearFilters
+    onClearFilters,
+    projectCategories
 }) {
     const [expandedCategories, setExpandedCategories] = useState({});
-    const [projectCategories, setProjectCategories] = useState([
-        {
-            id: "research",
-            name: "Research",
-            description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
-            icon: "FlaskConical",
-            color: "text-blue-500",
-            bgColor: "bg-blue-500/10",
-            borderColor: "border-blue-500/20",
-            keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"]
-        },
-        {
-            id: "regulatory",
-            name: "Regulatory",
-            description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
-            icon: "FileText",
-            color: "text-amber-500",
-            bgColor: "bg-amber-500/10",
-            borderColor: "border-amber-500/20",
-            keywords: ["regulatory", "iso", "oecd", "fda", "guideline", "compliance", "authority", "submission", "validation", "testing", "environmental", "monitoring", "biomedical", "device-testing", "safety"]
-        },
-        {
-            id: "miscellaneous",
-            name: "Miscellaneous",
-            description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
-            icon: "Layers",
-            color: "text-purple-500",
-            bgColor: "bg-purple-500/10",
-            borderColor: "border-purple-500/20",
-            keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"]
-        }
-    ]);
 
     useEffect(() => {
-        // Load custom project categories from settings
-        const loadProjectSettings = async () => {
-            try {
-                const settings = await getSettings();
-                if (settings.project?.categories && settings.project.categories.length > 0) {
-                    setProjectCategories(settings.project.categories);
-
-                    // Initialize expanded categories state
-                    const initialExpanded = {};
-                    settings.project.categories.forEach(category => {
-                        initialExpanded[category.id] = true;
-                    });
-                    setExpandedCategories(initialExpanded);
-                } else {
-                    // Initialize expanded categories state with default categories
-                    const initialExpanded = {};
-                    projectCategories.forEach(category => {
-                        initialExpanded[category.id] = true;
-                    });
-                    setExpandedCategories(initialExpanded);
-                }
-            } catch (error) {
-                console.error('Error loading project settings:', error);
-                // Initialize expanded categories state with default categories
-                const initialExpanded = {};
-                projectCategories.forEach(category => {
-                    initialExpanded[category.id] = true;
-                });
-                setExpandedCategories(initialExpanded);
-            }
-        };
-
-        loadProjectSettings();
-    }, []);
+        // Initialize expanded categories state
+        const initialExpanded = {};
+        projectCategories.forEach(category => {
+            initialExpanded[category.id] = true;
+        });
+        setExpandedCategories(initialExpanded);
+    }, [projectCategories]);
 
     const categorizedProjects = categorizeProjects(projects, projectCategories);
 

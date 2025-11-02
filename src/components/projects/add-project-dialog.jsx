@@ -1359,104 +1359,103 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       )}
 
                       {/* Show all categories with their templates if no specific category is selected */}
-                      {(!projectData.category ||
-                        (projectData.category === "regulatory" && (!projectData.projectType || projectData.projectType === "other"))) && (
-                          <div className="space-y-6">
-                            {projectSettings.categories && projectSettings.categories.length > 0 ? (
-                              projectSettings.categories.map((category) => (
-                                <div key={category.id} className="space-y-3">
-                                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                                    {category.icon && (
-                                      (() => {
-                                        const IconComponent = ICON_COMPONENTS[category.icon] || FlaskConical;
-                                        return <IconComponent className={`h-5 w-5 ${category.color}`} />;
-                                      })()
-                                    )}
-                                    {category.name}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground">{category.description}</p>
-                                  {category.templates && category.templates.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                      {category.templates.map((template) => (
-                                        <motion.div
-                                          key={template.id}
-                                          className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
-                                          onClick={() => {
-                                            // Set the category and select the template
-                                            setProjectData(prev => ({
-                                              ...prev,
-                                              category: category.id
-                                            }));
-                                            handleTemplateSelect({
-                                              id: template.id,
-                                              name: template.name,
-                                              description: template.description,
-                                              tags: template.tags || []
-                                            });
-                                          }}
-                                          whileHover={{ y: -2 }}
-                                          whileTap={{ scale: 0.98 }}
-                                        >
-                                          <div className="flex items-start gap-3">
-                                            <div className="mt-1 p-2 rounded-lg bg-primary/10">
-                                              <FileText className="h-5 w-5 text-primary" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <h4 className="font-semibold text-base">{template.name}</h4>
-                                              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
-                                              {template.tags && template.tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-2 mt-3">
-                                                  {template.tags.map((tag) => (
-                                                    <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
-                                                      {tag}
-                                                    </Badge>
-                                                  ))}
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </motion.div>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <p className="text-sm text-muted-foreground italic">No templates available for this category</p>
+                      {(!projectData.category) && (
+                        <div className="space-y-6">
+                          {projectSettings.categories && projectSettings.categories.length > 0 ? (
+                            projectSettings.categories.map((category) => (
+                              <div key={category.id} className="space-y-3">
+                                <h3 className="font-semibold text-lg flex items-center gap-2">
+                                  {category.icon && (
+                                    (() => {
+                                      const IconComponent = ICON_COMPONENTS[category.icon] || FlaskConical;
+                                      return <IconComponent className={`h-5 w-5 ${category.color}`} />;
+                                    })()
                                   )}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {getTemplatesForType("research").map((template) => (
-                                  <motion.div
-                                    key={template.id}
-                                    className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
-                                    onClick={() => handleTemplateSelect(template)}
-                                    whileHover={{ y: -2 }}
-                                    whileTap={{ scale: 0.98 }}
-                                  >
-                                    <div className="flex items-start gap-3">
-                                      <div className="mt-1 p-2 rounded-lg bg-primary/10">
-                                        <FileText className="h-5 w-5 text-primary" />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <h4 className="font-semibold text-base">{template.name}</h4>
-                                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
-                                        {template.tags && template.tags.length > 0 && (
-                                          <div className="flex flex-wrap gap-2 mt-3">
-                                            {template.tags.map((tag) => (
-                                              <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
-                                                {tag}
-                                              </Badge>
-                                            ))}
+                                  {category.name}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">{category.description}</p>
+                                {category.templates && category.templates.length > 0 ? (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {category.templates.map((template) => (
+                                      <motion.div
+                                        key={template.id}
+                                        className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
+                                        onClick={() => {
+                                          // Set the category and select the template
+                                          setProjectData(prev => ({
+                                            ...prev,
+                                            category: category.id
+                                          }));
+                                          handleTemplateSelect({
+                                            id: template.id,
+                                            name: template.name,
+                                            description: template.description,
+                                            tags: template.tags || []
+                                          });
+                                        }}
+                                        whileHover={{ y: -2 }}
+                                        whileTap={{ scale: 0.98 }}
+                                      >
+                                        <div className="flex items-start gap-3">
+                                          <div className="mt-1 p-2 rounded-lg bg-primary/10">
+                                            <FileText className="h-5 w-5 text-primary" />
                                           </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                ))}
+                                          <div className="flex-1 min-w-0">
+                                            <h4 className="font-semibold text-base">{template.name}</h4>
+                                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                            {template.tags && template.tags.length > 0 && (
+                                              <div className="flex flex-wrap gap-2 mt-3">
+                                                {template.tags.map((tag) => (
+                                                  <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                                    {tag}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground italic">No templates available for this category</p>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        )}
+                            ))
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {getTemplatesForType("research").map((template) => (
+                                <motion.div
+                                  key={template.id}
+                                  className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
+                                  onClick={() => handleTemplateSelect(template)}
+                                  whileHover={{ y: -2 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="mt-1 p-2 rounded-lg bg-primary/10">
+                                      <FileText className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-semibold text-base">{template.name}</h4>
+                                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                      {template.tags && template.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                          {template.tags.map((tag) => (
+                                            <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                              {tag}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       <p className="text-xs text-muted-foreground">
                         Select a template to pre-fill project details, or skip to create a project from scratch.
