@@ -280,7 +280,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
     budget: "",
     department: "", // Will be updated with dropdown
     milestones: [],
-    isFavorite: false
+    isFavorite: false,
+    team: []
   })
   const [projectSettings, setProjectSettings] = useState({
     categories: []
@@ -500,8 +501,12 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   }
 
   const handleTeamMemberAdd = (user) => {
+    console.log('handleTeamMemberAdd called with user:', user);
+    console.log('Current team:', projectData.team);
+
     // Skip if user is already in team
     if (projectData.team.some(member => member.id === user.id)) {
+      console.log('User already in team, skipping');
       return
     }
 
@@ -514,13 +519,22 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         department: user.department
       }]
     }))
+
+    console.log('Team member added successfully');
+
+    // Close the popover after adding a team member
+    setTimeout(() => {
+      document.body.click();
+    }, 100);
   }
 
   const handleTeamMemberRemove = (userId) => {
+    console.log('handleTeamMemberRemove called with userId:', userId);
     setProjectData(prev => ({
       ...prev,
       team: prev.team.filter(member => member.id !== userId)
     }))
+    console.log('Team member removed successfully');
   }
 
   const handleTagAdd = (tag) => {
@@ -652,7 +666,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         priority: projectData.priority || "medium",
         progress: 0,
         isFavorite: false,
-        team: [],
+        team: projectData.team || [],
         tags: projectData.tags || [],
         category: projectData.category || "miscellaneous",
         department: projectData.department || "", // Add department field
@@ -2012,15 +2026,23 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                               {Array.isArray(users) && users
                                 .filter(user => !projectData?.team?.some(member => member.id === (user._id || user.id)))
                                 .map(user => (
-                                  <CommandItem
+                                  <div
                                     key={user._id || user.id}
-                                    onSelect={() => handleTeamMemberAdd({
-                                      id: user._id || user.id,
-                                      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-                                      email: user.email,
-                                      role: user.roles?.[0] || 'User',
-                                      department: user.department || 'N/A'
-                                    })}
+                                    onClick={() => {
+                                      console.log('Selected user:', user);
+                                      const teamMember = {
+                                        id: user._id || user.id,
+                                        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+                                        email: user.email,
+                                        role: user.roles?.[0] || 'User',
+                                        department: user.department || 'N/A'
+                                      };
+                                      handleTeamMemberAdd(teamMember);
+                                      // Close the popover after adding a team member
+                                      setTimeout(() => {
+                                        document.body.click();
+                                      }, 100);
+                                    }}
                                     className="flex items-center justify-between p-3 rounded-lg mx-1 mb-1 hover:bg-primary/5 cursor-pointer transition-colors"
                                   >
                                     <div className="flex items-center">
@@ -2039,7 +2061,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                       </div>
                                     </div>
                                     <Plus className="h-4 w-4 text-muted-foreground" />
-                                  </CommandItem>
+                                  </div>
                                 ))}
                             </CommandGroup>
                           </Command>

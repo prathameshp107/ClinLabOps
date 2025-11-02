@@ -389,8 +389,12 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
   }
 
   const handleTeamMemberAdd = (user) => {
+    console.log('handleTeamMemberAdd called with user:', user);
+    console.log('Current team:', projectData.team);
+
     // Skip if user is already in team
     if (projectData.team.some(member => member.id === user.id)) {
+      console.log('User already in team, skipping');
       return
     }
 
@@ -403,13 +407,22 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
         department: user.department
       }]
     }))
+
+    console.log('Team member added successfully');
+
+    // Close the popover after adding a team member
+    setTimeout(() => {
+      document.body.click();
+    }, 100);
   }
 
   const handleTeamMemberRemove = (userId) => {
+    console.log('handleTeamMemberRemove called with userId:', userId);
     setProjectData(prev => ({
       ...prev,
       team: prev.team.filter(member => member.id !== userId)
     }))
+    console.log('Team member removed successfully');
   }
 
   const handleTagAdd = (tag) => {
@@ -941,15 +954,24 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
                               {Array.isArray(users) && users
                                 .filter(user => !projectData.team.some(member => member.id === (user._id || user.id)))
                                 .map(user => (
-                                  <CommandItem
+                                  <div
                                     key={user._id || user.id}
-                                    onSelect={() => handleTeamMemberAdd({
-                                      id: user._id || user.id,
-                                      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-                                      email: user.email,
-                                      role: user.roles?.[0] || 'User'
-                                    })}
-                                    className="flex items-center justify-between"
+                                    onClick={() => {
+                                      console.log('Selected user:', user);
+                                      const teamMember = {
+                                        id: user._id || user.id,
+                                        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+                                        email: user.email,
+                                        role: user.roles?.[0] || 'User',
+                                        department: user.department || 'N/A'
+                                      };
+                                      handleTeamMemberAdd(teamMember);
+                                      // Close the popover after adding a team member
+                                      setTimeout(() => {
+                                        document.body.click();
+                                      }, 100);
+                                    }}
+                                    className="flex items-center justify-between p-3 rounded-lg mx-1 mb-1 hover:bg-primary/5 cursor-pointer transition-colors"
                                   >
                                     <div className="flex items-center">
                                       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center mr-3">
@@ -966,7 +988,7 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
                                         </p>
                                       </div>
                                     </div>
-                                  </CommandItem>
+                                  </div>
                                 ))}
                             </CommandGroup>
                           </Command>
