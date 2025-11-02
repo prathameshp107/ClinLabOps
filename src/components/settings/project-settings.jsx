@@ -171,9 +171,9 @@ const DEFAULT_PROJECT_CATEGORIES = [
         borderColor: "border-purple-500/20",
         keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"],
         templates: [
-            { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template" },
-            { id: "academic", name: "Academic Research", description: "University research project template" },
-            { id: "consulting", name: "Consulting Project", description: "Client consulting project template" }
+            { id: "pilot", name: "Pilot Study", description: "Template for small-scale preliminary studies to evaluate feasibility, time, cost, and potential adverse effects" },
+            { id: "academic", name: "Academic Research", description: "Template for university-based research projects with literature review and methodology sections" },
+            { id: "consulting", name: "Consulting Project", description: "Template for client-driven research projects with deliverables and milestone tracking" }
         ]
     }
 ]
@@ -1176,7 +1176,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
             {/* Enhanced Category Dialog */}
             <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <DialogHeader>
+                    <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/10">
                         <DialogTitle className="flex items-center gap-2">
                             {editingCategory?.id ? (
                                 <>
@@ -1197,7 +1197,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <ScrollArea className="flex-1 pr-4 -mr-4">
+                    <div className="flex-1 overflow-y-auto px-6 py-6">
                         {editingCategory && (
                             <div className="grid gap-6 py-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1309,9 +1309,9 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                 </div>
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
 
-                    <DialogFooter className="flex sm:justify-between gap-2">
+                    <DialogFooter className="flex sm:justify-between gap-2 flex-shrink-0 px-6 py-4 border-t border-border/10">
                         <Button
                             variant="outline"
                             onClick={() => setIsCategoryDialogOpen(false)}
@@ -1342,7 +1342,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
             {/* Sub-Type Dialog */}
             <Dialog open={isSubTypeDialogOpen} onOpenChange={setIsSubTypeDialogOpen}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <DialogHeader>
+                    <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/10">
                         <DialogTitle className="flex items-center gap-2">
                             {editingSubType?.id ? (
                                 <>
@@ -1363,7 +1363,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <ScrollArea className="flex-1 pr-4 -mr-4">
+                    <div className="flex-1 overflow-y-auto px-6 py-6">
                         {editingSubType && (
                             <div className="grid gap-6 py-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1455,9 +1455,9 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                 </div>
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
 
-                    <DialogFooter className="flex sm:justify-between gap-2">
+                    <DialogFooter className="flex sm:justify-between gap-2 flex-shrink-0 px-6 py-4 border-t border-border/10">
                         <Button
                             variant="outline"
                             onClick={() => setIsSubTypeDialogOpen(false)}
@@ -1488,7 +1488,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
             {/* Enhanced Template Dialog */}
             <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <DialogHeader>
+                    <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border/10">
                         <DialogTitle className="flex items-center gap-2">
                             {editingTemplate?.id ? (
                                 <>
@@ -1509,7 +1509,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <ScrollArea className="flex-1 pr-4 -mr-4">
+                    <div className="flex-1 overflow-y-auto px-6 py-6">
                         {editingTemplate && (
                             <div className="grid gap-6 py-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1698,9 +1698,9 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                 </div>
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
 
-                    <DialogFooter className="flex sm:justify-between gap-2">
+                    <DialogFooter className="flex sm:justify-between gap-2 flex-shrink-0 px-6 py-4 border-t border-border/10">
                         <Button
                             variant="outline"
                             onClick={() => setIsTemplateDialogOpen(false)}

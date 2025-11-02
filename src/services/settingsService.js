@@ -158,9 +158,9 @@ const defaultSettings = {
                 borderColor: "border-purple-500/20",
                 keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"],
                 templates: [
-                    { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template", tags: ["pilot-study", "feasibility", "preliminary-research"] },
-                    { id: "academic", name: "Academic Research", description: "University research project template", tags: ["academic", "literature-review", "methodology"] },
-                    { id: "consulting", name: "Consulting Project", description: "Client consulting project template", tags: ["client-project", "deliverables", "milestones"] }
+                    { id: "pilot", name: "Pilot Study", description: "Template for small-scale preliminary studies to evaluate feasibility, time, cost, and potential adverse effects", tags: ["pilot-study", "feasibility", "preliminary-research"] },
+                    { id: "academic", name: "Academic Research", description: "Template for university-based research projects with literature review and methodology sections", tags: ["academic", "literature-review", "methodology"] },
+                    { id: "consulting", name: "Consulting Project", description: "Template for client-driven research projects with deliverables and milestone tracking", tags: ["client-project", "deliverables", "milestones"] }
                 ]
             }
         ]

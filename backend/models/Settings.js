@@ -539,9 +539,9 @@ settingsSchema.statics.getDefaultSettings = function () {
                     borderColor: "border-purple-500/20",
                     keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"],
                     templates: [
-                        { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template" },
-                        { id: "academic", name: "Academic Research", description: "University research project template" },
-                        { id: "consulting", name: "Consulting Project", description: "Client consulting project template" }
+                        { id: "pilot", name: "Pilot Study", description: "Template for small-scale preliminary studies to evaluate feasibility, time, cost, and potential adverse effects" },
+                        { id: "academic", name: "Academic Research", description: "Template for university-based research projects with literature review and methodology sections" },
+                        { id: "consulting", name: "Consulting Project", description: "Template for client-driven research projects with deliverables and milestone tracking" }
                     ]
                 }
             ]
