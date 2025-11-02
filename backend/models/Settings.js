@@ -286,7 +286,8 @@ const settingsSchema = new mongoose.Schema({
             templates: [{
                 id: { type: String, required: true },
                 name: { type: String, required: true },
-                description: { type: String, default: '' }
+                description: { type: String, default: '' },
+                tags: { type: [String], default: [] } // Add tags field for templates
             }],
             subTypes: [{
                 id: { type: String, required: true },
@@ -298,7 +299,8 @@ const settingsSchema = new mongoose.Schema({
                 templates: [{
                     id: { type: String, required: true },
                     name: { type: String, required: true },
-                    description: { type: String, default: '' }
+                    description: { type: String, default: '' },
+                    tags: { type: [String], default: [] } // Add tags field for sub-type templates
                 }]
             }]
         }]

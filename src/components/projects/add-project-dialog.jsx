@@ -1323,7 +1323,8 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         )
                       ) : (
                         // For non-regulatory categories, show templates directly
-                        (projectData.category === "miscellaneous" || projectData.category === "research") && (
+                        // Show templates for any category that has templates, not just default categories
+                        (projectData.category && projectData.category !== "regulatory") && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {getTemplatesForType(projectData.category).map((template) => (
                               <motion.div

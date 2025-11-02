@@ -56,7 +56,9 @@ import {
     ChevronDown,
     File,
     FileSpreadsheet,
-    FileTextIcon
+    FileTextIcon,
+    Plus,
+    X
 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { updateSettings, getSettings } from "@/services/settingsService"
@@ -197,6 +199,7 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
     const [editingCategory, setEditingCategory] = useState(null)
     const [editingSubType, setEditingSubType] = useState(null)
     const [editingTemplate, setEditingTemplate] = useState(null)
+    const [tagInput, setTagInput] = useState("") // Add this state for tag input
     const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
     const [isSubTypeDialogOpen, setIsSubTypeDialogOpen] = useState(false)
     const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
@@ -396,13 +399,17 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
             name: "",
             description: "",
             categoryId: categoryId,
-            subTypeId: subTypeId || ""
+            subTypeId: subTypeId || "",
+            tags: [] // Initialize tags as empty array
         })
         setIsTemplateDialogOpen(true)
     }
 
     const handleEditTemplate = (template) => {
-        setEditingTemplate({ ...template })
+        setEditingTemplate({
+            ...template,
+            tags: template.tags || [] // Ensure tags is always an array
+        })
         setIsTemplateDialogOpen(true)
     }
 
@@ -505,6 +512,31 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
 
         setIsTemplateDialogOpen(false)
         setEditingTemplate(null)
+        setTagInput("") // Reset tag input
+    }
+
+    // Add tag handler function
+    const handleAddTag = () => {
+        if (tagInput.trim() && editingTemplate) {
+            const newTags = [...(editingTemplate.tags || []), tagInput.trim()]
+            setEditingTemplate({
+                ...editingTemplate,
+                tags: newTags
+            })
+            setTagInput("")
+        }
+    }
+
+    // Remove tag handler function
+    const handleRemoveTag = (index) => {
+        if (editingTemplate && editingTemplate.tags) {
+            const newTags = [...editingTemplate.tags]
+            newTags.splice(index, 1)
+            setEditingTemplate({
+                ...editingTemplate,
+                tags: newTags
+            })
+        }
     }
 
     const handleKeywordChange = (keywordsString) => {
@@ -1573,6 +1605,48 @@ export function ProjectSettings({ settings, onSettingsChange, onSave }) {
                                         placeholder="Template description"
                                         className="min-h-[120px]"
                                     />
+                                </div>
+
+                                {/* Tags Section for Templates */}
+                                <div className="space-y-2">
+                                    <Label className="flex items-center gap-2">
+                                        <Tag className="h-4 w-4" />
+                                        Tags
+                                    </Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            placeholder="Add a tag"
+                                            value={tagInput || ""}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    handleAddTag();
+                                                }
+                                            }}
+                                        />
+                                        <Button type="button" onClick={handleAddTag} className="gap-1">
+                                            <Plus className="h-4 w-4" />
+                                            Add
+                                        </Button>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {editingTemplate.tags?.map((tag, index) => (
+                                            <Badge key={index} variant="secondary" className="gap-1 pl-3 pr-2 py-1">
+                                                {tag}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleRemoveTag(index)}
+                                                    className="ml-1 rounded-full hover:bg-secondary-foreground/20"
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        Tags help categorize templates and will be automatically added to projects when this template is selected.
+                                    </p>
                                 </div>
 
                                 <div className="space-y-2">

@@ -67,9 +67,9 @@ const defaultSettings = {
                 borderColor: "border-blue-500/20",
                 keywords: ["research", "exploratory", "proof-of-concept", "scientific", "study", "experiment", "innovation", "discovery", "laboratory", "genomics", "drug-discovery", "ai", "machine-learning"],
                 templates: [
-                    { id: "basic-research", name: "Basic Research", description: "Standard research project template" },
-                    { id: "experimental", name: "Experimental Study", description: "Controlled experiment template" },
-                    { id: "data-analysis", name: "Data Analysis", description: "Data-driven research template" }
+                    { id: "basic-research", name: "Basic Research", description: "Standard research project template", tags: ["research", "scientific", "study"] },
+                    { id: "experimental", name: "Experimental Study", description: "Controlled experiment template", tags: ["experiment", "controlled-study", "methodology"] },
+                    { id: "data-analysis", name: "Data Analysis", description: "Data-driven research template", tags: ["data-analysis", "statistics", "research"] }
                 ]
             },
             {
@@ -90,9 +90,9 @@ const defaultSettings = {
                         color: "text-blue-600",
                         bgColor: "bg-blue-500/10",
                         templates: [
-                            { id: "iso-10993-1", name: "ISO 10993-1 Biological Evaluation", description: "Biological evaluation of medical devices - Part 1: Evaluation and testing within a risk management process" },
-                            { id: "iso-14155", name: "ISO 14155 Clinical Investigation", description: "Clinical investigation of medical devices for human subjects - Good clinical practice" },
-                            { id: "iso-13485", name: "ISO 13485 Quality Management", description: "Quality management systems - Requirements for regulatory purposes" }
+                            { id: "iso-10993-1", name: "ISO 10993-1 Biological Evaluation", description: "Biological evaluation of medical devices - Part 1: Evaluation and testing within a risk management process", tags: ["biocompatibility", "risk-management", "medical-devices"] },
+                            { id: "iso-14155", name: "ISO 14155 Clinical Investigation", description: "Clinical investigation of medical devices for human subjects - Good clinical practice", tags: ["clinical-trials", "good-clinical-practice", "medical-devices"] },
+                            { id: "iso-13485", name: "ISO 13485 Quality Management", description: "Quality management systems - Requirements for regulatory purposes", tags: ["quality-systems", "regulatory-compliance", "standards"] }
                         ]
                     },
                     {
@@ -103,9 +103,9 @@ const defaultSettings = {
                         color: "text-green-600",
                         bgColor: "bg-green-500/10",
                         templates: [
-                            { id: "oecd-401", name: "OECD Guideline 401", description: "Acute Oral Toxicity - Fixed Dose Procedure" },
-                            { id: "oecd-402", name: "OECD Guideline 402", description: "Acute Dermal Toxicity" },
-                            { id: "oecd-403", name: "OECD Guideline 403", description: "Acute Inhalation Toxicity" }
+                            { id: "oecd-401", name: "OECD Guideline 401", description: "Acute Oral Toxicity - Fixed Dose Procedure", tags: ["toxicity", "oral-administration", "safety-testing"] },
+                            { id: "oecd-402", name: "OECD Guideline 402", description: "Acute Dermal Toxicity", tags: ["toxicity", "dermal-exposure", "safety-testing"] },
+                            { id: "oecd-403", name: "OECD Guideline 403", description: "Acute Inhalation Toxicity", tags: ["toxicity", "inhalation-exposure", "safety-testing"] }
                         ]
                     },
                     {
@@ -116,9 +116,9 @@ const defaultSettings = {
                         color: "text-red-600",
                         bgColor: "bg-red-500/10",
                         templates: [
-                            { id: "fda-21-cfr-11", name: "FDA 21 CFR Part 11", description: "Electronic Records and Electronic Signatures" },
-                            { id: "fda-510k", name: "FDA 510(k) Template", description: "Premarket Notification for Medical Devices" },
-                            { id: "fda-ind", name: "FDA IND Application", description: "Investigational New Drug Application" }
+                            { id: "fda-21-cfr-11", name: "FDA 21 CFR Part 11", description: "Electronic Records and Electronic Signatures", tags: ["electronic-records", "digital-signatures", "compliance"] },
+                            { id: "fda-510k", name: "FDA 510(k) Template", description: "Premarket Notification for Medical Devices", tags: ["medical-devices", "premarket-notification", "regulatory-submission"] },
+                            { id: "fda-ind", name: "FDA IND Application", description: "Investigational New Drug Application", tags: ["drug-development", "clinical-trials", "regulatory-submission"] }
                         ]
                     },
                     {
@@ -129,8 +129,8 @@ const defaultSettings = {
                         color: "text-purple-600",
                         bgColor: "bg-purple-500/10",
                         templates: [
-                            { id: "ema-cta", name: "EMA Clinical Trial Application", description: "Application for authorization of a clinical trial" },
-                            { id: "ema-rmp", name: "EMA Risk Management Plan", description: "Pharmacovigilance risk management plan template" }
+                            { id: "ema-cta", name: "EMA Clinical Trial Application", description: "Application for authorization of a clinical trial", tags: ["clinical-trials", "authorization", "european-regulations"] },
+                            { id: "ema-rmp", name: "EMA Risk Management Plan", description: "Pharmacovigilance risk management plan template", tags: ["risk-management", "pharmacovigilance", "safety-monitoring"] }
                         ]
                     },
                     {
@@ -141,8 +141,8 @@ const defaultSettings = {
                         color: "text-indigo-600",
                         bgColor: "bg-indigo-500/10",
                         templates: [
-                            { id: "ich-e6", name: "ICH E6 (R2) Good Clinical Practice", description: "Guideline for good clinical practice in clinical trials" },
-                            { id: "ich-q7", name: "ICH Q7 Active Pharmaceutical Ingredients", description: "Good manufacturing practice guidance for active pharmaceutical ingredients" }
+                            { id: "ich-e6", name: "ICH E6 (R2) Good Clinical Practice", description: "Guideline for good clinical practice in clinical trials", tags: ["clinical-trials", "good-clinical-practice", "international-harmonization"] },
+                            { id: "ich-q7", name: "ICH Q7 Active Pharmaceutical Ingredients", description: "Good manufacturing practice guidance for active pharmaceutical ingredients", tags: ["manufacturing", "quality-control", "pharmaceutical-ingredients"] }
                         ]
                     }
                 ],
@@ -158,9 +158,9 @@ const defaultSettings = {
                 borderColor: "border-purple-500/20",
                 keywords: ["pilot", "academic", "client", "miscellaneous", "other", "general", "management", "platform", "system"],
                 templates: [
-                    { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template" },
-                    { id: "academic", name: "Academic Research", description: "University research project template" },
-                    { id: "consulting", name: "Consulting Project", description: "Client consulting project template" }
+                    { id: "pilot", name: "Pilot Study", description: "Small-scale preliminary study template", tags: ["pilot-study", "feasibility", "preliminary-research"] },
+                    { id: "academic", name: "Academic Research", description: "University research project template", tags: ["academic", "literature-review", "methodology"] },
+                    { id: "consulting", name: "Consulting Project", description: "Client consulting project template", tags: ["client-project", "deliverables", "milestones"] }
                 ]
             }
         ]
