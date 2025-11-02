@@ -240,19 +240,45 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [users, setUsers] = useState([])
   const { toast } = useToast()
+
+  // Default department values
+  const defaultDepartments = [
+    "Oncology",
+    "Cardiology",
+    "Neuroscience",
+    "Immunology",
+    "Genetics",
+    "Pharmacology",
+    "Microbiology",
+    "Biochemistry",
+    "Molecular Biology",
+    "Clinical Research",
+    "Epidemiology",
+    "Biostatistics",
+    "Radiology",
+    "Pathology",
+    "Pediatrics",
+    "Surgery",
+    "Emergency Medicine",
+    "Psychiatry",
+    "Dermatology",
+    "Orthopedics"
+  ];
+
   const [projectData, setProjectData] = useState({
     name: "",
     description: "",
     startDate: new Date(),
     endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-    status: "Pending",
-    priority: "Medium",
+    status: "planning",
+    priority: "medium",
     category: "research", // Default to research
     projectType: "", // For regulatory projects
     tags: [],
     assignedTo: [],
     dependencies: [],
     budget: "",
+    department: "", // Will be updated with dropdown
     milestones: [],
     isFavorite: false
   })
@@ -629,6 +655,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         team: [],
         tags: projectData.tags || [],
         category: projectData.category || "miscellaneous",
+        department: projectData.department || "", // Add department field
         // Include projectType for regulatory projects
         ...(projectData.category === "regulatory" && { projectType: projectData.projectType || "" }),
         dependencies: [],
@@ -915,7 +942,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
       ...prev,
       name: newName,
       description: newDescription,
-      tags: newTags
+      tags: newTags,
+      // Set default values when template is selected
+      status: "planning",
+      priority: "medium"
     }));
 
     // Move to next tab
@@ -1650,14 +1680,21 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                             <path d="M9.5 9h5L12 12z" />
                           </svg>
-                          <Input
-                            id="department"
-                            name="department"
+                          <Select
                             value={projectData.department}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Oncology, Cardiology"
-                            className="pl-10 bg-background/50 border-border/50 h-12 rounded-lg"
-                          />
+                            onValueChange={(value) => handleSelectChange(value, "department")}
+                          >
+                            <SelectTrigger className="pl-10 bg-background/50 border-border/50 h-12 rounded-lg">
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {defaultDepartments.map(department => (
+                                <SelectItem key={department} value={department}>
+                                  {department}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 

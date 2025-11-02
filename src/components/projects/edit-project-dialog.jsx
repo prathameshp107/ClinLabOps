@@ -131,6 +131,30 @@ const EditorMenuBar = ({ editor }) => {
   )
 }
 
+// Default department values
+const defaultDepartments = [
+  "Oncology",
+  "Cardiology",
+  "Neuroscience",
+  "Immunology",
+  "Genetics",
+  "Pharmacology",
+  "Microbiology",
+  "Biochemistry",
+  "Molecular Biology",
+  "Clinical Research",
+  "Epidemiology",
+  "Biostatistics",
+  "Radiology",
+  "Pathology",
+  "Pediatrics",
+  "Surgery",
+  "Emergency Medicine",
+  "Psychiatry",
+  "Dermatology",
+  "Orthopedics"
+];
+
 export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
   const [activeTab, setActiveTab] = useState("details")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -140,8 +164,8 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
     description: "",
     startDate: new Date(),
     endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
-    status: "Not Started",
-    priority: "Medium",
+    status: "planning",
+    priority: "medium",
     team: [],
     tags: [],
     // Additional fields to match AddProjectDialog
@@ -195,8 +219,8 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
         description: project.description || "",
         startDate: project.startDate ? new Date(project.startDate) : new Date(),
         endDate: project.endDate ? new Date(project.endDate) : new Date(new Date().setMonth(new Date().getMonth() + 3)),
-        status: project.status || "Pending",
-        priority: project.priority || "Medium",
+        status: project.status || "planning",
+        priority: project.priority || "medium",
         team: Array.isArray(project.team) ? project.team : [],
         tags: Array.isArray(project.tags) ? project.tags : [],
         // Additional fields with fallbacks
@@ -748,14 +772,21 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
                         <Label htmlFor="department" className="text-sm font-semibold">
                           Department
                         </Label>
-                        <Input
-                          id="department"
-                          name="department"
+                        <Select
                           value={projectData.department}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Oncology, Cardiology"
-                          className="bg-background/50 border-border/50 h-11"
-                        />
+                          onValueChange={(value) => handleSelectChange(value, "department")}
+                        >
+                          <SelectTrigger className="bg-background/50 border-border/50 h-11">
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {defaultDepartments.map(department => (
+                              <SelectItem key={department} value={department}>
+                                {department}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Project Complexity */}
@@ -1013,9 +1044,7 @@ export function EditProjectDialog({ project, open, onOpenChange, onSave }) {
                         {projectData.externalCollaborators.map(collaborator => (
                           <Badge key={collaborator} variant="outline" className="px-2 py-1 gap-1 bg-blue-50">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                              <circle cx="9" cy="7" r="4" />
-                              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                              <path d="M16 21v-2a4 4 0 0 0-3-3.87" />
                               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                             </svg>
                             {collaborator}
