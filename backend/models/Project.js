@@ -103,10 +103,9 @@ const ProjectSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
-  // Add category field
+  // Add category field (removed enum validation to allow custom categories)
   category: {
     type: String,
-    enum: ['research', 'regulatory', 'miscellaneous'],
     default: 'miscellaneous'
   },
   // Add projectType field for regulatory projects

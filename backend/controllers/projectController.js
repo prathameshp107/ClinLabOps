@@ -1,4 +1,5 @@
 const Project = require('../models/Project');
+const Settings = require('../models/Settings');
 const mongoose = require('mongoose');
 const { Parser } = require('json2csv');
 const ExcelJS = require('exceljs');
@@ -137,7 +138,7 @@ exports.createProject = async (req, res) => {
             projectCode = `PRJ-${Date.now()}`;
         }
 
-        // Generate project key from project name
+        // Generate project key
         let projectKey = generateProjectKey(req.body.name);
         let keyAttempts = 0;
         let isKeyUnique = false;
@@ -155,8 +156,19 @@ exports.createProject = async (req, res) => {
             }
         }
 
+        // Get all valid categories from settings or use defaults
+        let validCategories = ['research', 'regulatory', 'miscellaneous'];
+        try {
+            const settings = await Settings.findOne();
+            if (settings && settings.project && settings.project.categories) {
+                validCategories = settings.project.categories.map(cat => cat.id);
+            }
+        } catch (settingsError) {
+            console.error('Error fetching settings for category validation:', settingsError);
+        }
+
         // Ensure category is valid or default to 'miscellaneous'
-        const category = req.body.category && ['research', 'regulatory', 'miscellaneous'].includes(req.body.category)
+        const category = req.body.category && validCategories.includes(req.body.category)
             ? req.body.category
             : 'miscellaneous';
 
@@ -198,8 +210,19 @@ exports.createProject = async (req, res) => {
 // Update project
 exports.updateProject = async (req, res) => {
     try {
+        // Get all valid categories from settings or use defaults
+        let validCategories = ['research', 'regulatory', 'miscellaneous'];
+        try {
+            const settings = await Settings.findOne();
+            if (settings && settings.project && settings.project.categories) {
+                validCategories = settings.project.categories.map(cat => cat.id);
+            }
+        } catch (settingsError) {
+            console.error('Error fetching settings for category validation:', settingsError);
+        }
+
         // Ensure category is valid if provided
-        if (req.body.category && !['research', 'regulatory', 'miscellaneous'].includes(req.body.category)) {
+        if (req.body.category && !validCategories.includes(req.body.category)) {
             return res.status(400).json({ error: 'Invalid category value' });
         }
 
