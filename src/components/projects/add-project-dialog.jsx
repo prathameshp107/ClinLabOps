@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers, Sparkles, ChevronLeft } from "lucide-react"
+import {
+  Calendar, FolderPlus, CheckCircle2, X, Info, FileText, Link2, Beaker, Users, Clock, AlertTriangle, FileSpreadsheet, ArrowRight, Plus, FlaskConical, Layers, Sparkles, ChevronLeft, ClipboardEdit
+} from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -68,6 +71,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 
 // Import project service
 import { getProjects } from "@/services/projectService"
+import { getSettings } from "@/services/settingsService"
 
 import {
   projectStatuses,
@@ -75,6 +79,16 @@ import {
   commonTags
 } from "@/constants"
 import { getUsers } from "@/services/userService"
+
+// Icon mapping
+const ICON_COMPONENTS = {
+  FlaskConical,
+  FileText,
+  Layers,
+  FolderPlus,
+  ClipboardEdit,
+  Beaker
+}
 
 // Available Principal Investigators
 const availablePIs = [
@@ -226,29 +240,51 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [users, setUsers] = useState([])
   const { toast } = useToast()
+
+  // Default department values
+  const defaultDepartments = [
+    "Oncology",
+    "Cardiology",
+    "Neuroscience",
+    "Immunology",
+    "Genetics",
+    "Pharmacology",
+    "Microbiology",
+    "Biochemistry",
+    "Molecular Biology",
+    "Clinical Research",
+    "Epidemiology",
+    "Biostatistics",
+    "Radiology",
+    "Pathology",
+    "Pediatrics",
+    "Surgery",
+    "Emergency Medicine",
+    "Psychiatry",
+    "Dermatology",
+    "Orthopedics"
+  ];
+
   const [projectData, setProjectData] = useState({
     name: "",
     description: "",
     startDate: new Date(),
-    endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)),
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
     status: "planning",
     priority: "medium",
-    team: [],
+    category: "research", // Default to research
+    projectType: "", // For regulatory projects
     tags: [],
-    // New fields
+    assignedTo: [],
+    dependencies: [],
     budget: "",
-    department: "",
-    externalCollaborators: [],
-    requiredEquipment: [],
-    relatedDocuments: [],
-    // Project category and type fields
-    category: "miscellaneous",
-    projectType: "", // New field for regulatory project type
-    documents: {
-      protocol: null,
-      ethics: null,
-      other: []
-    }
+    department: "", // Will be updated with dropdown
+    milestones: [],
+    isFavorite: false,
+    team: []
+  })
+  const [projectSettings, setProjectSettings] = useState({
+    categories: []
   })
   const [formErrors, setFormErrors] = useState({})
   const [tagInput, setTagInput] = useState("")
@@ -274,8 +310,28 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
       }
     };
 
+    // Load project settings
+    const loadProjectSettings = async () => {
+      try {
+        const settings = await getSettings();
+        if (settings.project) {
+          setProjectSettings(settings.project);
+          // Set default category to the first available category
+          if (settings.project.categories && settings.project.categories.length > 0) {
+            setProjectData(prev => ({
+              ...prev,
+              category: settings.project.categories[0].id
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch project settings:', error);
+      }
+    };
+
     if (open) {
       fetchUsers();
+      loadProjectSettings();
     }
   }, [open]);
 
@@ -445,8 +501,12 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
   }
 
   const handleTeamMemberAdd = (user) => {
+    console.log('handleTeamMemberAdd called with user:', user);
+    console.log('Current team:', projectData.team);
+
     // Skip if user is already in team
     if (projectData.team.some(member => member.id === user.id)) {
+      console.log('User already in team, skipping');
       return
     }
 
@@ -459,13 +519,22 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         department: user.department
       }]
     }))
+
+    console.log('Team member added successfully');
+
+    // Close the popover after adding a team member
+    setTimeout(() => {
+      document.body.click();
+    }, 100);
   }
 
   const handleTeamMemberRemove = (userId) => {
+    console.log('handleTeamMemberRemove called with userId:', userId);
     setProjectData(prev => ({
       ...prev,
       team: prev.team.filter(member => member.id !== userId)
     }))
+    console.log('Team member removed successfully');
   }
 
   const handleTagAdd = (tag) => {
@@ -597,9 +666,10 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
         priority: projectData.priority || "medium",
         progress: 0,
         isFavorite: false,
-        team: [],
+        team: projectData.team || [],
         tags: projectData.tags || [],
         category: projectData.category || "miscellaneous",
+        department: projectData.department || "", // Add department field
         // Include projectType for regulatory projects
         ...(projectData.category === "regulatory" && { projectType: projectData.projectType || "" }),
         dependencies: [],
@@ -668,6 +738,104 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
 
   // Function to get templates based on project type
   const getTemplatesForType = (type) => {
+    // First check if we have custom templates from settings
+    if (projectSettings.categories && projectSettings.categories.length > 0) {
+      const category = projectSettings.categories.find(cat => cat.id === type);
+      if (category && category.templates && category.templates.length > 0) {
+        return category.templates.map(template => ({
+          id: template.id,
+          name: template.name,
+          description: template.description,
+          tags: template.tags || [] // Custom templates might not have tags
+        }));
+      }
+    }
+
+    // Fallback to default templates
+    const templates = {
+      // Templates for Miscellaneous projects
+      miscellaneous: [
+        {
+          id: "misc-1",
+          name: "Pilot Study Template",
+          description: "Template for small-scale preliminary studies to evaluate feasibility, time, cost, and potential adverse effects",
+          tags: ["pilot-study", "feasibility", "preliminary-research"]
+        },
+        {
+          id: "misc-2",
+          name: "Academic Research Template",
+          description: "Template for university-based research projects with literature review and methodology sections",
+          tags: ["academic", "literature-review", "methodology"]
+        },
+        {
+          id: "misc-3",
+          name: "Client-Specific Study Template",
+          description: "Template for client-driven research projects with deliverables and milestone tracking",
+          tags: ["client-project", "deliverables", "milestones"]
+        },
+        {
+          id: "misc-4",
+          name: "Internal Research Template",
+          description: "Template for internal company research initiatives with resource allocation and budget tracking",
+          tags: ["internal-research", "resource-allocation", "budget-tracking"]
+        }
+      ],
+      // Templates for Research projects
+      research: [
+        {
+          id: "research-1",
+          name: "Basic Research Template",
+          description: "Standard research project template",
+          tags: ["research", "scientific", "study"]
+        },
+        {
+          id: "research-2",
+          name: "Experimental Study Template",
+          description: "Controlled experiment template",
+          tags: ["experiment", "controlled-study", "methodology"]
+        },
+        {
+          id: "research-3",
+          name: "Data Analysis Template",
+          description: "Data-driven research template",
+          tags: ["data-analysis", "statistics", "research"]
+        }
+      ]
+    };
+
+    // For miscellaneous category, return miscellaneous templates
+    if (type === "miscellaneous") {
+      return templates.miscellaneous || [];
+    }
+
+    // For research category, return research templates
+    if (type === "research") {
+      return templates.research || [];
+    }
+
+    // For regulatory categories, return empty array since we now use sub-types
+    return [];
+  };
+
+  // New function to get templates for regulatory sub-types
+  const getTemplatesForRegulatorySubType = (subTypeId) => {
+    // First check if we have custom templates from settings
+    if (projectSettings.categories && projectSettings.categories.length > 0) {
+      const regulatoryCategory = projectSettings.categories.find(cat => cat.id === "regulatory");
+      if (regulatoryCategory && regulatoryCategory.subTypes && regulatoryCategory.subTypes.length > 0) {
+        const subType = regulatoryCategory.subTypes.find(st => st.id === subTypeId);
+        if (subType && subType.templates && subType.templates.length > 0) {
+          return subType.templates.map(template => ({
+            id: template.id,
+            name: template.name,
+            description: template.description,
+            tags: template.tags || [] // Custom templates might not have tags
+          }));
+        }
+      }
+    }
+
+    // Fallback to default templates based on sub-type
     const templates = {
       iso: [
         {
@@ -756,71 +924,48 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
           description: "Good manufacturing practice guidance for active pharmaceutical ingredients",
           tags: ["manufacturing", "quality-control", "pharmaceutical-ingredients"]
         }
-      ],
-      // Templates for Miscellaneous projects
-      miscellaneous: [
-        {
-          id: "misc-1",
-          name: "Pilot Study Template",
-          description: "Template for small-scale preliminary studies to evaluate feasibility, time, cost, and potential adverse effects",
-          tags: ["pilot-study", "feasibility", "preliminary-research"]
-        },
-        {
-          id: "misc-2",
-          name: "Academic Research Template",
-          description: "Template for university-based research projects with literature review and methodology sections",
-          tags: ["academic", "literature-review", "methodology"]
-        },
-        {
-          id: "misc-3",
-          name: "Client-Specific Study Template",
-          description: "Template for client-driven research projects with deliverables and milestone tracking",
-          tags: ["client-project", "deliverables", "milestones"]
-        },
-        {
-          id: "misc-4",
-          name: "Internal Research Template",
-          description: "Template for internal company research initiatives with resource allocation and budget tracking",
-          tags: ["internal-research", "resource-allocation", "budget-tracking"]
-        }
       ]
     };
 
-    // For miscellaneous category, return miscellaneous templates
-    if (type === "miscellaneous") {
-      return templates.miscellaneous || [];
-    }
-
-    // For regulatory categories, return the specific templates
-    return templates[type] || [];
+    return templates[subTypeId] || [];
   };
 
   // Function to handle template selection
   const handleTemplateSelect = (template) => {
     // Add template tags to project tags
     const newTags = [...projectData.tags];
-    template.tags.forEach(tag => {
-      if (!newTags.includes(tag)) {
-        newTags.push(tag);
-      }
-    });
+    if (template.tags && Array.isArray(template.tags)) {
+      template.tags.forEach(tag => {
+        if (!newTags.includes(tag)) {
+          newTags.push(tag);
+        }
+      });
+    }
 
     // Update project name if it's empty
     let newName = projectData.name || template.name;
 
     // Update description with template description if empty
-    const newDescription = projectData.description || `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;
+    let newDescription = projectData.description;
+    if (!newDescription || newDescription === '<p></p>' || newDescription === '<p><br></p>') {
+      // Format the description properly for the rich text editor
+      newDescription = `<p><strong>${template.name}</strong></p><p>${template.description}</p>`;
+    }
 
     setProjectData(prev => ({
       ...prev,
       name: newName,
       description: newDescription,
-      tags: newTags
+      tags: newTags,
+      // Set default values when template is selected
+      status: "planning",
+      priority: "medium"
     }));
 
     // Move to next tab
     setActiveTab("team");
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -905,77 +1050,112 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         </TooltipProvider>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <motion.div
-                          className={cn(
-                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
-                            projectData.category === "research"
-                              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                              : "border-border/50 bg-background/50 hover:border-primary/30"
-                          )}
-                          onClick={() => handleSelectChange("research", "category")}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-lg bg-blue-500/10">
-                              <FlaskConical className="h-5 w-5 text-blue-500" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-base">Research</h3>
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                Exploratory or proof-of-concept studies
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
+                        {projectSettings.categories && projectSettings.categories.length > 0 ? (
+                          projectSettings.categories.map((category) => {
+                            const IconComponent = ICON_COMPONENTS[category.icon] || FlaskConical;
+                            return (
+                              <motion.div
+                                key={category.id}
+                                className={cn(
+                                  "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                  projectData.category === category.id
+                                    ? `${category.borderColor} ${category.bgColor} ring-2 ring-primary/20`
+                                    : "border-border/50 bg-background/50 hover:border-primary/30"
+                                )}
+                                onClick={() => handleSelectChange(category.id, "category")}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`p-2.5 rounded-lg ${category.bgColor}`}>
+                                    <IconComponent className={`h-5 w-5 ${category.color}`} />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-semibold text-base">{category.name}</h3>
+                                    <p className="text-xs text-muted-foreground mt-1.5">
+                                      {category.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })
+                        ) : (
+                          // Fallback to default categories if none are loaded
+                          <>
+                            <motion.div
+                              className={cn(
+                                "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                projectData.category === "research"
+                                  ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                                  : "border-border/50 bg-background/50 hover:border-primary/30"
+                              )}
+                              onClick={() => handleSelectChange("research", "category")}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 rounded-lg bg-blue-500/10">
+                                  <FlaskConical className="h-5 w-5 text-blue-500" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-base">Research</h3>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    Exploratory or proof-of-concept studies
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
 
-                        <motion.div
-                          className={cn(
-                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
-                            projectData.category === "regulatory"
-                              ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20"
-                              : "border-border/50 bg-background/50 hover:border-amber-300/50"
-                          )}
-                          onClick={() => handleSelectChange("regulatory", "category")}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-lg bg-amber-500/10">
-                              <FileText className="h-5 w-5 text-amber-500" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-base">Regulatory</h3>
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                Guideline-driven studies for authority submissions
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
+                            <motion.div
+                              className={cn(
+                                "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                projectData.category === "regulatory"
+                                  ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20"
+                                  : "border-border/50 bg-background/50 hover:border-amber-300/50"
+                              )}
+                              onClick={() => handleSelectChange("regulatory", "category")}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 rounded-lg bg-amber-500/10">
+                                  <FileText className="h-5 w-5 text-amber-500" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-base">Regulatory</h3>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    Guideline-driven studies for authority submissions
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
 
-                        <motion.div
-                          className={cn(
-                            "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
-                            projectData.category === "miscellaneous"
-                              ? "border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20"
-                              : "border-border/50 bg-background/50 hover:border-purple-300/50"
-                          )}
-                          onClick={() => handleSelectChange("miscellaneous", "category")}
-                          whileHover={{ y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="p-2.5 rounded-lg bg-purple-500/10">
-                              <Layers className="h-5 w-5 text-purple-500" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-base">Miscellaneous</h3>
-                              <p className="text-xs text-muted-foreground mt-1.5">
-                                Pilot, academic, or client-specific studies
-                              </p>
-                            </div>
-                          </div>
-                        </motion.div>
+                            <motion.div
+                              className={cn(
+                                "border rounded-xl p-5 cursor-pointer transition-all duration-200 hover:shadow-md",
+                                projectData.category === "miscellaneous"
+                                  ? "border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20"
+                                  : "border-border/50 bg-background/50 hover:border-purple-300/50"
+                              )}
+                              onClick={() => handleSelectChange("miscellaneous", "category")}
+                              whileHover={{ y: -2 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="p-2.5 rounded-lg bg-purple-500/10">
+                                  <Layers className="h-5 w-5 text-purple-500" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-base">Miscellaneous</h3>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    Pilot, academic, or client-specific studies
+                                  </p>
+                                </div>
+                              </div>
+                            </motion.div>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -988,52 +1168,117 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                         className="space-y-4 pt-5 border-t border-border/20"
                       >
                         <Label htmlFor="projectType" className="text-base font-semibold flex items-center gap-1">
-                          Regulatory Project Type
+                          Regulatory Project Sub-Type
                         </Label>
                         <Select
                           value={projectData.projectType || ""}
                           onValueChange={(value) => handleSelectChange(value, "projectType")}
                         >
                           <SelectTrigger id="projectType" className="bg-background/50 border-border/50 h-12 rounded-lg">
-                            <SelectValue placeholder="Select regulatory project type" />
+                            <SelectValue placeholder="Select regulatory project sub-type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="iso">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-blue-500" />
-                                <span className="text-sm">ISO Standards</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="oecd">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-green-500" />
-                                <span className="text-sm">OECD Guidelines</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="fda">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-red-500" />
-                                <span className="text-sm">FDA Regulations</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="ema">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-purple-500" />
-                                <span className="text-sm">EMA Guidelines</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="ich">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-orange-500" />
-                                <span className="text-sm">ICH Guidelines</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="other">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-gray-500" />
-                                <span className="text-sm">Other Regulatory Framework</span>
-                              </div>
-                            </SelectItem>
+                            {/* Dynamically load sub-types from settings */}
+                            {projectSettings.categories && projectSettings.categories.length > 0 ? (
+                              (() => {
+                                const regulatoryCategory = projectSettings.categories.find(cat => cat.id === "regulatory");
+                                return regulatoryCategory && regulatoryCategory.subTypes && regulatoryCategory.subTypes.length > 0 ? (
+                                  regulatoryCategory.subTypes.map((subType) => (
+                                    <SelectItem key={subType.id} value={subType.id}>
+                                      <div className="flex items-center gap-2">
+                                        {subType.icon && (
+                                          (() => {
+                                            const IconComponent = ICON_COMPONENTS[subType.icon] || FileText;
+                                            return <IconComponent className={`h-4 w-4 ${subType.color}`} />;
+                                          })()
+                                        )}
+                                        <span className="text-sm">{subType.name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  // Fallback to default sub-types if no custom sub-types are defined
+                                  <>
+                                    <SelectItem value="iso">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-blue-500" />
+                                        <span className="text-sm">ISO Standards</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="oecd">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-green-500" />
+                                        <span className="text-sm">OECD Guidelines</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="fda">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-red-500" />
+                                        <span className="text-sm">FDA Regulations</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="ema">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-purple-500" />
+                                        <span className="text-sm">EMA Guidelines</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="ich">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-orange-500" />
+                                        <span className="text-sm">ICH Guidelines</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="other">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-gray-500" />
+                                        <span className="text-sm">Other Regulatory Framework</span>
+                                      </div>
+                                    </SelectItem>
+                                  </>
+                                );
+                              })()
+                            ) : (
+                              // Fallback to default sub-types if settings are not loaded
+                              <>
+                                <SelectItem value="iso">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-blue-500" />
+                                    <span className="text-sm">ISO Standards</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="oecd">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-green-500" />
+                                    <span className="text-sm">OECD Guidelines</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="fda">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-red-500" />
+                                    <span className="text-sm">FDA Regulations</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="ema">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-purple-500" />
+                                    <span className="text-sm">EMA Guidelines</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="ich">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-orange-500" />
+                                    <span className="text-sm">ICH Guidelines</span>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="other">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-gray-500" />
+                                    <span className="text-sm">Other Regulatory Framework</span>
+                                  </div>
+                                </SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </motion.div>
@@ -1058,60 +1303,208 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </motion.div>
                     )}
 
-                    {/* Predefined Templates - Show for Regulatory projects with a selected type OR for Miscellaneous projects */}
-                    {(projectData.category === "regulatory" && projectData.projectType && projectData.projectType !== "other") ||
-                      (projectData.category === "miscellaneous") ? (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-5 pt-5 border-t border-border/20"
-                      >
-                        <div className="flex items-center justify-between">
-                          <Label className="text-base font-semibold flex items-center gap-2">
-                            <Sparkles className="h-4 w-4 text-primary" />
-                            Predefined Templates
-                          </Label>
-                          <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            Recommended
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {getTemplatesForType(
-                            projectData.category === "regulatory" ? projectData.projectType : "miscellaneous"
-                          ).map((template) => (
-                            <motion.div
-                              key={template.id}
-                              className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
-                              onClick={() => handleTemplateSelect(template)}
-                              whileHover={{ y: -2 }}
-                              whileTap={{ scale: 0.98 }}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div className="mt-1 p-2 rounded-lg bg-primary/10">
-                                  <FileText className="h-5 w-5 text-primary" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="font-semibold text-base">{template.name}</h4>
-                                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
-                                  <div className="flex flex-wrap gap-2 mt-3">
-                                    {template.tags.map((tag) => (
-                                      <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
-                                        {tag}
-                                      </Badge>
-                                    ))}
+                    {/* Predefined Templates - Show for all categories */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="space-y-5 pt-5 border-t border-border/20"
+                    >
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base font-semibold flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          Predefined Templates
+                        </Label>
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Recommended
+                        </Badge>
+                      </div>
+
+                      {/* Show templates for the selected category */}
+                      {projectData.category === "regulatory" ? (
+                        // For Regulatory projects, only show templates after sub-type is selected
+                        projectData.projectType ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {getTemplatesForRegulatorySubType(projectData.projectType).map((template) => (
+                              <motion.div
+                                key={template.id}
+                                className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
+                                onClick={() => handleTemplateSelect(template)}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-1 p-2 rounded-lg bg-primary/10">
+                                    <FileText className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-semibold text-base">{template.name}</h4>
+                                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                    {template.tags && template.tags.length > 0 && (
+                                      <div className="flex flex-wrap gap-2 mt-3">
+                                        {template.tags.map((tag) => (
+                                          <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                            {tag}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        ) : (
+                          // Show message to select a sub-type first
+                          <div className="flex flex-col items-center justify-center py-8 text-center bg-muted/30 rounded-lg border border-dashed">
+                            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="font-semibold text-lg mb-2">Select a Regulatory Sub-Type</h3>
+                            <p className="text-muted-foreground max-w-md">
+                              Please select a regulatory sub-type above to view available templates for that specific framework.
+                            </p>
+                          </div>
+                        )
+                      ) : (
+                        // For non-regulatory categories, show templates directly
+                        // Show templates for any category that has templates, not just default categories
+                        (projectData.category && projectData.category !== "regulatory") && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {getTemplatesForType(projectData.category).map((template) => (
+                              <motion.div
+                                key={template.id}
+                                className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
+                                onClick={() => handleTemplateSelect(template)}
+                                whileHover={{ y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className="mt-1 p-2 rounded-lg bg-primary/10">
+                                    <FileText className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-semibold text-base">{template.name}</h4>
+                                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                    {template.tags && template.tags.length > 0 && (
+                                      <div className="flex flex-wrap gap-2 mt-3">
+                                        {template.tags.map((tag) => (
+                                          <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                            {tag}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )
+                      )}
+
+                      {/* Show all categories with their templates if no specific category is selected */}
+                      {(!projectData.category) && (
+                        <div className="space-y-6">
+                          {projectSettings.categories && projectSettings.categories.length > 0 ? (
+                            projectSettings.categories.map((category) => (
+                              <div key={category.id} className="space-y-3">
+                                <h3 className="font-semibold text-lg flex items-center gap-2">
+                                  {category.icon && (
+                                    (() => {
+                                      const IconComponent = ICON_COMPONENTS[category.icon] || FlaskConical;
+                                      return <IconComponent className={`h-5 w-5 ${category.color}`} />;
+                                    })()
+                                  )}
+                                  {category.name}
+                                </h3>
+                                <p className="text-sm text-muted-foreground">{category.description}</p>
+                                {category.templates && category.templates.length > 0 ? (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {category.templates.map((template) => (
+                                      <motion.div
+                                        key={template.id}
+                                        className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
+                                        onClick={() => {
+                                          // Set the category and select the template
+                                          setProjectData(prev => ({
+                                            ...prev,
+                                            category: category.id
+                                          }));
+                                          handleTemplateSelect({
+                                            id: template.id,
+                                            name: template.name,
+                                            description: template.description,
+                                            tags: template.tags || []
+                                          });
+                                        }}
+                                        whileHover={{ y: -2 }}
+                                        whileTap={{ scale: 0.98 }}
+                                      >
+                                        <div className="flex items-start gap-3">
+                                          <div className="mt-1 p-2 rounded-lg bg-primary/10">
+                                            <FileText className="h-5 w-5 text-primary" />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <h4 className="font-semibold text-base">{template.name}</h4>
+                                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                            {template.tags && template.tags.length > 0 && (
+                                              <div className="flex flex-wrap gap-2 mt-3">
+                                                {template.tags.map((tag) => (
+                                                  <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                                    {tag}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-muted-foreground italic">No templates available for this category</p>
+                                )}
                               </div>
-                            </motion.div>
-                          ))}
+                            ))
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {getTemplatesForType("research").map((template) => (
+                                <motion.div
+                                  key={template.id}
+                                  className="border rounded-xl p-5 bg-background/50 border-border/50 hover:bg-primary/5 cursor-pointer transition-all duration-200 hover:shadow-md"
+                                  onClick={() => handleTemplateSelect(template)}
+                                  whileHover={{ y: -2 }}
+                                  whileTap={{ scale: 0.98 }}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <div className="mt-1 p-2 rounded-lg bg-primary/10">
+                                      <FileText className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-semibold text-base">{template.name}</h4>
+                                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{template.description}</p>
+                                      {template.tags && template.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                          {template.tags.map((tag) => (
+                                            <Badge key={tag} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/5 text-primary border-primary/10">
+                                              {tag}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Select a template to pre-fill project details, or skip to create a project from scratch.
-                        </p>
-                      </motion.div>
-                    ) : null}
+                      )}
+
+                      <p className="text-xs text-muted-foreground">
+                        Select a template to pre-fill project details, or skip to create a project from scratch.
+                      </p>
+                    </motion.div>
 
                     <div className="space-y-4 pt-5 border-t border-border/20">
                       <Label htmlFor="name" className="text-base font-semibold flex items-center gap-1">
@@ -1301,14 +1694,21 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                             <path d="M9.5 9h5L12 12z" />
                           </svg>
-                          <Input
-                            id="department"
-                            name="department"
+                          <Select
                             value={projectData.department}
-                            onChange={handleInputChange}
-                            placeholder="e.g., Oncology, Cardiology"
-                            className="pl-10 bg-background/50 border-border/50 h-12 rounded-lg"
-                          />
+                            onValueChange={(value) => handleSelectChange(value, "department")}
+                          >
+                            <SelectTrigger className="pl-10 bg-background/50 border-border/50 h-12 rounded-lg">
+                              <SelectValue placeholder="Select department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {defaultDepartments.map(department => (
+                                <SelectItem key={department} value={department}>
+                                  {department}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
 
@@ -1600,7 +2000,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                           Team Members
                         </Label>
                         <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
-                          {projectData.team.length} selected
+                          {projectData?.team?.length} selected
                         </Badge>
                       </div>
 
@@ -1611,7 +2011,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                               <Plus className="mr-2 h-4 w-4" />
                               <span className="font-medium">Add team member</span>
                               <span className="ml-2 text-xs bg-muted/50 px-2 py-1 rounded-full">
-                                {projectData.team.length} added
+                                {projectData?.team?.length} added
                               </span>
                             </div>
                           </Button>
@@ -1624,17 +2024,25 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             </CommandEmpty>
                             <CommandGroup heading="Available Team Members" className="p-2">
                               {Array.isArray(users) && users
-                                .filter(user => !projectData.team.some(member => member.id === (user._id || user.id)))
+                                .filter(user => !projectData?.team?.some(member => member.id === (user._id || user.id)))
                                 .map(user => (
-                                  <CommandItem
+                                  <div
                                     key={user._id || user.id}
-                                    onSelect={() => handleTeamMemberAdd({
-                                      id: user._id || user.id,
-                                      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-                                      email: user.email,
-                                      role: user.roles?.[0] || 'User',
-                                      department: user.department || 'N/A'
-                                    })}
+                                    onClick={() => {
+                                      console.log('Selected user:', user);
+                                      const teamMember = {
+                                        id: user._id || user.id,
+                                        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+                                        email: user.email,
+                                        role: user.roles?.[0] || 'User',
+                                        department: user.department || 'N/A'
+                                      };
+                                      handleTeamMemberAdd(teamMember);
+                                      // Close the popover after adding a team member
+                                      setTimeout(() => {
+                                        document.body.click();
+                                      }, 100);
+                                    }}
                                     className="flex items-center justify-between p-3 rounded-lg mx-1 mb-1 hover:bg-primary/5 cursor-pointer transition-colors"
                                   >
                                     <div className="flex items-center">
@@ -1653,7 +2061,7 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                                       </div>
                                     </div>
                                     <Plus className="h-4 w-4 text-muted-foreground" />
-                                  </CommandItem>
+                                  </div>
                                 ))}
                             </CommandGroup>
                           </Command>
@@ -1661,14 +2069,14 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </Popover>
 
                       {/* Display selected team members */}
-                      {projectData.team.length > 0 && (
+                      {projectData?.team?.length > 0 && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           className="space-y-4 pt-2"
                         >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {projectData.team.map(member => (
+                            {projectData?.team?.map(member => (
                               <motion.div
                                 key={member.id}
                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -1747,14 +2155,14 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </p>
                     </div>
 
-                    {projectData.externalCollaborators.length > 0 && (
+                    {projectData?.externalCollaborators?.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="pt-2"
                       >
                         <div className="flex flex-wrap gap-2">
-                          {projectData.externalCollaborators.map(collaborator => (
+                          {projectData?.externalCollaborators?.map(collaborator => (
                             <motion.div
                               key={collaborator}
                               initial={{ opacity: 0, scale: 0.9 }}
@@ -1846,11 +2254,11 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                             Supports PDF, DOCX, XLSX, PPTX, and other common formats
                           </p>
                         </div>
-                        {projectData.relatedFiles && projectData.relatedFiles.length > 0 && (
+                        {projectData?.relatedFiles && projectData?.relatedFiles?.length > 0 && (
                           <div className="mt-6 pt-6 border-t border-border/20">
                             <h4 className="text-sm font-semibold mb-3 text-muted-foreground">Uploaded Files</h4>
                             <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                              {projectData.relatedFiles.map((file, index) => (
+                              {projectData?.relatedFiles?.map((file, index) => (
                                 <motion.div
                                   key={index}
                                   initial={{ opacity: 0, y: 10 }}
@@ -1935,14 +2343,14 @@ export function AddProjectDialog({ open, onOpenChange, onSubmit }) {
                       </p>
                     </div>
 
-                    {projectData.relatedDocuments.length > 0 && (
+                    {projectData?.relatedDocuments?.length > 0 && (
                       <div className="space-y-4 mt-6 pt-6 border-t border-border/20">
                         <h4 className="text-base font-semibold flex items-center gap-2">
                           <FileText className="h-4 w-4 text-primary" />
                           Added Document Links
                         </h4>
                         <div className="grid gap-3">
-                          {projectData.relatedDocuments.map(doc => (
+                          {projectData?.relatedDocuments?.map(doc => (
                             <motion.div
                               key={doc.id}
                               initial={{ opacity: 0, y: 10 }}

@@ -56,7 +56,7 @@ import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } 
 import { CSS } from '@dnd-kit/utilities';
 import { getCurrentUser } from '@/services/authService';
 
-export function ModernSidebar({ className, onToggle, isCollapsed }) {
+function ModernSidebar({ className, onToggle, isCollapsed }) {
     const pathname = usePathname();
     const router = useRouter();
     const [expandedGroups, setExpandedGroups] = useState({
@@ -403,3 +403,5 @@ export function ModernSidebar({ className, onToggle, isCollapsed }) {
         </aside>
     );
 }
+
+export { ModernSidebar };

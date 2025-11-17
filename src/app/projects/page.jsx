@@ -4,53 +4,127 @@ import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 import { ProjectManagement } from "@/components/projects/project-management"
 import { ProjectsLoading } from "@/components/projects/projects-loading"
 import { Button } from "@/components/ui/button"
-import { Plus, Beaker, Sparkles, LayoutGrid, List, FlaskConical, FileText, Layers } from "lucide-react"
-import { useState, useEffect } from "react"
+import { Plus, Beaker, Sparkles, LayoutGrid, List, FlaskConical, FileText, Layers, ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import { statusChips } from "@/constants"
-
-// Project category configuration
-const PROJECT_CATEGORIES = [
-  {
-    id: "research",
-    name: "Research",
-    description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
-    icon: FlaskConical,
-    color: "text-blue-500",
-    bgColor: "bg-blue-500/10",
-    borderColor: "border-blue-500/20"
-  },
-  {
-    id: "regulatory",
-    name: "Regulatory",
-    description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
-    icon: FileText,
-    color: "text-amber-500",
-    bgColor: "bg-amber-500/10",
-    borderColor: "border-amber-500/20"
-  },
-  {
-    id: "miscellaneous",
-    name: "Miscellaneous",
-    description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
-    icon: Layers,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-    borderColor: "border-purple-500/20"
-  }
-];
+import { getSettings } from "@/services/settingsService"
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
+  const [projectCategories, setProjectCategories] = useState([])
   const [view, setView] = useState("board")
   const [status, setStatus] = useState("all")
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const containerRef = useRef(null)
+
+  // Load project categories from settings
+  useEffect(() => {
+    const loadProjectCategories = async () => {
+      try {
+        const settings = await getSettings();
+        if (settings.project && settings.project.categories) {
+          setProjectCategories(settings.project.categories);
+        } else {
+          // Fallback to default categories if none are defined
+          setProjectCategories([
+            {
+              id: "research",
+              name: "Research",
+              description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+              icon: "FlaskConical",
+              color: "text-blue-500",
+              bgColor: "bg-blue-500/10",
+              borderColor: "border-blue-500/20"
+            },
+            {
+              id: "regulatory",
+              name: "Regulatory",
+              description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+              icon: "FileText",
+              color: "text-amber-500",
+              bgColor: "bg-amber-500/10",
+              borderColor: "border-amber-500/20"
+            },
+            {
+              id: "miscellaneous",
+              name: "Miscellaneous",
+              description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+              icon: "Layers",
+              color: "text-purple-500",
+              bgColor: "bg-purple-500/10",
+              borderColor: "border-purple-500/20"
+            }
+          ]);
+        }
+      } catch (error) {
+        console.error('Failed to load project categories:', error);
+        // Fallback to default categories on error
+        setProjectCategories([
+          {
+            id: "research",
+            name: "Research",
+            description: "Exploratory or proof-of-concept studies to generate new scientific knowledge.",
+            icon: "FlaskConical",
+            color: "text-blue-500",
+            bgColor: "bg-blue-500/10",
+            borderColor: "border-blue-500/20"
+          },
+          {
+            id: "regulatory",
+            name: "Regulatory",
+            description: "Guideline-driven studies (ISO, OECD, FDA, etc.) for authority submissions.",
+            icon: "FileText",
+            color: "text-amber-500",
+            bgColor: "bg-amber-500/10",
+            borderColor: "border-amber-500/20"
+          },
+          {
+            id: "miscellaneous",
+            name: "Miscellaneous",
+            description: "Pilot, academic, or client-specific studies for non-regulatory purposes.",
+            icon: "Layers",
+            color: "text-purple-500",
+            bgColor: "bg-purple-500/10",
+            borderColor: "border-purple-500/20"
+          }
+        ]);
+      } finally {
+        // Add a small delay to ensure smooth loading
+        const timer = setTimeout(() => {
+          setLoading(false)
+        }, 800)
+        return () => clearTimeout(timer)
+      }
+    };
+
+    loadProjectCategories();
+  }, [])
 
   // Simulate loading state
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 800)
-    return () => clearTimeout(timer)
-  }, [])
+    if (projectCategories.length > 0 && loading) {
+      const timer = setTimeout(() => {
+        setLoading(false)
+      }, 800)
+      return () => clearTimeout(timer)
+    }
+  }, [projectCategories, loading])
+
+  // Calculate visible categories
+  const visibleCategories = projectCategories.slice(currentIndex, currentIndex + 3)
+
+  // Navigation functions
+  const goToNext = () => {
+    if (currentIndex + 3 < projectCategories.length) {
+      setCurrentIndex(currentIndex + 1)
+    }
+  }
+
+  const goToPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1)
+    }
+  }
 
   if (loading) {
     return (
@@ -59,6 +133,13 @@ export default function ProjectsPage() {
       </DashboardLayout>
     )
   }
+
+  // Icon mapping
+  const iconMap = {
+    FlaskConical: FlaskConical,
+    FileText: FileText,
+    Layers: Layers
+  };
 
   return (
     <DashboardLayout>
@@ -104,28 +185,77 @@ export default function ProjectsPage() {
           </div>
         </div>
 
-        {/* Project Categories Section */}
+        {/* Project Categories Section with Horizontal Slider */}
         <div className="w-full px-4 md:px-8 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PROJECT_CATEGORIES.map((category) => {
-              const IconComponent = category.icon;
-              return (
-                <div
-                  key={category.id}
-                  className={`border ${category.borderColor} ${category.bgColor} rounded-xl p-6 transition-all hover:shadow-md`}
+          <div className="relative">
+            {/* Navigation Buttons */}
+            {projectCategories.length > 3 && (
+              <>
+                <button
+                  onClick={goToPrev}
+                  disabled={currentIndex === 0}
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background shadow-md border border-border flex items-center justify-center transition-all ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
+                    }`}
+                  aria-label="Previous categories"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-lg ${category.bgColor}`}>
-                      <IconComponent className={`h-6 w-6 ${category.color}`} />
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={goToNext}
+                  disabled={currentIndex + 3 >= projectCategories.length}
+                  className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background shadow-md border border-border flex items-center justify-center transition-all ${currentIndex + 3 >= projectCategories.length ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'
+                    }`}
+                  aria-label="Next categories"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </>
+            )}
+
+            {/* Categories Container - Single Row */}
+            <div
+              ref={containerRef}
+              className="overflow-hidden"
+            >
+              <div className="flex gap-6 transition-transform duration-300 ease-in-out"
+                style={{ transform: `translateX(-${currentIndex * 350}px)` }}>
+                {projectCategories.map((category) => {
+                  const IconComponent = iconMap[category.icon] || Beaker;
+                  return (
+                    <div
+                      key={category.id}
+                      className={`border ${category.borderColor} ${category.bgColor} rounded-xl p-6 transition-all hover:shadow-md flex-shrink-0`}
+                      style={{ width: '330px' }}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`p-3 rounded-lg ${category.bgColor}`}>
+                          <IconComponent className={`h-6 w-6 ${category.color}`} />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg mb-2">{category.name}</h3>
+                          <p className="text-muted-foreground text-sm">{category.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">{category.name}</h3>
-                      <p className="text-muted-foreground text-sm">{category.description}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Indicators */}
+            {projectCategories.length > 3 && (
+              <div className="flex justify-center mt-4 space-x-2">
+                {Array.from({ length: projectCategories.length - 2 }).map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`h-2 w-2 rounded-full transition-all ${index === currentIndex ? 'bg-primary w-4' : 'bg-muted'
+                      }`}
+                    aria-label={`Go to category set ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
