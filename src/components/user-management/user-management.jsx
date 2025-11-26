@@ -340,49 +340,66 @@ export function UserManagement() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-6"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">User & Role Management</h2>
-            <p className="text-muted-foreground">
-              Manage system users, roles, and permissions
-            </p>
-          </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Export Users
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2">
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Export as Excel
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Export as CSV
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button onClick={() => setShowAddUserDialog(true)} className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              Add New User
-            </Button>
+        {/* Header Section with Gradient */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-6 shadow-lg">
+          <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  User & Role Management
+                </h2>
+                <p className="text-muted-foreground mt-1">
+                  Manage system users, roles, and permissions
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
+                    <Download className="h-4 w-4" />
+                    Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => handleExport("xlsx")} className="gap-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Export as Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport("csv")} className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    Export as CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                onClick={() => setShowAddUserDialog(true)}
+                className="gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
+              >
+                <UserPlus className="h-4 w-4" />
+                Add User
+              </Button>
+            </div>
           </div>
         </div>
 
         <Tabs defaultValue="all-users" className="w-full" onValueChange={setActiveTab}>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-            <TabsList className="mb-2 sm:mb-0">
-              <TabsTrigger value="all-users" className="gap-2">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <TabsList className="bg-muted/50 p-1 rounded-xl border border-border/50">
+              <TabsTrigger value="all-users" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <Users className="h-4 w-4" />
                 <span>All Users</span>
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                  {pagination.total}
+                </Badge>
               </TabsTrigger>
-              <TabsTrigger value="activity-logs" className="gap-2">
+              <TabsTrigger value="activity-logs" className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <RefreshCw className="h-4 w-4" />
                 <span>Activity Logs</span>
               </TabsTrigger>
@@ -391,11 +408,11 @@ export function UserManagement() {
             {activeTab === "all-users" && (
               <div className="flex flex-1 items-center gap-2 max-w-md ml-auto">
                 <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search by name, email, role..."
-                    className="pl-8"
+                    className="pl-9 h-10 bg-background/50 border-border/50 focus:border-primary/50"
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -406,14 +423,14 @@ export function UserManagement() {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2 border-border/50 hover:bg-muted/50">
                       <Filter className="h-4 w-4" />
                       Filters
                       {Object.values(filterCounts).some((count, index) => {
                         const key = Object.keys(activeFilters)[index];
                         return count < Object.keys(activeFilters[key]).length;
                       }) && (
-                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs font-normal">
+                          <Badge variant="secondary" className="rounded-full px-2 py-0 text-xs font-normal bg-primary/10 text-primary border-primary/20">
                             {Object.values(filterCounts).reduce((acc, count, index) => {
                               const key = Object.keys(activeFilters)[index];
                               const total = Object.keys(activeFilters[key]).length;
@@ -563,20 +580,19 @@ export function UserManagement() {
                   transition={{ duration: 0.3 }}
                 >
 
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-sm text-muted-foreground">
-                      {users.length} users
-                    </span>
+
+                  <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden shadow-sm">
+                    <UserTable
+                      users={users}
+                      onUserAction={handleUserAction}
+                      className="w-full"
+                    />
                   </div>
-                  <UserTable
-                    users={users}
-                    onUserAction={handleUserAction}
-                    className="w-full"
-                  />
+
                   {/* Pagination Controls */}
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2">
                     <div className="text-sm text-muted-foreground">
-                      Showing {(pagination.currentPage - 1) * pagination.limit + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.total)} of {pagination.total} users
+                      Showing <span className="font-medium text-foreground">{(pagination.currentPage - 1) * pagination.limit + 1}</span> to <span className="font-medium text-foreground">{Math.min(pagination.currentPage * pagination.limit, pagination.total)}</span> of <span className="font-medium text-foreground">{pagination.total}</span> users
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -584,7 +600,7 @@ export function UserManagement() {
                         size="sm"
                         onClick={() => setPagination(prev => ({ ...prev, currentPage: 1 }))}
                         disabled={pagination.currentPage === 1}
-                        className="hidden sm:flex"
+                        className="hidden sm:flex h-9 w-9 p-0"
                       >
                         <ChevronsLeft className="h-4 w-4" />
                       </Button>
@@ -593,26 +609,32 @@ export function UserManagement() {
                         size="sm"
                         onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }))}
                         disabled={pagination.currentPage === 1}
+                        className="h-9 px-3"
                       >
-                        <ChevronsLeft className="h-4 w-4" />
+                        <ChevronsLeft className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Previous</span>
                       </Button>
-                      <div className="text-sm font-medium">
-                        Page {pagination.currentPage} of {pagination.totalPages}
+                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+                        <span className="text-sm font-medium">
+                          Page {pagination.currentPage} of {pagination.totalPages}
+                        </span>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))}
                         disabled={pagination.currentPage === pagination.totalPages}
+                        className="h-9 px-3"
                       >
-                        <ChevronRight className="h-4 w-4" />
+                        <span className="hidden sm:inline">Next</span>
+                        <ChevronRight className="h-4 w-4 sm:ml-2" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setPagination(prev => ({ ...prev, currentPage: pagination.totalPages }))}
                         disabled={pagination.currentPage === pagination.totalPages}
-                        className="hidden sm:flex"
+                        className="hidden sm:flex h-9 w-9 p-0"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>
