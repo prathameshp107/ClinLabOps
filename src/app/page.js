@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BackgroundBeams } from "@/components/ui/aceternity/background-beams";
 import { SparklesCore } from "@/components/ui/aceternity/sparkles";
 import { ThreeDCard } from "@/components/ui/aceternity/three-d-card";
+import { HeroTypewriter } from "@/components/ui/hero-typewriter";
 import {
   ArrowRight,
   CheckCircle2,
@@ -162,15 +163,7 @@ export default function LandingPage() {
             <ChevronRight className="h-3 w-3" />
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/50"
-          >
-            Accelerate Your <br />
-            <span className="text-primary">Research</span> Workflow
-          </motion.h1>
+          <HeroTypewriter />
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
