@@ -10,6 +10,7 @@ import { SparklesCore } from "@/components/ui/aceternity/sparkles";
 import { ThreeDCard } from "@/components/ui/aceternity/three-d-card";
 import { HeroTypewriter } from "@/components/ui/hero-typewriter";
 import { TestimonialsColumn } from "@/components/ui/testimonials-columns-1";
+import { PricingSection } from "@/components/ui/pricing-section";
 import {
   ArrowRight,
   CheckCircle2,
@@ -397,6 +398,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Pricing Section */}
+      <PricingSection />
 
       {/* CTA Section */}
 
