@@ -52,6 +52,18 @@ import {
   deleteExperiment
 } from "@/services/experimentService"
 import { getCurrentUser, logout } from "@/services/authService"
+import { motion, AnimatePresence } from "framer-motion"
+import {
+  FlaskConical,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  LayoutList,
+  MoreVertical,
+  FileText,
+  Calendar as CalendarIcon
+} from "lucide-react"
+import { cn } from "@/lib/utils"
 
 
 export function ExperimentManagement() {
@@ -259,6 +271,14 @@ export function ExperimentManagement() {
 
   const groupedExperiments = groupExperimentsByProject()
 
+  // Calculate stats
+  const stats = {
+    total: experiments.length,
+    planning: experiments.filter(e => e.status === 'planning').length,
+    inProgress: experiments.filter(e => e.status === 'in-progress').length,
+    completed: experiments.filter(e => e.status === 'completed').length
+  }
+
   // Show loading state if no current user yet
   if (!currentUser) {
     return (
@@ -277,96 +297,130 @@ export function ExperimentManagement() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header & Stats Section */}
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+              Experiments
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Manage laboratory experiments, protocols, and results
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300">
+                  <Plus className="mr-2 h-5 w-5" />
+                  New Experiment
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Create New Experiment</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details to create a new laboratory experiment.
+                  </DialogDescription>
+                </DialogHeader>
+                <ExperimentForm onSubmit={handleCreateExperiment} onCancel={() => setIsCreateDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </motion.div>
+        </div>
+
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          <StatCard
+            title="Total Experiments"
+            value={stats.total}
+            icon={<FlaskConical className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+            className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800"
+          />
+          <StatCard
+            title="Planning"
+            value={stats.planning}
+            icon={<FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
+            className="bg-purple-50/50 dark:bg-purple-900/10 border-purple-100 dark:border-purple-800"
+          />
+          <StatCard
+            title="In Progress"
+            value={stats.inProgress}
+            icon={<Loader2 className="h-5 w-5 text-amber-600 dark:text-amber-400 animate-spin-slow" />}
+            className="bg-amber-50/50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-800"
+          />
+          <StatCard
+            title="Completed"
+            value={stats.completed}
+            icon={<CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />}
+            className="bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-800"
+          />
+        </motion.div>
+      </div>
+
       {/* Filters and Actions Bar */}
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          <div className="relative w-full sm:w-80">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col space-y-4 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-4 rounded-2xl border shadow-sm">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Search */}
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search experiments..."
-              className="w-full pl-8"
+              className="w-full pl-10 bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 focus:ring-primary/20"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filter
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-                  All
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("planning")}>
-                  Planning
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("in-progress")}>
-                  In Progress
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
-                  Completed
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setStatusFilter("archived")}>
-                  Archived
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Add Project Filter Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10">
-                  <Filter className="mr-2 h-4 w-4" />
-                  {projectFilter === "all" ? "All Projects" :
-                    projectFilter === "unassigned" ? "Unassigned" :
-                      projects.find(p => (p._id || p.id) === projectFilter)?.name || "Project"}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Filter by Project</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setProjectFilter("all")}
-                  className={projectFilter === "all" ? "bg-accent" : ""}
-                >
-                  All Projects
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setProjectFilter("unassigned")}
-                  className={projectFilter === "unassigned" ? "bg-accent" : ""}
-                >
-                  Unassigned
-                </DropdownMenuItem>
-                {projects.length > 0 && <DropdownMenuSeparator />}
-                {projects.map((project) => (
-                  <DropdownMenuItem
-                    key={project._id || project.id}
-                    onClick={() => setProjectFilter(project._id || project.id)}
-                    className={projectFilter === (project._id || project.id) ? "bg-accent" : ""}
-                  >
-                    {project.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* View Toggle & Sort */}
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            <div className="flex items-center p-1 bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <Button
+                variant={view === "grid" ? "white" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-8 px-3 rounded-md transition-all",
+                  view === "grid" ? "bg-white dark:bg-gray-700 shadow-sm text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => setView("grid")}
+              >
+                <Grid className="h-4 w-4 mr-2" />
+                Grid
+              </Button>
+              <Button
+                variant={view === "list" ? "white" : "ghost"}
+                size="sm"
+                className={cn(
+                  "h-8 px-3 rounded-md transition-all",
+                  view === "list" ? "bg-white dark:bg-gray-700 shadow-sm text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => setView("list")}
+              >
+                <List className="h-4 w-4 mr-2" />
+                List
+              </Button>
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-10">
+                <Button variant="outline" size="sm" className="h-10 px-3 bg-white dark:bg-gray-950">
                   <SlidersHorizontal className="mr-2 h-4 w-4" />
                   Sort
-                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -392,114 +446,70 @@ export function ExperimentManagement() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <Button variant="ghost" size="icon" onClick={resetFilters} title="Reset filters">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                <path d="M3 3v5h5"></path>
-              </svg>
-            </Button>
           </div>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto justify-between md:justify-end items-center">
-          {/* User info and logout */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Welcome, {currentUser?.name}</span>
-
-          </div>
-
-          <div className="flex border rounded-md p-1">
-            <Button
-              variant={view === "grid" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setView("grid")}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={view === "list" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setView("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Experiment
+        {/* Filters Row */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex flex-wrap gap-2 w-full">
+            <span className="text-sm font-medium text-muted-foreground self-center mr-2">Status:</span>
+            {["all", "planning", "in-progress", "completed", "archived"].map((status) => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setStatusFilter(status)}
+                className={cn(
+                  "h-8 rounded-full px-4 text-xs font-medium transition-all",
+                  statusFilter === status
+                    ? "bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/20"
+                    : "text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800"
+                )}
+              >
+                {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Create New Experiment</DialogTitle>
-                <DialogDescription>
-                  Fill in the details to create a new laboratory experiment.
-                </DialogDescription>
-              </DialogHeader>
-              <ExperimentForm onSubmit={handleCreateExperiment} onCancel={() => setIsCreateDialogOpen(false)} />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+            ))}
+          </div>
 
-      {/* Status Filters */}
-      <div className="flex overflow-x-auto pb-2">
-        <div className="flex space-x-2">
-          <Button
-            variant={statusFilter === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("all")}
-          >
-            All
-          </Button>
-          <Button
-            variant={statusFilter === "planning" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("planning")}
-          >
-            Planning
-          </Button>
-          <Button
-            variant={statusFilter === "in-progress" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("in-progress")}
-          >
-            In Progress
-          </Button>
-          <Button
-            variant={statusFilter === "completed" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("completed")}
-          >
-            Completed
-          </Button>
-          <Button
-            variant={statusFilter === "archived" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("archived")}
-          >
-            Archived
-          </Button>
+          <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Project:</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 text-xs rounded-full bg-white dark:bg-gray-950 border-dashed">
+                  {projectFilter === "all" ? "All Projects" :
+                    projectFilter === "unassigned" ? "Unassigned" :
+                      projects.find(p => (p._id || p.id) === projectFilter)?.name || "Project"}
+                  <ChevronDown className="ml-2 h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Filter by Project</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setProjectFilter("all")}>All Projects</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setProjectFilter("unassigned")}>Unassigned</DropdownMenuItem>
+                {projects.length > 0 && <DropdownMenuSeparator />}
+                {projects.map((project) => (
+                  <DropdownMenuItem
+                    key={project._id || project.id}
+                    onClick={() => setProjectFilter(project._id || project.id)}
+                  >
+                    {project.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {/* Project Filter Indicators */}
-          {projectFilter !== "all" && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setProjectFilter("all")}
-              className="flex items-center gap-1"
-            >
-              {projectFilter === "unassigned" ? "Unassigned" :
-                projects.find(p => (p._id || p.id) === projectFilter)?.name || "Project"}
-              <span className="text-xs">✕</span>
-            </Button>
-          )}
+            {(searchQuery || statusFilter !== "all" || projectFilter !== "all") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="h-8 px-2 text-muted-foreground hover:text-destructive"
+              >
+                Reset
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -619,5 +629,27 @@ export function ExperimentManagement() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+function StatCard({ title, value, icon, className }) {
+  return (
+    <motion.div
+      whileHover={{ y: -2, scale: 1.01 }}
+      className={cn(
+        "flex items-center p-4 rounded-xl border shadow-sm transition-all duration-200",
+        className
+      )}
+    >
+      <div className="flex-shrink-0 p-3 rounded-lg bg-white dark:bg-gray-950 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+        {icon}
+      </div>
+      <div className="ml-4 min-w-0 flex-1">
+        <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-2xl font-bold tracking-tight">{value}</p>
+        </div>
+      </div>
+    </motion.div>
   )
 }

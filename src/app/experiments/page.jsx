@@ -39,25 +39,7 @@ export default function ExperimentsPage() {
             transition={{ duration: 0.5 }}
             className="space-y-8"
           >
-            {/* Header Section with Icon */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border/40">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-3 rounded-xl">
-                  <FlaskConical className="h-7 w-7 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight mb-1 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-                    Experiments
-                  </h1>
-                  <p className="text-muted-foreground">
-                    Manage laboratory experiments, protocols, and results
-                  </p>
-                </div>
-              </div>
-
-            </div>
-
-
+            {/* Header moved to ExperimentManagement */}
             <ExperimentManagement />
 
           </motion.div>

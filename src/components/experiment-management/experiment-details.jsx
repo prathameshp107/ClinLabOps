@@ -41,7 +41,12 @@ import {
   Send,
   Trash2,
   Users,
-  MoreHorizontal
+  MoreHorizontal,
+  X,
+  FlaskConical,
+  Microscope,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { cn } from "@/lib/utils"
@@ -54,6 +59,7 @@ import {
   deleteReplyFromComment
 } from "@/services/experimentService"
 import { useToast } from "@/components/ui/use-toast"
+import { motion, AnimatePresence } from "framer-motion"
 
 export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
   const [isEditing, setIsEditing] = useState(false)
@@ -73,13 +79,13 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
   const getPriorityStyles = (priority) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-800 dark:bg-red-900/70 dark:text-red-300 border-red-200 dark:border-red-800/50"
+        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800"
       case "medium":
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/70 dark:text-orange-300 border-orange-200 dark:border-orange-800/50"
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800"
       case "low":
-        return "bg-green-100 text-green-800 dark:bg-green-900/70 dark:text-green-300 border-green-200 dark:border-green-800/50"
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800"
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800/70 dark:text-gray-300 border-gray-200 dark:border-gray-700/50"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300 border-gray-200 dark:border-gray-700"
     }
   }
 
@@ -87,15 +93,29 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
   const getStatusStyles = (status) => {
     switch (status) {
       case "planning":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/70 dark:text-blue-300 border-blue-200 dark:border-blue-800/50"
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800"
       case "in-progress":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900/70 dark:text-amber-300 border-amber-200 dark:border-amber-800/50"
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800"
       case "completed":
-        return "bg-green-100 text-green-800 dark:bg-green-900/70 dark:text-green-300 border-green-200 dark:border-green-800/50"
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800"
       case "archived":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800/70 dark:text-gray-300 border-gray-200 dark:border-gray-700/50"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300 border-gray-200 dark:border-gray-700"
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800/70 dark:text-gray-300 border-gray-200 dark:border-gray-700/50"
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300 border-gray-200 dark:border-gray-700"
+    }
+  }
+
+  // Get experiment icon based on type
+  const getExperimentIcon = (type) => {
+    switch (type) {
+      case "chemical":
+        return <Beaker className="h-5 w-5 text-blue-500" />
+      case "biological":
+        return <FlaskConical className="h-5 w-5 text-green-500" />
+      case "analytical":
+        return <Microscope className="h-5 w-5 text-purple-500" />
+      default:
+        return <Beaker className="h-5 w-5 text-blue-500" />
     }
   }
 
@@ -204,7 +224,9 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
     return (
       <div key={reply._id || reply.id} className="comment">
         <a className="avatar">
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+          <div className="bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold text-primary">
+            {reply.author ? reply.author.charAt(0).toUpperCase() : 'U'}
+          </div>
         </a>
         <div className="content">
           <a className="author font-medium text-foreground text-sm">{reply.author}</a>
@@ -240,7 +262,9 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
           {replyingTo === `reply-${reply._id || reply.id}` && (
             <div className="mt-4 flex">
               <div className="flex-shrink-0 mr-3">
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+                <div className="bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold text-primary">
+                  Me
+                </div>
               </div>
               <div className="flex-1">
                 <Textarea
@@ -285,9 +309,21 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[85vh] overflow-hidden bg-background/50 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col h-full max-h-[85vh] overflow-hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-border/50 shadow-2xl"
+    >
       {isEditing ? (
         <div className="p-6 overflow-y-auto h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Edit Experiment</h2>
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(false)}>
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
           <ExperimentForm
             experiment={experiment}
             onSubmit={handleUpdate}
@@ -296,23 +332,35 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
         </div>
       ) : (
         <>
-          <div className="flex justify-between items-center p-5 border-b border-border/40">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center space-x-2">
-                <Badge className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium border", getStatusStyles(experiment.status))}>
-                  {experiment.status.charAt(0).toUpperCase() + experiment.status.slice(1)}
-                </Badge>
-                <Badge className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium border", getPriorityStyles(experiment.priority))}>
-                  {experiment.priority.charAt(0).toUpperCase() + experiment.priority.slice(1)}
-                </Badge>
+          <div className="flex justify-between items-start p-6 border-b border-border/40 bg-muted/10">
+            <div className="flex items-start gap-4">
+              <div className="mt-1 bg-primary/10 p-3 rounded-xl ring-1 ring-primary/10">
+                {getExperimentIcon(experiment.type || "chemical")}
               </div>
-              <div className="flex items-center text-sm text-muted-foreground border-l border-border/40 pl-3 ml-1">
-                <GitBranch className="h-3.5 w-3.5 mr-1.5" />
-                <span>Version {experiment.version}</span>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-2xl font-bold tracking-tight">{experiment.title}</h2>
+                  <Badge variant="outline" className="ml-2 font-normal text-muted-foreground">
+                    {experiment.type || "Experiment"}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center gap-3 text-sm">
+                  <Badge className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium border shadow-sm", getStatusStyles(experiment.status))}>
+                    {experiment.status.charAt(0).toUpperCase() + experiment.status.slice(1)}
+                  </Badge>
+                  <Badge className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium border shadow-sm", getPriorityStyles(experiment.priority))}>
+                    {experiment.priority.charAt(0).toUpperCase() + experiment.priority.slice(1)}
+                  </Badge>
+                  <div className="flex items-center text-muted-foreground border-l border-border/40 pl-3 ml-1">
+                    <GitBranch className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
+                    <span className="font-medium">v{experiment.version}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex space-x-2">
+            <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="hover:bg-primary/5 transition-colors">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -320,12 +368,12 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/5 transition-colors">
+                  <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/5 transition-colors border-destructive/20">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="border border-border/50 shadow-lg">
+                <AlertDialogContent className="border border-border/50 shadow-lg bg-white/95 dark:bg-gray-950/95 backdrop-blur-xl">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -343,6 +391,10 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              <Button variant="ghost" size="icon" onClick={onClose} className="ml-2">
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </div>
 
@@ -352,140 +404,119 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
             onValueChange={setActiveTab}
             className="flex-1 flex flex-col overflow-hidden"
           >
-            <div className="px-5 pt-4">
-              <TabsList className="grid grid-cols-4 w-full bg-muted/50 p-1 rounded-lg">
-                <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
-                <TabsTrigger value="results" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Results</TabsTrigger>
-                <TabsTrigger value="history" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">History</TabsTrigger>
-                <TabsTrigger value="discussion" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">Discussion</TabsTrigger>
+            <div className="px-6 pt-4 border-b border-border/40 bg-muted/5">
+              <TabsList className="grid grid-cols-4 w-full max-w-2xl bg-muted/50 p-1 rounded-lg mb-4">
+                <TabsTrigger value="overview" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">Overview</TabsTrigger>
+                <TabsTrigger value="results" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">Results</TabsTrigger>
+                <TabsTrigger value="history" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">History</TabsTrigger>
+                <TabsTrigger value="discussion" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">Discussion</TabsTrigger>
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1 px-5 py-4 overflow-y-auto" type="always" scrollHideDelay={0}>
-              <div className="pb-6"> {/* Added padding at the bottom for better visibility */}
-                <TabsContent value="overview" className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-50">
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-2xl font-bold tracking-tight">{experiment.title}</h2>
-                      <div className="flex items-center text-sm text-muted-foreground mt-1.5">
-                        <Clock className="h-3.5 w-3.5 mr-1.5 text-primary/70" />
-                        {experiment.createdAt && typeof experiment.createdAt === 'string' && (
-                          <span>Created {format(parseISO(experiment.createdAt), "MMMM d, yyyy")}</span>
-                        )}
-                        {experiment.createdAt && experiment.updatedAt && typeof experiment.createdAt === 'string' && typeof experiment.updatedAt === 'string' && (
-                          <span className="mx-2">•</span>
-                        )}
-                        {experiment.updatedAt && typeof experiment.updatedAt === 'string' && (
-                          <span>Updated {format(parseISO(experiment.updatedAt), "MMMM d, yyyy")}</span>
-                        )}
+            <ScrollArea className="flex-1 px-6 py-6 overflow-y-auto bg-muted/5" type="always" scrollHideDelay={0}>
+              <div className="pb-10 max-w-5xl mx-auto">
+                <TabsContent value="overview" className="mt-0 space-y-6 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                  <div className="flex items-center text-sm text-muted-foreground bg-background/50 p-3 rounded-lg border border-border/40 w-fit">
+                    <Clock className="h-4 w-4 mr-2 text-primary/70" />
+                    {experiment.createdAt && typeof experiment.createdAt === 'string' && (
+                      <span>Created {format(parseISO(experiment.createdAt), "MMMM d, yyyy")}</span>
+                    )}
+                    {experiment.createdAt && experiment.updatedAt && typeof experiment.createdAt === 'string' && typeof experiment.updatedAt === 'string' && (
+                      <span className="mx-2">•</span>
+                    )}
+                    {experiment.updatedAt && typeof experiment.updatedAt === 'string' && (
+                      <span>Updated {format(parseISO(experiment.updatedAt), "MMMM d, yyyy")}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                      <div className="bg-background/50 rounded-xl border border-border/40 shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 flex items-center">
+                          <FileText className="h-4 w-4 text-primary mr-2" />
+                          <h3 className="font-semibold">Description</h3>
+                        </div>
+                        <div className="p-4">
+                          <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+                            {experiment.description || "No description provided."}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-background/50 rounded-xl border border-border/40 shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 flex items-center">
+                          <Beaker className="h-4 w-4 text-primary mr-2" />
+                          <h3 className="font-semibold">Protocol</h3>
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm whitespace-pre-line leading-relaxed font-mono bg-muted/30 p-3 rounded-md border border-border/30">
+                            {experiment.protocol || "No protocol defined."}
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-5">
-                        <div>
-                          <h3 className="text-lg font-semibold mb-2.5 flex items-center">
-                            <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                              <FileText className="h-4 w-4 text-primary" />
-                            </span>
-                            Description
-                          </h3>
-                          <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-                            <p className="text-muted-foreground whitespace-pre-line">
-                              {experiment.description || "No description provided."}
-                            </p>
-                          </div>
+                    <div className="space-y-6">
+                      <div className="bg-background/50 rounded-xl border border-border/40 shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 flex items-center">
+                          <Calendar className="h-4 w-4 text-primary mr-2" />
+                          <h3 className="font-semibold">Timeline</h3>
                         </div>
-
-                        <div>
-                          <h3 className="text-lg font-semibold mb-2.5 flex items-center">
-                            <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                              <Beaker className="h-4 w-4 text-primary" />
-                            </span>
-                            Protocol
-                          </h3>
-                          <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-                            <p className="text-sm whitespace-pre-line">
-                              {experiment.protocol || "No protocol defined."}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2.5 flex items-center">
-                          <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                            <Calendar className="h-4 w-4 text-primary" />
-                          </span>
-                          Timeline
-                        </h3>
-                        <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-                          <div className="flex items-center mb-3">
+                        <div className="p-4">
+                          <div className="flex items-center mb-4">
                             <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
-                            <span className="font-medium">Duration</span>
+                            <span className="font-medium text-sm">Duration</span>
                           </div>
                           {experiment.startDate && typeof experiment.startDate === 'string' ? (
-                            <div className="text-sm space-y-2">
-                              <div className="flex items-center">
-                                <span className="text-muted-foreground w-16">Start:</span>
-                                <span className="font-medium">{format(parseISO(experiment.startDate), "MMMM d, yyyy")}</span>
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between p-2 rounded-md bg-muted/30 border border-border/30">
+                                <span className="text-muted-foreground text-sm">Start Date</span>
+                                <span className="font-medium text-sm">{format(parseISO(experiment.startDate), "MMM d, yyyy")}</span>
                               </div>
                               {experiment.endDate && typeof experiment.endDate === 'string' && (
-                                <div className="flex items-center">
-                                  <span className="text-muted-foreground w-16">End:</span>
-                                  <span className="font-medium">{format(parseISO(experiment.endDate), "MMMM d, yyyy")}</span>
+                                <div className="flex items-center justify-between p-2 rounded-md bg-muted/30 border border-border/30">
+                                  <span className="text-muted-foreground text-sm">End Date</span>
+                                  <span className="font-medium text-sm">{format(parseISO(experiment.endDate), "MMM d, yyyy")}</span>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="text-sm text-muted-foreground">No dates specified</div>
+                            <div className="text-sm text-muted-foreground italic">No dates specified</div>
                           )}
                         </div>
                       </div>
 
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2.5 flex items-center">
-                          <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                            <Users className="h-4 w-4 text-primary" />
-                          </span>
-                          Team Members
-                        </h3>
-                        <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-                          <div className="flex items-center mb-3">
-                            <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
-                            <span className="font-medium">Assigned Personnel</span>
-                          </div>
+                      <div className="bg-background/50 rounded-xl border border-border/40 shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 flex items-center">
+                          <Users className="h-4 w-4 text-primary mr-2" />
+                          <h3 className="font-semibold">Team Members</h3>
+                        </div>
+                        <div className="p-4">
                           {experiment.teamMembers && experiment.teamMembers.length > 0 ? (
-                            <ul className="space-y-2.5 mt-3">
+                            <ul className="space-y-3">
                               {experiment.teamMembers.map((member, index) => (
-                                <li key={index} className="flex items-center bg-background/50 p-2 rounded-md">
-                                  <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium mr-3 border border-primary/20">
+                                <li key={index} className="flex items-center p-2 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border/30">
+                                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary mr-3 border border-primary/20">
                                     {member && typeof member === 'string' ? member.split(' ').map(n => n[0]).join('') : 'TM'}
                                   </div>
-                                  <span className="text-sm">{member}</span>
+                                  <span className="text-sm font-medium">{member}</span>
                                 </li>
                               ))}
                             </ul>
                           ) : (
-                            <div className="text-sm text-muted-foreground">No team members assigned</div>
+                            <div className="text-sm text-muted-foreground italic">No team members assigned</div>
                           )}
                         </div>
                       </div>
 
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2.5 flex items-center">
-                          <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                          </span>
-                          Documents
-                        </h3>
-                        <div className="bg-muted/30 p-4 rounded-lg border border-border/30">
-                          <div className="flex items-center mb-3">
-                            <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
-                            <span className="font-medium">Related Files</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mb-3">No documents attached</div>
-                          <Button variant="outline" size="sm" className="w-full bg-background/50 hover:bg-primary/5 transition-colors">
+                      <div className="bg-background/50 rounded-xl border border-border/40 shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border/40 bg-muted/20 flex items-center">
+                          <FileText className="h-4 w-4 text-primary mr-2" />
+                          <h3 className="font-semibold">Documents</h3>
+                        </div>
+                        <div className="p-4">
+                          <div className="text-sm text-muted-foreground mb-4 italic text-center py-2">No documents attached</div>
+                          <Button variant="outline" size="sm" className="w-full bg-background/50 hover:bg-primary/5 transition-colors border-dashed">
                             <Download className="h-3.5 w-3.5 mr-2" />
                             Upload Document
                           </Button>
@@ -493,110 +524,122 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                       </div>
                     </div>
                   </div>
-
                 </TabsContent>
 
-                <TabsContent value="results" className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-50">
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-bold mb-4 flex items-center">
-                        <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                          <Beaker className="h-4 w-4 text-primary" />
-                        </span>
-                        Experiment Results
-                      </h2>
-
-                      {experiment.status === "completed" ? (
-                        <div className="space-y-6">
-                          <div className="bg-muted/30 p-5 rounded-lg border border-border/30">
-                            <h3 className="text-lg font-semibold mb-3">Summary</h3>
-                            <p className="text-muted-foreground">
-                              This experiment was completed successfully with the following key findings...
-                            </p>
-                          </div>
-
-                          <div>
-                            <h3 className="text-lg font-semibold mb-3">Data Visualization</h3>
-                            <div className="h-[300px] bg-card/50 rounded-lg border border-border/30 p-5 shadow-sm">
-                              <ExperimentChart />
-                            </div>
-                          </div>
-
-                          <div className="bg-muted/30 p-5 rounded-lg border border-border/30">
-                            <h3 className="text-lg font-semibold mb-3">Conclusions</h3>
-                            <p className="text-muted-foreground">
-                              Based on the results, we can conclude that...
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-16 text-center bg-muted/20 rounded-lg border border-border/30">
-                          <div className="rounded-full bg-primary/10 p-4 mb-5">
-                            <Beaker className="h-7 w-7 text-primary/80" />
-                          </div>
-                          <h3 className="text-lg font-semibold mb-2">No results available</h3>
-                          <p className="text-muted-foreground max-w-md mb-5">
-                            This experiment is still in {experiment.status} status. Results will be available once the experiment is completed.
-                          </p>
-                          <Button variant="outline" className="bg-background hover:bg-primary/5 transition-colors">
-                            Add Preliminary Results
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                <TabsContent value="results" className="mt-0 space-y-6 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <span className="bg-primary/10 p-2 rounded-lg mr-3">
+                        <Beaker className="h-5 w-5 text-primary" />
+                      </span>
+                      Experiment Results
+                    </h2>
+                    {experiment.status === "completed" && (
+                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> Completed
+                      </Badge>
+                    )}
                   </div>
+
+                  {experiment.status === "completed" ? (
+                    <div className="space-y-6">
+                      <div className="bg-background/50 p-6 rounded-xl border border-border/40 shadow-sm">
+                        <h3 className="text-lg font-semibold mb-3">Executive Summary</h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          This experiment was completed successfully with the following key findings...
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 ml-1">Data Visualization</h3>
+                        <div className="h-[350px] bg-white/50 dark:bg-gray-900/50 rounded-xl border border-border/40 p-6 shadow-sm backdrop-blur-sm">
+                          <ExperimentChart />
+                        </div>
+                      </div>
+
+                      <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
+                        <h3 className="text-lg font-semibold mb-3 text-primary">Conclusions</h3>
+                        <p className="text-foreground/80 leading-relaxed">
+                          Based on the results, we can conclude that...
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center bg-muted/10 rounded-xl border border-dashed border-border/60">
+                      <div className="rounded-full bg-muted p-5 mb-5">
+                        <Beaker className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">No results available</h3>
+                      <p className="text-muted-foreground max-w-md mb-6">
+                        This experiment is still in <span className="font-medium text-foreground">{experiment.status}</span> status. Results will be available once the experiment is completed.
+                      </p>
+                      <Button variant="outline" className="bg-background hover:bg-primary/5 transition-colors">
+                        Add Preliminary Results
+                      </Button>
+                    </div>
+                  )}
                 </TabsContent>
 
-                <TabsContent value="history" className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-50">
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 flex items-center">
-                      <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                        <History className="h-4 w-4 text-primary" />
+                <TabsContent value="history" className="mt-0 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-bold flex items-center mb-6">
+                      <span className="bg-primary/10 p-2 rounded-lg mr-3">
+                        <History className="h-5 w-5 text-primary" />
                       </span>
                       Version History
                     </h2>
 
-                    <div className="space-y-4">
+                    <div className="relative space-y-0 ml-3 border-l-2 border-border/40 pl-8 py-2">
                       {experiment.versionHistory && experiment.versionHistory.length > 0 ? (
                         experiment.versionHistory.map((version, index) => (
                           <div
                             key={index}
-                            className={cn(
-                              "flex border rounded-lg p-4 transition-colors",
-                              version.version === experiment.version
-                                ? "border-primary/50 bg-primary/5 shadow-sm"
-                                : "border-border/30 bg-muted/20 hover:border-primary/30 hover:bg-primary/5"
-                            )}
+                            className="relative mb-8 last:mb-0"
                           >
-                            <div className="mr-4 flex flex-col items-center">
-                              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center font-medium border border-primary/20">
-                                v{version.version}
-                              </div>
-                              {index < experiment.versionHistory.length - 1 && (
-                                <div className="w-0.5 h-full bg-border mt-2"></div>
-                              )}
+                            <div className={cn(
+                              "absolute -left-[41px] top-0 h-5 w-5 rounded-full border-2 bg-background flex items-center justify-center",
+                              version.version === experiment.version ? "border-primary ring-4 ring-primary/10" : "border-muted-foreground/30"
+                            )}>
+                              <div className={cn("h-2 w-2 rounded-full", version.version === experiment.version ? "bg-primary" : "bg-muted-foreground/30")} />
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <div className="font-medium">
-                                  {version.version === experiment.version ? "Current Version" : `Version ${version.version}`}
+
+                            <div className={cn(
+                              "rounded-xl border p-5 transition-all",
+                              version.version === experiment.version
+                                ? "bg-background/80 border-primary/30 shadow-md"
+                                : "bg-muted/10 border-border/30 hover:bg-muted/20"
+                            )}>
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={cn(
+                                    "text-sm font-bold px-2 py-0.5 rounded-md border",
+                                    version.version === experiment.version ? "bg-primary/10 text-primary border-primary/20" : "bg-muted text-muted-foreground border-border/50"
+                                  )}>
+                                    v{version.version}
+                                  </span>
+                                  {version.version === experiment.version && (
+                                    <span className="text-xs font-medium text-primary">Current</span>
+                                  )}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
+                                <span className="text-xs text-muted-foreground">
                                   {version.updatedAt && typeof version.updatedAt === 'string'
-                                    ? format(parseISO(version.updatedAt), "MMMM d, yyyy")
+                                    ? format(parseISO(version.updatedAt), "MMM d, yyyy • h:mm a")
                                     : 'Date not available'
                                   }
-                                </div>
+                                </span>
                               </div>
-                              <div className="text-sm text-muted-foreground mb-2">
+
+                              <div className="text-sm font-medium mb-1">
                                 Updated by {version.updatedBy}
                               </div>
-                              <div className="text-sm bg-background/50 p-2 rounded-md border border-border/20">
+
+                              <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border/20 mt-3">
                                 {version.changes}
                               </div>
+
                               {version.version !== experiment.version && (
-                                <Button variant="ghost" size="sm" className="mt-3 hover:bg-primary/5">
-                                  <History className="h-3.5 w-3.5 mr-2" />
+                                <Button variant="ghost" size="sm" className="mt-3 hover:bg-primary/5 text-xs h-8">
+                                  <History className="h-3 w-3 mr-2" />
                                   Restore this version
                                 </Button>
                               )}
@@ -604,12 +647,12 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                           </div>
                         ))
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-16 text-center bg-muted/20 rounded-lg border border-border/30">
-                          <div className="rounded-full bg-primary/10 p-4 mb-5">
-                            <History className="h-7 w-7 text-primary/80" />
+                        <div className="flex flex-col items-center justify-center py-12 text-center -ml-8">
+                          <div className="rounded-full bg-muted/30 p-4 mb-4">
+                            <History className="h-6 w-6 text-muted-foreground" />
                           </div>
-                          <h3 className="text-lg font-semibold mb-2">No version history</h3>
-                          <p className="text-muted-foreground max-w-md">
+                          <h3 className="text-base font-semibold mb-1">No version history</h3>
+                          <p className="text-sm text-muted-foreground max-w-xs">
                             This experiment doesn't have any recorded version history yet.
                           </p>
                         </div>
@@ -618,138 +661,168 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
                   </div>
                 </TabsContent>
 
-                <TabsContent value="discussion" className="mt-0 data-[state=active]:animate-in data-[state=active]:fade-in-50">
-                  <div>
-                    <h2 className="text-xl font-bold mb-4 flex items-center">
-                      <span className="bg-primary/10 p-1.5 rounded-md mr-2">
-                        <MessageSquare className="h-4 w-4 text-primary" />
+                <TabsContent value="discussion" className="mt-0 animate-in fade-in-50 slide-in-from-bottom-2 duration-300">
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-bold flex items-center mb-6">
+                      <span className="bg-primary/10 p-2 rounded-lg mr-3">
+                        <MessageSquare className="h-5 w-5 text-primary" />
                       </span>
                       Discussion
                     </h2>
 
-                    {/* Comments Section - Updated to match requested structure */}
-                    <div className="ui threaded comments bg-card border border-border/50 rounded-lg shadow-sm p-6">
-                      <h3 className="ui dividing header text-lg font-semibold mb-4 pb-2 border-b border-border/50">Comments</h3>
+                    <div className="bg-background/50 border border-border/50 rounded-xl shadow-sm overflow-hidden">
+                      <div className="p-6 border-b border-border/40 bg-muted/10">
+                        <h3 className="font-semibold flex items-center">
+                          Comments
+                          <Badge variant="secondary" className="ml-2 rounded-full px-2 h-5 text-xs">
+                            {comments.length}
+                          </Badge>
+                        </h3>
+                      </div>
 
-                      {comments.length > 0 ? (
-                        <div className="space-y-6">
-                          {comments.map((comment) => (
-                            <div key={comment._id || comment.id} className="comment">
-                              <a className="avatar">
-                                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />
-                              </a>
-                              <div className="content">
-                                <a className="author font-medium text-foreground">{comment.author}</a>
-                                <div className="metadata">
-                                  <span className="date text-sm text-muted-foreground">{formatDate(comment.date)}</span>
-                                </div>
-                                <div className="text text-foreground mt-1">
-                                  {comment.text}
-                                </div>
-                                <div className="actions flex items-center gap-2">
-                                  <a
-                                    className="reply text-muted-foreground hover:text-foreground cursor-pointer"
-                                    onClick={() => setReplyingTo(replyingTo === (comment._id || comment.id) ? null : (comment._id || comment.id))}
-                                  >
-                                    Reply
-                                  </a>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                        <span className="sr-only">Open menu</span>
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => handleDeleteComment(comment._id || comment.id)}>
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-
-                                {/* Reply Form for comment */}
-                                {replyingTo === (comment._id || comment.id) && (
-                                  <div className="mt-4 flex">
-                                    <div className="flex-shrink-0 mr-3">
-                                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+                      <div className="p-6">
+                        {comments.length > 0 ? (
+                          <div className="space-y-8">
+                            {comments.map((comment) => (
+                              <div key={comment._id || comment.id} className="comment">
+                                <div className="flex gap-4">
+                                  <div className="flex-shrink-0">
+                                    <div className="bg-primary/10 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold text-primary ring-4 ring-background">
+                                      {comment.author ? comment.author.charAt(0).toUpperCase() : 'U'}
                                     </div>
-                                    <div className="flex-1">
-                                      <Textarea
-                                        placeholder="Write a reply..."
-                                        value={replyText}
-                                        onChange={(e) => setReplyText(e.target.value)}
-                                        className="mb-2"
-                                      />
-                                      <div className="flex space-x-2">
-                                        <Button
-                                          size="sm"
-                                          onClick={() => handleAddReply(comment._id || comment.id)}
-                                          disabled={!replyText.trim()}
-                                        >
-                                          <Send className="h-4 w-4 mr-2" />
-                                          Post Reply
-                                        </Button>
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => {
-                                            setReplyingTo(null)
-                                            setReplyText("")
-                                          }}
-                                        >
-                                          Cancel
-                                        </Button>
+                                  </div>
+                                  <div className="flex-1 space-y-2">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-sm">{comment.author}</span>
+                                        <span className="text-xs text-muted-foreground">• {formatDate(comment.date)}</span>
                                       </div>
-                                    </div>
-                                  </div>
-                                )}
 
-                                {/* Replies */}
-                                {comment.replies && comment.replies.length > 0 && (
-                                  <div className="comments space-y-6 mt-6">
-                                    {comment.replies.map((reply) => (
-                                      renderReply(reply, comment._id || comment.id)
-                                    ))}
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-50 hover:opacity-100">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            <span className="sr-only">Open menu</span>
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => handleDeleteComment(comment._id || comment.id)} className="text-destructive focus:text-destructive">
+                                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </div>
+
+                                    <div className="text-sm text-foreground/90 leading-relaxed">
+                                      {comment.text}
+                                    </div>
+
+                                    <div className="flex items-center gap-4 pt-1">
+                                      <button
+                                        className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+                                        onClick={() => setReplyingTo(replyingTo === (comment._id || comment.id) ? null : (comment._id || comment.id))}
+                                      >
+                                        <MessageSquare className="h-3 w-3" /> Reply
+                                      </button>
+                                    </div>
+
+                                    {/* Reply Form for comment */}
+                                    {replyingTo === (comment._id || comment.id) && (
+                                      <div className="mt-4 flex gap-3 animate-in fade-in-50 slide-in-from-top-1">
+                                        <div className="flex-shrink-0">
+                                          <div className="bg-primary/10 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold text-primary">
+                                            Me
+                                          </div>
+                                        </div>
+                                        <div className="flex-1">
+                                          <Textarea
+                                            placeholder="Write a reply..."
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                            className="mb-2 min-h-[80px]"
+                                          />
+                                          <div className="flex space-x-2 justify-end">
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => {
+                                                setReplyingTo(null)
+                                                setReplyText("")
+                                              }}
+                                            >
+                                              Cancel
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              onClick={() => handleAddReply(comment._id || comment.id)}
+                                              disabled={!replyText.trim()}
+                                            >
+                                              <Send className="h-3.5 w-3.5 mr-2" />
+                                              Reply
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {/* Replies */}
+                                    {comment.replies && comment.replies.length > 0 && (
+                                      <div className="space-y-6 mt-6 ml-2 pl-6 border-l-2 border-border/40">
+                                        {comment.replies.map((reply) => (
+                                          renderReply(reply, comment._id || comment.id)
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed border-border/40">
+                            <MessageSquare className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
+                            <h3 className="text-sm font-medium text-foreground mb-1">No comments yet</h3>
+                            <p className="text-xs text-muted-foreground">Be the first to start a discussion on this experiment.</p>
+                          </div>
+                        )}
+
+                        {/* Add Comment Form */}
+                        <div className="mt-8 pt-6 border-t border-border/40">
+                          <h4 className="text-sm font-semibold mb-4">Add a comment</h4>
+                          <div className="flex gap-4">
+                            <div className="flex-shrink-0 hidden sm:block">
+                              <div className="bg-primary/10 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold text-primary">
+                                Me
                               </div>
                             </div>
-                          ))}
+                            <div className="flex-1">
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  handleAddComment();
+                                }}
+                              >
+                                <Textarea
+                                  placeholder="Share your thoughts, findings, or questions..."
+                                  value={newComment}
+                                  onChange={(e) => setNewComment(e.target.value)}
+                                  className="mb-3 min-h-[100px] resize-y"
+                                />
+                                <div className="flex justify-end">
+                                  <Button
+                                    type="submit"
+                                    disabled={!newComment.trim()}
+                                    className="shadow-sm"
+                                  >
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Post Comment
+                                  </Button>
+                                </div>
+                              </form>
+                            </div>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="text-center py-10">
-                          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                          <h3 className="text-lg font-medium text-foreground mb-1">No comments yet</h3>
-                          <p className="text-muted-foreground">Be the first to start a discussion on this experiment.</p>
-                        </div>
-                      )}
-
-                      {/* Add Comment Form - Updated to match requested structure */}
-                      <form
-                        className="ui reply form mt-6 pt-6 border-t border-border/50"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleAddComment();
-                        }}
-                      >
-                        <div className="field">
-                          <Textarea
-                            placeholder="Add a comment..."
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            className="mb-3"
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          className="ui blue labeled submit icon button bg-primary text-primary-foreground hover:bg-primary/90 transition-colors rounded-md px-4 py-2 text-sm font-medium cursor-pointer inline-flex items-center"
-                          disabled={!newComment.trim()}
-                        >
-                          <Send className="icon h-4 w-4 mr-2" />
-                          Add Reply
-                        </button>
-                      </form>
+                      </div>
                     </div>
                   </div>
                 </TabsContent>
@@ -758,6 +831,6 @@ export function ExperimentDetails({ experiment, onUpdate, onDelete, onClose }) {
           </Tabs>
         </>
       )}
-    </div>
+    </motion.div>
   )
 }

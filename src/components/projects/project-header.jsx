@@ -105,7 +105,8 @@ export function ProjectHeader({ project, onAddTask, onAddMember, onExport }) {
                   </Button>
                 </div>
                 <p className="text-muted-foreground text-lg max-w-2xl line-clamp-2 leading-relaxed">
-                  {project.description || "No description provided for this project."}
+                  {(project.description || "")
+                    .replace(/<[^>]+>/g, "") || "No description provided for this project."}
                 </p>
               </div>
 
