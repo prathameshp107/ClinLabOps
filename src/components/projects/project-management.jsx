@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   PlusCircle, SearchIcon, FilterIcon, Grid3X3, List, LayoutGrid,
   FolderPlus, ClipboardEdit, Trash2, MoreHorizontal, ArrowDownUp, Star,
-  Users, Clock, FlaskConical, FileText, Layers
+  Users, Clock, FlaskConical, FileText, Layers, SlidersHorizontal
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -555,12 +555,12 @@ export function ProjectManagement() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1">
+          <div className="flex items-center gap-2 bg-muted/50 rounded-lg p-1 border border-border/50">
             <Button
               variant={viewMode === "grid" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("grid")}
-              className="h-8 px-3"
+              className={`h-8 px-3 transition-all ${viewMode === "grid" ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted"}`}
             >
               <LayoutGrid className="h-4 w-4 mr-1.5" />
               Grid
@@ -569,19 +569,19 @@ export function ProjectManagement() {
               variant={viewMode === "list" ? "default" : "ghost"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="h-8 px-3"
+              className={`h-8 px-3 transition-all ${viewMode === "list" ? "bg-primary text-primary-foreground shadow-sm" : "hover:bg-muted"}`}
             >
               <List className="h-4 w-4 mr-1.5" />
               List
             </Button>
           </div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground font-medium px-2 py-1 bg-muted/30 rounded-md">
             {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
           </div>
         </div>
         <Button
           onClick={() => setShowAddProjectDialog(true)}
-          className="gap-2 bg-primary hover:bg-primary/90 shadow-sm"
+          className="gap-2 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105"
         >
           <PlusCircle className="h-4 w-4" />
           Add Project
@@ -595,31 +595,17 @@ export function ProjectManagement() {
           onValueChange={setActiveView}
           className="w-full"
         >
-          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6">
-            <TabsTrigger
-              value="projects"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
-            >
-              Projects
-            </TabsTrigger>
-            <TabsTrigger
-              value="status"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
-            >
-              Status Tracking
-            </TabsTrigger>
-            <TabsTrigger
-              value="gantt"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
-            >
-              Gantt Chart
-            </TabsTrigger>
-            <TabsTrigger
-              value="dependencies"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
-            >
-              Dependencies
-            </TabsTrigger>
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-8">
+            {["projects", "status", "gantt", "dependencies"].map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="relative data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors group"
+              >
+                <span className="capitalize">{tab === "gantt" ? "Gantt Chart" : tab === "status" ? "Status Tracking" : tab}</span>
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-data-[state=active]:scale-x-100 transition-transform duration-300 origin-left" />
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
       </div>
@@ -631,10 +617,10 @@ export function ProjectManagement() {
           onValueChange={setActiveCategory}
           className="w-full"
         >
-          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6">
+          <TabsList className="bg-transparent w-full justify-start border-b-0 h-auto pb-0 gap-6 overflow-x-auto no-scrollbar">
             <TabsTrigger
               value="all"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
+              className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-full px-4 py-1.5 h-auto font-medium text-muted-foreground transition-all border border-transparent data-[state=active]:border-primary/20"
             >
               All Projects
             </TabsTrigger>
@@ -642,7 +628,7 @@ export function ProjectManagement() {
               <TabsTrigger
                 key={category.id}
                 value={category.id}
-                className="data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none data-[state=active]:bg-transparent rounded-none px-0 py-3 h-auto font-medium text-muted-foreground data-[state=active]:text-primary transition-colors"
+                className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary rounded-full px-4 py-1.5 h-auto font-medium text-muted-foreground transition-all border border-transparent data-[state=active]:border-primary/20"
               >
                 {category.name}
               </TabsTrigger>
@@ -652,46 +638,57 @@ export function ProjectManagement() {
       </div>
 
       {/* Main Content Area */}
-      {activeView === "projects" && (
-        <>
-          {/* Enhanced Search & Filter Controls */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 space-y-4">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="relative flex-1">
-                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search projects by name, description, or tags..."
-                  className="pl-9 bg-background/80 border-border/50 focus:bg-background transition-colors"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+      <AnimatePresence mode="wait">
+        {activeView === "projects" && (
+          <motion.div
+            key="projects"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Enhanced Search & Filter Controls */}
+            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-4 space-y-4 shadow-sm mb-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="relative flex-1 group">
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <Input
+                    placeholder="Search projects by name, description, or tags..."
+                    className="pl-9 bg-background/50 border-border/50 focus:bg-background focus:ring-primary/20 transition-all"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="On Hold">On Hold</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col sm:flex-row gap-2 lg:w-auto">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground mr-2">Filters:</span>
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full sm:w-[140px] bg-background/50 border-border/50">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="On Hold">On Hold</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
 
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priorities</SelectItem>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                    <SelectTrigger className="w-full sm:w-[140px] bg-background/50 border-border/50">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priorities</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
 
                 <Select value={timeframeFilter} onValueChange={setTimeframeFilter}>
                   <SelectTrigger className="w-full sm:w-[140px] bg-background/80">
@@ -730,49 +727,74 @@ export function ProjectManagement() {
             </div>
           </div>
 
-          {/* Projects Display */}
-          <Tabs defaultValue="categorized" className="mt-0">
-            <TabsContent value="categorized" className="mt-0">
-              <CategorizedProjects
-                projects={filteredProjects}
-                viewMode={viewMode}
-                handleProjectAction={handleProjectAction}
-                sortConfig={sortConfig}
-                requestSort={requestSort}
-                searchQuery={searchQuery}
-                onClearFilters={clearFilters}
-                projectCategories={projectCategories}
-              />
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
+            {/* Projects Display */}
+            <Tabs defaultValue="categorized" className="mt-0">
+              <TabsContent value="categorized" className="mt-0">
+                <CategorizedProjects
+                  projects={filteredProjects}
+                  viewMode={viewMode}
+                  handleProjectAction={handleProjectAction}
+                  sortConfig={sortConfig}
+                  requestSort={requestSort}
+                  searchQuery={searchQuery}
+                  onClearFilters={clearFilters}
+                  projectCategories={projectCategories}
+                />
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+        )}
 
-      {activeView === "status" && (
-        <ProjectStatusTracking
-          projects={projects}
-          onUpdateProjectStatus={handleUpdateProjectStatus}
-        />
-      )}
+        {activeView === "status" && (
+          <motion.div
+            key="status"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ProjectStatusTracking
+              projects={projects}
+              onUpdateProjectStatus={handleUpdateProjectStatus}
+            />
+          </motion.div>
+        )}
 
-      {activeView === "gantt" && (
-        <ProjectGanttChart
-          projects={projects}
-          dependencies={projects.reduce((acc, project) => {
-            if (project.dependencies) {
-              return [...acc, ...project.dependencies];
-            }
-            return acc;
-          }, [])}
-        />
-      )}
+        {activeView === "gantt" && (
+          <motion.div
+            key="gantt"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ProjectGanttChart
+              projects={projects}
+              dependencies={projects.reduce((acc, project) => {
+                if (project.dependencies) {
+                  return [...acc, ...project.dependencies];
+                }
+                return acc;
+              }, [])}
+            />
+          </motion.div>
+        )}
 
-      {activeView === "dependencies" && (
-        <ProjectDependencies
-          projects={projects}
-          onUpdateProjectDependencies={handleUpdateProjectDependencies}
-        />
-      )}
+        {activeView === "dependencies" && (
+          <motion.div
+            key="dependencies"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ProjectDependencies
+              projects={projects}
+              onUpdateProjectDependencies={handleUpdateProjectDependencies}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Dialogs */}
       <AddProjectDialog
@@ -799,7 +821,6 @@ export function ProjectManagement() {
         open={showProjectDetailsDialog}
         onOpenChange={setShowProjectDetailsDialog}
         project={selectedProject}
-        onAction={handleProjectAction}
       />
 
       <ProjectShareDialog
@@ -807,6 +828,7 @@ export function ProjectManagement() {
         onOpenChange={setShowShareProjectDialog}
         project={selectedProject}
         onShare={handleShareProject}
+        users={users}
       />
 
       <ActivityLogDialog

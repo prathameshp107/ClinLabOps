@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { Plus, ChevronRight, LayoutGrid, ListFilter, Users, FileText, Clock, BarChart3, GripVertical } from "lucide-react"
+import { Plus, ChevronRight, LayoutGrid, ListFilter, Users, FileText, Clock, BarChart3, GripVertical, Home } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
@@ -179,12 +179,18 @@ export default function ProjectPage({ params }) {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex-1 p-4 space-y-4">
-          <Skeleton className="h-20 w-full rounded" />
-          <Skeleton className="h-8 w-2/3 rounded" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Skeleton className="h-[200px] rounded col-span-2" />
-            <Skeleton className="h-[200px] rounded" />
+        <div className="flex-1 p-8 space-y-8 bg-background/50 min-h-screen">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64 rounded-lg" />
+              <Skeleton className="h-4 w-96 rounded-lg" />
+            </div>
+          </div>
+          <Skeleton className="h-[200px] w-full rounded-2xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-[400px] rounded-2xl col-span-2" />
+            <Skeleton className="h-[400px] rounded-2xl" />
           </div>
         </div>
       </DashboardLayout>
@@ -194,19 +200,24 @@ export default function ProjectPage({ params }) {
   if (error) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <p className="text-red-500 text-lg">{error}</p>
+        <div className="flex items-center justify-center h-full min-h-screen bg-background/50">
+          <div className="text-center space-y-4">
+            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full inline-flex">
+              <BarChart3 className="h-8 w-8 text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground">{error}</h3>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
   if (!project) {
-    // This case might be redundant if error is always set, but it's good practice.
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-full">
-          <p className="text-lg">Project not found.</p>
+        <div className="flex items-center justify-center h-full min-h-screen">
+          <p className="text-lg text-muted-foreground">Project not found.</p>
         </div>
       </DashboardLayout>
     );
@@ -214,115 +225,110 @@ export default function ProjectPage({ params }) {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-background/90">
+      <div className="flex flex-col min-h-screen bg-background/50">
         {/* Enhanced Breadcrumb */}
-        <div className="px-6 py-4 bg-background/80 backdrop-blur-sm border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-sm">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground p-0 h-auto font-normal">
-                Projects
-              </Button>
-              <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground" />
-              <span className="font-semibold text-foreground">{project.name || project.title}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className={`h-2 w-2 rounded-full ${project.status === "Completed" ? "bg-green-500" :
-                project.status === "In Progress" ? "bg-blue-500" :
-                  project.status === "On Hold" ? "bg-orange-500" :
-                    project.status === "Pending" ? "bg-yellow-500" : "bg-gray-400"
-                }`} />
-              <span className="text-sm text-muted-foreground">{project.status}</span>
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
+          <div className="px-6 py-3 max-w-[1600px] mx-auto w-full">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center text-sm font-medium">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-primary/10 p-2 h-auto rounded-lg transition-colors" onClick={() => window.location.href = '/projects'}>
+                  <Home className="h-4 w-4 mr-1.5" />
+                  Projects
+                </Button>
+                <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground/50" />
+                <span className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50 text-foreground">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  {project.name || project.title}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-sm ${project.status === "Completed" ? "bg-green-500/10 text-green-600 border-green-200 dark:border-green-500/20" :
+                    project.status === "In Progress" ? "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-500/20" :
+                      project.status === "On Hold" ? "bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-500/20" :
+                        project.status === "Pending" ? "bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-500/20" :
+                          "bg-gray-500/10 text-gray-600 border-gray-200 dark:border-gray-500/20"
+                  }`}>
+                  <div className={`h-1.5 w-1.5 rounded-full ${project.status === "Completed" ? "bg-green-500" :
+                      project.status === "In Progress" ? "bg-blue-500" :
+                        project.status === "On Hold" ? "bg-orange-500" :
+                          project.status === "Pending" ? "bg-yellow-500" : "bg-gray-400"
+                    }`} />
+                  {project.status}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Enhanced Project Header */}
-        <div className="bg-background/60 backdrop-blur-sm border-b border-border/30">
-          <div className="px-6 py-6">
+        <div className="flex-1 w-full max-w-[1600px] mx-auto p-6 space-y-8">
+          {/* Enhanced Project Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-3xl overflow-hidden border border-border/50 shadow-xl bg-card/40 backdrop-blur-sm"
+          >
             <ProjectHeader
               project={project}
               onAddTask={handleAddTask}
               onAddMember={handleAddMember}
               onExport={handleExport}
             />
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Modern Project Navigation */}
-        <div className="bg-background/80 backdrop-blur-sm border-b border-border/30 sticky top-0 z-10">
-          <div className="px-6">
-            <div className="flex items-center justify-between py-4">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="flex items-center justify-between">
-                  <TabsList className="bg-muted/50 p-1 rounded-xl border border-border/50">
+          {/* Modern Project Navigation */}
+          <div className="space-y-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="sticky top-[60px] z-20 bg-background/95 backdrop-blur-xl py-2 -mx-6 px-6 border-b border-border/50 shadow-sm">
+                <TabsList className="bg-muted/30 p-1.5 rounded-2xl border border-border/50 w-full sm:w-auto inline-flex h-auto">
+                  {[
+                    { id: "overview", icon: LayoutGrid, label: "Overview" },
+                    { id: "tasks", icon: ListFilter, label: "Tasks" },
+                    { id: "team", icon: Users, label: "Team" },
+                    { id: "documents", icon: FileText, label: "Documents" },
+                    { id: "timeline", icon: Clock, label: "Timeline" }
+                  ].map((tab) => (
                     <TabsTrigger
-                      value="overview"
-                      className="px-4 py-2.5 text-sm font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all"
+                      key={tab.id}
+                      value={tab.id}
+                      className="px-5 py-2.5 text-sm font-medium rounded-xl data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md transition-all duration-300 flex items-center gap-2"
                     >
-                      <LayoutGrid className="h-4 w-4 mr-2" />
-                      Overview
+                      <tab.icon className="h-4 w-4" />
+                      {tab.label}
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="tasks"
-                      className="px-4 py-2.5 text-sm font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all"
-                    >
-                      <ListFilter className="h-4 w-4 mr-2" />
-                      Tasks
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="team"
-                      className="px-4 py-2.5 text-sm font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all"
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      Team
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="documents"
-                      className="px-4 py-2.5 text-sm font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Documents
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="timeline"
-                      className="px-4 py-2.5 text-sm font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all"
-                    >
-                      <Clock className="h-4 w-4 mr-2" />
-                      Timeline
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+                  ))}
+                </TabsList>
+              </div>
 
-                {/* Enhanced Tab Content */}
-                <div className="mt-6">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeTab}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <TabsContent value="overview" className="mt-0">
-                        {project && <ProjectOverview project={project} />}
-                      </TabsContent>
-                      <TabsContent value="tasks" className="mt-0">
-                        {project && <ProjectTasks tasks={tasks} team={project.team} onAddTask={handleCreateTask} onDeleteTask={handleDeleteTask} />}
-                      </TabsContent>
-                      <TabsContent value="team" className="mt-0">
-                        {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
-                      </TabsContent>
-                      <TabsContent value="documents" className="mt-0">
-                        {project && <ProjectDocuments documents={project.documents} onUpload={handleUploadDocument} />}
-                      </TabsContent>
-                      <TabsContent value="timeline" className="mt-0">
-                        {project && <ProjectTimeline timeline={project.timeline} />}
-                      </TabsContent>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </Tabs>
-            </div>
+              {/* Enhanced Tab Content */}
+              <div className="mt-6 min-h-[500px]">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    <TabsContent value="overview" className="mt-0 focus-visible:outline-none">
+                      {project && <ProjectOverview project={project} />}
+                    </TabsContent>
+                    <TabsContent value="tasks" className="mt-0 focus-visible:outline-none">
+                      {project && <ProjectTasks tasks={tasks} team={project.team} onAddTask={handleCreateTask} onDeleteTask={handleDeleteTask} />}
+                    </TabsContent>
+                    <TabsContent value="team" className="mt-0 focus-visible:outline-none">
+                      {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
+                    </TabsContent>
+                    <TabsContent value="documents" className="mt-0 focus-visible:outline-none">
+                      {project && <ProjectDocuments documents={project.documents} onUpload={handleUploadDocument} />}
+                    </TabsContent>
+                    <TabsContent value="timeline" className="mt-0 focus-visible:outline-none">
+                      {project && <ProjectTimeline timeline={project.timeline} />}
+                    </TabsContent>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </Tabs>
           </div>
         </div>
 
@@ -330,15 +336,17 @@ export default function ProjectPage({ params }) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleAddTask}
-                className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                className="fixed bottom-8 right-8 h-16 w-16 rounded-full shadow-2xl shadow-primary/30 bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center z-40 border-4 border-background/20 backdrop-blur-sm"
               >
-                <Plus className="h-6 w-6" />
-              </Button>
+                <Plus className="h-8 w-8" />
+              </motion.button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Add new task</p>
+            <TooltipContent side="left" className="mr-2">
+              <p className="font-semibold">Add New Task</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
