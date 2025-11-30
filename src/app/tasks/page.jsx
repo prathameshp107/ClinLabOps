@@ -437,26 +437,73 @@ export default function TasksPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col min-h-screen w-full bg-background">
+      <div className="flex flex-col h-full w-full bg-background/50">
         {/* Header with Stats */}
-        <div className="w-full border-b">
+        <div className="w-full border-b bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl sticky top-0 z-10">
           <div className="w-full px-4 sm:px-6 py-4 sm:py-6">
             <div className="w-full">
-              <div className="flex flex-col space-y-4">
+              <div className="flex flex-col space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Tasks</h1>
-                    <p className="text-muted-foreground text-sm sm:text-base">
-                      Manage and track your laboratory tasks
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">Tasks</h1>
+                    <p className="text-muted-foreground text-sm sm:text-base mt-1">
+                      Manage and track your laboratory tasks efficiently
                     </p>
-                  </div>
-                  <Button className="w-full sm:w-auto" onClick={() => setShowAddTaskModal(true)}>
-                    <Plus className="mr-2 h-4 w-4" /> New Task
-                  </Button>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    <Button
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-105"
+                      onClick={() => setShowAddTaskModal(true)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> New Task
+                    </Button>
+                  </motion.div>
                 </div>
 
                 {/* Stats Grid - Responsive */}
-
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+                >
+                  <StatCard
+                    title="Total Tasks"
+                    value={taskStats.total}
+                    icon={<List className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />}
+                    variant="default"
+                    className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800"
+                  />
+                  <StatCard
+                    title="In Progress"
+                    value={taskStats.inProgress}
+                    icon={<Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400 animate-spin-slow" />}
+                    variant="inProgress"
+                    className="bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-100 dark:border-indigo-800"
+                  />
+                  <StatCard
+                    title="Completed"
+                    value={taskStats.completed}
+                    icon={<CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />}
+                    variant="completed"
+                    className="bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-800"
+                  />
+                  <StatCard
+                    title="Overdue"
+                    value={taskStats.overdue}
+                    icon={<AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />}
+                    variant="overdue"
+                    className="bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-800"
+                  />
+                </motion.div>
               </div>
             </div>
           </div>
@@ -614,9 +661,9 @@ export default function TasksPage() {
   )
 }
 
-function StatCard({ title, value, icon, variant = 'default' }) {
+function StatCard({ title, value, icon, variant = 'default', className }) {
   const variantClasses = {
-    default: 'bg-background',
+    default: 'bg-white dark:bg-gray-800',
     pending: 'bg-amber-50 dark:bg-amber-900/20',
     inProgress: 'bg-blue-50 dark:bg-blue-900/20',
     completed: 'bg-green-50 dark:bg-green-900/20',
@@ -624,15 +671,24 @@ function StatCard({ title, value, icon, variant = 'default' }) {
   }
 
   return (
-    <div className={`flex items-center p-3 sm:p-4 rounded-lg border ${variantClasses[variant]}`}>
-      <div className="flex-shrink-0 p-2 sm:p-3 rounded-full bg-background shadow-sm">
+    <motion.div
+      whileHover={{ y: -2, scale: 1.01 }}
+      className={cn(
+        "flex items-center p-3 sm:p-4 rounded-xl border shadow-sm transition-all duration-200",
+        variantClasses[variant],
+        className
+      )}
+    >
+      <div className="flex-shrink-0 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-950 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
         {icon}
       </div>
       <div className="ml-3 sm:ml-4 min-w-0 flex-1">
         <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{title}</p>
-        <p className="text-lg sm:text-2xl font-bold">{value}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-lg sm:text-2xl font-bold tracking-tight">{value}</p>
+        </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

@@ -5,12 +5,12 @@ import { List, Grid, Clock, CheckCircle2, AlertCircle, Loader2 } from "lucide-re
 export function TasksLoading() {
     return (
         <DashboardLayout>
-            <div className="flex flex-col min-h-screen w-full bg-background">
+            <div className="flex flex-col h-full w-full bg-background/50">
                 {/* Header with Stats */}
-                <div className="w-full border-b">
+                <div className="w-full border-b bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl sticky top-0 z-10">
                     <div className="w-full px-4 sm:px-6 py-4 sm:py-6">
                         <div className="w-full">
-                            <div className="flex flex-col space-y-4">
+                            <div className="flex flex-col space-y-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                     <div>
                                         <Skeleton className="h-8 w-32 mb-2" />
@@ -20,59 +20,48 @@ export function TasksLoading() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                                     {/* Total */}
-                                    <div className="flex items-center p-4 rounded-lg border bg-background">
-                                        <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
-                                            <List className="h-4 w-4" />
+                                    <div className="flex items-center p-3 sm:p-4 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+                                        <div className="flex-shrink-0 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-950 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                                            <List className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
                                         </div>
-                                        <div className="ml-4">
-                                            <Skeleton className="h-4 w-12 mb-1" />
-                                            <Skeleton className="h-8 w-8" />
-                                        </div>
-                                    </div>
-
-                                    {/* Pending */}
-                                    <div className="flex items-center p-4 rounded-lg border bg-amber-50 dark:bg-amber-900/20">
-                                        <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
-                                            <Clock className="h-4 w-4 text-amber-500" />
-                                        </div>
-                                        <div className="ml-4">
-                                            <Skeleton className="h-4 w-16 mb-1" />
-                                            <Skeleton className="h-8 w-8" />
+                                        <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                                            <Skeleton className="h-3 w-16 mb-2" />
+                                            <Skeleton className="h-6 w-8" />
                                         </div>
                                     </div>
 
                                     {/* In Progress */}
-                                    <div className="flex items-center p-4 rounded-lg border bg-blue-50 dark:bg-blue-900/20">
-                                        <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
-                                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                                    <div className="flex items-center p-3 sm:p-4 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+                                        <div className="flex-shrink-0 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-950 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                                            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin text-indigo-600 dark:text-indigo-400" />
                                         </div>
-                                        <div className="ml-4">
-                                            <Skeleton className="h-4 w-20 mb-1" />
-                                            <Skeleton className="h-8 w-8" />
+                                        <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                                            <Skeleton className="h-3 w-20 mb-2" />
+                                            <Skeleton className="h-6 w-8" />
                                         </div>
                                     </div>
 
                                     {/* Completed */}
-                                    <div className="flex items-center p-4 rounded-lg border bg-green-50 dark:bg-green-900/20">
-                                        <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
-                                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                    <div className="flex items-center p-3 sm:p-4 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+                                        <div className="flex-shrink-0 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-950 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                                            <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
                                         </div>
-                                        <div className="ml-4">
-                                            <Skeleton className="h-4 w-20 mb-1" />
-                                            <Skeleton className="h-8 w-8" />
+                                        <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                                            <Skeleton className="h-3 w-20 mb-2" />
+                                            <Skeleton className="h-6 w-8" />
                                         </div>
                                     </div>
 
                                     {/* Overdue */}
-                                    <div className="flex items-center p-4 rounded-lg border bg-red-50 dark:bg-red-900/20">
-                                        <div className="flex-shrink-0 p-3 rounded-full bg-background shadow-sm">
-                                            <AlertCircle className="h-4 w-4 text-red-500" />
+                                    <div className="flex items-center p-3 sm:p-4 rounded-xl border bg-white dark:bg-gray-800 shadow-sm">
+                                        <div className="flex-shrink-0 p-2 sm:p-3 rounded-lg bg-white dark:bg-gray-950 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                                            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
                                         </div>
-                                        <div className="ml-4">
-                                            <Skeleton className="h-4 w-16 mb-1" />
-                                            <Skeleton className="h-8 w-8" />
+                                        <div className="ml-3 sm:ml-4 min-w-0 flex-1">
+                                            <Skeleton className="h-3 w-16 mb-2" />
+                                            <Skeleton className="h-6 w-8" />
                                         </div>
                                     </div>
                                 </div>
