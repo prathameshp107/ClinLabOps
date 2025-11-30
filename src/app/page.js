@@ -448,13 +448,23 @@ export default function LandingPage() {
               <div key={i}>
                 <h4 className="font-semibold text-white mb-4">{column.title}</h4>
                 <ul className="space-y-2">
-                  {column.links.map((link) => (
-                    <li key={link}>
-                      <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                        {link}
-                      </Link>
-                    </li>
-                  ))}
+                  {column.links.map((link) => {
+                    const routeMap = {
+                      About: "/about",
+                      Contact: "/contact"
+                    };
+
+                    return (
+                      <li key={link}>
+                        <Link
+                          href={routeMap[link] || "#"}   // Uses actual route if defined, else "#"
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {link}
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
