@@ -72,7 +72,7 @@ export function PricingSection() {
     const [isAnnual, setIsAnnual] = useState(true);
 
     return (
-        <section id="pricing" className="py-24 relative overflow-hidden">
+        <section id="pricing" className="py-24 relative overflow-hidden bg-muted/30 dark:bg-transparent">
             {/* Background Elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                 <div className="absolute top-1/4 -left-64 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-30" />
@@ -85,7 +85,7 @@ export function PricingSection() {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60"
+                        className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 dark:from-white dark:to-white/60"
                     >
                         Simple, transparent pricing
                     </motion.h2>
@@ -107,17 +107,17 @@ export function PricingSection() {
                         transition={{ delay: 0.2 }}
                         className="flex items-center justify-center gap-4"
                     >
-                        <span className={cn("text-sm font-medium transition-colors", !isAnnual ? "text-white" : "text-muted-foreground")}>Monthly</span>
+                        <span className={cn("text-sm font-medium transition-colors", !isAnnual ? "text-foreground dark:text-white" : "text-muted-foreground")}>Monthly</span>
                         <button
                             onClick={() => setIsAnnual(!isAnnual)}
-                            className="relative w-14 h-7 rounded-full bg-white/10 border border-white/10 transition-colors hover:bg-white/20 focus:outline-none"
+                            className="relative w-14 h-7 rounded-full bg-muted dark:bg-white/10 border border-border dark:border-white/10 transition-colors hover:bg-muted/80 dark:hover:bg-white/20 focus:outline-none"
                         >
                             <motion.div
                                 animate={{ x: isAnnual ? 28 : 2 }}
                                 className="absolute top-1 left-0 w-5 h-5 rounded-full bg-primary shadow-lg"
                             />
                         </button>
-                        <span className={cn("text-sm font-medium transition-colors", isAnnual ? "text-white" : "text-muted-foreground")}>
+                        <span className={cn("text-sm font-medium transition-colors", isAnnual ? "text-foreground dark:text-white" : "text-muted-foreground")}>
                             Yearly <span className="text-primary text-xs ml-1 font-bold">(Save 20%)</span>
                         </span>
                     </motion.div>
@@ -134,8 +134,8 @@ export function PricingSection() {
                             className={cn(
                                 "relative flex flex-col p-8 rounded-2xl border transition-all duration-300",
                                 tier.popular
-                                    ? "bg-white/10 border-primary/50 shadow-2xl shadow-primary/10 scale-105 z-10"
-                                    : "bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10"
+                                    ? "bg-card dark:bg-white/10 border-primary/50 shadow-2xl shadow-primary/10 scale-105 z-10"
+                                    : "bg-card/50 dark:bg-white/5 border-border dark:border-white/10 hover:border-primary/20 dark:hover:border-white/20 hover:bg-card dark:hover:bg-white/10"
                             )}
                         >
                             {tier.popular && (
@@ -145,13 +145,13 @@ export function PricingSection() {
                             )}
 
                             <div className="mb-8">
-                                <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
+                                <h3 className="text-xl font-bold text-foreground dark:text-white mb-2">{tier.name}</h3>
                                 <p className="text-muted-foreground text-sm h-10">{tier.description}</p>
                             </div>
 
                             <div className="mb-8">
                                 <div className="flex items-baseline gap-1">
-                                    <span className="text-4xl font-bold text-white">
+                                    <span className="text-4xl font-bold text-foreground dark:text-white">
                                         {tier.price === "Custom" ? "Custom" : `$${isAnnual ? tier.price : Math.round(parseInt(tier.price) * 1.2)}`}
                                     </span>
                                     {tier.price !== "Custom" && (
@@ -169,12 +169,12 @@ export function PricingSection() {
                                         <div className="mt-1 p-0.5 rounded-full bg-primary/20 text-primary">
                                             <Check className="w-3 h-3" />
                                         </div>
-                                        <span className="text-sm text-gray-300">{feature}</span>
+                                        <span className="text-sm text-muted-foreground dark:text-gray-300">{feature}</span>
                                     </div>
                                 ))}
                                 {tier.notIncluded.map((feature) => (
                                     <div key={feature} className="flex items-start gap-3 opacity-50">
-                                        <div className="mt-1 p-0.5 rounded-full bg-white/10 text-muted-foreground">
+                                        <div className="mt-1 p-0.5 rounded-full bg-muted dark:bg-white/10 text-muted-foreground">
                                             <X className="w-3 h-3" />
                                         </div>
                                         <span className="text-sm text-muted-foreground">{feature}</span>
@@ -186,7 +186,7 @@ export function PricingSection() {
                                 variant={tier.popular ? "default" : "outline"}
                                 className={cn(
                                     "w-full py-6 text-base font-semibold transition-all",
-                                    tier.popular ? "shadow-lg shadow-primary/25 hover:shadow-primary/40" : "hover:bg-white/10"
+                                    tier.popular ? "shadow-lg shadow-primary/25 hover:shadow-primary/40" : "hover:bg-muted dark:hover:bg-white/10"
                                 )}
                             >
                                 {tier.buttonText}

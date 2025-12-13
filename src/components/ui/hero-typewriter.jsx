@@ -27,7 +27,7 @@ export const HeroTypewriter = () => {
 
     return (
         <motion.h1
-            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/50"
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground via-foreground/90 to-foreground/50 dark:from-white dark:via-white/90 dark:to-white/50"
             variants={sentence}
             initial="hidden"
             animate="visible"

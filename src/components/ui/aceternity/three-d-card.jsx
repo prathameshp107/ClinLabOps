@@ -57,7 +57,7 @@ export const ThreeDCard = ({
       </div>
       <div
         className={cn(
-          "absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 transition-opacity duration-500 group-hover/card:opacity-100",
+          "absolute inset-0 bg-gradient-to-tr from-transparent via-black/5 dark:via-white/10 to-transparent opacity-0 transition-opacity duration-500 group-hover/card:opacity-100",
           glareClassName
         )}
         style={{

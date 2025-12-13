@@ -151,7 +151,7 @@ export default function LandingPage() {
             <div className="bg-primary/20 p-2 rounded-lg group-hover:bg-primary/30 transition-colors">
               <FlaskConical className="h-6 w-6 text-primary" />
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70 dark:from-white dark:to-white/70">
               LabTasker
             </span>
           </div>
@@ -258,41 +258,41 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="mt-20 relative mx-auto max-w-6xl"
           >
-            <div className="relative rounded-xl border border-white/10 bg-white/5 p-2 backdrop-blur-sm shadow-2xl shadow-primary/10">
+            <div className="relative rounded-xl border border-border dark:border-white/10 bg-card/50 dark:bg-white/5 p-2 backdrop-blur-sm shadow-2xl shadow-primary/10">
               <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-50" />
-              <div className="rounded-lg overflow-hidden bg-background/50 border border-white/5 aspect-[16/9] relative">
+              <div className="rounded-lg overflow-hidden bg-background/50 border border-border dark:border-white/5 aspect-[16/9] relative">
                 {/* Abstract UI Representation */}
-                <div className="absolute inset-0 flex items-center justify-center bg-grid-white/[0.02]">
+                <div className="absolute inset-0 flex items-center justify-center bg-grid-black/[0.02] dark:bg-grid-white/[0.02]">
                   <div className="w-full h-full p-8 grid grid-cols-12 gap-6">
                     {/* Sidebar */}
-                    <div className="col-span-2 hidden md:flex flex-col gap-4 border-r border-white/5 pr-6">
-                      <div className="h-8 w-24 bg-white/10 rounded-md animate-pulse" />
+                    <div className="col-span-2 hidden md:flex flex-col gap-4 border-r border-border dark:border-white/5 pr-6">
+                      <div className="h-8 w-24 bg-muted dark:bg-white/10 rounded-md animate-pulse" />
                       <div className="space-y-2 mt-4">
                         {[1, 2, 3, 4, 5].map(i => (
-                          <div key={i} className="h-8 w-full bg-white/5 rounded-md" />
+                          <div key={i} className="h-8 w-full bg-muted dark:bg-white/5 rounded-md" />
                         ))}
                       </div>
                     </div>
                     {/* Main Content */}
                     <div className="col-span-12 md:col-span-10 flex flex-col gap-6">
                       <div className="flex justify-between items-center">
-                        <div className="h-8 w-48 bg-white/10 rounded-md" />
+                        <div className="h-8 w-48 bg-muted dark:bg-white/10 rounded-md" />
                         <div className="flex gap-2">
-                          <div className="h-8 w-8 bg-white/10 rounded-full" />
-                          <div className="h-8 w-8 bg-white/10 rounded-full" />
+                          <div className="h-8 w-8 bg-muted dark:bg-white/10 rounded-full" />
+                          <div className="h-8 w-8 bg-muted dark:bg-white/10 rounded-full" />
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-4">
                         {[1, 2, 3].map(i => (
-                          <div key={i} className="h-32 bg-white/5 rounded-xl border border-white/5 p-4 relative overflow-hidden group">
+                          <div key={i} className="h-32 bg-muted dark:bg-white/5 rounded-xl border border-border dark:border-white/5 p-4 relative overflow-hidden group">
                             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="h-4 w-12 bg-white/10 rounded mb-2" />
-                            <div className="h-8 w-24 bg-white/10 rounded mb-4" />
-                            <div className="h-2 w-full bg-white/5 rounded" />
+                            <div className="h-4 w-12 bg-muted-foreground/20 dark:bg-white/10 rounded mb-2" />
+                            <div className="h-8 w-24 bg-muted-foreground/20 dark:bg-white/10 rounded mb-4" />
+                            <div className="h-2 w-full bg-muted-foreground/10 dark:bg-white/5 rounded" />
                           </div>
                         ))}
                       </div>
-                      <div className="flex-1 bg-white/5 rounded-xl border border-white/5 p-6">
+                      <div className="flex-1 bg-muted dark:bg-white/5 rounded-xl border border-border dark:border-white/5 p-6">
                         <div className="h-full w-full flex items-end justify-between gap-2">
                           {[40, 60, 45, 70, 50, 80, 65, 90, 75, 60, 85, 95].map((h, i) => (
                             <div key={i} className="w-full bg-primary/20 rounded-t-sm relative group" style={{ height: `${h}%` }}>
@@ -308,7 +308,7 @@ export default function LandingPage() {
             </div>
 
             {/* Floating Elements */}
-            <div className="absolute -left-12 top-1/4 p-4 bg-background/80 backdrop-blur-md rounded-xl border border-white/10 shadow-xl hidden lg:block animate-bounceIn" style={{ animationDelay: '1s' }}>
+            <div className="absolute -left-12 top-1/4 p-4 bg-background/80 backdrop-blur-md rounded-xl border border-border dark:border-white/10 shadow-xl hidden lg:block animate-bounceIn" style={{ animationDelay: '1s' }}>
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
                   <CheckCircle2 className="h-5 w-5" />
@@ -320,7 +320,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="absolute -right-8 bottom-1/3 p-4 bg-background/80 backdrop-blur-md rounded-xl border border-white/10 shadow-xl hidden lg:block animate-bounceIn" style={{ animationDelay: '1.2s' }}>
+            <div className="absolute -right-8 bottom-1/3 p-4 bg-background/80 backdrop-blur-md rounded-xl border border-border dark:border-white/10 shadow-xl hidden lg:block animate-bounceIn" style={{ animationDelay: '1.2s' }}>
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
                   {[1, 2, 3].map(i => (
@@ -338,10 +338,10 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 relative bg-black/20">
+      <section id="features" className="py-24 relative bg-muted/50 dark:bg-black/20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60 dark:from-white dark:to-white/60">
               Everything you need to run a modern lab
             </h2>
             <p className="text-muted-foreground text-lg">
@@ -352,11 +352,11 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <ThreeDCard key={index} className="h-full">
-                <div className="h-full p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all duration-300 group">
-                  <div className="h-12 w-12 rounded-lg bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="h-full p-6 rounded-2xl bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:border-primary/50 hover:bg-muted dark:hover:bg-white/10 transition-all duration-300 group">
+                  <div className="h-12 w-12 rounded-lg bg-muted dark:bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-primary transition-colors">
+                  <h3 className="text-xl font-semibold mb-3 text-foreground dark:text-white group-hover:text-primary transition-colors">
                     {feature.title}
                   </h3>
                   <p className="text-muted-foreground leading-relaxed">
@@ -408,17 +408,17 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-primary/5" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-white">
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-foreground dark:text-white">
               Ready to transform your laboratory?
             </h2>
             <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
               Join leading research institutions and biotech companies using LabTasker to accelerate their discoveries.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button size="lg" className="h-14 px-10 rounded-full bg-white text-black hover:bg-white/90 font-semibold text-lg transition-all hover:scale-105">
+              <Button size="lg" className="h-14 px-10 rounded-full bg-primary text-white hover:bg-primary/90 font-semibold text-lg transition-all hover:scale-105">
                 Get Started Now
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-10 rounded-full border-white/20 hover:bg-white/10 text-white text-lg transition-all hover:scale-105">
+              <Button size="lg" variant="outline" className="h-14 px-10 rounded-full border-primary/20 hover:bg-primary/10 text-foreground dark:text-white text-lg transition-all hover:scale-105">
                 Contact Sales
               </Button>
             </div>
@@ -427,13 +427,13 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/10 bg-black/40">
+      <footer className="py-12 border-t border-border dark:border-white/10 bg-muted/30 dark:bg-black/40">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <FlaskConical className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold text-white">LabTasker</span>
+                <span className="text-xl font-bold text-foreground dark:text-white">LabTasker</span>
               </div>
               <p className="text-muted-foreground text-sm">
                 Empowering scientists to focus on what matters most: discovery.
@@ -446,7 +446,7 @@ export default function LandingPage() {
               { title: "Legal", links: ["Privacy", "Terms", "Cookie Policy", "Acceptable Use"] }
             ].map((column, i) => (
               <div key={i}>
-                <h4 className="font-semibold text-white mb-4">{column.title}</h4>
+                <h4 className="font-semibold text-foreground dark:text-white mb-4">{column.title}</h4>
                 <ul className="space-y-2">
                   {column.links.map((link) => {
                     const routeMap = {
@@ -470,15 +470,15 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="pt-8 border-t border-border dark:border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
               © 2024 LabTasker Inc. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
-              <Link href="#" className="text-muted-foreground hover:text-white transition-colors">
+              <Link href="#" className="text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors">
                 <Globe className="h-5 w-5" />
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-white transition-colors">
+              <Link href="#" className="text-muted-foreground hover:text-foreground dark:hover:text-white transition-colors">
                 <Users className="h-5 w-5" />
               </Link>
             </div>
