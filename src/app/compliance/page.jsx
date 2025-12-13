@@ -165,56 +165,32 @@ const glpComplianceData = {
     ]
 };
 
-// Mock data for animal welfare
-const animalWelfareData = {
-    protocols: [
-        { id: "IACUC-2023-045", title: "Toxicity Study in Rodent Models", status: "Approved", expiration: "2024-06-15", species: "Mice", count: 120 },
-        { id: "IACUC-2023-052", title: "Pharmacokinetic Analysis", status: "Approved", expiration: "2024-05-22", species: "Rats", count: 80 },
-        { id: "IACUC-2023-061", title: "Efficacy Testing - Compound XR-27", status: "Pending Review", expiration: "N/A", species: "Mice", count: 150 },
-        { id: "IACUC-2023-039", title: "Bioavailability Study", status: "Approved", expiration: "2024-03-10", species: "Rabbits", count: 24 },
-        { id: "IACUC-2023-047", title: "Chronic Toxicity Assessment", status: "Amendments Requested", expiration: "N/A", species: "Rats", count: 100 }
-    ],
-    inspections: [
-        { id: 1, date: "2023-10-05", type: "Housing Inspection", status: "Passed", inspector: "Dr. Melissa Grant", notes: "All housing conditions meet requirements" },
-        { id: 2, date: "2023-09-15", type: "Veterinary Check", status: "Passed", inspector: "Dr. James Wilson", notes: "All animals in good health" },
-        { id: 3, date: "2023-08-22", type: "IACUC Site Visit", status: "Minor Findings", inspector: "IACUC Committee", notes: "Temperature logs incomplete for Room B" },
-        { id: 4, date: "2023-07-10", type: "Housing Inspection", status: "Passed", inspector: "Dr. Melissa Grant", notes: "No issues found" }
-    ],
-    upcomingChecks: [
-        { id: 1, date: "2023-11-15", type: "Veterinary Check", responsible: "Dr. James Wilson" },
-        { id: 2, date: "2023-12-05", type: "Housing Inspection", responsible: "Dr. Melissa Grant" },
-        { id: 3, date: "2023-12-20", type: "IACUC Site Visit", responsible: "IACUC Committee" }
-    ]
-};
-
 // Mock data for audit logs
 const auditLogData = [
-    { id: 1, timestamp: "2023-10-20 14:32:45", user: "Sarah Chen", action: "Modified protocol IACUC-2023-045", module: "Animal Welfare", severity: "Medium" },
+    { id: 1, timestamp: "2023-10-20 14:32:45", user: "Sarah Chen", action: "Modified protocol IACUC-2023-045", module: "GLP", severity: "Medium" },
     { id: 2, timestamp: "2023-10-20 11:15:22", user: "Michael Rodriguez", action: "Uploaded new SOP document", module: "GLP", severity: "Low" },
     { id: 3, timestamp: "2023-10-19 16:48:33", user: "Jennifer Williams", action: "Approved equipment calibration report", module: "Equipment", severity: "Low" },
     { id: 4, timestamp: "2023-10-19 10:22:17", user: "David Kim", action: "Modified test article storage conditions", module: "Inventory", severity: "High" },
-    { id: 5, timestamp: "2023-10-18 15:36:59", user: "Emily Parker", action: "Deleted draft protocol", module: "Animal Welfare", severity: "Medium" },
+    { id: 5, timestamp: "2023-10-18 15:36:59", user: "Emily Parker", action: "Deleted draft protocol", module: "GLP", severity: "Medium" },
     { id: 6, timestamp: "2023-10-18 09:05:41", user: "Robert Johnson", action: "Changed user permissions for Lab Technician group", module: "Users", severity: "High" },
     { id: 7, timestamp: "2023-10-17 14:12:08", user: "Amanda Lewis", action: "Generated compliance report", module: "Reports", severity: "Low" },
-    { id: 8, timestamp: "2023-10-17 11:30:25", user: "Sarah Chen", action: "Updated animal count in protocol IACUC-2023-052", module: "Animal Welfare", severity: "Medium" }
+    { id: 8, timestamp: "2023-10-17 11:30:25", user: "Sarah Chen", action: "Updated protocol IACUC-2023-052", module: "GLP", severity: "Medium" }
 ];
 
 // Mock data for training & certifications
 const trainingData = {
     requiredTrainings: [
         { id: 1, title: "GLP Fundamentals", category: "Regulatory", frequency: "Annual", nextDue: "2023-12-15" },
-        { id: 2, title: "Animal Handling & Ethics", category: "Animal Welfare", frequency: "Biennial", nextDue: "2024-03-22" },
-        { id: 3, title: "Biosafety Level 2 Training", category: "Safety", frequency: "Biennial", nextDue: "2024-05-10" },
-        { id: 4, title: "Data Integrity & Documentation", category: "Regulatory", frequency: "Annual", nextDue: "2023-11-30" },
-        { id: 5, title: "Chemical Safety", category: "Safety", frequency: "Annual", nextDue: "2023-12-05" }
+        { id: 2, title: "Biosafety Level 2 Training", category: "Safety", frequency: "Biennial", nextDue: "2024-05-10" },
+        { id: 3, title: "Data Integrity & Documentation", category: "Regulatory", frequency: "Annual", nextDue: "2023-11-30" },
+        { id: 4, title: "Chemical Safety", category: "Safety", frequency: "Annual", nextDue: "2023-12-05" }
     ],
     userCertifications: [
         { id: 1, user: "Sarah Chen", title: "GLP Fundamentals", completionDate: "2022-12-10", expirationDate: "2023-12-10", status: "Valid" },
-        { id: 2, user: "Sarah Chen", title: "Animal Handling & Ethics", completionDate: "2022-03-15", expirationDate: "2024-03-15", status: "Valid" },
-        { id: 3, user: "Michael Rodriguez", title: "GLP Fundamentals", completionDate: "2022-11-22", expirationDate: "2023-11-22", status: "Expiring Soon" },
-        { id: 4, user: "Jennifer Williams", title: "Biosafety Level 2 Training", completionDate: "2022-05-05", expirationDate: "2024-05-05", status: "Valid" },
-        { id: 5, user: "David Kim", title: "Chemical Safety", completionDate: "2022-11-30", expirationDate: "2023-11-30", status: "Expiring Soon" },
-        { id: 6, user: "Emily Parker", title: "Data Integrity & Documentation", completionDate: "2022-10-15", expirationDate: "2023-10-15", status: "Expired" }
+        { id: 2, user: "Michael Rodriguez", title: "GLP Fundamentals", completionDate: "2022-11-22", expirationDate: "2023-11-22", status: "Expiring Soon" },
+        { id: 3, user: "Jennifer Williams", title: "Biosafety Level 2 Training", completionDate: "2022-05-05", expirationDate: "2024-05-05", status: "Valid" },
+        { id: 4, user: "David Kim", title: "Chemical Safety", completionDate: "2022-11-30", expirationDate: "2023-11-30", status: "Expiring Soon" },
+        { id: 5, user: "Emily Parker", title: "Data Integrity & Documentation", completionDate: "2022-10-15", expirationDate: "2023-10-15", status: "Expired" }
     ]
 };
 
@@ -245,24 +221,22 @@ const inventoryData = {
 // Mock data for policy library
 const policyLibraryData = [
     { id: 1, title: "GLP Compliance Manual", category: "Regulatory", version: "3.2", lastUpdated: "2023-08-15", size: "4.8 MB" },
-    { id: 2, title: "Animal Welfare Policy", category: "Animal Welfare", version: "2.1", lastUpdated: "2023-07-22", size: "3.2 MB" },
-    { id: 3, title: "Data Management & Integrity SOP", category: "Data", version: "4.0", lastUpdated: "2023-09-10", size: "2.5 MB" },
-    { id: 4, title: "Equipment Calibration Procedures", category: "Equipment", version: "2.5", lastUpdated: "2023-06-30", size: "3.7 MB" },
-    { id: 5, title: "Chemical Handling & Storage", category: "Safety", version: "3.3", lastUpdated: "2023-08-05", size: "2.9 MB" },
-    { id: 6, title: "Quality Assurance Program", category: "Quality", version: "2.8", lastUpdated: "2023-09-25", size: "5.1 MB" },
-    { id: 7, title: "Emergency Response Plan", category: "Safety", version: "1.9", lastUpdated: "2023-05-12", size: "4.3 MB" },
-    { id: 8, title: "Personnel Training Requirements", category: "Training", version: "2.2", lastUpdated: "2023-07-18", size: "1.8 MB" }
+    { id: 2, title: "Data Management & Integrity SOP", category: "Data", version: "4.0", lastUpdated: "2023-09-10", size: "2.5 MB" },
+    { id: 3, title: "Equipment Calibration Procedures", category: "Equipment", version: "2.5", lastUpdated: "2023-06-30", size: "3.7 MB" },
+    { id: 4, title: "Chemical Handling & Storage", category: "Safety", version: "3.3", lastUpdated: "2023-08-05", size: "2.9 MB" },
+    { id: 5, title: "Quality Assurance Program", category: "Quality", version: "2.8", lastUpdated: "2023-09-25", size: "5.1 MB" },
+    { id: 6, title: "Emergency Response Plan", category: "Safety", version: "1.9", lastUpdated: "2023-05-12", size: "4.3 MB" },
+    { id: 7, title: "Personnel Training Requirements", category: "Training", version: "2.2", lastUpdated: "2023-07-18", size: "1.8 MB" }
 ];
 
 // Mock data for audit calendar
 const auditCalendarData = [
     { id: 1, title: "Internal GLP Audit", date: "2023-12-15", type: "Internal", department: "Quality Assurance", status: "Scheduled" },
-    { id: 2, title: "IACUC Inspection", date: "2023-12-20", type: "External", department: "Animal Facility", status: "Scheduled" },
-    { id: 3, title: "Data Integrity Review", date: "2023-11-28", type: "Internal", department: "IT & Data Management", status: "Scheduled" },
-    { id: 4, title: "Equipment Calibration Verification", date: "2023-11-25", type: "Internal", department: "Lab Operations", status: "Scheduled" },
-    { id: 5, title: "Annual Regulatory Inspection", date: "2024-02-10", type: "External", department: "All Departments", status: "Planned" },
-    { id: 6, title: "Chemical Inventory Audit", date: "2024-01-15", type: "Internal", department: "Lab Operations", status: "Planned" },
-    { id: 7, title: "Training Records Review", date: "2023-12-05", type: "Internal", department: "Human Resources", status: "Scheduled" }
+    { id: 2, title: "Data Integrity Review", date: "2023-11-28", type: "Internal", department: "IT & Data Management", status: "Scheduled" },
+    { id: 3, title: "Equipment Calibration Verification", date: "2023-11-25", type: "Internal", department: "Lab Operations", status: "Scheduled" },
+    { id: 4, title: "Annual Regulatory Inspection", date: "2024-02-10", type: "External", department: "All Departments", status: "Planned" },
+    { id: 5, title: "Chemical Inventory Audit", date: "2024-01-15", type: "Internal", department: "Lab Operations", status: "Planned" },
+    { id: 6, title: "Training Records Review", date: "2023-12-05", type: "Internal", department: "Human Resources", status: "Scheduled" }
 ];
 
 export default function CompliancePage() {

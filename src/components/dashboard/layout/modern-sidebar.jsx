@@ -109,8 +109,7 @@ function ModernSidebar({ className, onToggle, isCollapsed }) {
             items: [
                 { name: 'protocols', label: 'Protocols', icon: <BookOpen className="h-5 w-5" />, path: '/protocols', badge: null },
                 { name: 'equipments', label: 'Equipments', icon: <Microscope className="h-5 w-5" />, path: '/equipments', badge: null },
-                { name: 'inventory', label: 'Inventory', icon: <Database className="h-5 w-5" />, path: '/inventory', badge: null },
-                { name: 'animals', label: 'Animals', icon: <span className="text-base">🐾</span>, path: '/animals', badge: null }
+                { name: 'inventory', label: 'Inventory', icon: <Database className="h-5 w-5" />, path: '/inventory', badge: null }
             ]
         },
         {

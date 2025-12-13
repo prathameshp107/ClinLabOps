@@ -256,17 +256,6 @@ app.use('/api/reports', reportsRouter);
 const settingsRouter = require('./routes/settings');
 app.use('/api/settings', settingsRouter);
 
-// Animal management routes
-const animalsRouter = require('./routes/animals');
-app.use('/api/animals', animalsRouter);
-
-// Breeding management routes
-const breedingRouter = require('./routes/breeding');
-app.use('/api/breeding', breedingRouter);
-
-// Cage management routes
-const cagesRouter = require('./routes/cages');
-app.use('/api/cages', cagesRouter);
 
 // Uploaded reports routes (original)
 const uploadedReportsRouter = require('./routes/uploadedReports');
