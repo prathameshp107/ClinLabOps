@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import {
   LineChart, Check, Clock, AlertTriangle, CheckCircle, Activity,
   ChevronDown, ChevronUp, BarChart2, TrendingUp, Calendar,
-  Users, ArrowUpRight, ArrowDownRight, Filter, Search, Star
+  Users, ArrowUpRight, ArrowDownRight, Filter, Search, Star, Zap
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -99,42 +99,42 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
           bg: "bg-gray-100 dark:bg-gray-800",
           text: "text-gray-700 dark:text-gray-300",
           border: "border-gray-300 dark:border-gray-700",
-          icon: <Clock className="h-4 w-4" />
+          icon: <Clock className="h-3.5 w-3.5" />
         }
       case "in progress":
         return {
           bg: "bg-blue-100 dark:bg-blue-900/20",
           text: "text-blue-700 dark:text-blue-300",
           border: "border-blue-300 dark:border-blue-900",
-          icon: <Activity className="h-4 w-4" />
+          icon: <Activity className="h-3.5 w-3.5" />
         }
       case "on hold":
         return {
           bg: "bg-amber-100 dark:bg-amber-900/20",
           text: "text-amber-700 dark:text-amber-300",
           border: "border-amber-300 dark:border-amber-900",
-          icon: <AlertTriangle className="h-4 w-4" />
+          icon: <AlertTriangle className="h-3.5 w-3.5" />
         }
       case "review":
         return {
           bg: "bg-purple-100 dark:bg-purple-900/20",
           text: "text-purple-700 dark:text-purple-300",
           border: "border-purple-300 dark:border-purple-900",
-          icon: <Check className="h-4 w-4" />
+          icon: <Check className="h-3.5 w-3.5" />
         }
       case "completed":
         return {
           bg: "bg-green-100 dark:bg-green-900/20",
           text: "text-green-700 dark:text-green-300",
           border: "border-green-300 dark:border-green-900",
-          icon: <CheckCircle className="h-4 w-4" />
+          icon: <CheckCircle className="h-3.5 w-3.5" />
         }
       default:
         return {
           bg: "bg-gray-100 dark:bg-gray-800",
           text: "text-gray-700 dark:text-gray-300",
           border: "border-gray-300 dark:border-gray-700",
-          icon: <Activity className="h-4 w-4" />
+          icon: <Activity className="h-3.5 w-3.5" />
         }
     }
   }
@@ -165,98 +165,100 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
 
   return (
     <div className="space-y-6">
-      <Card className="border border-gray-200 dark:border-gray-800 shadow-sm">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800">
-          <div className="flex justify-between items-center">
+      <Card className="border border-border/50 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="bg-muted/30 border-b border-border/50 pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <CardTitle className="text-xl flex items-center gap-2">
-                <LineChart className="h-5 w-5 text-blue-500" />
+                <LineChart className="h-5 w-5 text-primary" />
                 Project Status Overview
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-1">
                 Track and manage project progress across your organization
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search projects..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64"
-                icon={<Search className="h-4 w-4" />}
-              />
-              <Button variant="outline" size="icon">
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-background/50 border-border/50"
+                />
+              </div>
+              <Button variant="outline" size="icon" className="shrink-0 bg-background/50 border-border/50">
                 <Filter className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <Card className="bg-white dark:bg-gray-950 shadow-sm hover:shadow-md transition-all border-l-4 border-l-gray-400">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <Card className="bg-card/50 shadow-sm hover:shadow-md transition-all border-l-4 border-l-gray-400 group">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
-                    <div className="font-medium text-gray-500 dark:text-gray-400">All Projects</div>
-                    <div className="text-2xl font-bold">{projects.length}</div>
+                    <div className="font-medium text-muted-foreground text-sm">All Projects</div>
+                    <div className="text-2xl font-bold group-hover:text-primary transition-colors">{projects.length}</div>
                   </div>
-                  <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800">
+                  <Badge variant="secondary" className="bg-muted text-muted-foreground">
                     Total
                   </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-950 shadow-sm hover:shadow-md transition-all border-l-4 border-l-blue-400">
+            <Card className="bg-card/50 shadow-sm hover:shadow-md transition-all border-l-4 border-l-blue-500 group">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
-                    <div className="font-medium text-blue-500">In Progress</div>
-                    <div className="text-2xl font-bold">{statusSummary['in progress'] || 0}</div>
+                    <div className="font-medium text-blue-500 text-sm">In Progress</div>
+                    <div className="text-2xl font-bold group-hover:text-blue-600 transition-colors">{statusSummary['in progress'] || 0}</div>
                   </div>
-                  <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300">
+                  <Badge variant="secondary" className="bg-blue-500/10 text-blue-600">
                     Active
                   </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-950 shadow-sm hover:shadow-md transition-all border-l-4 border-l-purple-400">
+            <Card className="bg-card/50 shadow-sm hover:shadow-md transition-all border-l-4 border-l-purple-500 group">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
-                    <div className="font-medium text-purple-500">Review</div>
-                    <div className="text-2xl font-bold">{statusSummary['review'] || 0}</div>
+                    <div className="font-medium text-purple-500 text-sm">Review</div>
+                    <div className="text-2xl font-bold group-hover:text-purple-600 transition-colors">{statusSummary['review'] || 0}</div>
                   </div>
-                  <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300">
+                  <Badge variant="secondary" className="bg-purple-500/10 text-purple-600">
                     Pending
                   </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-950 shadow-sm hover:shadow-md transition-all border-l-4 border-l-amber-400">
+            <Card className="bg-card/50 shadow-sm hover:shadow-md transition-all border-l-4 border-l-amber-500 group">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
-                    <div className="font-medium text-amber-500">On Hold</div>
-                    <div className="text-2xl font-bold">{statusSummary['on hold'] || 0}</div>
+                    <div className="font-medium text-amber-500 text-sm">On Hold</div>
+                    <div className="text-2xl font-bold group-hover:text-amber-600 transition-colors">{statusSummary['on hold'] || 0}</div>
                   </div>
-                  <Badge variant="outline" className="bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300">
+                  <Badge variant="secondary" className="bg-amber-500/10 text-amber-600">
                     Paused
                   </Badge>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-gray-950 shadow-sm hover:shadow-md transition-all border-l-4 border-l-green-400">
+            <Card className="bg-card/50 shadow-sm hover:shadow-md transition-all border-l-4 border-l-green-500 group">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
-                    <div className="font-medium text-green-500">Completed</div>
-                    <div className="text-2xl font-bold">{statusSummary['completed'] || 0}</div>
+                    <div className="font-medium text-green-500 text-sm">Completed</div>
+                    <div className="text-2xl font-bold group-hover:text-green-600 transition-colors">{statusSummary['completed'] || 0}</div>
                   </div>
-                  <Badge variant="outline" className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300">
+                  <Badge variant="secondary" className="bg-green-500/10 text-green-600">
                     Done
                   </Badge>
                 </div>
@@ -264,59 +266,63 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
             </Card>
           </div>
 
-          <Tabs defaultValue="all" onValueChange={setStatusFilter}>
-            <div className="flex justify-between items-center mb-4">
-              <TabsList className="bg-muted/50">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="In Progress">In Progress</TabsTrigger>
-                <TabsTrigger value="Review">Review</TabsTrigger>
-                <TabsTrigger value="On Hold">On Hold</TabsTrigger>
-                <TabsTrigger value="Completed">Completed</TabsTrigger>
+          <Tabs defaultValue="all" onValueChange={setStatusFilter} className="space-y-4">
+            <div className="flex justify-between items-center">
+              <TabsList className="bg-muted/50 p-1 h-auto">
+                {["all", "In Progress", "Review", "On Hold", "Completed"].map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab}
+                    className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md px-3 py-1.5 capitalize"
+                  >
+                    {tab}
+                  </TabsTrigger>
+                ))}
               </TabsList>
             </div>
 
-            <ScrollArea className="h-[400px] rounded-md border">
+            <ScrollArea className="h-[500px] rounded-xl border border-border/50 bg-background/30">
               <Table>
-                <TableHeader>
-                  <TableRow>
+                <TableHeader className="bg-muted/30 sticky top-0 z-10">
+                  <TableRow className="hover:bg-transparent border-border/50">
                     <TableHead
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="cursor-pointer hover:text-primary transition-colors"
                       onClick={() => handleSort('name')}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 font-semibold">
                         Project
                         {sortConfig.key === 'name' && (
                           sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
                     </TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead className="font-semibold">Status</TableHead>
                     <TableHead
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="cursor-pointer hover:text-primary transition-colors"
                       onClick={() => handleSort('progress')}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 font-semibold">
                         Progress
                         {sortConfig.key === 'progress' && (
                           sortConfig.direction === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
                         )}
                       </div>
                     </TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="font-semibold">Priority</TableHead>
+                    <TableHead className="font-semibold">Team</TableHead>
+                    <TableHead className="text-right font-semibold pr-6">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortedProjects.map((project) => {
                     const statusStyle = getStatusColors(project.status)
                     return (
-                      <TableRow key={project.id} className="group">
+                      <TableRow key={project.id} className="group hover:bg-muted/30 border-border/50 transition-colors">
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             {project.name}
                             {project.isFavorite && (
-                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                              <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
                             )}
                           </div>
                         </TableCell>
@@ -326,7 +332,7 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
                             className={cn(
                               statusStyle.bg,
                               statusStyle.text,
-                              "gap-1 flex items-center"
+                              "gap-1.5 flex items-center px-2.5 py-0.5 border-transparent"
                             )}
                           >
                             {statusStyle.icon}
@@ -334,17 +340,15 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="w-full">
-                            <div className="flex justify-between items-center mb-1 text-xs">
-                              <span className="font-medium">{project.progress}%</span>
+                          <div className="w-full max-w-[180px]">
+                            <div className="flex justify-between items-center mb-1.5 text-xs">
+                              <span className="font-medium text-muted-foreground">{project.progress}%</span>
                             </div>
-                            <div className="relative">
-                              <Progress
-                                value={project.progress}
-                                className="h-2"
-                                indicatorclassname={getProgressColor(project.progress)}
+                            <div className="relative h-2 w-full bg-muted/50 rounded-full overflow-hidden">
+                              <div
+                                className={cn("h-full rounded-full transition-all duration-500", getProgressColor(project.progress))}
+                                style={{ width: `${project.progress}%` }}
                               />
-                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                             </div>
                           </div>
                         </TableCell>
@@ -352,13 +356,15 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
                           <Badge
                             variant="outline"
                             className={cn(
+                              "px-2.5 py-0.5 border-transparent flex w-fit items-center gap-1",
                               project.priority === "High"
-                                ? "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                                ? "bg-red-500/10 text-red-600"
                                 : project.priority === "Medium"
-                                  ? "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300"
-                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300"
+                                  ? "bg-amber-500/10 text-amber-600"
+                                  : "bg-blue-500/10 text-blue-600"
                             )}
                           >
+                            <Zap className="h-3 w-3" />
                             {project.priority}
                           </Badge>
                         </TableCell>
@@ -369,34 +375,34 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <div
-                                      className="h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-background hover:ring-2 hover:ring-primary/20 transition-all"
+                                      className="h-7 w-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold border-2 border-background hover:ring-2 hover:ring-primary/20 transition-all cursor-help"
                                       style={{ zIndex: 10 - index }}
                                     >
                                       {member.name.split(' ').map(n => n[0]).join('')}
                                     </div>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{member.name}</p>
+                                    <p className="font-medium">{member.name}</p>
                                     <p className="text-xs text-muted-foreground">{member.role}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
                             ))}
                             {project.team?.length > 3 && (
-                              <div className="h-6 w-6 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-xs font-medium border-2 border-background">
+                              <div className="h-7 w-7 rounded-full bg-muted text-muted-foreground flex items-center justify-center text-[10px] font-bold border-2 border-background">
                                 +{project.team.length - 3}
                               </div>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                        <TableCell className="text-right pr-4">
+                          <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <HoverCard>
                               <HoverCardTrigger asChild>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
                                   onClick={() => {
                                     setSelectedProject(project)
                                     setShowStatusDetail(true)
@@ -409,7 +415,7 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
                                 <div className="flex justify-between space-x-4">
                                   <div className="space-y-1">
                                     <h4 className="text-sm font-semibold">Change Status</h4>
-                                    <p className="text-sm">
+                                    <p className="text-sm text-muted-foreground">
                                       Click to update the status of this project
                                     </p>
                                   </div>
@@ -418,8 +424,8 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
                             </HoverCard>
                             <Button
                               variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
                               onClick={() => router.push(`/projects/${project.id}/analytics`)}
                             >
                               <BarChart2 className="h-4 w-4" />
@@ -442,57 +448,55 @@ export function ProjectStatusTracking({ projects, onUpdateProjectStatus }) {
           <DialogHeader>
             <DialogTitle>Update Project Status</DialogTitle>
             <DialogDescription>
-              Change the status of <span className="font-medium">{selectedProject?.name}</span>
+              Change the status of <span className="font-medium text-foreground">{selectedProject?.name}</span>
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 gap-2">
-              <Button
-                variant="outline"
-                className="justify-start border-l-4 border-l-gray-400 h-12 hover:bg-gray-50 dark:hover:bg-gray-900"
-                onClick={() => handleStatusChange(selectedProject, "Not Started")}
-              >
-                <Clock className="mr-2 h-4 w-4 text-gray-500" />
-                <span>Not Started</span>
-              </Button>
+          <div className="grid gap-3 py-4">
+            <Button
+              variant="outline"
+              className="justify-start border-l-4 border-l-gray-400 h-12 hover:bg-gray-50 dark:hover:bg-gray-900 transition-all hover:pl-5"
+              onClick={() => handleStatusChange(selectedProject, "Not Started")}
+            >
+              <Clock className="mr-3 h-4 w-4 text-gray-500" />
+              <span>Not Started</span>
+            </Button>
 
-              <Button
-                variant="outline"
-                className="justify-start border-l-4 border-l-blue-400 h-12 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                onClick={() => handleStatusChange(selectedProject, "In Progress")}
-              >
-                <Activity className="mr-2 h-4 w-4 text-blue-500" />
-                <span>In Progress</span>
-              </Button>
+            <Button
+              variant="outline"
+              className="justify-start border-l-4 border-l-blue-500 h-12 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all hover:pl-5"
+              onClick={() => handleStatusChange(selectedProject, "In Progress")}
+            >
+              <Activity className="mr-3 h-4 w-4 text-blue-500" />
+              <span>In Progress</span>
+            </Button>
 
-              <Button
-                variant="outline"
-                className="justify-start border-l-4 border-l-purple-400 h-12 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                onClick={() => handleStatusChange(selectedProject, "Review")}
-              >
-                <Check className="mr-2 h-4 w-4 text-purple-500" />
-                <span>Review</span>
-              </Button>
+            <Button
+              variant="outline"
+              className="justify-start border-l-4 border-l-purple-500 h-12 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all hover:pl-5"
+              onClick={() => handleStatusChange(selectedProject, "Review")}
+            >
+              <Check className="mr-3 h-4 w-4 text-purple-500" />
+              <span>Review</span>
+            </Button>
 
-              <Button
-                variant="outline"
-                className="justify-start border-l-4 border-l-amber-400 h-12 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                onClick={() => handleStatusChange(selectedProject, "On Hold")}
-              >
-                <AlertTriangle className="mr-2 h-4 w-4 text-amber-500" />
-                <span>On Hold</span>
-              </Button>
+            <Button
+              variant="outline"
+              className="justify-start border-l-4 border-l-amber-500 h-12 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all hover:pl-5"
+              onClick={() => handleStatusChange(selectedProject, "On Hold")}
+            >
+              <AlertTriangle className="mr-3 h-4 w-4 text-amber-500" />
+              <span>On Hold</span>
+            </Button>
 
-              <Button
-                variant="outline"
-                className="justify-start border-l-4 border-l-green-400 h-12 hover:bg-green-50 dark:hover:bg-green-900/20"
-                onClick={() => handleStatusChange(selectedProject, "Completed")}
-              >
-                <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                <span>Completed</span>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              className="justify-start border-l-4 border-l-green-500 h-12 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all hover:pl-5"
+              onClick={() => handleStatusChange(selectedProject, "Completed")}
+            >
+              <CheckCircle className="mr-3 h-4 w-4 text-green-500" />
+              <span>Completed</span>
+            </Button>
           </div>
 
           <DialogFooter>

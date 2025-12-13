@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { BarChart3, FileText, Tag, TrendingUp, Calendar, Users, DollarSign, Clock, Target, Zap, CheckCircle2, AlertCircle, User } from "lucide-react"
+import { BarChart3, FileText, Tag, TrendingUp, Calendar, Users, DollarSign, Clock, Target, Zap, CheckCircle2, AlertCircle, User, ArrowUpRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -15,30 +15,53 @@ import { TeamWorkload } from "./team-workload"
 import { ProjectActivityTimeline } from "./project-activity-timeline"
 import { statProgressColors } from "@/constants"
 import { sanitizeHtml } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 const StatProgress = ({ label, value, total, progress, color = "blue", icon: Icon, trend, description }) => {
-  const colorClasses = statProgressColors[color] || statProgressColors.blue;
+  const colorClasses = {
+    blue: "from-blue-500/10 to-blue-600/5 border-blue-200/50 dark:border-blue-500/20 text-blue-600",
+    green: "from-green-500/10 to-green-600/5 border-green-200/50 dark:border-green-500/20 text-green-600",
+    orange: "from-orange-500/10 to-orange-600/5 border-orange-200/50 dark:border-orange-500/20 text-orange-600",
+    purple: "from-purple-500/10 to-purple-600/5 border-purple-200/50 dark:border-purple-500/20 text-purple-600",
+  };
+
+  const iconBgClasses = {
+    blue: "bg-blue-100 dark:bg-blue-900/30 text-blue-600",
+    green: "bg-green-100 dark:bg-green-900/30 text-green-600",
+    orange: "bg-orange-100 dark:bg-orange-900/30 text-orange-600",
+    purple: "bg-purple-100 dark:bg-purple-900/30 text-purple-600",
+  };
+
+  const progressClasses = {
+    blue: "bg-blue-600",
+    green: "bg-green-600",
+    orange: "bg-orange-600",
+    purple: "bg-purple-600",
+  };
 
   return (
-    <div className={`group p-4 rounded-2xl bg-gradient-to-br ${colorClasses.bg} hover:shadow-lg transition-all duration-300 mb-4 last:mb-0 border border-border/50`}>
-      <div className="flex items-center justify-between mb-3">
+    <div className={cn(
+      "group p-5 rounded-2xl bg-gradient-to-br border transition-all duration-300 hover:shadow-md mb-4 last:mb-0",
+      colorClasses[color] || colorClasses.blue
+    )}>
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           {Icon && (
-            <div className="p-2 bg-background/80 rounded-xl shadow-sm group-hover:shadow-md transition-shadow">
-              <Icon className={`h-4 w-4 ${colorClasses.icon}`} />
+            <div className={cn("p-2.5 rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-300", iconBgClasses[color] || iconBgClasses.blue)}>
+              <Icon className="h-4 w-4" />
             </div>
           )}
           <div>
-            <span className="text-sm font-medium text-foreground">{label}</span>
+            <span className="text-sm font-semibold text-foreground block">{label}</span>
             {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
           </div>
         </div>
         <div className="text-right">
-          <div className={`font-bold text-lg ${colorClasses.text}`}>
+          <div className="font-bold text-lg text-foreground">
             {typeof value === 'string' && value.includes('$') ? value : `${value}/${total}`}
           </div>
           {trend && (
-            <div className="flex items-center gap-1 justify-end">
+            <div className="flex items-center gap-1 justify-end mt-0.5">
               <TrendingUp className="h-3 w-3 text-green-500" />
               <span className="text-xs text-green-600 font-medium">{trend}</span>
             </div>
@@ -48,9 +71,10 @@ const StatProgress = ({ label, value, total, progress, color = "blue", icon: Ico
       <div className="space-y-2">
         <Progress
           value={progress}
-          className="h-2 bg-muted/60 rounded-full"
+          className="h-2 bg-background/50 rounded-full overflow-hidden"
+          indicatorclassname={progressClasses[color] || progressClasses.blue}
         />
-        <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="flex justify-between text-xs font-medium text-muted-foreground">
           <span>{progress}% Complete</span>
           <span>{100 - progress}% Remaining</span>
         </div>
@@ -59,86 +83,67 @@ const StatProgress = ({ label, value, total, progress, color = "blue", icon: Ico
   );
 };
 
-const ActivityItem = ({ activity, index }) => (
-  <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/80 transition-colors group">
-    <Avatar className="h-8 w-8 shadow-sm group-hover:shadow-md transition-shadow">
-      <AvatarImage src={activity.avatar} alt={activity.user} />
-      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-semibold">
-        {activity.user?.charAt(0) || 'U'}
-      </AvatarFallback>
-    </Avatar>
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-1">
-        <p className="text-sm font-medium text-foreground truncate">{activity.user}</p>
-        <Badge variant="outline" className="text-xs px-2 py-0.5">
-          {activity.action}
-        </Badge>
-      </div>
-      <p className="text-sm text-muted-foreground mb-1">{activity.description}</p>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-        <Clock className="h-3 w-3" />
-        <span>{activity.timestamp}</span>
-      </div>
-    </div>
-  </div>
-);
-
 export function ProjectOverview({ project }) {
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-2">
       {/* Left Column - Main Content */}
-      <div className="xl:col-span-2 space-y-6">
+      <div className="xl:col-span-2 space-y-8">
         {/* Project Description */}
-        <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-          <CardHeader className="px-6 py-5 bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-purple-50/50 border-b border-border/50">
+        <Card className="bg-card/40 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 rounded-3xl overflow-hidden">
+          <CardHeader className="px-8 py-6 border-b border-border/50 bg-muted/20">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                  <FileText className="h-6 w-6 text-white" />
+                <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <FileText className="h-5 w-5 text-primary" />
                 </div>
                 Project Overview
               </CardTitle>
               {project?.status && (
                 <Badge
                   variant="outline"
-                  className={`text-xs font-medium px-3 py-1 rounded-full ${project.status === 'In Progress' ? 'border-blue-200 text-blue-700 bg-blue-50' :
-                    project.status === 'Completed' ? 'border-green-200 text-green-700 bg-green-50' :
-                      project.status === 'On Hold' ? 'border-amber-200 text-amber-700 bg-amber-50' :
-                        'border-gray-200 text-gray-700 bg-gray-50'
-                    }`}
+                  className={cn(
+                    "text-xs font-semibold px-3 py-1 rounded-full border shadow-sm",
+                    project.status === 'In Progress' ? 'border-blue-200 text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800' :
+                      project.status === 'Completed' ? 'border-green-200 text-green-700 bg-green-50 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800' :
+                        project.status === 'On Hold' ? 'border-amber-200 text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800' :
+                          'border-gray-200 text-gray-700 bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                  )}
                 >
-                  {project.status}
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                    {project.status}
+                  </div>
                 </Badge>
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-6">
+          <CardContent className="p-8">
+            <div className="space-y-8">
               {/* Project Description Section */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 bg-primary rounded-full"></div>
                   <h3 className="text-lg font-semibold text-foreground">Description</h3>
                 </div>
 
                 {project?.description ? (
-                  <div className="bg-gradient-to-r from-gray-50/50 to-blue-50/20 dark:from-gray-900/50 dark:to-blue-900/20 rounded-xl p-5 border border-border/50">
-                    <p
-                      className="text-foreground/80 leading-relaxed text-base"
+                  <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
+                    <div
+                      className="text-muted-foreground leading-relaxed text-base prose dark:prose-invert max-w-none"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
                     />
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center bg-gradient-to-r from-gray-50/30 to-blue-50/10 dark:from-gray-900/30 dark:to-blue-900/10 rounded-xl border-2 border-dashed border-border/50">
-                    <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4 shadow-inner">
-                      <FileText className="h-10 w-10 text-gray-400" />
+                  <div className="flex flex-col items-center justify-center py-12 text-center bg-muted/30 rounded-2xl border-2 border-dashed border-border/50">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                      <FileText className="h-8 w-8 text-muted-foreground/50" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">No Description Available</h3>
-                    <p className="text-muted-foreground text-sm max-w-md leading-relaxed">
-                      This project doesn't have a description yet. Add a detailed description to help team members understand the project goals and objectives.
+                    <h3 className="text-lg font-semibold text-foreground mb-2">No Description Available</h3>
+                    <p className="text-muted-foreground text-sm max-w-md leading-relaxed mb-4">
+                      This project doesn't have a description yet. Add a detailed description to help team members understand the project goals.
                     </p>
-                    <Button variant="outline" className="mt-4 px-4 py-2 text-sm">
+                    <Button variant="outline" size="sm">
                       Add Description
                     </Button>
                   </div>
@@ -148,17 +153,17 @@ export function ProjectOverview({ project }) {
               {/* Project Tags Section */}
               {project?.tags && project.tags.length > 0 && (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">Project Tags</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-1 bg-green-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-foreground">Tags</h3>
                   </div>
-                  <div className="bg-gradient-to-r from-green-50/50 to-emerald-50/20 dark:from-green-900/50 dark:to-emerald-900/20 rounded-xl p-5 border border-border/50">
-                    <div className="flex flex-wrap gap-3">
+                  <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
+                    <div className="flex flex-wrap gap-2">
                       {project.tags.map((tag, i) => (
                         <Badge
                           key={i}
                           variant="secondary"
-                          className="bg-background/90 text-foreground border border-border/50 px-4 py-2 text-sm font-medium rounded-full hover:bg-green-50 hover:text-green-700 hover:border-green-200 transition-all duration-200 cursor-default shadow-sm hover:shadow-md"
+                          className="bg-background hover:bg-muted text-muted-foreground border border-border/50 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 cursor-default"
                         >
                           #{tag}
                         </Badge>
@@ -171,20 +176,20 @@ export function ProjectOverview({ project }) {
               {/* Project Details Section */}
               {(project?.startDate || project?.endDate || project?.department || project?.priority) && (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-600 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-foreground">Project Details</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-1 bg-purple-500 rounded-full"></div>
+                    <h3 className="text-lg font-semibold text-foreground">Details</h3>
                   </div>
-                  <div className="bg-gradient-to-r from-purple-50/50 to-pink-50/20 dark:from-purple-900/50 dark:to-pink-900/20 rounded-xl p-5 border border-border/50">
+                  <div className="bg-muted/30 rounded-2xl p-6 border border-border/50">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {project?.startDate && (
-                        <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border border-border/50">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Calendar className="h-4 w-4 text-blue-600" />
+                        <div className="flex items-center gap-4 p-4 bg-background/60 rounded-xl border border-border/50 hover:border-border transition-colors">
+                          <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
-                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Start Date</span>
-                            <p className="text-sm font-semibold text-foreground">{new Date(project.startDate).toLocaleDateString('en-US', {
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Start Date</span>
+                            <p className="text-sm font-bold text-foreground mt-0.5">{new Date(project.startDate).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric'
@@ -193,13 +198,13 @@ export function ProjectOverview({ project }) {
                         </div>
                       )}
                       {project?.endDate && (
-                        <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border border-border/50">
-                          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <div className="flex items-center gap-4 p-4 bg-background/60 rounded-xl border border-border/50 hover:border-border transition-colors">
+                          <div className="p-2.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
                           </div>
                           <div>
-                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">End Date</span>
-                            <p className="text-sm font-semibold text-foreground">{new Date(project.endDate).toLocaleDateString('en-US', {
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">End Date</span>
+                            <p className="text-sm font-bold text-foreground mt-0.5">{new Date(project.endDate).toLocaleDateString('en-US', {
                               year: 'numeric',
                               month: 'long',
                               day: 'numeric'
@@ -208,32 +213,36 @@ export function ProjectOverview({ project }) {
                         </div>
                       )}
                       {project?.department && (
-                        <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border border-border/50">
-                          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                            <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                        <div className="flex items-center gap-4 p-4 bg-background/60 rounded-xl border border-border/50 hover:border-border transition-colors">
+                          <div className="p-2.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                            <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div>
-                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Department</span>
-                            <p className="text-sm font-semibold text-foreground">{project.department}</p>
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Department</span>
+                            <p className="text-sm font-bold text-foreground mt-0.5">{project.department}</p>
                           </div>
                         </div>
                       )}
                       {project?.priority && (
-                        <div className="flex items-center gap-3 p-3 bg-background/60 rounded-lg border border-border/50">
-                          <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                            <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                        <div className="flex items-center gap-4 p-4 bg-background/60 rounded-xl border border-border/50 hover:border-border transition-colors">
+                          <div className="p-2.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                           </div>
                           <div>
-                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Priority</span>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs font-medium px-2 py-1 rounded-full ${project.priority === 'High' ? 'border-red-200 text-red-700 bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:bg-red-900/30' :
-                                project.priority === 'Medium' ? 'border-amber-200 text-amber-700 bg-amber-50 dark:border-amber-900/50 dark:text-amber-300 dark:bg-amber-900/30' :
-                                  'border-green-200 text-green-700 bg-green-50 dark:border-green-900/50 dark:text-green-300 dark:bg-green-900/30'
-                                }`}
-                            >
-                              {project.priority}
-                            </Badge>
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Priority</span>
+                            <div className="mt-1">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-xs font-semibold px-2.5 py-0.5 rounded-md border shadow-sm",
+                                  project.priority === 'High' ? 'border-red-200 text-red-700 bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:bg-red-900/30' :
+                                    project.priority === 'Medium' ? 'border-amber-200 text-amber-700 bg-amber-50 dark:border-amber-900/50 dark:text-amber-300 dark:bg-amber-900/30' :
+                                      'border-green-200 text-green-700 bg-green-50 dark:border-green-900/50 dark:text-green-300 dark:bg-green-900/30'
+                                )}
+                              >
+                                {project.priority}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -254,12 +263,12 @@ export function ProjectOverview({ project }) {
       </div>
 
       {/* Right Column - Stats & Widgets */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Project Progress Stats */}
-        <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-          <CardHeader className="px-6 py-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-900/50 dark:to-orange-900/50 border-b border-border/50">
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+        <Card className="bg-card/40 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 rounded-3xl overflow-hidden">
+          <CardHeader className="px-6 py-5 border-b border-border/50 bg-muted/20">
+            <CardTitle className="text-lg font-bold text-foreground flex items-center gap-3">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
                 <BarChart3 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               Project Metrics
@@ -323,33 +332,39 @@ export function ProjectOverview({ project }) {
 
         {/* Quick Stats Cards */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 rounded-2xl border-0 group">
+            <CardContent className="p-5">
+              <div className="flex flex-col justify-between h-full gap-4">
+                <div className="flex justify-between items-start">
+                  <div className="p-2.5 bg-white/20 rounded-xl group-hover:scale-110 transition-transform">
+                    <Zap className="h-5 w-5" />
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 text-blue-100" />
+                </div>
                 <div>
-                  <p className="text-blue-100 text-sm font-medium">Active Tasks</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-3xl font-bold mb-1">
                     {project?.tasks ? project.tasks.filter(task => task.status === 'in_progress').length : 0}
                   </p>
-                </div>
-                <div className="p-3 bg-white/20 rounded-xl">
-                  <Zap className="h-6 w-6" />
+                  <p className="text-blue-100 text-sm font-medium">Active Tasks</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
+          <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 rounded-2xl border-0 group">
+            <CardContent className="p-5">
+              <div className="flex flex-col justify-between h-full gap-4">
+                <div className="flex justify-between items-start">
+                  <div className="p-2.5 bg-white/20 rounded-xl group-hover:scale-110 transition-transform">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 text-emerald-100" />
+                </div>
                 <div>
-                  <p className="text-green-100 text-sm font-medium">Team Size</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-3xl font-bold mb-1">
                     {project?.team ? project.team.length : 0}
                   </p>
-                </div>
-                <div className="p-3 bg-white/20 rounded-xl">
-                  <Users className="h-6 w-6" />
+                  <p className="text-emerald-100 text-sm font-medium">Team Size</p>
                 </div>
               </div>
             </CardContent>

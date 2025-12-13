@@ -550,714 +550,470 @@ export function AnimalManagement() {
             }
             groups.byStatus[animal.status].push(animal);
 
-            // Group by location (first part before space)
-            const locationGroup = animal.location.split(' ')[0];
-            if (!groups.byLocation[locationGroup]) {
-                groups.byLocation[locationGroup] = [];
+            // Group by location
+            if (!groups.byLocation[animal.location]) {
+                groups.byLocation[animal.location] = [];
             }
-            groups.byLocation[locationGroup].push(animal);
+            groups.byLocation[animal.location].push(animal);
         });
 
         return groups;
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-                <div className="text-red-500 mb-2">
-                    <AlertCircle className="h-12 w-12 mx-auto" />
-                </div>
-                <p className="text-red-700 font-medium">{error}</p>
-                <Button
-                    onClick={loadAnimals}
-                    className="mt-4 bg-red-600 hover:bg-red-700 text-white rounded-xl"
-                >
-                    Retry
-                </Button>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6 w-full">
-            {/* Header Actions - Modernized Design */}
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <Input
-                            placeholder="Search animals by name, species, strain, or location..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 py-5 rounded-2xl border-gray-200 dark:border-gray-700 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 focus:border-blue-500 dark:focus:border-blue-500 shadow-sm transition-all duration-300"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-800/50 px-5 py-3 rounded-2xl border border-gray-200 dark:border-gray-700">
-                        <Label htmlFor="active-toggle" className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                            Active only
-                        </Label>
-                        <Switch
-                            id="active-toggle"
-                            checked={showOnlyActive}
-                            onCheckedChange={setShowOnlyActive}
-                            className="data-[state=checked]:bg-blue-600"
-                        />
-                    </div>
+        <div className="container mx-auto p-4 space-y-8 min-h-screen bg-gray-50/50 dark:bg-gray-950">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">Animal Management</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-2 text-lg">Manage your facility's animal colonies and breeding programs</p>
                 </div>
-
-                <div className="flex flex-wrap gap-3 w-full md:w-auto justify-start md:justify-end">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="flex items-center gap-2 border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md">
-                                <SlidersHorizontal className="h-4 w-4" />
-                                <span className="hidden sm:inline">View Options</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-xl">
-                            <DropdownMenuItem onClick={() => setViewMode('grid')} className="flex items-center gap-2 cursor-pointer rounded-xl py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                <Grid className="h-4 w-4" />
-                                Grid View
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setViewMode('list')} className="flex items-center gap-2 cursor-pointer rounded-xl py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800">
-                                <List className="h-4 w-4" />
-                                List View
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <AnimalFilters filters={filters} onFiltersChange={setFilters} />
-
-                    <Button onClick={handleAddAnimal} className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-3 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                        <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline font-medium">Add Animal</span>
+                <div className="flex gap-3">
+                    <Button onClick={handleAddAnimal} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+                        <Plus className="mr-2 h-5 w-5" /> Add Animal
                     </Button>
                 </div>
             </div>
 
-            {/* Active Filters Bar - Modernized Design */}
-            {(searchTerm || filters.species !== '__all__' || filters.status !== '__all__' || showOnlyActive || filters.gender !== '__all__' || filters.hasExperiments) && (
-                <div className="flex flex-wrap items-center gap-3 p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
-                    <span className="text-sm font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        Active filters:
-                    </span>
-                    {searchTerm && (
-                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
-                            <span className="text-xs font-medium">Search:</span>
-                            <span className="text-xs">"{searchTerm}"</span>
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="ml-1 hover:text-red-500 transition-colors"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </Badge>
-                    )}
-                    {filters.species && filters.species !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
-                            <span className="text-xs font-medium">Species:</span>
-                            <span className="text-xs">{SPECIES_OPTIONS.find(s => s.value === filters.species)?.label}</span>
-                            <button
-                                onClick={() => setFilters({ ...filters, species: '__all__' })}
-                                className="ml-1 hover:text-red-500 transition-colors"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </Badge>
-                    )}
-                    {filters.status && filters.status !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
-                            <span className="text-xs font-medium">Status:</span>
-                            <span className="text-xs">{filters.status}</span>
-                            <button
-                                onClick={() => setFilters({ ...filters, status: '__all__' })}
-                                className="ml-1 hover:text-red-500 transition-colors"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </Badge>
-                    )}
-                    {filters.gender && filters.gender !== '__all__' && (
-                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
-                            <span className="text-xs font-medium">Gender:</span>
-                            <span className="text-xs">{GENDER_OPTIONS.find(g => g.value === filters.gender)?.label}</span>
-                            <button
-                                onClick={() => setFilters({ ...filters, gender: '__all__' })}
-                                className="ml-1 hover:text-red-500 transition-colors"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </Badge>
-                    )}
-                    {filters.hasExperiments && (
-                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
-                            <span className="text-xs font-medium">Has Experiments</span>
-                            <button
-                                onClick={() => setFilters({ ...filters, hasExperiments: false })}
-                                className="ml-1 hover:text-red-500 transition-colors"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </Badge>
-                    )}
-                    {showOnlyActive && (
-                        <Badge variant="secondary" className="flex items-center gap-1.5 bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 hover:shadow-md">
-                            <span className="text-xs font-medium">Active Only</span>
-                            <button
-                                onClick={() => setShowOnlyActive(false)}
-                                className="ml-1 hover:text-red-500 transition-colors"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </Badge>
-                    )}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={clearAllFilters}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900/30 h-7 px-3 text-xs flex items-center gap-1.5 rounded-full font-medium transition-colors"
-                    >
-                        <FilterX className="h-3.5 w-3.5" />
-                        Clear All
-                    </Button>
-                </div>
-            )}
+            <AnimalFilters
+                filters={filters}
+                setFilters={setFilters}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                showOnlyActive={showOnlyActive}
+                setShowOnlyActive={setShowOnlyActive}
+                clearAllFilters={clearAllFilters}
+                animals={animals}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+            />
 
-            {/* Enhanced Statistics Cards with Better Visual Hierarchy */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Total Animals Card */}
-                <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-blue-50 via-blue-100/50 to-blue-200/30 dark:from-blue-950/40 dark:via-blue-900/30 dark:to-blue-800/20 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02] rounded-3xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 dark:from-blue-400/10 dark:to-blue-500/5"></div>
-                    <CardContent className="relative p-7">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2">
-                                <p className="text-sm font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Total Animals</p>
-                                <p className="text-4xl font-black text-blue-900 dark:text-blue-100 tracking-tight">{stats.total}</p>
-                                <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
-                                    <TrendingUp className="h-3 w-3" />
-                                    <span>All registered</span>
-                                </div>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-blue-500/20 dark:bg-blue-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                                <div className="relative p-4 rounded-2xl bg-white/80 dark:bg-blue-900/40 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 group-hover:bg-white dark:group-hover:bg-blue-800/60 transition-all duration-300 transform group-hover:scale-110 group-hover:rotate-3">
-                                    <Rat className="h-8 w-8 text-blue-600 dark:text-blue-300" />
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Active Animals Card */}
-                <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-emerald-50 via-emerald-100/50 to-emerald-200/30 dark:from-emerald-950/40 dark:via-emerald-900/30 dark:to-emerald-800/20 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02] rounded-3xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-emerald-600/10 dark:from-emerald-400/10 dark:to-emerald-500/5"></div>
-                    <CardContent className="relative p-7">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2">
-                                <p className="text-sm font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">Active</p>
-                                <p className="text-4xl font-black text-emerald-900 dark:text-emerald-100 tracking-tight">{stats.active}</p>
-                                <div className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-                                    <Activity className="h-3 w-3" />
-                                    <span>Healthy & active</span>
-                                </div>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-emerald-500/20 dark:bg-emerald-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                                <div className="relative p-4 rounded-2xl bg-white/80 dark:bg-emerald-900/40 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 group-hover:bg-white dark:group-hover:bg-emerald-800/60 transition-all duration-300 transform group-hover:scale-110 group-hover:rotate-3">
-                                    <Heart className="h-8 w-8 text-emerald-600 dark:text-emerald-300" />
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Quarantine Card */}
-                <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-amber-50 via-amber-100/50 to-amber-200/30 dark:from-amber-950/40 dark:via-amber-900/30 dark:to-amber-800/20 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02] rounded-3xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-amber-600/10 dark:from-amber-400/10 dark:to-amber-500/5"></div>
-                    <CardContent className="relative p-7">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2">
-                                <p className="text-sm font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">Quarantine</p>
-                                <p className="text-4xl font-black text-amber-900 dark:text-amber-100 tracking-tight">{stats.quarantine}</p>
-                                <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                                    <Clock className="h-3 w-3" />
-                                    <span>Under observation</span>
-                                </div>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-amber-500/20 dark:bg-amber-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                                <div className="relative p-4 rounded-2xl bg-white/80 dark:bg-amber-900/40 backdrop-blur-sm border border-amber-200/50 dark:border-amber-700/50 group-hover:bg-white dark:group-hover:bg-amber-800/60 transition-all duration-300 transform group-hover:scale-110 group-hover:rotate-3">
-                                    <AlertCircle className="h-8 w-8 text-amber-600 dark:text-amber-300" />
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Species Diversity Card */}
-                <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-violet-50 via-violet-100/50 to-violet-200/30 dark:from-violet-950/40 dark:via-violet-900/30 dark:to-violet-800/20 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.02] rounded-3xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-violet-600/10 dark:from-violet-400/10 dark:to-violet-500/5"></div>
-                    <CardContent className="relative p-7">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-2">
-                                <p className="text-sm font-bold text-violet-700 dark:text-violet-300 uppercase tracking-wider">Species</p>
-                                <p className="text-4xl font-black text-violet-900 dark:text-violet-100 tracking-tight">{stats.speciesCount}</p>
-                                <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
-                                    <Zap className="h-3 w-3" />
-                                    <span>Different types</span>
-                                </div>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-violet-500/20 dark:bg-violet-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                                <div className="relative p-4 rounded-2xl bg-white/80 dark:bg-violet-900/40 backdrop-blur-sm border border-violet-200/50 dark:border-violet-700/50 group-hover:bg-white dark:group-hover:bg-violet-800/60 transition-all duration-300 transform group-hover:scale-110 group-hover:rotate-3">
-                                    <FlaskConical className="h-8 w-8 text-violet-600 dark:text-violet-300" />
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Enhanced Tabs with Better Visual Design */}
-            <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-gradient-to-r from-gray-100/80 via-gray-50/80 to-gray-100/80 dark:from-gray-800/50 dark:via-gray-700/50 dark:to-gray-800/50 p-2 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm shadow-lg">
-                    <TabsTrigger value="overview" className="flex items-center gap-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/10 dark:data-[state=active]:shadow-blue-400/20 rounded-xl transition-all duration-300 font-semibold text-gray-700 dark:text-gray-300 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300 py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <FileText className="h-4 w-4" />
-                        <span>Overview</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="breeding" className="flex items-center gap-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-lg data-[state=active]:shadow-pink-500/10 dark:data-[state=active]:shadow-pink-400/20 rounded-xl transition-all duration-300 font-semibold text-gray-700 dark:text-gray-300 data-[state=active]:text-pink-700 dark:data-[state=active]:text-pink-300 py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <Baby className="h-4 w-4" />
-                        <span>Breeding</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="cages" className="flex items-center gap-2.5 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-600 data-[state=active]:shadow-lg data-[state=active]:shadow-purple-500/10 dark:data-[state=active]:shadow-purple-400/20 rounded-xl transition-all duration-300 font-semibold text-gray-700 dark:text-gray-300 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300 py-3 px-4 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <MapPin className="h-4 w-4" />
-                        <span>Cages</span>
-                    </TabsTrigger>
+            <Tabs defaultValue="animals" className="w-full space-y-8">
+                <TabsList className="grid w-full grid-cols-3 p-1 bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl">
+                    <TabsTrigger value="animals" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md transition-all duration-300">Animals</TabsTrigger>
+                    <TabsTrigger value="breeding" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md transition-all duration-300">Breeding</TabsTrigger>
+                    <TabsTrigger value="cages" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-md transition-all duration-300">Cages</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="overview" className="space-y-6 mt-6">
+                <TabsContent value="animals" className="space-y-6 focus-visible:outline-none focus-visible:ring-0">
                     {/* Bulk Actions Bar */}
-                    {selectedAnimals.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-4 p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
-                            <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                                {selectedAnimals.length} animal{selectedAnimals.length !== 1 ? 's' : ''} selected
-                            </span>
-                            <Separator orientation="vertical" className="h-6 bg-blue-300 dark:bg-blue-700" />
-                            <div className="flex flex-wrap gap-3">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBulkAction('export')}
-                                    className="flex items-center gap-1.5 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
-                                >
-                                    <Download className="h-4 w-4" />
-                                    Export
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBulkAction('set-active')}
-                                    className="flex items-center gap-1.5 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
-                                >
-                                    <Check className="h-4 w-4" />
-                                    Set Active
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBulkAction('set-quarantine')}
-                                    className="flex items-center gap-1.5 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
-                                >
-                                    <AlertCircle className="h-4 w-4" />
-                                    Quarantine
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBulkAction('delete')}
-                                    className="flex items-center gap-1.5 text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete
-                                </Button>
+                    {
+                        selectedAnimals.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-4 p-5 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200/50 dark:border-blue-800/50 backdrop-blur-sm">
+                                <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                                    {selectedAnimals.length} animal{selectedAnimals.length !== 1 ? 's' : ''} selected
+                                </span>
+                                <Separator orientation="vertical" className="h-6 bg-blue-300 dark:bg-blue-700" />
+                                <div className="flex flex-wrap gap-3">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleBulkAction('export')}
+                                        className="flex items-center gap-1.5 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+                                    >
+                                        <Download className="h-4 w-4" />
+                                        Export
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleBulkAction('set-active')}
+                                        className="flex items-center gap-1.5 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+                                    >
+                                        <Check className="h-4 w-4" />
+                                        Set Active
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleBulkAction('set-quarantine')}
+                                        className="flex items-center gap-1.5 border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-100 dark:hover:bg-yellow-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+                                    >
+                                        <AlertCircle className="h-4 w-4" />
+                                        Quarantine
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleBulkAction('delete')}
+                                        className="flex items-center gap-1.5 text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )
+                    }
 
                     {/* Animals Grid/List View */}
-                    {viewMode === 'grid' ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {filteredAnimals.map((animal) => (
-                                <Card key={animal._id} className="group relative overflow-hidden border-0 bg-white dark:bg-gray-900/50 hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 transition-all duration-500 transform hover:-translate-y-3 hover:scale-[1.02] rounded-3xl backdrop-blur-sm">
-                                    {/* Gradient Background */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-gray-900/80 dark:via-gray-800/50 dark:to-gray-700/30"></div>
+                    {
+                        viewMode === 'grid' ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                {filteredAnimals.map((animal) => (
+                                    <Card key={animal._id} className="group relative overflow-hidden border-0 bg-white dark:bg-gray-900/50 hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 transition-all duration-500 transform hover:-translate-y-3 hover:scale-[1.02] rounded-3xl backdrop-blur-sm">
+                                        {/* Gradient Background */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-gray-900/80 dark:via-gray-800/50 dark:to-gray-700/30"></div>
 
-                                    {/* Status Color Accent */}
-                                    <div className={`absolute top-0 left-0 right-0 h-1 ${animal.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
-                                        animal.status === 'quarantine' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
-                                            animal.status === 'inactive' ? 'bg-gradient-to-r from-gray-400 to-gray-600' :
-                                                'bg-gradient-to-r from-red-400 to-red-600'
-                                        }`}></div>
+                                        {/* Status Color Accent */}
+                                        <div className={`absolute top-0 left-0 right-0 h-1 ${animal.status === 'active' ? 'bg-gradient-to-r from-emerald-400 to-emerald-600' :
+                                            animal.status === 'quarantine' ? 'bg-gradient-to-r from-amber-400 to-amber-600' :
+                                                animal.status === 'inactive' ? 'bg-gradient-to-r from-gray-400 to-gray-600' :
+                                                    'bg-gradient-to-r from-red-400 to-red-600'
+                                            }`}></div>
 
-                                    <CardHeader className="relative pb-4 bg-gradient-to-r from-gray-50/90 via-white/80 to-gray-50/90 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/60 border-b border-gray-200/50 dark:border-gray-600/30">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Checkbox
-                                                    checked={selectedAnimals.includes(animal._id)}
-                                                    onCheckedChange={() => toggleSelectAnimal(animal._id)}
-                                                    className="rounded-lg data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-2 border-gray-300 dark:border-gray-600 h-5 w-5 transition-all duration-300 hover:border-blue-400"
-                                                />
-                                                <CardTitle className="text-lg flex items-center gap-3">
-                                                    <div className="p-2 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-600/50 shadow-sm">
-                                                        <span className="text-2xl">{getSpeciesIcon(animal.species)}</span>
-                                                    </div>
-                                                    <span className="truncate max-w-[120px] font-bold text-gray-900 dark:text-gray-100">{animal.name}</span>
-                                                </CardTitle>
-                                            </div>
-                                            <div className="flex flex-col gap-1">
-                                                <Badge className={`${getStatusColor(animal.status)} px-3 py-1.5 text-xs font-bold rounded-full border-0 shadow-md uppercase tracking-wider`} variant="secondary">
-                                                    {animal.status}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="relative space-y-5 p-6">
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                            <div className="relative bg-gradient-to-br from-blue-50/80 to-blue-100/40 dark:from-blue-950/30 dark:to-blue-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-blue-100/90 group-hover:to-blue-200/50 dark:group-hover:from-blue-900/40 dark:group-hover:to-blue-800/30 border border-blue-200/30 dark:border-blue-800/30 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <FlaskConical className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                                                    <span className="font-bold text-blue-700 dark:text-blue-300 text-xs uppercase tracking-wider">Species</span>
-                                                </div>
-                                                <p className="capitalize truncate font-bold text-blue-900 dark:text-blue-100">{animal.species}</p>
-                                            </div>
-                                            <div className="relative bg-gradient-to-br from-purple-50/80 to-purple-100/40 dark:from-purple-950/30 dark:to-purple-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-purple-100/90 group-hover:to-purple-200/50 dark:group-hover:from-purple-900/40 dark:group-hover:to-purple-800/30 border border-purple-200/30 dark:border-purple-800/30 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Hash className="h-3 w-3 text-purple-600 dark:text-purple-400" />
-                                                    <span className="font-bold text-purple-700 dark:text-purple-300 text-xs uppercase tracking-wider">Strain</span>
-                                                </div>
-                                                <p className="truncate font-bold text-purple-900 dark:text-purple-100">{animal.strain}</p>
-                                            </div>
-                                            <div className="relative bg-gradient-to-br from-emerald-50/80 to-emerald-100/40 dark:from-emerald-950/30 dark:to-emerald-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-emerald-100/90 group-hover:to-emerald-200/50 dark:group-hover:from-emerald-900/40 dark:group-hover:to-emerald-800/30 border border-emerald-200/30 dark:border-emerald-800/30 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Calendar className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                                                    <span className="font-bold text-emerald-700 dark:text-emerald-300 text-xs uppercase tracking-wider">Age</span>
-                                                </div>
-                                                <p className="font-bold text-emerald-900 dark:text-emerald-100">{animal.age} weeks</p>
-                                            </div>
-                                            <div className="relative bg-gradient-to-br from-amber-50/80 to-amber-100/40 dark:from-amber-950/30 dark:to-amber-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-amber-100/90 group-hover:to-amber-200/50 dark:group-hover:from-amber-900/40 dark:group-hover:to-amber-800/30 border border-amber-200/30 dark:border-amber-800/30 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <Scale className="h-3 w-3 text-amber-600 dark:text-amber-400" />
-                                                    <span className="font-bold text-amber-700 dark:text-amber-300 text-xs uppercase tracking-wider">Weight</span>
-                                                </div>
-                                                <p className="font-bold text-amber-900 dark:text-amber-100">{animal.weight}g</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="relative bg-gradient-to-br from-indigo-50/80 to-indigo-100/40 dark:from-indigo-950/30 dark:to-indigo-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-indigo-100/90 group-hover:to-indigo-200/50 dark:group-hover:from-indigo-900/40 dark:group-hover:to-indigo-800/30 border border-indigo-200/30 dark:border-indigo-800/30 shadow-sm">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <MapPin className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                                                <span className="font-bold text-indigo-700 dark:text-indigo-300 text-xs uppercase tracking-wider">Location</span>
-                                            </div>
-                                            <p className="text-sm truncate font-bold text-indigo-900 dark:text-indigo-100">{animal.location}</p>
-                                        </div>
-
-                                        {animal.experiments && animal.experiments.length > 0 && (
-                                            <div className="relative bg-gradient-to-br from-rose-50/80 to-rose-100/40 dark:from-rose-950/30 dark:to-rose-900/20 p-4 rounded-2xl border border-rose-200/30 dark:border-rose-800/30 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <FlaskConical className="h-3 w-3 text-rose-600 dark:text-rose-400" />
-                                                    <span className="font-bold text-rose-700 dark:text-rose-300 text-xs uppercase tracking-wider">Experiments</span>
-                                                </div>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {animal.experiments.slice(0, 3).map((exp, index) => (
-                                                        <Badge key={index} className="text-xs bg-white/80 dark:bg-rose-900/30 border border-rose-300/50 dark:border-rose-700/50 text-rose-700 dark:text-rose-300 rounded-full px-3 py-1.5 font-semibold shadow-sm">
-                                                            {exp}
-                                                        </Badge>
-                                                    ))}
-                                                    {animal.experiments.length > 3 && (
-                                                        <Badge className="text-xs bg-rose-100/80 dark:bg-rose-800/30 border border-rose-300/50 dark:border-rose-600/50 text-rose-800 dark:text-rose-200 rounded-full px-3 py-1.5 font-bold shadow-sm">
-                                                            +{animal.experiments.length - 3} more
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Enhanced Action Buttons */}
-                                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleViewAnimal(animal)}
-                                                            className="relative bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-300/50 dark:border-blue-700/50 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-900/70 dark:hover:to-blue-800/50 text-blue-700 dark:text-blue-300 rounded-xl h-10 w-10 p-0 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-110"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-blue-900 text-blue-100 border-blue-700">
-                                                        <p>View Details</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleEditAnimal(animal)}
-                                                            className="relative bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30 border-emerald-300/50 dark:border-emerald-700/50 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-900/70 dark:hover:to-emerald-800/50 text-emerald-700 dark:text-emerald-300 rounded-xl h-10 w-10 p-0 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:scale-110"
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-emerald-900 text-emerald-100 border-emerald-700">
-                                                        <p>Edit Animal</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => handleDeleteAnimal(animal)}
-                                                            className="relative bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/30 border-red-300/50 dark:border-red-700/50 hover:from-red-100 hover:to-red-200 dark:hover:from-red-900/70 dark:hover:to-red-800/50 text-red-700 dark:text-red-300 rounded-xl h-10 w-10 p-0 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 transform hover:scale-110"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent className="bg-red-900 text-red-100 border-red-700">
-                                                        <p>Delete Animal</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : (
-                        // Enhanced List View with Better Visual Hierarchy
-                        <Card className="border-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-gray-900/80 dark:via-gray-800/50 dark:to-gray-700/30 rounded-3xl overflow-hidden shadow-xl backdrop-blur-sm">
-                            <CardContent className="p-0">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow className="bg-gradient-to-r from-gray-100/80 via-gray-50/80 to-gray-100/80 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/60 hover:from-gray-200/80 hover:to-gray-200/80 dark:hover:from-gray-700/70 dark:hover:to-gray-700/70 border-b-2 border-gray-200/50 dark:border-gray-600/30">
-                                            <TableHead className="w-12 pl-6">
-                                                <Checkbox
-                                                    checked={selectedAnimals.length === filteredAnimals.length && filteredAnimals.length > 0}
-                                                    onCheckedChange={toggleSelectAll}
-                                                    className="rounded-lg data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-2 border-gray-300 dark:border-gray-600 h-5 w-5 transition-all duration-300"
-                                                />
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-blue-700 dark:hover:text-blue-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
-                                                <div className="flex items-center gap-2">
-                                                    <Users className="h-4 w-4" />
-                                                    Animal {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-purple-700 dark:hover:text-purple-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
-                                                <div className="flex items-center gap-2">
-                                                    <FlaskConical className="h-4 w-4" />
-                                                    Species {sortBy === 'species' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="font-black text-gray-900 dark:text-gray-100 text-sm uppercase tracking-wider py-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Hash className="h-4 w-4" />
-                                                    Strain
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="h-4 w-4" />
-                                                    Age {sortBy === 'age' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-amber-700 dark:hover:text-amber-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
-                                                <div className="flex items-center gap-2">
-                                                    <Scale className="h-4 w-4" />
-                                                    Weight {sortBy === 'weight' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
-                                                <div className="flex items-center gap-2">
-                                                    <Activity className="h-4 w-4" />
-                                                    Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-violet-700 dark:hover:text-violet-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin className="h-4 w-4" />
-                                                    Location {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
-                                                </div>
-                                            </TableHead>
-                                            <TableHead className="text-right font-black text-gray-900 dark:text-gray-100 text-sm uppercase tracking-wider py-4 pr-6">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    Actions
-                                                </div>
-                                            </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {filteredAnimals.map((animal) => (
-                                            <TableRow key={animal._id} className="hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-gray-100/50 dark:hover:from-gray-800/60 dark:hover:to-gray-700/40 transition-all duration-300 border-b border-gray-100 dark:border-gray-800">
-                                                <TableCell className="pl-6">
+                                        <CardHeader className="relative pb-4 bg-gradient-to-r from-gray-50/90 via-white/80 to-gray-50/90 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/60 border-b border-gray-200/50 dark:border-gray-600/30">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
                                                     <Checkbox
                                                         checked={selectedAnimals.includes(animal._id)}
                                                         onCheckedChange={() => toggleSelectAnimal(animal._id)}
                                                         className="rounded-lg data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-2 border-gray-300 dark:border-gray-600 h-5 w-5 transition-all duration-300 hover:border-blue-400"
                                                     />
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-3.5">
-                                                        <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm">
-                                                            <span className="text-xl">{getSpeciesIcon(animal.species)}</span>
+                                                    <CardTitle className="text-lg flex items-center gap-3">
+                                                        <div className="p-2 rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-600/50 shadow-sm">
+                                                            <span className="text-2xl">{getSpeciesIcon(animal.species)}</span>
                                                         </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="font-bold text-gray-900 dark:text-gray-100 text-sm">{animal.name}</span>
-                                                            <span className="text-xs text-gray-500 dark:text-gray-400">ID: {animal._id.slice(-6)}</span>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 shadow-sm"></div>
-                                                        <span className="capitalize font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.species}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
-                                                        <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.strain}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 shadow-sm"></div>
-                                                        <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.age}w</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 shadow-sm"></div>
-                                                        <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.weight}g</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <Badge className={`${getStatusColor(animal.status)} px-3 py-1.5 text-xs font-bold rounded-full border-0 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105`} variant="secondary">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <div className={`w-2 h-2 rounded-full ${animal.status === 'active' ? 'bg-green-500' : animal.status === 'quarantine' ? 'bg-yellow-500' : animal.status === 'deceased' ? 'bg-red-500' : 'bg-gray-500'} shadow-sm`}></div>
-                                                            {animal.status}
-                                                        </div>
+                                                        <span className="truncate max-w-[120px] font-bold text-gray-900 dark:text-gray-100">{animal.name}</span>
+                                                    </CardTitle>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <Badge className={`${getStatusColor(animal.status)} px-3 py-1.5 text-xs font-bold rounded-full border-0 shadow-md uppercase tracking-wider`} variant="secondary">
+                                                        {animal.status}
                                                     </Badge>
-                                                </TableCell>
-                                                <TableCell className="py-4">
+                                                </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="relative space-y-5 p-6">
+                                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                                <div className="relative bg-gradient-to-br from-blue-50/80 to-blue-100/40 dark:from-blue-950/30 dark:to-blue-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-blue-100/90 group-hover:to-blue-200/50 dark:group-hover:from-blue-900/40 dark:group-hover:to-blue-800/30 border border-blue-200/30 dark:border-blue-800/30 shadow-sm">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <FlaskConical className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                                        <span className="font-bold text-blue-700 dark:text-blue-300 text-xs uppercase tracking-wider">Species</span>
+                                                    </div>
+                                                    <p className="capitalize truncate font-bold text-blue-900 dark:text-blue-100">{animal.species}</p>
+                                                </div>
+                                                <div className="relative bg-gradient-to-br from-purple-50/80 to-purple-100/40 dark:from-purple-950/30 dark:to-purple-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-purple-100/90 group-hover:to-purple-200/50 dark:group-hover:from-purple-900/40 dark:group-hover:to-purple-800/30 border border-purple-200/30 dark:border-purple-800/30 shadow-sm">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Hash className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                                                        <span className="font-bold text-purple-700 dark:text-purple-300 text-xs uppercase tracking-wider">Strain</span>
+                                                    </div>
+                                                    <p className="truncate font-bold text-purple-900 dark:text-purple-100">{animal.strain}</p>
+                                                </div>
+                                                <div className="relative bg-gradient-to-br from-emerald-50/80 to-emerald-100/40 dark:from-emerald-950/30 dark:to-emerald-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-emerald-100/90 group-hover:to-emerald-200/50 dark:group-hover:from-emerald-900/40 dark:group-hover:to-emerald-800/30 border border-emerald-200/30 dark:border-emerald-800/30 shadow-sm">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Calendar className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                                        <span className="font-bold text-emerald-700 dark:text-emerald-300 text-xs uppercase tracking-wider">Age</span>
+                                                    </div>
+                                                    <p className="font-bold text-emerald-900 dark:text-emerald-100">{animal.age} weeks</p>
+                                                </div>
+                                                <div className="relative bg-gradient-to-br from-amber-50/80 to-amber-100/40 dark:from-amber-950/30 dark:to-amber-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-amber-100/90 group-hover:to-amber-200/50 dark:group-hover:from-amber-900/40 dark:group-hover:to-amber-800/30 border border-amber-200/30 dark:border-amber-800/30 shadow-sm">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Scale className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                                                        <span className="font-bold text-amber-700 dark:text-amber-300 text-xs uppercase tracking-wider">Weight</span>
+                                                    </div>
+                                                    <p className="font-bold text-amber-900 dark:text-amber-100">{animal.weight}g</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="relative bg-gradient-to-br from-indigo-50/80 to-indigo-100/40 dark:from-indigo-950/30 dark:to-indigo-900/20 p-4 rounded-2xl transition-all duration-300 group-hover:from-indigo-100/90 group-hover:to-indigo-200/50 dark:group-hover:from-indigo-900/40 dark:group-hover:to-indigo-800/30 border border-indigo-200/30 dark:border-indigo-800/30 shadow-sm">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <MapPin className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                                                    <span className="font-bold text-indigo-700 dark:text-indigo-300 text-xs uppercase tracking-wider">Location</span>
+                                                </div>
+                                                <p className="text-sm truncate font-bold text-indigo-900 dark:text-indigo-100">{animal.location}</p>
+                                            </div>
+
+                                            {animal.experiments && animal.experiments.length > 0 && (
+                                                <div className="relative bg-gradient-to-br from-rose-50/80 to-rose-100/40 dark:from-rose-950/30 dark:to-rose-900/20 p-4 rounded-2xl border border-rose-200/30 dark:border-rose-800/30 shadow-sm">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <FlaskConical className="h-3 w-3 text-rose-600 dark:text-rose-400" />
+                                                        <span className="font-bold text-rose-700 dark:text-rose-300 text-xs uppercase tracking-wider">Experiments</span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {animal.experiments.slice(0, 3).map((exp, index) => (
+                                                            <Badge key={index} className="text-xs bg-white/80 dark:bg-rose-900/30 border border-rose-300/50 dark:border-rose-700/50 text-rose-700 dark:text-rose-300 rounded-full px-3 py-1.5 font-semibold shadow-sm">
+                                                                {exp}
+                                                            </Badge>
+                                                        ))}
+                                                        {animal.experiments.length > 3 && (
+                                                            <Badge className="text-xs bg-rose-100/80 dark:bg-rose-800/30 border border-rose-300/50 dark:border-rose-600/50 text-rose-800 dark:text-rose-200 rounded-full px-3 py-1.5 font-bold shadow-sm">
+                                                                +{animal.experiments.length - 3} more
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Enhanced Action Buttons */}
+                                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleViewAnimal(animal)}
+                                                                className="relative bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-300/50 dark:border-blue-700/50 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-900/70 dark:hover:to-blue-800/50 text-blue-700 dark:text-blue-300 rounded-xl h-10 w-10 p-0 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 transform hover:scale-110"
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="bg-blue-900 text-blue-100 border-blue-700">
+                                                            <p>View Details</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleEditAnimal(animal)}
+                                                                className="relative bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30 border-emerald-300/50 dark:border-emerald-700/50 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-900/70 dark:hover:to-emerald-800/50 text-emerald-700 dark:text-emerald-300 rounded-xl h-10 w-10 p-0 transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20 transform hover:scale-110"
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="bg-emerald-900 text-emerald-100 border-emerald-700">
+                                                            <p>Edit Animal</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDeleteAnimal(animal)}
+                                                                className="relative bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/30 border-red-300/50 dark:border-red-700/50 hover:from-red-100 hover:to-red-200 dark:hover:from-red-900/70 dark:hover:to-red-800/50 text-red-700 dark:text-red-300 rounded-xl h-10 w-10 p-0 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/20 transform hover:scale-110"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="bg-red-900 text-red-100 border-red-700">
+                                                            <p>Delete Animal</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            // Enhanced List View with Better Visual Hierarchy
+                            <Card className="border-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-gray-900/80 dark:via-gray-800/50 dark:to-gray-700/30 rounded-3xl overflow-hidden shadow-xl backdrop-blur-sm">
+                                <CardContent className="p-0">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="bg-gradient-to-r from-gray-100/80 via-gray-50/80 to-gray-100/80 dark:from-gray-800/60 dark:via-gray-700/40 dark:to-gray-800/60 hover:from-gray-200/80 hover:to-gray-200/80 dark:hover:from-gray-700/70 dark:hover:to-gray-700/70 border-b-2 border-gray-200/50 dark:border-gray-600/30">
+                                                <TableHead className="w-12 pl-6">
+                                                    <Checkbox
+                                                        checked={selectedAnimals.length === filteredAnimals.length && filteredAnimals.length > 0}
+                                                        onCheckedChange={toggleSelectAll}
+                                                        className="rounded-lg data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-2 border-gray-300 dark:border-gray-600 h-5 w-5 transition-all duration-300"
+                                                    />
+                                                </TableHead>
+                                                <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-blue-700 dark:hover:text-blue-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-violet-400 to-purple-400 shadow-sm"></div>
-                                                        <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.location}</span>
+                                                        <Users className="h-4 w-4" />
+                                                        Animal {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                                                     </div>
-                                                </TableCell>
-                                                <TableCell className="py-4 pr-6">
-                                                    <div className="flex justify-end gap-1.5">
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => handleViewAnimal(animal)}
-                                                                        className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md hover:scale-105"
-                                                                    >
-                                                                        <Eye className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>View Details</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => handleEditAnimal(animal)}
-                                                                        className="border-emerald-200 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md hover:scale-105"
-                                                                    >
-                                                                        <Edit className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Edit Animal</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => handleDeleteAnimal(animal)}
-                                                                        className="border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md hover:scale-105"
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Delete Animal</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                </TableHead>
+                                                <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-purple-700 dark:hover:text-purple-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
+                                                    <div className="flex items-center gap-2">
+                                                        <FlaskConical className="h-4 w-4" />
+                                                        Species {sortBy === 'species' && (sortOrder === 'asc' ? '↑' : '↓')}
                                                     </div>
-                                                </TableCell>
+                                                </TableHead>
+                                                <TableHead className="font-black text-gray-900 dark:text-gray-100 text-sm uppercase tracking-wider py-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Hash className="h-4 w-4" />
+                                                        Strain
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-emerald-700 dark:hover:text-emerald-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="h-4 w-4" />
+                                                        Age {sortBy === 'age' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-amber-700 dark:hover:text-amber-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
+                                                    <div className="flex items-center gap-2">
+                                                        <Scale className="h-4 w-4" />
+                                                        Weight {sortBy === 'weight' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
+                                                    <div className="flex items-center gap-2">
+                                                        <Activity className="h-4 w-4" />
+                                                        Status {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="cursor-pointer font-black text-gray-900 dark:text-gray-100 hover:text-violet-700 dark:hover:text-violet-300 text-sm uppercase tracking-wider py-4 transition-all duration-300">
+                                                    <div className="flex items-center gap-2">
+                                                        <MapPin className="h-4 w-4" />
+                                                        Location {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                                    </div>
+                                                </TableHead>
+                                                <TableHead className="text-right font-black text-gray-900 dark:text-gray-100 text-sm uppercase tracking-wider py-4 pr-6">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        Actions
+                                                    </div>
+                                                </TableHead>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                    )}
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredAnimals.map((animal) => (
+                                                <TableRow key={animal._id} className="hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-gray-100/50 dark:hover:from-gray-800/60 dark:hover:to-gray-700/40 transition-all duration-300 border-b border-gray-100 dark:border-gray-800">
+                                                    <TableCell className="pl-6">
+                                                        <Checkbox
+                                                            checked={selectedAnimals.includes(animal._id)}
+                                                            onCheckedChange={() => toggleSelectAnimal(animal._id)}
+                                                            className="rounded-lg data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 border-2 border-gray-300 dark:border-gray-600 h-5 w-5 transition-all duration-300 hover:border-blue-400"
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-3.5">
+                                                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl flex items-center justify-center border border-blue-200 dark:border-blue-800 shadow-sm">
+                                                                <span className="text-xl">{getSpeciesIcon(animal.species)}</span>
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-gray-900 dark:text-gray-100 text-sm">{animal.name}</span>
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">ID: {animal._id.slice(-6)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 shadow-sm"></div>
+                                                            <span className="capitalize font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.species}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="px-3 py-1.5 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
+                                                            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.strain}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 shadow-sm"></div>
+                                                            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.age}w</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 shadow-sm"></div>
+                                                            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.weight}g</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <Badge className={`${getStatusColor(animal.status)} px-3 py-1.5 text-xs font-bold rounded-full border-0 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105`} variant="secondary">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className={`w-2 h-2 rounded-full ${animal.status === 'active' ? 'bg-green-500' : animal.status === 'quarantine' ? 'bg-yellow-500' : animal.status === 'deceased' ? 'bg-red-500' : 'bg-gray-500'} shadow-sm`}></div>
+                                                                {animal.status}
+                                                            </div>
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-3 h-3 rounded-full bg-gradient-to-r from-violet-400 to-purple-400 shadow-sm"></div>
+                                                            <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{animal.location}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4 pr-6">
+                                                        <div className="flex justify-end gap-1.5">
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleViewAnimal(animal)}
+                                                                            className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md hover:scale-105"
+                                                                        >
+                                                                            <Eye className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>View Details</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
 
-                    {filteredAnimals.length === 0 && (
-                        <Card className="border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 backdrop-blur-sm">
-                            <CardContent className="p-14 text-center">
-                                <div className="text-7xl mb-5 text-gray-300 dark:text-gray-600 opacity-80">🐾</div>
-                                <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">No animals found</h3>
-                                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto text-base">
-                                    {searchTerm || filters.species || filters.status || showOnlyActive || filters.gender || filters.hasExperiments
-                                        ? 'Try adjusting your search or filters to find what you\'re looking for'
-                                        : 'Get started by adding your first animal to the system'}
-                                </p>
-                                {!searchTerm && !filters.species && !filters.status && !showOnlyActive && !filters.gender && !filters.hasExperiments && (
-                                    <Button onClick={handleAddAnimal} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-7 py-4 rounded-2xl transition-all duration-300 flex items-center gap-3 mx-auto shadow-xl hover:shadow-2xl transform hover:-translate-y-1 font-semibold text-base">
-                                        <Plus className="h-5 w-5" />
-                                        Add First Animal
-                                    </Button>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
-                </TabsContent>
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleEditAnimal(animal)}
+                                                                            className="border-emerald-200 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md hover:scale-105"
+                                                                        >
+                                                                            <Edit className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>Edit Animal</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() => handleDeleteAnimal(animal)}
+                                                                            className="border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl h-8 w-8 p-0 transition-all duration-300 hover:shadow-md hover:scale-105"
+                                                                        >
+                                                                            <Trash2 className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>Delete Animal</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+                        )
+                    }
+
+                    {
+                        filteredAnimals.length === 0 && (
+                            <Card className="border border-gray-200 dark:border-gray-700 rounded-3xl bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-900/50 backdrop-blur-sm">
+                                <CardContent className="p-14 text-center">
+                                    <div className="text-7xl mb-5 text-gray-300 dark:text-gray-600 opacity-80">🐾</div>
+                                    <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-gray-100">No animals found</h3>
+                                    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto text-base">
+                                        {searchTerm || filters.species || filters.status || showOnlyActive || filters.gender || filters.hasExperiments
+                                            ? 'Try adjusting your search or filters to find what you\'re looking for'
+                                            : 'Get started by adding your first animal to the system'}
+                                    </p>
+                                    {!searchTerm && !filters.species && !filters.status && !showOnlyActive && !filters.gender && !filters.hasExperiments && (
+                                        <Button onClick={handleAddAnimal} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-7 py-4 rounded-2xl transition-all duration-300 flex items-center gap-3 mx-auto shadow-xl hover:shadow-2xl transform hover:-translate-y-1 font-semibold text-base">
+                                            <Plus className="h-5 w-5" />
+                                            Add First Animal
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )
+                    }
+                </TabsContent >
 
                 <TabsContent value="breeding" className="space-y-6 mt-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -1379,12 +1135,13 @@ export function AnimalManagement() {
                 <TabsContent value="cages" className="space-y-6 mt-6">
                     <CageManagement />
                 </TabsContent>
-            </Tabs>
+            </Tabs >
 
             {/* Modals */}
-            <AnimalForm
+            < AnimalForm
                 isOpen={isFormOpen}
-                onClose={() => setIsFormOpen(false)}
+                onClose={() => setIsFormOpen(false)
+                }
                 onSave={handleSaveAnimal}
                 animal={selectedAnimal}
                 speciesOptions={SPECIES_OPTIONS}
@@ -1487,6 +1244,6 @@ export function AnimalManagement() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </div >
     );
 }

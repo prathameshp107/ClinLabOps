@@ -31,6 +31,7 @@ export function DataTable({
   Toolbar,
   onRowSelectionChange,
   selectedRows,
+  hidePagination = false,
 }) {
   const [rowSelection, setRowSelection] = React.useState(selectedRows || {})
   const [columnVisibility, setColumnVisibility] = React.useState({})
@@ -160,7 +161,7 @@ export function DataTable({
           </Table>
         </div>
       </div>
-      <DataTablePagination table={table} />
+      {!hidePagination && <DataTablePagination table={table} />}
     </div>
   )
 }

@@ -47,7 +47,10 @@ const MemberRoleBadge = ({ role, isLead = false }) => {
   }[config.icon] || Users;
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text} shadow-lg ${config.glow} hover:shadow-xl transition-all duration-200 dark:bg-border/20`}>
+    <div className={cn(
+      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm transition-all duration-200",
+      config.bg, config.text, config.glow
+    )}>
       <IconComponent className="h-3 w-3" />
       {role}
     </div>
@@ -64,25 +67,25 @@ const TeamMemberCard = ({ member, index, onAction }) => {
   const getStatusIndicator = () => {
     switch (member.status) {
       case 'online':
-        return <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white bg-green-400 animate-pulse dark:border-border"></div>;
+        return <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background bg-green-500 animate-pulse"></div>;
       case 'away':
-        return <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white bg-yellow-400 dark:border-border"></div>;
+        return <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background bg-yellow-500"></div>;
       case 'busy':
-        return <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white bg-red-400 animate-pulse dark:border-border"></div>;
+        return <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background bg-red-500 animate-pulse"></div>;
       default:
-        return <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white bg-gray-400 dark:border-border"></div>;
+        return <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background bg-gray-400"></div>;
     }
   };
 
   return (
-    <div className="group relative p-4 hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/30 dark:hover:from-blue-950/30 dark:hover:to-indigo-950/30 transition-all duration-300 rounded-xl mx-2 my-1 hover:shadow-md">
+    <div className="group relative p-4 hover:bg-muted/30 transition-all duration-300 rounded-2xl mx-2 my-2 border border-transparent hover:border-border/50 hover:shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-5">
           {/* Avatar with Status */}
           <div className="relative">
-            <Avatar className="h-12 w-12 border-3 border-background shadow-lg group-hover:shadow-xl transition-all duration-300 ring-2 ring-muted group-hover:ring-blue-200 dark:ring-border">
+            <Avatar className="h-14 w-14 border-2 border-background shadow-md group-hover:scale-105 transition-all duration-300">
               <AvatarImage src={member.avatar} alt={member.name} />
-              <AvatarFallback className="text-sm font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+              <AvatarFallback className="text-base font-bold bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
                 {member.name.split(' ').map(n => n.charAt(0)).join('')}
               </AvatarFallback>
             </Avatar>
@@ -91,83 +94,89 @@ const TeamMemberCard = ({ member, index, onAction }) => {
 
           {/* Member Info */}
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h3 className="text-base font-semibold text-foreground group-hover:text-blue-900 transition-colors dark:group-hover:text-blue-300">
+            <div className="flex items-center gap-3 mb-1.5">
+              <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
                 {member.name}
               </h3>
               {member.role === 'Project Lead' && (
-                <div className="flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs rounded-full font-semibold shadow-md">
+                <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 text-amber-600 border border-amber-200 dark:border-amber-500/20 text-[10px] rounded-full font-bold shadow-sm">
                   <Crown className="h-3 w-3" />
-                  Lead
+                  LEAD
                 </div>
               )}
             </div>
 
             <div className="flex items-center gap-3 mb-2">
               <MemberRoleBadge role={member.role} isLead={member.role === 'Project Lead'} />
-              <span className="text-sm text-muted-foreground font-medium">{member.department}</span>
+              <span className="text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted rounded-md">{member.department}</span>
             </div>
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" />
                 <span>Joined {member.joinedAt}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Activity className="h-3 w-3" />
-                <span className={`px-2 py-0.5 rounded-full font-medium ${workloadColor} transition-all duration-300 dark:bg-border/20`}>
+              <div className="flex items-center gap-1.5">
+                <Activity className="h-3.5 w-3.5" />
+                <span className={cn("px-2 py-0.5 rounded-full font-semibold bg-muted", workloadColor)}>
                   {member.workload || 65}% workload
                 </span>
               </div>
-              {member.status === 'online' && (
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-green-600 font-medium dark:text-green-400">Active</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {/* Quick Actions */}
           <div className="hidden group-hover:flex items-center gap-2 transition-all duration-200">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600 rounded-xl transition-all duration-200 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
-              onClick={() => onAction?.('message', member)}
-            >
-              <MessageSquare className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600 rounded-xl transition-all duration-200 dark:hover:bg-green-900/30 dark:hover:text-green-400"
-              onClick={() => onAction?.('email', member)}
-            >
-              <LucideMail className="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 hover:bg-blue-500/10 hover:text-blue-600 rounded-xl transition-all"
+                    onClick={() => onAction?.('message', member)}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Message</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 hover:bg-green-500/10 hover:text-green-600 rounded-xl transition-all"
+                    onClick={() => onAction?.('email', member)}
+                  >
+                    <LucideMail className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Email</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* Real-time Performance Indicator */}
-          <div className="flex flex-col items-center gap-1">
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400">Performance</div>
-            <div className="flex items-center gap-1">
+          <div className="flex flex-col items-end gap-1">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Performance</div>
+            <div className="flex items-center gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
-                  className={`h-3 w-3 transition-all duration-300 ${star <= (member.rating || 4) ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`}
+                  className={cn(
+                    "h-3.5 w-3.5 transition-all duration-300",
+                    star <= (member.rating || 4) ? "text-yellow-400 fill-yellow-400" : "text-muted/50"
+                  )}
                 />
               ))}
             </div>
-            {member.status === 'online' && member.workload > 70 && (
-              <div className="flex items-center gap-1 mt-1">
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-blue-600 font-medium dark:text-blue-400">Working</span>
-              </div>
-            )}
           </div>
 
           {/* More Actions */}
@@ -175,28 +184,28 @@ const TeamMemberCard = ({ member, index, onAction }) => {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 hover:bg-gray-100 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 dark:hover:bg-gray-800"
+                size="icon"
+                className="h-9 w-9 hover:bg-muted rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200"
               >
-                <MoreHorizontal className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-md border-border/50 shadow-xl rounded-2xl p-2">
-              <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-blue-50 transition-colors dark:hover:bg-blue-900/30">
-                <LucideMail className="h-4 w-4 mr-3 text-blue-600 dark:text-blue-400" />
+            <DropdownMenuContent align="end" className="w-56 bg-background/95 backdrop-blur-xl border-border/50 shadow-xl rounded-xl p-1.5">
+              <DropdownMenuItem className="text-xs font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 cursor-pointer">
+                <LucideMail className="h-3.5 w-3.5 mr-3 text-primary" />
                 Send Message
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-purple-50 transition-colors dark:hover:bg-purple-900/30">
-                <UserCog className="h-4 w-4 mr-3 text-purple-600 dark:text-purple-400" />
+              <DropdownMenuItem className="text-xs font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 cursor-pointer">
+                <UserCog className="h-3.5 w-3.5 mr-3 text-primary" />
                 Change Role
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-green-50 transition-colors dark:hover:bg-green-900/30">
-                <Award className="h-4 w-4 mr-3 text-green-600 dark:text-green-400" />
+              <DropdownMenuItem className="text-xs font-medium py-2.5 px-3 rounded-lg hover:bg-primary/5 cursor-pointer">
+                <Award className="h-3.5 w-3.5 mr-3 text-primary" />
                 View Performance
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-2 bg-border/50" />
-              <DropdownMenuItem className="text-sm py-3 px-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors dark:hover:bg-red-900/30 dark:text-red-400">
-                <UserMinus className="h-4 w-4 mr-3" />
+              <DropdownMenuSeparator className="my-1 bg-border/50" />
+              <DropdownMenuItem className="text-xs font-medium py-2.5 px-3 rounded-lg hover:bg-red-500/10 text-red-600 cursor-pointer focus:bg-red-500/10 focus:text-red-600">
+                <UserMinus className="h-3.5 w-3.5 mr-3" />
                 Remove from Project
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -298,62 +307,58 @@ export function ProjectTeam({ team, onAddMember }) {
   const averageRating = Math.round((realTimeTeam.reduce((sum, m) => sum + (m.rating || 0), 0) / realTimeTeam.length) * 10) / 10;
 
   return (
-    <Card className="bg-background/80 backdrop-blur-sm border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
-      <CardHeader className="px-6 py-5 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border-b border-border/50 dark:from-blue-900/30 dark:to-indigo-900/30">
+    <Card className="bg-card/40 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 rounded-3xl overflow-hidden">
+      <CardHeader className="px-8 py-6 border-b border-border/50 bg-muted/20">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-            <div className="p-2.5 bg-blue-100 rounded-xl shadow-sm dark:bg-blue-900/30">
-              <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-blue-500/10 rounded-2xl">
+              <Users className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span>Project Team</span>
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-xl font-bold text-foreground">Project Team</CardTitle>
                 {recentActivities.length > 0 ? (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-green-600 font-medium dark:text-green-400">Live</span>
-                  </div>
+                  <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-200/50 text-[10px] px-2 py-0.5 h-5">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse mr-1.5"></div>
+                    LIVE
+                  </Badge>
                 ) : realTimeTeam.length === 0 && (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                    <span className="text-xs text-gray-500 font-medium dark:text-gray-400">Empty</span>
-                  </div>
+                  <Badge variant="secondary" className="text-[10px] px-2 py-0.5 h-5">Empty</Badge>
                 )}
               </div>
-              <div className="text-sm font-normal text-muted-foreground mt-0.5">
-                {realTimeTeam.length > 0 ? `${realTimeTeam.length} active members` : 'No members assigned'}
-              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {realTimeTeam.length > 0 ? `${realTimeTeam.length} active members collaborating` : 'No members assigned yet'}
+              </p>
             </div>
-          </CardTitle>
+          </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {/* Real-time Team Stats */}
             {realTimeTeam.length > 0 ? (
-              <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground bg-background/80 rounded-xl px-4 py-2 shadow-sm dark:bg-border/20">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="hidden md:flex items-center gap-1 text-xs font-medium text-muted-foreground bg-background/50 rounded-xl p-1 border border-border/50">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/10 text-green-700">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                   <span>{onlineMembers} Online</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></div>
                   <span>{awayMembers} Away</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
                   <span>{busyMembers} Busy</span>
                 </div>
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground bg-muted/80 rounded-xl px-4 py-2 dark:bg-border/20">
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+              <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 rounded-xl px-4 py-2">
+                <div className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full"></div>
                 <span>No team members</span>
               </div>
             )}
 
             <Button
-              size="sm"
               onClick={onAddMember}
-              className="h-10 px-4 text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl dark:from-blue-700 dark:to-blue-800"
+              className="h-10 px-5 text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 rounded-xl"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Add Member
@@ -363,36 +368,38 @@ export function ProjectTeam({ team, onAddMember }) {
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
           {realTimeTeam.length > 0 ? (
-            realTimeTeam.map((member, index) => (
-              <TeamMemberCard
-                key={`${member.name}-${member.status}-${member.workload}`}
-                member={member}
-                index={index}
-                onAction={handleMemberAction}
-              />
-            ))
+            <div className="divide-y divide-border/50">
+              {realTimeTeam.map((member, index) => (
+                <TeamMemberCard
+                  key={`${member.name}-${member.status}-${member.workload}`}
+                  member={member}
+                  index={index}
+                  onAction={handleMemberAction}
+                />
+              ))}
+            </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-6 shadow-inner dark:from-gray-800 dark:to-gray-900">
-                <Users className="h-10 w-10 text-gray-400 dark:text-gray-500" />
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mb-6 border border-border/50">
+                <Users className="h-10 w-10 text-muted-foreground/40" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-3">No Team Members</h3>
-              <p className="text-muted-foreground text-sm max-w-md leading-relaxed mb-6">
+              <h3 className="text-xl font-bold text-foreground mb-2">No Team Members</h3>
+              <p className="text-muted-foreground text-sm max-w-md leading-relaxed mb-8">
                 This project doesn't have any team members assigned yet. Add team members to start collaborating on this project.
               </p>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Button
                   onClick={onAddMember}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 dark:from-blue-700 dark:to-blue-800"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2.5 rounded-xl shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add First Member
                 </Button>
                 <Button
                   variant="outline"
-                  className="px-6 py-2 rounded-xl border-border hover:bg-muted transition-all duration-200"
+                  className="px-8 py-2.5 rounded-xl border-border/50 hover:bg-muted transition-all"
                 >
                   <Users className="h-4 w-4 mr-2" />
                   Invite Team
@@ -404,41 +411,47 @@ export function ProjectTeam({ team, onAddMember }) {
 
         {/* Real-time Team Summary */}
         {realTimeTeam.length > 0 ? (
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50/50 to-blue-50/30 border-t border-border/50 dark:from-gray-900/30 dark:to-blue-900/20">
+          <div className="px-8 py-4 bg-muted/20 border-t border-border/50">
             <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse"></div>
-                  <span className="text-muted-foreground">Average Workload: <span className="font-semibold text-foreground">{averageWorkload}%</span></span>
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 bg-blue-500/10 rounded-md">
+                    <Activity className="h-3.5 w-3.5 text-blue-600" />
+                  </div>
+                  <span className="text-muted-foreground font-medium">Avg Workload: <span className="text-foreground font-bold">{averageWorkload}%</span></span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                  <span className="text-muted-foreground">Team Rating: <span className="font-semibold text-foreground">{averageRating}/5</span></span>
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 bg-yellow-500/10 rounded-md">
+                    <Star className="h-3.5 w-3.5 text-yellow-600 fill-yellow-600" />
+                  </div>
+                  <span className="text-muted-foreground font-medium">Team Rating: <span className="text-foreground font-bold">{averageRating}/5</span></span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-green-600 rounded-full animate-pulse"></div>
-                  <span className="text-muted-foreground">Active: <span className="font-semibold text-foreground">{onlineMembers + awayMembers}/{realTimeTeam.length}</span></span>
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 bg-green-500/10 rounded-md">
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-green-600" />
+                  </div>
+                  <span className="text-muted-foreground font-medium">Active: <span className="text-foreground font-bold">{onlineMembers + awayMembers}/{realTimeTeam.length}</span></span>
                 </div>
               </div>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30">
-                View All Analytics
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 rounded-lg font-medium">
+                View Analytics
               </Button>
             </div>
           </div>
         ) : (
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50/50 to-blue-50/30 border-t border-border/50 dark:from-gray-900/30 dark:to-blue-900/20">
+          <div className="px-8 py-4 bg-muted/20 border-t border-border/50">
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
+                <div className="w-2 h-2 bg-muted-foreground/30 rounded-full"></div>
                 <span className="text-muted-foreground">No team data available</span>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onAddMember}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
+                className="text-primary hover:text-primary hover:bg-primary/10 rounded-lg font-medium"
               >
-                <UserPlus className="h-3 w-3 mr-1" />
+                <UserPlus className="h-3.5 w-3.5 mr-2" />
                 Add Members
               </Button>
             </div>

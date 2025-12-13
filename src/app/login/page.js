@@ -8,8 +8,6 @@ export const metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-primary/5 via-background to-primary/5">
-      <ScientificLoginForm />
-    </div>
+    <ScientificLoginForm />
   );
 }
