@@ -24,6 +24,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ViewModeSelector } from './ViewModeSelector';
 
 const SPECIES_OPTIONS = [
     { value: 'rat', label: 'Rat', icon: '🐀' },
@@ -53,7 +54,16 @@ const GENDER_OPTIONS = [
     { value: 'female', label: 'Female' }
 ];
 
-export function AnimalFilters({ filters, onFiltersChange }) {
+export function AnimalFilters({
+    filters,
+    onFiltersChange,
+    viewMode,
+    onViewModeChange,
+    searchTerm,
+    onSearchTermChange,
+    showOnlyActive,
+    onShowOnlyActiveChange
+}) {
     const activeFiltersCount = Object.values(filters).filter(value => value && value !== '__all__').length;
 
     const updateFilter = (key, value) => {
@@ -88,6 +98,25 @@ export function AnimalFilters({ filters, onFiltersChange }) {
 
     return (
         <div className="flex flex-wrap items-center gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+                <input
+                    type="text"
+                    placeholder="Search animals..."
+                    value={searchTerm}
+                    onChange={(e) => onSearchTermChange(e.target.value)}
+                    className="w-full pl-4 pr-10 py-2.5 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-300 shadow-sm"
+                />
+                {searchTerm && (
+                    <button
+                        onClick={() => onSearchTermChange('')}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                )}
+            </div>
+
             {/* Active Filters Display */}
             {activeFiltersCount > 0 && (
                 <div className="flex flex-wrap items-center gap-2.5">
@@ -164,6 +193,22 @@ export function AnimalFilters({ filters, onFiltersChange }) {
                     </Button>
                 </div>
             )}
+
+            {/* Show Active Only Switch */}
+            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3.5 py-2 rounded-2xl">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Active Only</span>
+                <Switch
+                    checked={showOnlyActive}
+                    onCheckedChange={onShowOnlyActiveChange}
+                    className="data-[state=checked]:bg-blue-600 h-5 w-9 rounded-full"
+                />
+            </div>
+
+            {/* View Mode Selector */}
+            <ViewModeSelector
+                viewMode={viewMode}
+                onViewModeChange={onViewModeChange}
+            />
 
             {/* Filter Popover */}
             <Popover>

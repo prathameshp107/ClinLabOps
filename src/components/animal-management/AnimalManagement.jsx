@@ -136,7 +136,7 @@ export function AnimalManagement() {
     const [breedingPairs, setBreedingPairs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isBreedingFormOpen, setIsBreedingFormOpen] = useState(false);
-    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+    const [viewMode, setViewMode] = useState('table'); // 'card' or 'table'
     const [showOnlyActive, setShowOnlyActive] = useState(false);
     const [selectedAnimals, setSelectedAnimals] = useState([]);
     const [sortBy, setSortBy] = useState('name');
@@ -576,15 +576,14 @@ export function AnimalManagement() {
 
             <AnimalFilters
                 filters={filters}
-                setFilters={setFilters}
+                onFiltersChange={setFilters}
                 searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
+                onSearchTermChange={setSearchTerm}
                 showOnlyActive={showOnlyActive}
-                setShowOnlyActive={setShowOnlyActive}
-                clearAllFilters={clearAllFilters}
-                animals={animals}
+                onShowOnlyActiveChange={setShowOnlyActive}
                 viewMode={viewMode}
-                setViewMode={setViewMode}
+                onViewModeChange={setViewMode}
+                animals={animals}
             />
 
             <Tabs defaultValue="animals" className="w-full space-y-8">
@@ -645,9 +644,9 @@ export function AnimalManagement() {
                         )
                     }
 
-                    {/* Animals Grid/List View */}
-                    {
-                        viewMode === 'grid' ? (
+                    {/* Animals Views */}
+                    <div className="mt-6">
+                        {viewMode === 'card' && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                                 {filteredAnimals.map((animal) => (
                                     <Card key={animal._id} className="group relative overflow-hidden border-0 bg-white dark:bg-gray-900/50 hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-400/20 transition-all duration-500 transform hover:-translate-y-3 hover:scale-[1.02] rounded-3xl backdrop-blur-sm">
@@ -804,8 +803,9 @@ export function AnimalManagement() {
                                     </Card>
                                 ))}
                             </div>
-                        ) : (
-                            // Enhanced List View with Better Visual Hierarchy
+                        )}
+
+                        {viewMode === 'table' && (
                             <Card className="border-0 bg-gradient-to-br from-white via-gray-50/50 to-gray-100/30 dark:from-gray-900/80 dark:via-gray-800/50 dark:to-gray-700/30 rounded-3xl overflow-hidden shadow-xl backdrop-blur-sm">
                                 <CardContent className="p-0">
                                     <Table>
@@ -989,8 +989,8 @@ export function AnimalManagement() {
                                     </Table>
                                 </CardContent>
                             </Card>
-                        )
-                    }
+                        )}
+                    </div>
 
                     {
                         filteredAnimals.length === 0 && (
