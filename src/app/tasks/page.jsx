@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Switch } from "@/components/ui/switch"
 import { Calendar as CalendarIcon, Folder, Target, Flag, User, Sparkles } from "lucide-react"
 import { DatePicker } from "@/components/ui/date-picker"
 
@@ -730,10 +731,12 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
   });
   const [focusedField, setFocusedField] = React.useState(null);
   const [projects, setProjects] = React.useState([]);
+  const [allUsers, setAllUsers] = React.useState([]);
   const [selectedProjectId, setSelectedProjectId] = React.useState("");
   const [team, setTeam] = React.useState([]);
   const [nextTaskId, setNextTaskId] = React.useState("");
   const [loadingNextTaskId, setLoadingNextTaskId] = React.useState(false);
+  const [isProjectTask, setIsProjectTask] = React.useState(true);
 
   React.useEffect(() => {
     if (open) {
@@ -749,12 +752,14 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
       });
       setSelectedProjectId("");
       setTeam([]);
+      setIsProjectTask(true);
       getProjects().then(setProjects);
+      getAllUsers().then(setAllUsers);
     }
   }, [open]);
 
   React.useEffect(() => {
-    if (selectedProjectId) {
+    if (selectedProjectId && isProjectTask) {
       getProjectById(selectedProjectId).then((proj) => {
         setTeam(proj.team || []);
       });
@@ -772,17 +777,28 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
       setTeam([]);
       setNextTaskId('');
     }
-  }, [selectedProjectId]);
+  }, [selectedProjectId, isProjectTask]);
 
   const handleSubmit = () => {
-    if (!formData.title.trim() || !selectedProjectId) return;
-    let taskToSend = { ...formData, projectId: selectedProjectId };
-    if (formData.assignee && team.length) {
-      const member = team.find(m => m.id === formData.assignee);
+    if (!formData.title.trim()) return;
+    if (isProjectTask && !selectedProjectId) return;
+
+    let taskToSend = { ...formData };
+
+    if (isProjectTask) {
+      taskToSend.projectId = selectedProjectId;
+    } else {
+      taskToSend.projectId = null;
+    }
+
+    const sourceUsers = isProjectTask ? team : allUsers;
+    if (formData.assignee && sourceUsers.length) {
+      const member = sourceUsers.find(m => (m.id || m._id) === formData.assignee);
       if (member) {
-        taskToSend.assignee = member.name;
+        taskToSend.assignee = member.name || member.username || member.email;
       }
     }
+
     onAddTask(taskToSend);
     onOpenChange(false);
   };
@@ -792,6 +808,9 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
       handleSubmit();
     }
   };
+
+  // Determine users list based on type
+  const assignableUsers = isProjectTask ? team : allUsers;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -813,53 +832,81 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
             </DialogDescription>
           </div>
         </DialogHeader>
+
         <div className="px-6 py-6 space-y-6 overflow-y-auto flex-1 min-h-0">
-          {/* Project Selector */}
-          <div className="space-y-3">
-            <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
-              <Folder className="h-4 w-4 text-indigo-500" />
-              Project*
-            </Label>
-            <Select
-              value={selectedProjectId}
-              onValueChange={setSelectedProjectId}
-            >
-              <SelectTrigger id="task-project" className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200">
-                <SelectValue placeholder="Select project" />
-              </SelectTrigger>
-              <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
-                {projects.map((proj) => (
-                  <SelectItem key={proj.id || proj._id} value={proj.id || proj._id}>
-                    {proj.name || proj.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          {/* Task Type Toggle */}
+          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border/50">
+            <div className="space-y-0.5">
+              <Label className="text-sm font-medium">Link to Project</Label>
+              <div className="text-xs text-muted-foreground">
+                Associate this task with an existing project
+              </div>
+            </div>
+            <Switch
+              checked={isProjectTask}
+              onCheckedChange={setIsProjectTask}
+            />
           </div>
 
-          {/* Task ID Preview */}
-          {selectedProjectId && (
-            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Task ID Preview</Label>
-              </div>
-              {loadingNextTaskId ? (
-                <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
-                  Loading...
+          <AnimatePresence mode="wait">
+            {isProjectTask && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                {/* Project Selector */}
+                <div className="space-y-3">
+                  <Label htmlFor="task-project" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
+                    <Folder className="h-4 w-4 text-indigo-500" />
+                    Project*
+                  </Label>
+                  <Select
+                    value={selectedProjectId}
+                    onValueChange={setSelectedProjectId}
+                  >
+                    <SelectTrigger id="task-project" className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200">
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
+                      {projects.map((proj) => (
+                        <SelectItem key={proj.id || proj._id} value={proj.id || proj._id}>
+                          {proj.name || proj.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ) : nextTaskId ? (
-                <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
-                  {nextTaskId}
-                </div>
-              ) : (
-                <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
-                  Unable to generate ID
-                </div>
-              )}
-              <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2">This ID will be automatically assigned to your task</p>
-            </div>
-          )}
+
+                {/* Task ID Preview */}
+                {selectedProjectId && (
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                      <Label className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Task ID Preview</Label>
+                    </div>
+                    {loadingNextTaskId ? (
+                      <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
+                        Loading...
+                      </div>
+                    ) : nextTaskId ? (
+                      <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
+                        {nextTaskId}
+                      </div>
+                    ) : (
+                      <div className="font-mono text-lg font-semibold text-indigo-800 dark:text-indigo-200 bg-white/70 dark:bg-muted/20 px-3 py-2 rounded border border-indigo-200 dark:border-indigo-500/30">
+                        Unable to generate ID
+                      </div>
+                    )}
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2">This ID will be automatically assigned to your task</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Title Input */}
           <div className="space-y-3">
@@ -888,6 +935,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               )}
             </div>
           </div>
+
           {/* Description */}
           <div className="space-y-3">
             <Label htmlFor="task-description" className="text-sm font-medium text-slate-700 dark:text-foreground">
@@ -908,6 +956,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               )}
             />
           </div>
+
           {/* Two Column Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Assignee */}
@@ -919,28 +968,33 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               <Select
                 value={formData.assignee}
                 onValueChange={(value) => setFormData({ ...formData, assignee: value })}
-                disabled={!selectedProjectId || team.length === 0}
+                disabled={isProjectTask && (!selectedProjectId || team.length === 0)}
               >
                 <SelectTrigger
                   id="task-assignee"
                   className="h-11 border-2 border-slate-200 hover:border-slate-300 bg-white/50 dark:bg-muted/20 transition-all duration-200"
                 >
-                  <SelectValue placeholder={selectedProjectId ? (team.length ? "Select team member" : "No team members") : "Select project first"} />
+                  <SelectValue placeholder={
+                    isProjectTask
+                      ? (selectedProjectId ? (team.length ? "Select team member" : "No team members") : "Select project first")
+                      : "Select assignee"
+                  } />
                 </SelectTrigger>
                 <SelectContent className="bg-white/95 dark:bg-background/95 backdrop-blur-sm border-slate-200 dark:border-border shadow-xl">
-                  {team.map((member, i) => (
-                    <SelectItem key={i} value={member.id} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                  {assignableUsers.map((member, i) => (
+                    <SelectItem key={member.id || member._id || i} value={member.id || member._id} className="hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-xs font-medium">
-                          {member.name.charAt(0)}
+                          {(member.name || member.username || member.email || "?").charAt(0).toUpperCase()}
                         </div>
-                        {member.name}
+                        {member.name || member.username || member.email}
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
             {/* Priority */}
             <div className="space-y-3">
               <Label htmlFor="task-priority" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
@@ -964,6 +1018,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
                 </SelectContent>
               </Select>
             </div>
+
             {/* Status */}
             <div className="space-y-3">
               <Label htmlFor="task-status" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
@@ -989,6 +1044,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
               </Select>
             </div>
           </div>
+
           {/* Due Date */}
           <div className="space-y-3">
             <Label htmlFor="task-due-date" className="text-sm font-medium text-slate-700 dark:text-foreground flex items-center gap-2">
@@ -1009,8 +1065,12 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
             />
           </div>
         </div>
+
         <DialogFooter className="px-6 py-4 bg-gray-50 dark:bg-muted/20 border-t border-slate-200/50 dark:border-border/50 flex justify-end flex-shrink-0">
-          <Button onClick={handleSubmit} disabled={!formData.title.trim() || !selectedProjectId}>
+          <Button
+            onClick={handleSubmit}
+            disabled={!formData.title.trim() || (isProjectTask && !selectedProjectId)}
+          >
             Create Task
           </Button>
         </DialogFooter>
