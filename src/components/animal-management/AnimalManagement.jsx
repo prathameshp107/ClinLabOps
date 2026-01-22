@@ -1152,6 +1152,7 @@ export function AnimalManagement() {
                 isOpen={isDetailsOpen}
                 onClose={() => setIsDetailsOpen(false)}
                 animal={selectedAnimal}
+                speciesOptions={SPECIES_OPTIONS}
                 onEdit={handleEditAnimal}
                 onDelete={handleDeleteAnimal}
             />

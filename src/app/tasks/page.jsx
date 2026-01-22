@@ -28,7 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { TaskDetailsDialog } from "@/components/tasks/task-details-dialog"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { getTasks, createTask, getNextTaskId, deleteTask } from "@/services/taskService"
+import { getTasks, createTask, getNextTaskId, getNextStandaloneTaskId, deleteTask } from "@/services/taskService"
 import { getProjects, getProjectById } from "@/services/projectService"
 import { getAllUsers } from "@/services/userService"
 import { TasksLoading } from "@/components/tasks/tasks-loading"
@@ -84,6 +84,9 @@ export default function TasksPage() {
         const nextNum = getNextTaskNumberForProject(allTasks, acronym);
         customId = `${acronym}-${nextNum}`;
       }
+    } else {
+      // For tasks not linked to a project, use the customId if available
+      customId = task.customId;
     }
 
     // Resolve assignee name from users array if possible
@@ -773,6 +776,17 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
         setNextTaskId('');
         setLoadingNextTaskId(false);
       });
+    } else if (!isProjectTask) {
+      // Fetch next standalone task ID for preview
+      setLoadingNextTaskId(true);
+      getNextStandaloneTaskId().then((taskId) => {
+        setNextTaskId(taskId || "");
+        setLoadingNextTaskId(false);
+      }).catch((error) => {
+        console.error('Error fetching next standalone task ID:', error);
+        setNextTaskId('');
+        setLoadingNextTaskId(false);
+      });
     } else {
       setTeam([]);
       setNextTaskId('');
@@ -882,7 +896,7 @@ function AddTaskModalForTasks({ open, onOpenChange, onAddTask }) {
                 </div>
 
                 {/* Task ID Preview */}
-                {selectedProjectId && (
+                {(selectedProjectId || !isProjectTask) && (
                   <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 border border-indigo-200 dark:border-indigo-500/30 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
