@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useAuth } from "@/contexts/AuthContext"
+import { removeProjectDocument, downloadProjectDocument } from "@/services/projectService"
 
 const FileIcon = ({ type }) => {
   const getFileIcon = (type) => {
@@ -62,7 +63,7 @@ const FileIcon = ({ type }) => {
   );
 };
 
-export function ProjectDocuments({ documents = [], onUpload }) {
+export function ProjectDocuments({ documents = [], onUpload, projectId }) {
   const { user: currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
@@ -81,6 +82,8 @@ export function ProjectDocuments({ documents = [], onUpload }) {
   const [selectedDocuments, setSelectedDocuments] = useState([])
   const [showStats, setShowStats] = useState(true)
   const [uploadError, setUploadError] = useState("")
+  const [deletingDocId, setDeletingDocId] = useState(null)
+  const [downloadingDocId, setDownloadingDocId] = useState(null)
 
   const filteredDocuments = useMemo(() => {
     return documents?.filter(doc => {
@@ -210,6 +213,47 @@ export function ProjectDocuments({ documents = [], onUpload }) {
       setIsLoading(false)
     }
   }
+
+  const handleDeleteDocument = async (docId) => {
+    if (!projectId) return;
+
+    // Confirm deletion
+    if (!window.confirm('Are you sure you want to delete this document?')) {
+      return;
+    }
+
+    try {
+      setDeletingDocId(docId);
+      await removeProjectDocument(projectId, docId);
+
+      // Call onUpload with null to trigger parent component refresh
+      if (onUpload) {
+        await onUpload(null, { action: 'delete', docId });
+      }
+
+      // Show success message
+      alert('Document deleted successfully');
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Failed to delete document: ' + error.message);
+    } finally {
+      setDeletingDocId(null);
+    }
+  };
+
+  const handleDownloadDocument = async (docId) => {
+    if (!projectId) return;
+
+    try {
+      setDownloadingDocId(docId);
+      await downloadProjectDocument(projectId, docId);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('Failed to download document: ' + error.message);
+    } finally {
+      setDownloadingDocId(null);
+    }
+  };
 
   const handleOpenChange = (open) => {
     setIsUploadModalOpen(open)
@@ -553,11 +597,21 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 mt-auto">
-                        <Button variant="outline" size="sm" className="h-9 px-3 text-sm border-border hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors dark:hover:bg-blue-900/30 dark:hover:border-blue-700 dark:hover:text-blue-300">
-                          <Eye className="h-4 w-4 mr-1" />View
-                        </Button>
-                        <Button variant="outline" size="sm" className="h-9 px-3 text-sm border-border hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors dark:hover:bg-green-900/30 dark:hover:border-green-700 dark:hover:text-green-300">
-                          <Download className="h-4 w-4 mr-1" />Download
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 px-3 text-sm border-border hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors dark:hover:bg-blue-900/30 dark:hover:border-blue-700 dark:hover:text-blue-300"
+                          onClick={() => handleDownloadDocument(doc.id)}
+                          disabled={downloadingDocId === doc.id}
+                        >
+                          {downloadingDocId === doc.id ? (
+                            <div className="h-4 w-4 mr-1 flex items-center justify-center">
+                              <div className="animate-spin h-3 w-3 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                            </div>
+                          ) : (
+                            <Download className="h-4 w-4 mr-1" />
+                          )}
+                          {downloadingDocId === doc.id ? 'Downloading...' : 'Download'}
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -569,8 +623,13 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-blue-50 transition-colors dark:hover:bg-blue-900/30">
                               <Eye className="h-4 w-4 mr-3 text-blue-600 dark:text-blue-400" />Preview
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-green-50 transition-colors dark:hover:bg-green-900/30">
-                              <Download className="h-4 w-4 mr-3 text-green-600 dark:text-green-400" />Download
+                            <DropdownMenuItem
+                              className="text-sm py-3 px-3 rounded-lg hover:bg-green-50 transition-colors dark:hover:bg-green-900/30 cursor-pointer"
+                              onClick={() => handleDownloadDocument(doc.id)}
+                              disabled={downloadingDocId === doc.id}
+                            >
+                              <Download className="h-4 w-4 mr-3 text-green-600 dark:text-green-400" />
+                              {downloadingDocId === doc.id ? 'Downloading...' : 'Download'}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-purple-50 transition-colors dark:hover:bg-purple-900/30">
                               <Share className="h-4 w-4 mr-3 text-purple-600 dark:text-purple-400" />Share
@@ -582,8 +641,19 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                               <Edit className="h-4 w-4 mr-3 text-indigo-600 dark:text-indigo-400" />Edit
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="my-2 bg-border/50" />
-                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors dark:hover:bg-red-900/30 dark:text-red-400">
-                              <Trash className="h-4 w-4 mr-3" />Delete
+                            <DropdownMenuItem
+                              className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors dark:hover:bg-red-900/30 dark:text-red-400 cursor-pointer"
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              disabled={deletingDocId === doc.id}
+                            >
+                              {deletingDocId === doc.id ? (
+                                <div className="h-4 w-4 mr-3 flex items-center justify-center">
+                                  <div className="animate-spin h-3 w-3 border-2 border-red-500 border-t-transparent rounded-full"></div>
+                                </div>
+                              ) : (
+                                <Trash className="h-4 w-4 mr-3" />
+                              )}
+                              {deletingDocId === doc.id ? 'Deleting...' : 'Delete'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -676,17 +746,17 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                             variant="outline"
                             size="sm"
                             className="h-9 px-3 text-sm border-border hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors dark:hover:bg-blue-900/30 dark:hover:border-blue-700 dark:hover:text-blue-300"
+                            onClick={() => handleDownloadDocument(doc.id)}
+                            disabled={downloadingDocId === doc.id}
                           >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-9 px-3 text-sm border-border hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-colors dark:hover:bg-green-900/30 dark:hover:border-green-700 dark:hover:text-green-300"
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            Download
+                            {downloadingDocId === doc.id ? (
+                              <div className="h-4 w-4 mr-1 flex items-center justify-center">
+                                <div className="animate-spin h-3 w-3 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                              </div>
+                            ) : (
+                              <Download className="h-4 w-4 mr-1" />
+                            )}
+                            {downloadingDocId === doc.id ? 'Downloading...' : 'Download'}
                           </Button>
                         </div>
                         <DropdownMenu>
@@ -721,9 +791,19 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                               Edit Details
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="my-2 bg-border/50" />
-                            <DropdownMenuItem className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors dark:hover:bg-red-900/30 dark:text-red-400">
-                              <Trash className="h-4 w-4 mr-3" />
-                              Delete Document
+                            <DropdownMenuItem
+                              className="text-sm py-3 px-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors dark:hover:bg-red-900/30 dark:text-red-400 cursor-pointer"
+                              onClick={() => handleDeleteDocument(doc.id)}
+                              disabled={deletingDocId === doc.id}
+                            >
+                              {deletingDocId === doc.id ? (
+                                <div className="h-4 w-4 mr-3 flex items-center justify-center">
+                                  <div className="animate-spin h-3 w-3 border-2 border-red-500 border-t-transparent rounded-full"></div>
+                                </div>
+                              ) : (
+                                <Trash className="h-4 w-4 mr-3" />
+                              )}
+                              {deletingDocId === doc.id ? 'Deleting...' : 'Delete Document'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

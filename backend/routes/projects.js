@@ -3,7 +3,28 @@ const router = express.Router();
 const projectController = require('../controllers/projectController');
 const auth = require('../middleware/authMiddleware');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const path = require('path');
+const fs = require('fs');
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '..', 'uploads', 'project-documents');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer with custom storage
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+        // Generate unique filename
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 // Get all projects
 router.get('/', projectController.getAllProjects);
@@ -34,5 +55,11 @@ router.post('/:id/documents', upload.single('file'), projectController.uploadPro
 
 // Delete a task from a project
 router.delete('/:id/tasks/:taskId', projectController.deleteProjectTask);
+
+// Delete a document from a project
+router.delete('/:id/documents/:docId', projectController.deleteProjectDocument);
+
+// Download a document from a project
+router.get('/:id/documents/:docId/download', projectController.downloadProjectDocument);
 
 module.exports = router; 

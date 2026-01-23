@@ -563,7 +563,7 @@ exports.uploadProjectDocument = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
-        const { originalname, mimetype, size, filename, path } = req.file;
+        const { originalname, mimetype, size, filename, path: filePath } = req.file;
         const { uploadedBy = 'Unknown', tags = [], status = 'active' } = req.body;
         const newDoc = {
             id: `DOC${Date.now()}`,
@@ -574,7 +574,7 @@ exports.uploadProjectDocument = async (req, res) => {
             uploadedAt: new Date().toISOString(),
             tags: Array.isArray(tags) ? tags : (tags ? [tags] : []),
             status,
-            filePath: path,
+            filePath: filePath,
             fileName: filename
         };
         const project = await Project.findById(id);
@@ -713,6 +713,102 @@ exports.deleteProjectDocument = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Download a document from a project
+exports.downloadProjectDocument = async (req, res) => {
+    try {
+        const { id, docId } = req.params;
+        const project = await Project.findById(id);
+        if (!project) return res.status(404).json({ error: 'Project not found' });
+
+        const document = project.documents.find(d => d.id === docId);
+        if (!document) return res.status(404).json({ error: 'Document not found' });
+
+        // Check if file exists
+        if (!document.filePath) {
+            return res.status(404).json({ error: 'File path not found' });
+        }
+
+        const fs = require('fs');
+        const path = require('path');
+
+        // Resolve the absolute path for security
+        const resolvedPath = path.resolve(document.filePath);
+        const uploadsDir = path.resolve(path.join(__dirname, '..', 'uploads', 'project-documents'));
+
+        // Security check: ensure the file path is within the allowed directory
+        if (!resolvedPath.startsWith(uploadsDir)) {
+            return res.status(400).json({ error: 'Invalid file path' });
+        }
+
+        // Check if file exists on disk
+        if (!fs.existsSync(resolvedPath)) {
+            return res.status(404).json({ error: 'File not found on server' });
+        }
+
+        // Set appropriate headers for file download
+        const mimeType = getMimeType(document.type);
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader('Content-Disposition', `attachment; filename="${document.name}"`);
+
+        // Stream the file
+        const fileStream = fs.createReadStream(resolvedPath);
+        fileStream.pipe(res);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'project_document_downloaded',
+                description: `${req.user.name} downloaded document "${document.name}" from project "${project.name}"`,
+                userId: req.user._id || req.user.id,
+                projectId: project._id,
+                meta: {
+                    category: 'project',
+                    projectId: project._id,
+                    projectName: project.name,
+                    documentId: docId,
+                    documentName: document.name,
+                    operation: 'download_document'
+                }
+            });
+        }
+
+        fileStream.on('error', (err) => {
+            console.error('File stream error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Error streaming file' });
+            }
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Helper function to get MIME type from file extension
+function getMimeType(fileExtension) {
+    const mimeTypes = {
+        'pdf': 'application/pdf',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls': 'application/vnd.ms-excel',
+        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ppt': 'application/vnd.ms-powerpoint',
+        'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'txt': 'text/plain',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'svg': 'image/svg+xml',
+        'csv': 'text/csv',
+        'zip': 'application/zip',
+        'rar': 'application/x-rar-compressed',
+        '7z': 'application/x-7z-compressed'
+    };
+
+    return mimeTypes[fileExtension.toLowerCase()] || 'application/octet-stream';
+}
 
 // Get project statistics
 exports.getProjectStats = async (req, res) => {

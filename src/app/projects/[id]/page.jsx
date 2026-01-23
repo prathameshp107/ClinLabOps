@@ -45,31 +45,34 @@ export default function ProjectPage({ params }) {
   const [currentUser, setCurrentUser] = useState(null);
 
   // Add useEffect to fetch project data
-  useEffect(async () => {
-    if (!id) return;
-    setCurrentUser(await getCurrentUser());
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!id) return;
+      setCurrentUser(await getCurrentUser());
 
-
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-        const data = await getProjectById(id);
-        if (data) {
-          // The backend uses _id, but frontend components might expect id.
-          const adaptedData = { ...data, id: data._id };
-          setProject(adaptedData);
-        } else {
-          setError("Project not found.");
+      const fetchProject = async () => {
+        try {
+          setLoading(true);
+          const data = await getProjectById(id);
+          if (data) {
+            // The backend uses _id, but frontend components might expect id.
+            const adaptedData = { ...data, id: data._id };
+            setProject(adaptedData);
+          } else {
+            setError("Project not found.");
+          }
+        } catch (err) {
+          console.error("Error fetching project:", err);
+          setError("Failed to load project details.");
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Error fetching project:", err);
-        setError("Failed to load project details.");
-      } finally {
-        setLoading(false);
-      }
+      };
+
+      fetchProject();
     };
 
-    fetchProject();
+    fetchData();
   }, [id]);
 
   // Fetch tasks for this project
@@ -164,16 +167,29 @@ export default function ProjectPage({ params }) {
   // Upload document handler
   const handleUploadDocument = async (file, options) => {
     if (!project) return;
-    // Make sure to include the current user's name as the uploader if not provided
-    const uploadOptions = {
-      ...options,
-      uploadedBy: currentUser?.name || currentUser?.email || 'Unknown User'
-    };
-    const uploadedDoc = await uploadProjectDocument(project.id, file, uploadOptions)
-    setProject(prev => ({
-      ...prev,
-      documents: [...(prev.documents || []), uploadedDoc],
-    }))
+
+    // Handle document deletion
+    if (options?.action === 'delete' && options?.docId) {
+      setProject(prev => ({
+        ...prev,
+        documents: prev.documents?.filter(doc => doc.id !== options.docId) || []
+      }));
+      return;
+    }
+
+    // Handle document upload
+    if (file) {
+      // Make sure to include the current user's name as the uploader if not provided
+      const uploadOptions = {
+        ...options,
+        uploadedBy: currentUser?.name || currentUser?.email || 'Unknown User'
+      };
+      const uploadedDoc = await uploadProjectDocument(project.id, file, uploadOptions);
+      setProject(prev => ({
+        ...prev,
+        documents: [...(prev.documents || []), uploadedDoc],
+      }));
+    }
   }
 
   // Delete task using new backend
@@ -330,7 +346,7 @@ export default function ProjectPage({ params }) {
                       {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
                     </TabsContent>
                     <TabsContent value="documents" className="mt-0 focus-visible:outline-none">
-                      {project && <ProjectDocuments documents={project.documents} onUpload={handleUploadDocument} />}
+                      {project && <ProjectDocuments projectId={project.id} documents={project.documents} onUpload={handleUploadDocument} />}
                     </TabsContent>
                     <TabsContent value="timeline" className="mt-0 focus-visible:outline-none">
                       {project && <ProjectTimeline timeline={project.timeline} />}
