@@ -11,20 +11,45 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useAuth } from "@/contexts/AuthContext"
 
 const FileIcon = ({ type }) => {
   const getFileIcon = (type) => {
-    switch (type) {
+    // Normalize the type to lowercase and extract extension if it includes the full MIME type
+    const normalizedType = type?.toLowerCase();
+
+    // Extract file extension from MIME type if present (e.g., "application/pdf")
+    let ext = normalizedType;
+    if (normalizedType?.includes('/')) {
+      ext = normalizedType.split('/')[1];
+    }
+
+    switch (ext) {
       case 'pdf':
         return <FileText className="h-6 w-6 text-red-500" />;
+      case 'doc':
       case 'docx':
         return <FileText className="h-6 w-6 text-blue-600" />;
+      case 'xls':
       case 'xlsx':
+      case 'csv':
         return <FileSpreadsheet className="h-6 w-6 text-green-600" />;
+      case 'ppt':
       case 'pptx':
         return <FileSpreadsheet className="h-6 w-6 text-orange-500" />;
-      case 'img':
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'svg':
+      case 'webp':
         return <File className="h-6 w-6 text-purple-500" />;
+      case 'txt':
+        return <File className="h-6 w-6 text-slate-500 dark:text-slate-400" />;
+      case 'zip':
+      case 'rar':
+      case '7z':
+        return <File className="h-6 w-6 text-amber-500" />;
       default:
         return <File className="h-6 w-6 text-slate-500 dark:text-slate-400" />;
     }
@@ -38,11 +63,13 @@ const FileIcon = ({ type }) => {
 };
 
 export function ProjectDocuments({ documents = [], onUpload }) {
+  const { user: currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
   const [searchQuery, setSearchQuery] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [uploaderFilter, setUploaderFilter] = useState("all") // "all", "me", or specific name
   const [sortBy, setSortBy] = useState("date")
   const [viewMode, setViewMode] = useState("list") // "list" or "grid"
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
@@ -65,7 +92,15 @@ export function ProjectDocuments({ documents = [], onUpload }) {
       const matchesType = typeFilter === "all" || doc.type === typeFilter
       const matchesStatus = statusFilter === "all" || doc.status === statusFilter
 
-      return matchesSearch && matchesType && matchesStatus
+      // Filter by uploader
+      let matchesUploader = true;
+      if (uploaderFilter === "me" && currentUser) {
+        matchesUploader = doc.uploadedBy === (currentUser.name || currentUser.email);
+      } else if (uploaderFilter !== "all") {
+        matchesUploader = doc.uploadedBy === uploaderFilter;
+      }
+
+      return matchesSearch && matchesType && matchesStatus && matchesUploader
     }).sort((a, b) => {
       switch (sortBy) {
         case "name":
@@ -76,11 +111,13 @@ export function ProjectDocuments({ documents = [], onUpload }) {
           return b.size - a.size
         case "type":
           return a.type.localeCompare(b.type)
+        case "uploader":
+          return a.uploadedBy.localeCompare(b.uploadedBy)
         default:
           return new Date(b.uploadedAt) - new Date(a.uploadedAt)
       }
     }) || []
-  }, [documents, searchQuery, typeFilter, statusFilter, sortBy])
+  }, [documents, searchQuery, typeFilter, statusFilter, uploaderFilter, sortBy, currentUser])
 
   const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage)
   const paginatedDocuments = useMemo(() => {
@@ -159,7 +196,10 @@ export function ProjectDocuments({ documents = [], onUpload }) {
     setUploadError("")
     try {
       if (onUpload && selectedFile) {
-        await onUpload(selectedFile, { tags: uploadTags })
+        await onUpload(selectedFile, {
+          tags: uploadTags,
+          uploadedBy: currentUser?.name || currentUser?.email || 'Unknown User'
+        })
       }
       setIsUploadModalOpen(false)
       setSelectedFile(null)
@@ -382,6 +422,24 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                 </SelectContent>
               </Select>
 
+              <Select value={uploaderFilter} onValueChange={setUploaderFilter}>
+                <SelectTrigger className="w-40 bg-background/60 backdrop-blur-sm border-border focus:border-blue-500 focus:ring-blue-500/20 rounded-xl">
+                  <SelectValue placeholder="Uploaded By" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Uploaders</SelectItem>
+                  {currentUser && (
+                    <SelectItem value="me">Me ({currentUser.name || currentUser.email})</SelectItem>
+                  )}
+                  {Array.from(new Set(documents?.map(doc => doc.uploadedBy) || []))
+                    .filter(uploader => uploader !== (currentUser?.name || currentUser?.email))
+                    .map((uploader, index) => (
+                      <SelectItem key={index} value={uploader}>{uploader}</SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
+
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-40 bg-background/60 backdrop-blur-sm border-border focus:border-blue-500 focus:ring-blue-500/20 rounded-xl">
                   <SelectValue placeholder="Sort by" />
@@ -391,6 +449,7 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                   <SelectItem value="name">Name</SelectItem>
                   <SelectItem value="size">Size</SelectItem>
                   <SelectItem value="type">Type</SelectItem>
+                  <SelectItem value="uploader">Uploader</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -421,6 +480,13 @@ export function ProjectDocuments({ documents = [], onUpload }) {
               <span>{filteredDocuments.length} documents found</span>
               {searchQuery && (
                 <span className="text-blue-600 dark:text-blue-400">for "{searchQuery}"</span>
+              )}
+              {uploaderFilter !== "all" && (
+                <span className="text-purple-600 dark:text-purple-400">
+                  {uploaderFilter === "me"
+                    ? `uploaded by you (${currentUser?.name || currentUser?.email})`
+                    : `uploaded by ${uploaderFilter}`}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -462,7 +528,14 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                           <div className="flex flex-wrap items-center gap-x-3 text-xs text-muted-foreground mb-2">
                             <span className="flex items-center gap-1">
                               <User className="h-3 w-3" />
-                              <span className="font-medium text-foreground">{doc.uploadedBy}</span>
+                              <span className={`font-medium ${currentUser && doc.uploadedBy === (currentUser.name || currentUser.email) ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-foreground'}`}>
+                                {doc.uploadedBy}
+                              </span>
+                              {currentUser && doc.uploadedBy === (currentUser.name || currentUser.email) && (
+                                <span className="ml-1 text-xs text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-full">
+                                  You
+                                </span>
+                              )}
                             </span>
                             <span className="text-border">•</span>
                             <span className="flex items-center gap-1">
@@ -562,7 +635,14 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                           <div className="flex flex-wrap items-center gap-x-3 text-sm text-muted-foreground mb-3">
                             <span className="flex items-center gap-1">
                               <User className="h-3 w-3" />
-                              <span className="font-medium text-foreground">{doc.uploadedBy}</span>
+                              <span className={`font-medium ${currentUser && doc.uploadedBy === (currentUser.name || currentUser.email) ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-foreground'}`}>
+                                {doc.uploadedBy}
+                              </span>
+                              {currentUser && doc.uploadedBy === (currentUser.name || currentUser.email) && (
+                                <span className="ml-1 text-xs text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded-full">
+                                  You
+                                </span>
+                              )}
                             </span>
                             <span className="text-border">•</span>
                             <span className="flex items-center gap-1">
@@ -720,6 +800,7 @@ export function ProjectDocuments({ documents = [], onUpload }) {
                       setSearchQuery("")
                       setTypeFilter("all")
                       setStatusFilter("all")
+                      setUploaderFilter("all")
                     }}
                   >
                     <X className="h-4 w-4 mr-2" />
