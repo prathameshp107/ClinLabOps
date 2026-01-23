@@ -153,7 +153,7 @@ export async function deleteTask(id) {
 export async function assignTaskUser(taskId, userId) {
     try {
         const response = await api.patch(`/tasks/${taskId}/assignee`, { assignee: userId });
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error assigning task user:', error);
         throw error;
@@ -166,7 +166,7 @@ export async function assignTaskUser(taskId, userId) {
 export async function unassignTaskUser(taskId) {
     try {
         const response = await api.patch(`/tasks/${taskId}/assignee`, { assignee: null });
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error unassigning task user:', error);
         throw error;
@@ -179,7 +179,7 @@ export async function unassignTaskUser(taskId) {
 export async function updateTaskStatus(taskId, status) {
     try {
         const response = await api.put(`/tasks/${taskId}`, { status });
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error updating task status:', error);
         throw error;
@@ -192,7 +192,7 @@ export async function updateTaskStatus(taskId, status) {
 export async function updateTaskPriority(taskId, priority) {
     try {
         const response = await api.put(`/tasks/${taskId}`, { priority });
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error updating task priority:', error);
         throw error;
@@ -205,7 +205,7 @@ export async function updateTaskPriority(taskId, priority) {
 export async function addTaskSubtask(taskId, subtaskData) {
     try {
         const response = await api.post(`/tasks/${taskId}/subtasks`, subtaskData);
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error adding subtask:', error);
         throw error;
@@ -218,7 +218,7 @@ export async function addTaskSubtask(taskId, subtaskData) {
 export async function updateTaskSubtask(taskId, subtaskId, subtaskData) {
     try {
         const response = await api.put(`/tasks/${taskId}/subtasks/${subtaskId}`, subtaskData);
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error updating subtask:', error);
         throw error;
@@ -244,7 +244,7 @@ export async function removeTaskSubtask(taskId, subtaskId) {
 export async function addTaskComment(taskId, comment) {
     try {
         const response = await api.post(`/tasks/${taskId}/comments`, comment);
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error adding comment:', error);
         throw error;
@@ -292,7 +292,8 @@ export async function addTaskAttachment(taskId, file, uploadedBy) {
                 'Content-Type': 'multipart/form-data',
             },
         });
-        return response.data;
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error adding attachment:', error);
         throw error;
@@ -435,7 +436,7 @@ export async function removeTaskTag(taskId, tag) {
 export async function updateTaskAssignee(taskId, assignee) {
     try {
         const response = await api.patch(`/tasks/${taskId}/assignee`, { assignee });
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error updating task assignee:', error);
         throw error;
@@ -448,7 +449,7 @@ export async function updateTaskAssignee(taskId, assignee) {
 export async function updateTaskComment(taskId, commentId, comment) {
     try {
         const response = await api.put(`/tasks/${taskId}/comments/${commentId}`, comment);
-        return response.data;
+        return response.data?.data ? response.data.data : response.data;
     } catch (error) {
         console.error('Error updating task comment:', error);
         throw error;
