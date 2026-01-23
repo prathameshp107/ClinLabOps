@@ -81,6 +81,21 @@ export async function getNextTaskId(projectId) {
 }
 
 /**
+ * Get next available standalone task ID
+ * @returns {Promise<string>} Next standalone task ID
+ */
+export async function getNextStandaloneTaskId() {
+    try {
+        const response = await api.get(`/tasks/next-standalone-id`);
+        // Handle both wrapped and unwrapped response formats
+        return response.data?.data ? response.data.data : response.data;
+    } catch (error) {
+        console.error('Error getting next standalone task ID:', error);
+        throw error;
+    }
+}
+
+/**
  * Create a new task
  * @param {Object} taskData
  * @returns {Promise<Object>} Created task

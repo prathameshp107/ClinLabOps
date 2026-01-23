@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Beaker, Users, ArrowRight, ArrowLeft, AlertTriangle, X, CheckCircle2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -76,6 +77,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
   const [projectMembers, setProjectMembers] = useState([])
   const [selectedProjectId, setSelectedProjectId] = useState("")
   const [openTeamSelector, setOpenTeamSelector] = useState(false)
+  const [isProjectExperiment, setIsProjectExperiment] = useState(true)
   const formRef = useRef(null)
 
   // Fetch projects for dropdown
@@ -106,12 +108,17 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
 
   // Set selectedProjectId when form is initialized with experiment data
   useEffect(() => {
-    if (isEditing && experiment?.projectId) {
-      // Handle different possible formats for projectId
-      const projectId = experiment.projectId?._id || experiment.projectId?.id || experiment.projectId;
-      setSelectedProjectId(projectId)
+    if (isEditing && experiment) {
+      if (experiment?.projectId) {
+        // Handle different possible formats for projectId
+        const projectId = experiment.projectId?._id || experiment.projectId?.id || experiment.projectId;
+        setSelectedProjectId(projectId)
+        setIsProjectExperiment(true)
+      } else {
+        setIsProjectExperiment(false)
+      }
     }
-  }, [isEditing, experiment?.projectId])
+  }, [isEditing, experiment?.projectId, experiment])
 
   // Fetch project members when a project is selected or when projects/users are loaded
   useEffect(() => {
@@ -119,7 +126,6 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
       if (selectedProjectId) {
         try {
           // Find the project in our projects array
-          // Convert both IDs to strings for comparison
           const project = projects.find(p => {
             const projectId = p._id || p.id;
             return projectId && projectId.toString() === selectedProjectId.toString();
@@ -127,9 +133,9 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
 
           if (project && project.team) {
             // Map project team members to user IDs
-            const memberIds = project.team.map(member => member.id);
+            const memberIds = project.team.map(member => member.id || member._id);
             // Filter users to only include those who are in the project team
-            const projectUsers = users.filter(user => memberIds.includes(user._id));
+            const projectUsers = users.filter(user => memberIds.includes(user._id || user.id));
             setProjectMembers(projectUsers);
           } else {
             setProjectMembers([]);
@@ -144,7 +150,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
     };
 
     // Only fetch if we have both projects and users loaded
-    if (selectedProjectId && projects.length > 0 && users.length > 0) {
+    if (projects.length > 0 && users.length > 0) {
       fetchProjectMembers();
     }
   }, [selectedProjectId, projects, users]);
@@ -152,13 +158,13 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
   // Initialize form with default values or existing experiment data
   const form = useForm({
     resolver: zodResolver(experimentFormSchema),
-    defaultValues: isEditing
+    defaultValues: isEditing && experiment
       ? {
-        title: experiment.title,
-        description: experiment.description,
-        protocol: experiment.protocol,
-        status: experiment.status,
-        priority: experiment.priority,
+        title: experiment.title || "",
+        description: experiment.description || "",
+        protocol: experiment.protocol || "",
+        status: experiment.status || "planning",
+        priority: experiment.priority || "medium",
         startDate: experiment.startDate ? new Date(experiment.startDate) : new Date(),
         endDate: experiment.endDate ? new Date(experiment.endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         teamMembers: experiment.teamMembers || [],
@@ -166,7 +172,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         budget: experiment.budget || "",
         tags: experiment.tags?.join(", ") || "",
         expectedOutcome: experiment.expectedOutcome || "",
-        projectId: experiment.projectId || "",
+        projectId: experiment.projectId?._id || experiment.projectId?.id || experiment.projectId || "",
       }
       : {
         title: "",
@@ -192,12 +198,12 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
 
   // Handle project selection
   const handleProjectChange = (value) => {
-    const projectId = value === "__none__" ? "" : value;
-    setSelectedProjectId(projectId);
+    // If we're here, it means isProjectExperiment is true
+    setSelectedProjectId(value);
 
     // Use formRef to avoid circular dependency
     if (formRef.current) {
-      formRef.current.setValue("projectId", projectId);
+      formRef.current.setValue("projectId", value);
       formRef.current.setValue("teamMembers", []);
     }
   };
@@ -210,13 +216,13 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
         ? data.tags.split(",").map(tag => tag.trim())
         : [],
       // Convert dates to ISO strings
-      startDate: data.startDate.toISOString(),
-      endDate: data.endDate.toISOString(),
-      // Handle project ID - if it's the special "no project" value, set to undefined
-      projectId: data.projectId === "__none__" ? undefined : data.projectId,
+      startDate: data.startDate instanceof Date ? data.startDate.toISOString() : new Date(data.startDate).toISOString(),
+      endDate: data.endDate instanceof Date ? data.endDate.toISOString() : new Date(data.endDate).toISOString(),
+      // Handle project ID
+      projectId: isProjectExperiment ? data.projectId : undefined,
     }
 
-    onSubmit(processedData)
+    onSubmit?.(processedData)
   }
 
   // Get available users for team selection
@@ -287,12 +293,7 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div
-                key="step1"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
+              // ... (props remain)
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div className="bg-primary/10 p-2 rounded-lg">
@@ -301,42 +302,69 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                   <h3 className="text-lg font-medium">Experiment Details</h3>
                 </div>
 
-                {/* Add Project Selection Dropdown */}
+                {/* Project Association Toggle & Selection */}
                 <div className="grid grid-cols-1 gap-6 p-6 rounded-xl border border-border/40 bg-muted/5 shadow-sm">
-                  <FormField
-                    control={form.control}
-                    name="projectId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Project Association</FormLabel>
-                        <Select
-                          onValueChange={(value) => {
-                            handleProjectChange(value)
-                            field.onChange(value)
-                          }}
-                          defaultValue={field.value || "__none__"}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all">
-                              <SelectValue placeholder="Select a project" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="__none__">No Project (Independent)</SelectItem>
-                            {projects.map((project) => (
-                              <SelectItem key={project._id} value={project._id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription className="text-xs">
-                          Link this experiment to an existing project
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-medium">Link to Project</FormLabel>
+                      <FormDescription className="text-xs">
+                        Associate this experiment with an existing project
+                      </FormDescription>
+                    </div>
+                    <Switch
+                      checked={isProjectExperiment}
+                      onCheckedChange={(checked) => {
+                        setIsProjectExperiment(checked);
+                        if (!checked) {
+                          handleProjectChange(""); // Clear project if disabled
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <AnimatePresence>
+                    {isProjectExperiment && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <FormField
+                          control={form.control}
+                          name="projectId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm font-medium">Select Project</FormLabel>
+                              <Select
+                                onValueChange={(value) => {
+                                  handleProjectChange(value)
+                                  field.onChange(value)
+                                }}
+                                defaultValue={field.value}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all">
+                                    <SelectValue placeholder="Select a project" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {projects.map((project) => (
+                                    <SelectItem key={project._id} value={project._id}>
+                                      {project.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </motion.div>
                     )}
-                  />
+                  </AnimatePresence>
 
                   <FormField
                     control={form.control}
@@ -355,189 +383,189 @@ export function ExperimentForm({ experiment, onSubmit, onCancel }) {
                       </FormItem>
                     )}
                   />
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Status</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all">
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="planning">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 rounded-full bg-blue-500" />
+                                  <span>Planning</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="in-progress">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 rounded-full bg-amber-500" />
+                                  <span>In Progress</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="completed">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 rounded-full bg-green-500" />
+                                  <span>Completed</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="archived">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-2 w-2 rounded-full bg-gray-500" />
+                                  <span>Archived</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="priority"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Priority</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all">
+                                <SelectValue placeholder="Select priority" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="low">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Low</Badge>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="medium">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Medium</Badge>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="high">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">High</Badge>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 rounded-xl border border-border/40 bg-muted/5 shadow-sm">
+                    <FormField
+                      control={form.control}
+                      name="startDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Start Date</FormLabel>
                           <FormControl>
-                            <SelectTrigger className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="planning">
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-blue-500" />
-                                <span>Planning</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="in-progress">
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-amber-500" />
-                                <span>In Progress</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="completed">
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-green-500" />
-                                <span>Completed</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="archived">
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-gray-500" />
-                                <span>Archived</span>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="priority"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Priority</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all">
-                              <SelectValue placeholder="Select priority" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="low">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Low</Badge>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="medium">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Medium</Badge>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="high">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">High</Badge>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-6 rounded-xl border border-border/40 bg-muted/5 shadow-sm">
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Start Date</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            selectedDate={field.value}
-                            onDateChange={field.onChange}
-                            placeholder="Select start date"
-                            className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">End Date</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            selectedDate={field.value}
-                            onDateChange={field.onChange}
-                            placeholder="Select end date"
-                            className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
-                            minDate={form.watch('startDate')}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="budget"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Budget</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                            <Input
-                              placeholder="0.00"
-                              {...field}
-                              className="pl-7 bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
+                            <DatePicker
+                              selectedDate={field.value}
+                              onDateChange={field.onChange}
+                              placeholder="Select start date"
+                              className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
                             />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">Tags</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="chemistry, analysis, phase-1"
-                            {...field}
-                            className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
-                          />
-                        </FormControl>
-                        <FormDescription className="text-xs">
-                          Comma separated keywords
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">End Date</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              selectedDate={field.value}
+                              onDateChange={field.onChange}
+                              placeholder="Select end date"
+                              className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
+                              minDate={form.watch ? form.watch('startDate') : undefined}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                <div className="flex justify-end pt-4">
-                  <Button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="group transition-all hover:translate-x-1 shadow-lg shadow-primary/20"
-                  >
-                    Next Step
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:animate-pulse" />
-                  </Button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="budget"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Budget</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                              <Input
+                                placeholder="0.00"
+                                {...field}
+                                className="pl-7 bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="tags"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm font-medium">Tags</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="chemistry, analysis, phase-1"
+                              {...field}
+                              className="bg-background/50 border-border/50 focus:ring-primary/20 transition-all"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Comma separated keywords
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <Button
+                      type="button"
+                      onClick={() => setStep(2)}
+                      className="group transition-all hover:translate-x-1 shadow-lg shadow-primary/20"
+                    >
+                      Next Step
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}

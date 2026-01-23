@@ -67,6 +67,37 @@ const generateCustomTaskId = async (projectId) => {
     }
 };
 
+// Helper function to generate sequential standalone task ID (for tasks not linked to projects)
+const generateStandaloneTaskId = async () => {
+    try {
+        // Find the highest existing standalone task number (TASK-XX format)
+        const existingTasks = await Task.find({
+            customId: { $regex: /^TASK-\\d+$/ }
+        }).sort({ customId: -1 }).limit(1);
+
+        let nextTaskNumber = 1;
+        if (existingTasks.length > 0) {
+            const lastCustomId = existingTasks[0].customId;
+            const lastNumber = parseInt(lastCustomId.split('-')[1]);
+            nextTaskNumber = lastNumber + 1;
+        }
+
+        // Generate the custom ID: TASK-Number
+        const customId = `TASK-${nextTaskNumber}`;
+
+        // Check if this ID already exists (race condition protection)
+        const existingTask = await Task.findOne({ customId });
+        if (existingTask) {
+            // If it exists, try the next number
+            return `TASK-${nextTaskNumber + 1}`;
+        }
+
+        return customId;
+    } catch (error) {
+        throw new Error(`Failed to generate standalone task ID: ${error.message}`);
+    }
+};
+
 // Get next available task ID for a project (for preview purposes)
 exports.getNextTaskId = async (req, res) => {
     try {
@@ -83,6 +114,20 @@ exports.getNextTaskId = async (req, res) => {
         res.json({ data: nextTaskId });
     } catch (err) {
         console.error('Error generating next task ID:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Get next available standalone task ID (for preview purposes)
+exports.getNextStandaloneTaskId = async (req, res) => {
+    try {
+        // Generate the next standalone task ID without creating a task
+        const nextTaskId = await generateStandaloneTaskId();
+
+        // Wrap in data property for frontend compatibility
+        res.json({ data: nextTaskId });
+    } catch (err) {
+        console.error('Error generating next standalone task ID:', err);
         res.status(500).json({ error: err.message });
     }
 };
@@ -151,6 +196,8 @@ exports.createTask = async (req, res) => {
                 }
             }
         } else {
+            // Generate custom task ID for standalone tasks (not linked to a project)
+            data.customId = await generateStandaloneTaskId();
             const task = new Task(data);
             savedTask = await task.save();
 

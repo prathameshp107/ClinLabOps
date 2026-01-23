@@ -20,6 +20,7 @@ router.get('/', taskController.getTasks);
 
 // --- TASK ID GENERATION ---
 router.get('/project/:projectId/next-id', taskController.getNextTaskId);
+router.get('/next-standalone-id', taskController.getNextStandaloneTaskId);
 
 // Get a single task by ID
 router.get('/:id', taskController.getTaskById);
