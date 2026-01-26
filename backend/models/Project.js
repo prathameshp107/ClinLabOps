@@ -30,6 +30,8 @@ const DocumentSchema = new mongoose.Schema({
   uploadedBy: String,
   uploadedAt: String,
   tags: [String],
+  filePath: String,
+  fileName: String,
 });
 
 const MilestoneSchema = new mongoose.Schema({

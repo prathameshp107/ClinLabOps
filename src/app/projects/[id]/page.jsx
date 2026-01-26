@@ -26,6 +26,8 @@ import UserAvatar from "@/components/tasks/user-avatar"
 import { getProjectById, exportProjectData, addProjectMember, uploadProjectDocument } from "@/services/projectService"
 import { TaskStatusOverview } from "@/components/projects/task-status-overview"
 import { getTasks, createTask, deleteTask } from "@/services/taskService"
+import { getCurrentUser } from "@/services/authService"
+
 
 export default function ProjectPage({ params }) {
   const { id } = params;
@@ -40,31 +42,37 @@ export default function ProjectPage({ params }) {
   const [exporting, setExporting] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Add useEffect to fetch project data
   useEffect(() => {
-    if (!id) return;
+    const fetchData = async () => {
+      if (!id) return;
+      setCurrentUser(await getCurrentUser());
 
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-        const data = await getProjectById(id);
-        if (data) {
-          // The backend uses _id, but frontend components might expect id.
-          const adaptedData = { ...data, id: data._id };
-          setProject(adaptedData);
-        } else {
-          setError("Project not found.");
+      const fetchProject = async () => {
+        try {
+          setLoading(true);
+          const data = await getProjectById(id);
+          if (data) {
+            // The backend uses _id, but frontend components might expect id.
+            const adaptedData = { ...data, id: data._id };
+            setProject(adaptedData);
+          } else {
+            setError("Project not found.");
+          }
+        } catch (err) {
+          console.error("Error fetching project:", err);
+          setError("Failed to load project details.");
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Error fetching project:", err);
-        setError("Failed to load project details.");
-      } finally {
-        setLoading(false);
-      }
+      };
+
+      fetchProject();
     };
 
-    fetchProject();
+    fetchData();
   }, [id]);
 
   // Fetch tasks for this project
@@ -159,11 +167,29 @@ export default function ProjectPage({ params }) {
   // Upload document handler
   const handleUploadDocument = async (file, options) => {
     if (!project) return;
-    const uploadedDoc = await uploadProjectDocument(project.id, file, options)
-    setProject(prev => ({
-      ...prev,
-      documents: [...(prev.documents || []), uploadedDoc],
-    }))
+
+    // Handle document deletion
+    if (options?.action === 'delete' && options?.docId) {
+      setProject(prev => ({
+        ...prev,
+        documents: prev.documents?.filter(doc => doc.id !== options.docId) || []
+      }));
+      return;
+    }
+
+    // Handle document upload
+    if (file) {
+      // Make sure to include the current user's name as the uploader if not provided
+      const uploadOptions = {
+        ...options,
+        uploadedBy: currentUser?.name || currentUser?.email || 'Unknown User'
+      };
+      const uploadedDoc = await uploadProjectDocument(project.id, file, uploadOptions);
+      setProject(prev => ({
+        ...prev,
+        documents: [...(prev.documents || []), uploadedDoc],
+      }));
+    }
   }
 
   // Delete task using new backend
@@ -243,15 +269,15 @@ export default function ProjectPage({ params }) {
               </div>
               <div className="flex items-center gap-3">
                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold shadow-sm ${project.status === "Completed" ? "bg-green-500/10 text-green-600 border-green-200 dark:border-green-500/20" :
-                    project.status === "In Progress" ? "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-500/20" :
-                      project.status === "On Hold" ? "bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-500/20" :
-                        project.status === "Pending" ? "bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-500/20" :
-                          "bg-gray-500/10 text-gray-600 border-gray-200 dark:border-gray-500/20"
+                  project.status === "In Progress" ? "bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-500/20" :
+                    project.status === "On Hold" ? "bg-orange-500/10 text-orange-600 border-orange-200 dark:border-orange-500/20" :
+                      project.status === "Pending" ? "bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-500/20" :
+                        "bg-gray-500/10 text-gray-600 border-gray-200 dark:border-gray-500/20"
                   }`}>
                   <div className={`h-1.5 w-1.5 rounded-full ${project.status === "Completed" ? "bg-green-500" :
-                      project.status === "In Progress" ? "bg-blue-500" :
-                        project.status === "On Hold" ? "bg-orange-500" :
-                          project.status === "Pending" ? "bg-yellow-500" : "bg-gray-400"
+                    project.status === "In Progress" ? "bg-blue-500" :
+                      project.status === "On Hold" ? "bg-orange-500" :
+                        project.status === "Pending" ? "bg-yellow-500" : "bg-gray-400"
                     }`} />
                   {project.status}
                 </div>
@@ -320,7 +346,7 @@ export default function ProjectPage({ params }) {
                       {project && <ProjectTeam team={project.team} onAddMember={handleAddMember} />}
                     </TabsContent>
                     <TabsContent value="documents" className="mt-0 focus-visible:outline-none">
-                      {project && <ProjectDocuments documents={project.documents} onUpload={handleUploadDocument} />}
+                      {project && <ProjectDocuments projectId={project.id} documents={project.documents} onUpload={handleUploadDocument} />}
                     </TabsContent>
                     <TabsContent value="timeline" className="mt-0 focus-visible:outline-none">
                       {project && <ProjectTimeline timeline={project.timeline} />}

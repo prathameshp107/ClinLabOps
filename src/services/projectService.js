@@ -285,10 +285,18 @@ export function addProjectDocument(projectId, document) {
 
 /**
  * Remove a document from a project
+ * @param {string} projectId
+ * @param {string} documentId
+ * @returns {Promise<Object>} Deleted document
  */
-export function removeProjectDocument(projectId, documentId) {
-  // This would need backend implementation
-  return Promise.resolve({ projectId, documentId });
+export async function removeProjectDocument(projectId, documentId) {
+  try {
+    const response = await api.delete(`/projects/${projectId}/documents/${documentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error removing project document:', error);
+    throw error;
+  }
 }
 
 /**
@@ -327,10 +335,41 @@ export async function uploadProjectDocument(projectId, file, options = {}) {
 
 /**
  * Download a document from a project
+ * @param {string} projectId
+ * @param {string} documentId
+ * @returns {Promise<Blob>} File blob for download
  */
-export function downloadProjectDocument(projectId, documentId) {
-  // This would need backend implementation
-  return Promise.resolve({ projectId, documentId, url: '/mock-download-url' });
+export async function downloadProjectDocument(projectId, documentId) {
+  try {
+    const response = await api.get(`/projects/${projectId}/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+
+    // Get filename from Content-Disposition header if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `document_${documentId}`;
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    return { success: true, message: 'Document downloaded successfully' };
+  } catch (error) {
+    console.error('Error downloading project document:', error);
+    throw error;
+  }
 }
 
 /**

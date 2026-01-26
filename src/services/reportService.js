@@ -32,6 +32,17 @@ export const getReports = async (params = {}) => {
     }
 };
 
+// Get single report by ID
+export const getReportById = async (id) => {
+    try {
+        const response = await api.get(`/api/gridfs-reports/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch report:', error);
+        throw new Error(`Failed to fetch report: ${error.message}`);
+    }
+};
+
 // Create a new report
 export const createReport = async (formData) => {
     try {
@@ -192,15 +203,32 @@ export const downloadReport = async (id) => {
     }
 };
 
+
+
+// Get report content (blob) for viewing
+export const getReportContent = async (id) => {
+    try {
+        const response = await api.get(`/api/gridfs-reports/gridfs-download/${id}`, {
+            responseType: 'blob'
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to get report content:', error);
+        throw new Error(`Failed to get report content: ${error.message}`);
+    }
+};
+
 // Report service object with methods matching the frontend usage
 export const reportService = {
     getAll: getReports,
+    getById: getReportById,
     create: createReport,
     upload: uploadReport,
     update: updateReport,
     delete: deleteReport,
     generate: generateReport,
-    download: downloadReport
+    download: downloadReport,
+    getContent: getReportContent
 };
 
 export default {

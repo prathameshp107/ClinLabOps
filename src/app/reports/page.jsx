@@ -32,11 +32,13 @@ import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    Maximize2
 } from "lucide-react"
 import { reportService } from "@/services/reportService"
 import { formatFileSize } from "@/lib/utils"
 import config from '@/config/config'
+import { FileViewer } from "@/components/reports/file-viewer"
 
 // Add this CSS for theme-aware skeleton loaders
 const skeletonStyles = `
@@ -890,29 +892,7 @@ function ReportsPage() {
                                     <div className="grid grid-cols-4 items-start gap-4">
                                         <Label className="text-right pt-2 font-medium">Preview</Label>
                                         <div className="col-span-3">
-                                            {['jpg', 'jpeg', 'png', 'gif'].includes(selectedReport.format?.toLowerCase()) ? (
-                                                <div className="border rounded-lg overflow-hidden shadow-sm">
-                                                    <img
-                                                        src={`${config.api.backendUrl}${selectedReport.fileUrl}`}
-                                                        alt={selectedReport.title}
-                                                        className="w-full max-h-64 object-contain"
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <div className="border rounded-lg p-6 bg-muted/50 flex items-center justify-center min-h-40 shadow-sm">
-                                                    <div className="text-center">
-                                                        <div className="bg-muted rounded-full p-3 inline-block mb-3">
-                                                            <FileText className="h-8 w-8 text-muted-foreground" />
-                                                        </div>
-                                                        <p className="text-sm text-muted-foreground font-medium">
-                                                            Preview not available for {selectedReport.format?.toUpperCase()} files
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                            Download the file to view its contents
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <FileViewer report={selectedReport} />
                                         </div>
                                     </div>
                                 </div>
@@ -921,6 +901,19 @@ function ReportsPage() {
                             )}
 
                             <DialogFooter className="gap-2 sm:justify-end px-6 py-4 bg-muted/30 shrink-0">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsViewModalOpen(false)
+                                        if (selectedReport) {
+                                            window.open(`/reports/${selectedReport._id}`, '_blank')
+                                        }
+                                    }}
+                                    className="px-6"
+                                >
+                                    <Maximize2 className="mr-2 h-4 w-4" />
+                                    Expand View
+                                </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => setIsViewModalOpen(false)}
