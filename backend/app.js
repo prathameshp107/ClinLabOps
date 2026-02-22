@@ -6,8 +6,10 @@ const fs = require('fs');
 const path = require('path');
 const session = require('express-session');
 const passport = require('./config/passport');
+const http = require('http');
 
 const app = express();
+const server = http.createServer(app);
 
 // Import logger middleware
 const logger = require('./middleware/logger');
@@ -35,7 +37,7 @@ console.log('Upload directories verified:', { uploadsDir, reportsDir });
 
 // Middleware
 app.use(cors({
-    origin: config.cors.origin,
+    origin: config.nodeEnv === 'development' ? true : config.cors.origin,
     credentials: config.cors.credentials,
     exposedHeaders: ['Content-Disposition', 'Content-Type', 'Content-Length'] // Expose these headers to frontend
 }));
@@ -198,6 +200,19 @@ if (config.email.provider) {
     console.log('📧 Email service not configured - skipping initialization');
 }
 
+// Initialize Socket.IO
+const io = require('socket.io')(server, {
+    cors: {
+        origin: config.nodeEnv === 'development' ? "*" : config.cors.origin,
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
+
+// Initialize ELN Socket Handlers
+const ELNSocketHandlers = require('./services/elnSocketHandlers');
+const elnSocketHandlers = new ELNSocketHandlers(io);
+
 const enquiriesRouter = require('./routes/enquiries');
 app.use('/api/enquiries', enquiriesRouter);
 
@@ -276,6 +291,10 @@ app.use('/api/uploaded-reports', uploadedReportsRouter);
 const gridfsReportsRouter = require('./routes/gridfsReports');
 app.use('/api/gridfs-reports', gridfsReportsRouter);
 
+// ELN (Electronic Lab Notebook) routes
+const elnsRouter = require('./routes/elns');
+app.use('/api/elns', elnsRouter);
+
 // Initialize deadline notification service
 const deadlineNotificationService = require('./services/deadlineNotificationService');
 // Start the scheduler in production mode
@@ -289,7 +308,7 @@ app.use('/api/deadline-notifications', deadlineNotificationsRouter);
 
 // Only start the server if this file is run directly
 if (require.main === module) {
-    const server = app.listen(config.port, () => {
+    server.listen(config.port, () => {
         console.log(`🚀 Server running on port ${config.port} in ${config.nodeEnv} mode`);
         console.log(`🔗 Health check endpoint: http://localhost:${config.port}/health`);
     });
