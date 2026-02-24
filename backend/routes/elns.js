@@ -10,6 +10,7 @@ const {
     addCollaborator,
     removeCollaborator,
     addComment,
+    deleteComment,
     searchELNEntries
 } = require('../controllers/elnController');
 const { protect } = require('../middleware/authMiddleware');
@@ -43,6 +44,9 @@ router.delete('/:id/collaborators', removeCollaborator);
 
 // POST /api/elns/:id/comments - Add comments
 router.post('/:id/comments', addComment);
+
+// DELETE /api/elns/:id/comments/:commentId - Delete comment
+router.delete('/:id/comments/:commentId', deleteComment);
 
 // GET /api/elns/search - Search ELN entries
 router.get('/search', searchELNEntries);

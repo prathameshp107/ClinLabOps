@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import ELNEditor from '@/components/eln/ELNEditor';
 import { createELNEntry } from '@/services/elnService';
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 const NewELNPage = () => {
     const router = useRouter();
@@ -34,20 +35,17 @@ const NewELNPage = () => {
     };
 
     return (
-        <div className="container mx-auto py-6">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">Create New ELN Entry</h1>
-                <p className="text-muted-foreground mt-2">
-                    Create a new electronic lab notebook entry
-                </p>
+        <DashboardLayout>
+            <div className="min-h-screen bg-slate-50/30 pb-20">
+                <div className="max-w-[1400px] mx-auto p-6 md:p-8 animate-in fade-in duration-700">
+                    <ELNEditor
+                        onSave={handleSave}
+                        onCancel={handleCancel}
+                        isLoading={loading}
+                    />
+                </div>
             </div>
-
-            <ELNEditor
-                onSave={handleSave}
-                onCancel={handleCancel}
-                isLoading={loading}
-            />
-        </div>
+        </DashboardLayout>
     );
 };
 

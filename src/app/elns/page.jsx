@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import ELNList from '@/components/eln/ELNList';
-import { getELNEntries, searchELNEntries } from '@/services/elnService';
+import { getELNEntries, searchELNEntries, deleteELNEntry } from '@/services/elnService';
+import { DashboardLayout } from "@/components/dashboard/layout/dashboard-layout"
 
 const ELNDashboardPage = () => {
     const router = useRouter();
@@ -62,15 +63,8 @@ const ELNDashboardPage = () => {
     const handleDelete = async (entry) => {
         if (window.confirm(`Are you sure you want to delete "${entry.title}"?`)) {
             try {
-                const response = await fetch(`/api/elns/${entry._id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
+                const result = await deleteELNEntry(entry._id);
 
-                const result = await response.json();
                 if (result.success) {
                     setElnEntries(elnEntries.filter(e => e._id !== entry._id));
                 } else {
@@ -84,24 +78,37 @@ const ELNDashboardPage = () => {
     };
 
     return (
-        <div className="container mx-auto py-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Electronic Lab Notebook</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage your laboratory notes and experiments in a collaborative environment
-                </p>
-            </div>
+        <DashboardLayout>
+            <div className="min-h-screen bg-slate-50/30">
+                <div className="max-w-[1400px] mx-auto p-6 md:p-8 space-y-8">
+                    {/* Header Section */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">
+                                <span className="w-8 h-[2px] bg-blue-600" />
+                                Scientific Records
+                            </div>
+                            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+                                Electronic Lab <span className="text-blue-600">Notebook</span>
+                            </h1>
+                            <p className="text-slate-500 max-w-2xl text-lg font-medium">
+                                Professional documentation for laboratory experiments, research findings, and collaborative investigations.
+                            </p>
+                        </div>
+                    </div>
 
-            <ELNList
-                elnEntries={elnEntries}
-                loading={loading}
-                searchTerm={searchTerm}
-                onSearch={handleSearch}
-                onCreateNew={handleCreateNew}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-            />
-        </div>
+                    <ELNList
+                        elnEntries={elnEntries}
+                        loading={loading}
+                        searchTerm={searchTerm}
+                        onSearch={handleSearch}
+                        onCreateNew={handleCreateNew}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                    />
+                </div>
+            </div>
+        </DashboardLayout>
     );
 };
 

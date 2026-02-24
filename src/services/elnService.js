@@ -108,6 +108,16 @@ export const addComment = async (id, content, parentId = null) => {
     return response.json();
 };
 
+// Delete comment
+export const deleteComment = async (id, commentId) => {
+    const response = await fetch(`${API_BASE_URL}/elns/${id}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+    });
+
+    return response.json();
+};
+
 // Search ELN entries
 export const searchELNEntries = async (query) => {
     const response = await fetch(`${API_BASE_URL}/elns/search?q=${encodeURIComponent(query)}`, {

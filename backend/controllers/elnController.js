@@ -10,30 +10,38 @@ const getELNEntries = async (req, res) => {
     try {
         const { page = 1, limit = 10, status, projectId, experimentId, search } = req.query;
 
-        const query = {};
+        const userId = req.user._id.toString();
 
-        // Add filters
-        if (status) query.status = status;
-        if (projectId) query.projectId = projectId;
-        if (experimentId) query.experimentId = experimentId;
+        // Base query with permission check
+        const query = {
+            $and: [
+                {
+                    $or: [
+                        { author: userId },
+                        { 'collaborators': { $in: [userId] } }
+                    ]
+                }
+            ]
+        };
+
+        // Add optional filters
+        if (status) query.$and.push({ status });
+        if (projectId) query.$and.push({ projectId });
+        if (experimentId) query.$and.push({ experimentId });
+
         if (search) {
-            query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { content: { $regex: search, $options: 'i' } },
-                { tags: { $in: [new RegExp(search, 'i')] } }
-            ];
+            query.$and.push({
+                $or: [
+                    { title: { $regex: search, $options: 'i' } },
+                    { content: { $regex: search, $options: 'i' } },
+                    { tags: { $in: [new RegExp(search, 'i')] } }
+                ]
+            });
         }
 
-        // Add permission check - users can only see their own entries or entries they collaborate on
-        const userId = req.user._id.toString();
-        query.$or = [
-            { author: userId },
-            { 'collaborators': { $in: [userId] } }
-        ];
-
         const elnEntries = await ELNEntry.find(query)
-            .populate('author', 'name email')
-            .populate('collaborators', 'name email')
+            .populate('author', 'name email avatar')
+            .populate('collaborators', 'name email avatar')
             .populate('projectId', 'name')
             .populate('experimentId', 'title')
             .sort({ createdAt: -1 })
@@ -86,8 +94,8 @@ const getELNEntryById = async (req, res) => {
         }
 
         const elnEntry = await ELNEntry.findById(id)
-            .populate('author', 'name email')
-            .populate('collaborators', 'name email')
+            .populate('author', 'name email avatar')
+            .populate('collaborators', 'name email avatar')
             .populate('projectId', 'name')
             .populate('experimentId', 'title');
 
@@ -118,7 +126,38 @@ const getELNEntryById = async (req, res) => {
             });
         }
 
-        res.status(200).json({ success: true, data: elnEntry });
+        // Fetch and structure comments
+        const comments = await ELNComment.find({ elnEntryId: id })
+            .populate('author', 'name email avatar')
+            .sort({ createdAt: 1 });
+
+        const commentMap = {};
+        const roots = [];
+
+        comments.forEach(comment => {
+            const commentObj = comment.toObject();
+            commentObj.replies = [];
+            commentMap[commentObj._id.toString()] = commentObj;
+        });
+
+        comments.forEach(comment => {
+            const commentObj = commentMap[comment._id.toString()];
+            if (commentObj.parentCommentId) {
+                const parent = commentMap[commentObj.parentCommentId.toString()];
+                if (parent) {
+                    parent.replies.push(commentObj);
+                } else {
+                    roots.push(commentObj);
+                }
+            } else {
+                roots.push(commentObj);
+            }
+        });
+
+        const elnEntryObj = elnEntry.toObject();
+        elnEntryObj.comments = roots;
+
+        res.status(200).json({ success: true, data: elnEntryObj });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -133,9 +172,11 @@ const createELNEntry = async (req, res) => {
     try {
         const { title, content, projectId, experimentId, tags, status } = req.body;
 
+        const sanitizedContent = elnService.sanitizeContent(content);
+
         const newELNEntry = new ELNEntry({
             title,
-            content,
+            content: sanitizedContent,
             author: req.user._id,
             projectId,
             experimentId,
@@ -149,7 +190,7 @@ const createELNEntry = async (req, res) => {
         const initialVersion = new ELNVersion({
             elnEntryId: savedEntry._id,
             versionNumber: 1,
-            content: content,
+            content: sanitizedContent,
             author: req.user._id,
             changes: 'Initial version'
         });
@@ -169,10 +210,12 @@ const createELNEntry = async (req, res) => {
             });
         }
 
+        const populatedEntry = await savedEntry.populate('author', 'name email avatar');
+
         res.status(201).json({
             success: true,
             message: 'ELN entry created successfully',
-            data: savedEntry
+            data: populatedEntry
         });
     } catch (error) {
         res.status(500).json({
@@ -214,7 +257,7 @@ const updateELNEntry = async (req, res) => {
 
         // Update fields
         if (title !== undefined) elnEntry.title = title;
-        if (content !== undefined) elnEntry.content = content;
+        if (content !== undefined) elnEntry.content = elnService.sanitizeContent(content);
         if (projectId !== undefined) elnEntry.projectId = projectId;
         if (experimentId !== undefined) elnEntry.experimentId = experimentId;
         if (tags !== undefined) elnEntry.tags = tags;
@@ -231,7 +274,7 @@ const updateELNEntry = async (req, res) => {
         const newVersion = new ELNVersion({
             elnEntryId: updatedEntry._id,
             versionNumber: newVersionNumber,
-            content: content || elnEntry.content,
+            content: elnService.sanitizeContent(content || elnEntry.content),
             author: req.user._id,
             changes: versionChanges
         });
@@ -251,10 +294,15 @@ const updateELNEntry = async (req, res) => {
             });
         }
 
+        const populatedEntry = await updatedEntry.populate([
+            { path: 'author', select: 'name email avatar' },
+            { path: 'collaborators', select: 'name email avatar' }
+        ]);
+
         res.status(200).json({
             success: true,
             message: 'ELN entry updated successfully',
-            data: updatedEntry
+            data: populatedEntry
         });
     } catch (error) {
         res.status(500).json({
@@ -367,7 +415,7 @@ const getELNVersions = async (req, res) => {
         }
 
         const versions = await ELNVersion.find({ elnEntryId: id })
-            .populate('author', 'name email')
+            .populate('author', 'name email avatar')
             .sort({ versionNumber: -1 });
 
         res.status(200).json({ success: true, data: versions });
@@ -422,10 +470,15 @@ const addCollaborator = async (req, res) => {
             await elnEntry.save();
         }
 
+        const populatedEntry = await elnEntry.populate([
+            { path: 'author', select: 'name email avatar' },
+            { path: 'collaborators', select: 'name email avatar' }
+        ]);
+
         res.status(200).json({
             success: true,
             message: 'Collaborator added successfully',
-            data: elnEntry
+            data: populatedEntry
         });
     } catch (error) {
         res.status(500).json({
@@ -478,10 +531,15 @@ const removeCollaborator = async (req, res) => {
         );
         await elnEntry.save();
 
+        const populatedEntry = await elnEntry.populate([
+            { path: 'author', select: 'name email avatar' },
+            { path: 'collaborators', select: 'name email avatar' }
+        ]);
+
         res.status(200).json({
             success: true,
             message: 'Collaborator removed successfully',
-            data: elnEntry
+            data: populatedEntry
         });
     } catch (error) {
         res.status(500).json({
@@ -560,7 +618,7 @@ const addComment = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Comment added successfully',
-            data: await savedComment.populate('author', 'name email')
+            data: await savedComment.populate('author', 'name email avatar')
         });
     } catch (error) {
         res.status(500).json({
@@ -568,6 +626,75 @@ const addComment = async (req, res) => {
             message: 'Error adding comment',
             error: error.message
         });
+    }
+};
+
+/**
+ * Delete a comment from an ELN entry
+ */
+const deleteComment = async (req, res) => {
+    try {
+        const { id, commentId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(commentId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid comment ID'
+            });
+        }
+
+        const comment = await ELNComment.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({
+                success: false,
+                message: 'Comment not found'
+            });
+        }
+
+        const elnEntry = await ELNEntry.findById(id);
+        if (!elnEntry) {
+            return res.status(404).json({
+                success: false,
+                message: 'ELN entry not found'
+            });
+        }
+
+        // Check if user is author of comment OR author of ELN entry
+        const userId = req.user._id.toString();
+        const commentAuthorId = comment.author.toString();
+        const elnAuthorId = elnEntry.author.toString();
+
+        if (userId !== commentAuthorId && userId !== elnAuthorId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Access denied'
+            });
+        }
+
+        // Delete the comment and its replies
+        await ELNComment.deleteMany({ parentCommentId: commentId });
+        await ELNComment.findByIdAndDelete(commentId);
+
+        // Log activity
+        if (req.user) {
+            await ActivityService.logActivity({
+                type: 'eln_comment_deleted',
+                description: `${req.user.name} deleted a comment from ELN entry: ${elnEntry.title}`,
+                userId: req.user._id || req.user.id,
+                meta: {
+                    category: 'eln',
+                    elnId: id,
+                    commentId: commentId
+                }
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Comment deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -583,24 +710,28 @@ const searchELNEntries = async (req, res) => {
             });
         }
 
+        const userId = req.user._id.toString();
         const query = {
-            $or: [
-                { title: { $regex: q, $options: 'i' } },
-                { content: { $regex: q, $options: 'i' } },
-                { tags: { $in: [new RegExp(q, 'i')] } }
+            $and: [
+                {
+                    $or: [
+                        { author: userId },
+                        { 'collaborators': { $in: [userId] } }
+                    ]
+                },
+                {
+                    $or: [
+                        { title: { $regex: q, $options: 'i' } },
+                        { content: { $regex: q, $options: 'i' } },
+                        { tags: { $in: [new RegExp(q, 'i')] } }
+                    ]
+                }
             ]
         };
 
-        // Add permission check
-        const userId = req.user._id.toString();
-        query.$or.push(
-            { author: userId },
-            { 'collaborators': { $in: [userId] } }
-        );
-
         const elnEntries = await ELNEntry.find(query)
-            .populate('author', 'name email')
-            .populate('collaborators', 'name email')
+            .populate('author', 'name email avatar')
+            .populate('collaborators', 'name email avatar')
             .populate('projectId', 'name')
             .populate('experimentId', 'title')
             .sort({ createdAt: -1 })
@@ -636,5 +767,6 @@ module.exports = {
     addCollaborator,
     removeCollaborator,
     addComment,
+    deleteComment,
     searchELNEntries
 };

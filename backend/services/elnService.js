@@ -32,7 +32,7 @@ const sanitizeContent = (content) => {
             'td': ['style', 'class', 'id', 'colspan', 'rowspan'],
             'th': ['style', 'class', 'id', 'colspan', 'rowspan']
         },
-        allowedSchemes: ['http', 'https', 'mailto', 'ftp'],
+        allowedSchemes: ['http', 'https', 'mailto', 'ftp', 'data'],
         allowedSchemesByTag: {},
         allowedClasses: {
             '*': ['*']
@@ -157,8 +157,8 @@ const getFilteredEntries = async (filters, options = {}) => {
         }
 
         const populateOptions = options.populate || [
-            { path: 'author', select: 'name email' },
-            { path: 'collaborators', select: 'name email' },
+            { path: 'author', select: 'name email avatar' },
+            { path: 'collaborators', select: 'name email avatar' },
             { path: 'projectId', select: 'name' },
             { path: 'experimentId', select: 'title' }
         ];
